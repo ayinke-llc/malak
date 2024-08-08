@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+  postgres_db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_PASSWORD=malak
+      - POSTGRES_USER=malak
+    ports:
+      - "3432:5432"
+    volumes:
+      - ./docker-data/postgres/postgresql:/var/lib/postgres:z
+
+  redis_server:
+    image: redis
+    ports:
+      - "3379:6379"
+
+  otel:
+    image: grafana/otel-lgtm
+    ports:
+      - "3317:4317"
+      - "3318:4318"
+      - "3300:3000"
