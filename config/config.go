@@ -4,19 +4,36 @@ import (
 	"github.com/caarlos0/env/v9"
 )
 
+// ENUM(postgres)
+type DatabaseType string
+
 type Config struct {
-	LogLevel string `json:"level,omitempty" env:"LOG_LEVEL"`
+	Logging struct {
+		Level string `yaml:"level" mapstructure:"level"`
+	} `yaml:"logging" mapstructure:"logging"`
 
-	OtelEndpoint string `json:"otel_endpoint,omitempty" env:"OTEL_ENDPOINT"`
-	OtelUseTLS   bool   `env:"OTEL_USE_TLS" json:"otel_use_tls,omitempty"`
-	OtelHeaders  string `env:"OTEL_HEADERS"`
+	Database struct {
+		Postgres struct {
+			DSN        string `yaml:"dsn" mapstructure:"dsn"`
+			LogQueries bool   `yaml:"log_queries" mapstructure:"log_queries"`
+		} `yaml:"postgres" mapstructure:"postgres"`
 
-	PostgresDSN string `env:"POSTGRES_DSN" json:"postgres_dsn,omitempty"`
+		Redis struct {
+			DSN string `yaml:"dsn" mapstructure:"dsn"`
+		} `yaml:"redis" mapstructure:"redis"`
+	} `yaml:"database" mapstructure:"database"`
 
-	// DISABLE IN PROD
-	PostgresLogQueries bool `env:"POSTGRES_LOG_QUERIES" json:"postgres_log_queries,omitempty"`
+	Otel struct {
+		Endpoint    string            `yaml:"endpoint" mapstructure:"endpoint"`
+		UseTLS      bool              `yaml:"use_tls" mapstructure:"use_tls"`
+		Headers     map[string]string `yaml:"headers" mapstructure:"headers"`
+		IsEnabled   bool              `yaml:"is_enabled" mapstructure:"is_enabled"`
+		ServiceName string            `yaml:"service_name" mapstructure:"service_name"`
+	} `yaml:"otel" mapstructure:"otel"`
 
-	RedisDSN string `env:"REDIS_DSN" json:"redis_dsn,omitempty"`
+	HTTP struct {
+		Port int `yaml:"port" mapstructure:"port"`
+	} `yaml:"http" mapstructure:"http"`
 }
 
 func Load() (Config, error) {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"os"
 	"os/signal"
@@ -63,6 +64,8 @@ func addHTTPCommand(c *cobra.Command) {
 				logrus.WithError(err).Fatal("could not load configuration details")
 			}
 
+			json.NewEncoder(os.Stdout).Encode(cfg)
+
 			lvl, err := logrus.ParseLevel(cfg.LogLevel)
 			if err != nil {
 				lvl = logrus.DebugLevel
@@ -77,7 +80,7 @@ func addHTTPCommand(c *cobra.Command) {
 
 			cleanup := initOTELCapabilities(cfg, logger)
 
-			opts, err := redis.ParseURL(cfg.RedisDSN)
+			opts, err := redis.ParseURL("dood")
 			if err != nil {
 				log.Fatal(err)
 			}
