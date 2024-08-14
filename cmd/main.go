@@ -61,7 +61,7 @@ func Execute() error {
 
 	rootCmd.PersistentFlags().StringP("config", "c", defaultConfigFilePath, "Config file. This is in YAML")
 
-	addHTTPCommand(rootCmd)
+	addHTTPCommand(rootCmd, cfg)
 
 	return rootCmd.Execute()
 }
@@ -74,8 +74,8 @@ func initializeConfig(cfg *config.Config, pathToFile string) error {
 	setDefaults()
 
 	viper.AddConfigPath(filepath.Join(homePath, ".config", defaultConfigFilePath))
-	viper.AddConfigPath(".")
 	viper.AddConfigPath(pathToFile)
+	viper.AddConfigPath(".")
 
 	viper.SetConfigName(defaultConfigFilePath)
 	viper.SetConfigType("yml")
@@ -96,8 +96,11 @@ func initializeConfig(cfg *config.Config, pathToFile string) error {
 
 func setDefaults() {
 	viper.SetDefault("logging.level", "debug")
+	viper.SetDefault("logging.level.format", config.LogFormatJson)
 
 	viper.SetDefault("database.redis.dsn", "redis://localhost:3379")
+
+	viper.SetDefault("database.postgres.database_type", config.DatabaseTypePostgres)
 	viper.SetDefault("database.postgres.log_queries", true)
 	viper.SetDefault("database.postgres.dsn", "postgres://makal:makal@localhost:3432/makal?sslmode=disable")
 
