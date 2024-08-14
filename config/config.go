@@ -1,5 +1,7 @@
 package config
 
+import "github.com/google/uuid"
+
 // Only Postgres for now. Later on we can add support for sqlite3
 // ENUM(postgres)
 type DatabaseType string
@@ -35,4 +37,23 @@ type Config struct {
 	HTTP struct {
 		Port int `yaml:"port" mapstructure:"port"`
 	} `yaml:"http" mapstructure:"http"`
+
+	Billing struct {
+		Stripe struct {
+			APIKey    string `yaml:"api_key" mapstructure:"api_key"`
+			APISecret string `yaml:"api_secret" mapstructure:"api_secret"`
+
+			// If stripe is not enabled, then fake ids can be used in the
+			// plans table really
+			// Ideally self hosted users will want to disable this
+			IsEnabled bool `yaml:"is_enabled" mapstructure:"is_enabled"`
+		} `yaml:"stripe" mapstructure:"stripe"`
+
+		// Newly created workspaces will have this plan automatically
+		// applied upon creation
+		DefaultPlan uuid.UUID `yaml:"default_plan" mapstructure:"default_plan"`
+	} `yaml:"billing" mapstructure:"billing"`
+
+	Email struct {
+	}
 }

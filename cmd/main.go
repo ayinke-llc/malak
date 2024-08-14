@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ayinke-llc/malak/config"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -99,7 +100,6 @@ func setDefaults() {
 	viper.SetDefault("logging.level.format", config.LogFormatJson)
 
 	viper.SetDefault("database.redis.dsn", "redis://localhost:3379")
-
 	viper.SetDefault("database.postgres.database_type", config.DatabaseTypePostgres)
 	viper.SetDefault("database.postgres.log_queries", true)
 	viper.SetDefault("database.postgres.dsn", "postgres://makal:makal@localhost:3432/makal?sslmode=disable")
@@ -110,4 +110,7 @@ func setDefaults() {
 	viper.SetDefault("otel.endpoint", "localhost:9500")
 
 	viper.SetDefault("http.port", 4200)
+
+	viper.SetDefault("biling.stripe.is_enabled", false)
+	viper.SetDefault("billing.default_plan", uuid.Nil)
 }

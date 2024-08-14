@@ -1,8 +1,8 @@
 FROM golang:1.22.4 as build-env
-WORKDIR /go
+WORKDIR /go/malak
 
-COPY ./go.mod /go/
-COPY ./go.sum /go/
+COPY ./go.mod /go/malak
+COPY ./go.sum /go/malak
 
 # Get dependancies - will also be cached if we won't change mod/sum
 RUN go mod download
