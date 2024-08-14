@@ -7,9 +7,9 @@ import (
 	"syscall"
 
 	"github.com/ayinke-llc/malak/config"
-	"github.com/spf13/cobra"
-
+	"github.com/ayinke-llc/malak/server"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
@@ -40,27 +40,13 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 
-			logrus.SetOutput(os.Stdout)
-
-			var formatter logrus.Formatter = &logrus.JSONFormatter{}
-
-			if cfg.Logging.Format == config.LogFormatText {
-				formatter = &logrus.TextFormatter{}
-			}
-
-			logrus.SetFormatter(formatter)
-
-			lvl, err := logrus.ParseLevel(cfg.Logging.Level)
-			if err != nil {
-				lvl = logrus.DebugLevel
-			}
-
-			logrus.SetLevel(lvl)
-
 			h, _ := os.Hostname()
 
 			logger := logrus.WithField("host", h).
 				WithField("app", "malak")
+
+			srv, cleanupSrv := server.New(logger, *cfg)
+			_ = srv
 
 			// opts, err := redis.ParseURL(cfg.Database.Redis.DSN)
 			// if err != nil {
@@ -83,8 +69,8 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			<-sig
 
-			logger.Debug("shutting down server")
-			// cleanup()
+			logger.Debug("shutting down Malak's server")
+			cleanupSrv()
 		},
 	}
 

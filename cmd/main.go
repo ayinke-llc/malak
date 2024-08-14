@@ -10,6 +10,7 @@ import (
 
 	"github.com/ayinke-llc/malak/config"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -53,7 +54,33 @@ func Execute() error {
 				return err
 			}
 
-			return initializeConfig(cfg, confFile)
+			if err := initializeConfig(cfg, confFile); err != nil {
+				return err
+			}
+
+			logrus.SetOutput(os.Stdout)
+
+			var formatter logrus.Formatter = &logrus.JSONFormatter{}
+
+			if cfg.Logging.Format == config.LogFormatText {
+				formatter = &logrus.TextFormatter{}
+			}
+
+			logrus.SetFormatter(formatter)
+
+			lvl, err := logrus.ParseLevel(cfg.Logging.Level)
+			if err != nil {
+				lvl = logrus.DebugLevel
+			}
+
+			logrus.SetLevel(lvl)
+
+			if err := cfg.Validate(); err != nil {
+				logrus.WithError(err).Error("could not validate configuration")
+				return err
+			}
+
+			return nil
 		},
 	}
 
@@ -66,6 +93,7 @@ func Execute() error {
 
 	return rootCmd.Execute()
 }
+
 func initializeConfig(cfg *config.Config, pathToFile string) error {
 	homePath, err := os.UserHomeDir()
 	if err != nil {
@@ -96,8 +124,9 @@ func initializeConfig(cfg *config.Config, pathToFile string) error {
 }
 
 func setDefaults() {
+
 	viper.SetDefault("logging.level", "debug")
-	viper.SetDefault("logging.level.format", config.LogFormatJson)
+	viper.SetDefault("logging.format", config.LogFormatJson)
 
 	viper.SetDefault("database.redis.dsn", "redis://localhost:3379")
 	viper.SetDefault("database.postgres.database_type", config.DatabaseTypePostgres)
@@ -107,9 +136,9 @@ func setDefaults() {
 	viper.SetDefault("otel.is_enabled", true)
 	viper.SetDefault("otel.use_tls", true)
 	viper.SetDefault("otel.service_name", "makal")
-	viper.SetDefault("otel.endpoint", "localhost:9500")
+	viper.SetDefault("otel.endpoint", "localhost:4318")
 
-	viper.SetDefault("http.port", 4200)
+	viper.SetDefault("http.port", 3200)
 
 	viper.SetDefault("biling.stripe.is_enabled", false)
 	viper.SetDefault("billing.default_plan", uuid.Nil)

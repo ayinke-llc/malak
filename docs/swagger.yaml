@@ -1,0 +1,64 @@
+basePath: /v1
+definitions:
+  server.APIStatus:
+    properties:
+      message:
+        description: Generic message that tells you the status of the operation
+        type: string
+    type: object
+  server.authenticateUserRequest:
+    properties:
+      code:
+        type: string
+    type: object
+host: malak.ayinke.ventures
+info:
+  contact:
+    email: lanre@ayinke.ventures
+    name: Ayinke Ventures
+  title: Malak's API documentation
+  version: 0.1.0
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: auth exchange data
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/server.authenticateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+      summary: Sign in with a social login provider
+      tags:
+      - auth
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

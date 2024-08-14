@@ -1,6 +1,11 @@
 package config
 
-import "github.com/google/uuid"
+import (
+	"errors"
+
+	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"github.com/google/uuid"
+)
 
 // Only Postgres for now. Later on we can add support for sqlite3
 // ENUM(postgres)
@@ -56,4 +61,32 @@ type Config struct {
 
 	Email struct {
 	}
+
+	Auth struct {
+		Google struct {
+			Key       string `yaml:"key" mapstructure:"key"`
+			Secret    string `yaml:"secret" mapstructure:"secret"`
+			IsEnabled bool   `yaml:"is_enabled" mapstructure:"is_enabled"`
+		} `yaml:"google" mapstructure:"google"`
+	} `yaml:"auth" mapstructure:"auth"`
+}
+
+func (c *Config) Validate() error {
+
+	if !c.Auth.Google.IsEnabled {
+		return errors.New("at least one oauth authentication provider has to be turned on")
+	}
+
+	if c.Auth.Google.IsEnabled {
+
+		if util.IsStringEmpty(c.Auth.Google.Key) {
+			return errors.New("please provide Google oauth key")
+		}
+
+		if util.IsStringEmpty(c.Auth.Google.Secret) {
+			return errors.New("please provide Google oauth secret")
+		}
+	}
+
+	return nil
 }

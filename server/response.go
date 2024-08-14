@@ -6,6 +6,10 @@ import (
 	"github.com/go-chi/render"
 )
 
+type genericRequest struct{}
+
+func (g genericRequest) Bind(_ *http.Request) error { return nil }
+
 type meta struct {
 	Paging pagingInfo `json:"paging"`
 }
