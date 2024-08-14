@@ -37,7 +37,7 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.ResponseWriter.WriteHeader(code)
 }
 
-func buildRoutes(_ *logrus.Entry,
+func buildRoutes(logger *logrus.Entry,
 	_ config.Config) http.Handler {
 
 	router := chi.NewRouter()
@@ -48,12 +48,15 @@ func buildRoutes(_ *logrus.Entry,
 	router.Use(jsonResponse)
 	router.Use(otelchi.Middleware("malak.server", otelchi.WithChiRoutes(router)))
 
+	auth := &authHandler{
+		logger: logger,
+	}
+
 	router.Route("/v1", func(r chi.Router) {
 
 		r.Route("/auth", func(r chi.Router) {
-			// r.Post("/connect/{provider}/{code}")
+			r.Post("/connect/{provider}", auth.Login)
 		})
-
 	})
 
 	return cors.AllowAll().

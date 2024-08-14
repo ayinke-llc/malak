@@ -48,6 +48,12 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			srv, cleanupSrv := server.New(logger, *cfg)
 			_ = srv
 
+			go func() {
+				if err := srv.ListenAndServe(); err != nil {
+					logger.WithError(err).Error("error with http server")
+				}
+			}()
+
 			// opts, err := redis.ParseURL(cfg.Database.Redis.DSN)
 			// if err != nil {
 			// 	log.Fatal(err)

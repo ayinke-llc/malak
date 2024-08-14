@@ -134,9 +134,9 @@ func setDefaults() {
 	viper.SetDefault("database.postgres.dsn", "postgres://makal:makal@localhost:3432/makal?sslmode=disable")
 
 	viper.SetDefault("otel.is_enabled", true)
-	viper.SetDefault("otel.use_tls", true)
+	viper.SetDefault("otel.use_tls", false)
 	viper.SetDefault("otel.service_name", "makal")
-	viper.SetDefault("otel.endpoint", "localhost:4318")
+	viper.SetDefault("otel.endpoint", "localhost:3318")
 
 	viper.SetDefault("http.port", 3200)
 
