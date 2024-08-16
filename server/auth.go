@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/sirupsen/logrus"
@@ -10,8 +11,8 @@ import (
 )
 
 type authHandler struct {
-	logger *logrus.Entry
-	// googleCfg
+	logger    *logrus.Entry
+	googleCfg socialauth.SocialAuthProvider
 }
 
 type authenticateUserRequest struct {
@@ -58,5 +59,15 @@ func (a *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_ = ctx
+	// TODO: redesign this immediately we add support for another provider
+	token, err := a.googleCfg.Validate(ctx, socialauth.ValidateOptions{
+		Code: req.Code,
+	})
+	if err != nil {
+		logger.WithError(err).Error("could not exchange token")
+		_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, "could not verify your sign in with Google"))
+		return
+	}
+
+	_ = token
 }

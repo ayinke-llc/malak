@@ -38,7 +38,7 @@ func (rw *responseWriter) WriteHeader(code int) {
 }
 
 func buildRoutes(logger *logrus.Entry,
-	_ config.Config) http.Handler {
+	cfg config.Config) http.Handler {
 
 	router := chi.NewRouter()
 

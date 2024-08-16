@@ -64,9 +64,11 @@ type Config struct {
 
 	Auth struct {
 		Google struct {
-			Key       string `yaml:"key" mapstructure:"key"`
-			Secret    string `yaml:"secret" mapstructure:"secret"`
-			IsEnabled bool   `yaml:"is_enabled" mapstructure:"is_enabled"`
+			ClientID     string   `yaml:"client_id" mapstructure:"client_id"`
+			ClientSecret string   `yaml:"client_secret" mapstructure:"client_secret"`
+			RedirectURI  string   `yaml:"redirect_uri" mapstructure:"redirect_uri"`
+			Scopes       []string `yaml:"scopes" mapstructure:"scopes"`
+			IsEnabled    bool     `yaml:"is_enabled" mapstructure:"is_enabled"`
 		} `yaml:"google" mapstructure:"google"`
 	} `yaml:"auth" mapstructure:"auth"`
 }
@@ -79,11 +81,11 @@ func (c *Config) Validate() error {
 
 	if c.Auth.Google.IsEnabled {
 
-		if util.IsStringEmpty(c.Auth.Google.Key) {
+		if util.IsStringEmpty(c.Auth.Google.ClientID) {
 			return errors.New("please provide Google oauth key")
 		}
 
-		if util.IsStringEmpty(c.Auth.Google.Secret) {
+		if util.IsStringEmpty(c.Auth.Google.ClientSecret) {
 			return errors.New("please provide Google oauth secret")
 		}
 	}
