@@ -45,7 +45,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.APIStatus"
+                            "$ref": "#/definitions/server.createdUserResponse"
                         }
                     },
                     "400": {
@@ -77,6 +77,80 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "malak.Role": {
+            "type": "string",
+            "enum": [
+                "admin",
+                "member",
+                "billing"
+            ],
+            "x-enum-varnames": [
+                "RoleAdmin",
+                "RoleMember",
+                "RoleBilling"
+            ]
+        },
+        "malak.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/malak.UserMetadata"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.UserRole"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.UserMetadata": {
+            "type": "object",
+            "properties": {
+                "current_workspace": {
+                    "description": "Used to keep track of the last used workspace\nIn the instance of multiple workspaces\nSo when next the user logs in, we remember and take them to the\nright place rather than always a list of all their workspaces and they\nhave to select one",
+                    "type": "string"
+                }
+            }
+        },
+        "malak.UserRole": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/malak.Role"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
         "server.APIStatus": {
             "type": "object",
             "properties": {
@@ -91,6 +165,18 @@ const docTemplate = `{
             "properties": {
                 "code": {
                     "type": "string"
+                }
+            }
+        },
+        "server.createdUserResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "Generic message that tells you the status of the operation",
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/malak.User"
                 }
             }
         }

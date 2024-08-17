@@ -19,16 +19,23 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 var tracer = otel.Tracer("malak.server")
+var noopTracer = noop.NewTracerProvider().Tracer("malak.server")
 
 func getTracer(ctx context.Context, r *http.Request,
-	operationName string) (context.Context, trace.Span, string) {
+	operationName string, isEnabled bool) (context.Context, trace.Span, string) {
+
+	rid := retrieveRequestID(r)
+	if !isEnabled {
+		ctx, span := noopTracer.Start(ctx, operationName)
+		return ctx, span, rid
+	}
 
 	ctx, span := tracer.Start(ctx, operationName)
 
-	rid := retrieveRequestID(r)
 	span.SetAttributes(attribute.String("request_id", rid))
 	return ctx, span, rid
 }

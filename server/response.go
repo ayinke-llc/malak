@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/ayinke-llc/malak"
 	"github.com/go-chi/render"
 )
 
@@ -40,4 +41,9 @@ func newAPIStatus(code int, s string) APIStatus {
 		statusCode: code,
 		Message:    s,
 	}
+}
+
+type createdUserResponse struct {
+	User *malak.User `json:"user,omitempty"`
+	APIStatus
 }

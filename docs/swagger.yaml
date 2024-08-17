@@ -1,5 +1,60 @@
 basePath: /v1
 definitions:
+  malak.Role:
+    enum:
+    - admin
+    - member
+    - billing
+    type: string
+    x-enum-varnames:
+    - RoleAdmin
+    - RoleMember
+    - RoleBilling
+  malak.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/malak.UserMetadata'
+      roles:
+        items:
+          $ref: '#/definitions/malak.UserRole'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  malak.UserMetadata:
+    properties:
+      current_workspace:
+        description: |-
+          Used to keep track of the last used workspace
+          In the instance of multiple workspaces
+          So when next the user logs in, we remember and take them to the
+          right place rather than always a list of all their workspaces and they
+          have to select one
+        type: string
+    type: object
+  malak.UserRole:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      role:
+        $ref: '#/definitions/malak.Role'
+      updated_at:
+        type: string
+      user_id:
+        type: string
+      workspace_id:
+        type: string
+    type: object
   server.APIStatus:
     properties:
       message:
@@ -10,6 +65,14 @@ definitions:
     properties:
       code:
         type: string
+    type: object
+  server.createdUserResponse:
+    properties:
+      message:
+        description: Generic message that tells you the status of the operation
+        type: string
+      user:
+        $ref: '#/definitions/malak.User'
     type: object
 host: malak.ayinke.ventures
 info:
@@ -36,7 +99,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: '#/definitions/server.createdUserResponse'
         "400":
           description: Bad Request
           schema:

@@ -16,6 +16,6 @@ type ValidateOptions struct {
 }
 
 type SocialAuthProvider interface {
-	User(context.Context, string) (User, error)
+	User(context.Context, *oauth2.Token) (User, error)
 	Validate(context.Context, ValidateOptions) (*oauth2.Token, error)
 }

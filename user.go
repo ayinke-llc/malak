@@ -3,7 +3,6 @@ package malak
 import (
 	"context"
 	"database/sql/driver"
-	"errors"
 	"strings"
 	"time"
 
@@ -11,9 +10,9 @@ import (
 	"github.com/uptrace/bun"
 )
 
-var (
-	ErrUserNotFound = errors.New("user not found")
-	ErrUserExists   = errors.New("User with details already exists")
+const (
+	ErrUserNotFound = malakError("user not found")
+	ErrUserExists   = malakError("User with email already exists")
 )
 
 // ENUM(admin,member,billing)
@@ -22,15 +21,15 @@ type Role string
 type UserRole struct {
 	ID uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 
-	Role Role `json:"role,omitempty" bson:"role"`
+	Role Role `json:"role,omitempty"`
 
-	CreatedAt time.Time `json:"created_at,omitempty" bson:"created_at"`
-	UpdatedAt time.Time `json:"updated_at,omitempty" bson:"updated_at"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 
 	WorkspaceID uuid.UUID `json:"workspace_id,omitempty"`
 	UserID      uuid.UUID `json:"user_id,omitempty"`
 
-	bun.BaseModel `bun:"table:roles"`
+	bun.BaseModel `bun:"table:roles" json:"-"`
 }
 
 type UserRoles []*UserRole
@@ -54,28 +53,27 @@ type UserMetadata struct {
 
 type User struct {
 	ID    uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	Email Email     `json:"email,omitempty" bson:"email"`
+	Email Email     `json:"email,omitempty"`
 
-	FullName string        `json:"full_name,omitempty" bson:"full_name"`
-	Metadata *UserMetadata `json:"metadata,omitempty" bson:"metadata"`
+	FullName string        `json:"full_name,omitempty"`
+	Metadata *UserMetadata `json:"metadata,omitempty" `
 
 	Roles UserRoles `json:"roles" bun:"rel:has-many,join:id=user_id"`
 
-	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
-	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`
-	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" bson:"deleted_at"`
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" `
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" `
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" `
 
-	bun.BaseModel
+	bun.BaseModel `bun:"table:roles" json:"-"`
 }
 
 type FindUserOptions struct {
-	Email         Email  `json:"email,omitempty"`
-	ClerkRefernce string `json:"clerk_refernce"`
-	ID            uuid.UUID
+	Email Email `json:"email,omitempty"`
+	ID    uuid.UUID
 }
 
 type UserRepository interface {
-	Create(context.Context, *User, *Workspace) error
+	Create(context.Context, *User) error
 	Update(context.Context, *User) error
 	Get(context.Context, *FindUserOptions) (*User, error)
 }
