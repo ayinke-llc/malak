@@ -7,6 +7,7 @@ import (
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
+	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/sirupsen/logrus"
@@ -21,9 +22,17 @@ type authHandler struct {
 }
 
 type authenticateUserRequest struct {
-	genericRequest
+	GenericRequest
 
 	Code string `json:"code,omitempty"`
+}
+
+func (a *authenticateUserRequest) Validate() error {
+	if util.IsStringEmpty(a.Code) {
+		return errors.New("please provide a valid oauth2 code")
+	}
+
+	return nil
 }
 
 // @Summary Sign in with a social login provider
@@ -61,6 +70,11 @@ func (a *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	if err := render.Bind(r, req); err != nil {
 		_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, "invalid request body"))
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, err.Error()))
 		return
 	}
 
