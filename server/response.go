@@ -3,8 +3,13 @@ package server
 import (
 	"net/http"
 
+	"github.com/ayinke-llc/malak"
 	"github.com/go-chi/render"
 )
+
+type GenericRequest struct{}
+
+func (g GenericRequest) Bind(_ *http.Request) error { return nil }
 
 type meta struct {
 	Paging pagingInfo `json:"paging"`
@@ -36,4 +41,9 @@ func newAPIStatus(code int, s string) APIStatus {
 		statusCode: code,
 		Message:    s,
 	}
+}
+
+type createdUserResponse struct {
+	User *malak.User `json:"user,omitempty"`
+	APIStatus
 }

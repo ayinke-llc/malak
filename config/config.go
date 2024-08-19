@@ -1,5 +1,12 @@
 package config
 
+import (
+	"errors"
+
+	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"github.com/google/uuid"
+)
+
 // Only Postgres for now. Later on we can add support for sqlite3
 // ENUM(postgres)
 type DatabaseType string
@@ -35,4 +42,53 @@ type Config struct {
 	HTTP struct {
 		Port int `yaml:"port" mapstructure:"port"`
 	} `yaml:"http" mapstructure:"http"`
+
+	Billing struct {
+		Stripe struct {
+			APIKey    string `yaml:"api_key" mapstructure:"api_key"`
+			APISecret string `yaml:"api_secret" mapstructure:"api_secret"`
+
+			// If stripe is not enabled, then fake ids can be used in the
+			// plans table really
+			// Ideally self hosted users will want to disable this
+			IsEnabled bool `yaml:"is_enabled" mapstructure:"is_enabled"`
+		} `yaml:"stripe" mapstructure:"stripe"`
+
+		// Newly created workspaces will have this plan automatically
+		// applied upon creation
+		DefaultPlan uuid.UUID `yaml:"default_plan" mapstructure:"default_plan"`
+	} `yaml:"billing" mapstructure:"billing"`
+
+	Email struct {
+	}
+
+	Auth struct {
+		Google struct {
+			ClientID     string   `yaml:"client_id" mapstructure:"client_id"`
+			ClientSecret string   `yaml:"client_secret" mapstructure:"client_secret"`
+			RedirectURI  string   `yaml:"redirect_uri" mapstructure:"redirect_uri"`
+			Scopes       []string `yaml:"scopes" mapstructure:"scopes"`
+			IsEnabled    bool     `yaml:"is_enabled" mapstructure:"is_enabled"`
+		} `yaml:"google" mapstructure:"google"`
+	} `yaml:"auth" mapstructure:"auth"`
+}
+
+func (c *Config) Validate() error {
+
+	if !c.Auth.Google.IsEnabled {
+		return errors.New("at least one oauth authentication provider has to be turned on")
+	}
+
+	if c.Auth.Google.IsEnabled {
+
+		if util.IsStringEmpty(c.Auth.Google.ClientID) {
+			return errors.New("please provide Google oauth key")
+		}
+
+		if util.IsStringEmpty(c.Auth.Google.ClientSecret) {
+			return errors.New("please provide Google oauth secret")
+		}
+	}
+
+	return nil
 }

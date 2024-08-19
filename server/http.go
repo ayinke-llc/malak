@@ -14,11 +14,10 @@ import (
 
 func New(logger *logrus.Entry,
 	cfg config.Config,
-	httpPort int,
 ) (*http.Server, func()) {
 	srv := &http.Server{
 		Handler: buildRoutes(logger, cfg),
-		Addr:    fmt.Sprintf(":%d", httpPort),
+		Addr:    fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
 	return srv, initOTELCapabilities(cfg, logger)
@@ -39,8 +38,7 @@ func (rw *responseWriter) WriteHeader(code int) {
 }
 
 func buildRoutes(logger *logrus.Entry,
-	cfg config.Config,
-) http.Handler {
+	cfg config.Config) http.Handler {
 
 	router := chi.NewRouter()
 
@@ -50,8 +48,15 @@ func buildRoutes(logger *logrus.Entry,
 	router.Use(jsonResponse)
 	router.Use(otelchi.Middleware("malak.server", otelchi.WithChiRoutes(router)))
 
+	auth := &authHandler{
+		logger: logger,
+	}
+
 	router.Route("/v1", func(r chi.Router) {
 
+		r.Route("/auth", func(r chi.Router) {
+			r.Post("/connect/{provider}", auth.Login)
+		})
 	})
 
 	return cors.AllowAll().
