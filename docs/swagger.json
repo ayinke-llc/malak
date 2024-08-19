@@ -1,4 +1,7 @@
 {
+    "schemes": [
+        "https"
+    ],
     "swagger": "2.0",
     "info": {
         "title": "Malak's API documentation",
@@ -8,10 +11,10 @@
         },
         "version": "0.1.0"
     },
-    "host": "http://localhost:5300",
+    "host": "45fe-102-89-34-40.ngrok-free.app",
     "basePath": "/v1",
     "paths": {
-        "/auth/login": {
+        "/auth/connect/{provider}": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -32,6 +35,13 @@
                         "schema": {
                             "$ref": "#/definitions/server.authenticateUserRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "oauth2 provider",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {

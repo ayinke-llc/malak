@@ -74,7 +74,7 @@ definitions:
       user:
         $ref: '#/definitions/malak.User'
     type: object
-host: http://localhost:5300
+host: 45fe-102-89-34-40.ngrok-free.app
 info:
   contact:
     email: lanre@ayinke.ventures
@@ -82,7 +82,7 @@ info:
   title: Malak's API documentation
   version: 0.1.0
 paths:
-  /auth/login:
+  /auth/connect/{provider}:
     post:
       consumes:
       - application/json
@@ -93,6 +93,11 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/server.authenticateUserRequest'
+      - description: oauth2 provider
+        in: path
+        name: provider
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -119,6 +124,8 @@ paths:
       summary: Sign in with a social login provider
       tags:
       - auth
+schemes:
+- https
 securityDefinitions:
   ApiKeyAuth:
     in: header

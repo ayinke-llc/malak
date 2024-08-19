@@ -18,7 +18,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth/login": {
+        "/auth/connect/{provider}": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -39,6 +39,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/server.authenticateUserRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "oauth2 provider",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -193,9 +200,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.1.0",
-	Host:             "http://localhost:5300",
+	Host:             "45fe-102-89-34-40.ngrok-free.app",
 	BasePath:         "/v1",
-	Schemes:          []string{},
+	Schemes:          []string{"https"},
 	Title:            "Malak's API documentation",
 	Description:      "",
 	InfoInstanceName: "swagger",

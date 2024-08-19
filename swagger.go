@@ -4,8 +4,9 @@
 // @contact.name Ayinke Ventures
 // @contact.email lanre@ayinke.ventures
 
-// @host http://localhost:5300
+// @host 45fe-102-89-34-40.ngrok-free.app
 // @BasePath /v1
+// @schemes https
 
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
