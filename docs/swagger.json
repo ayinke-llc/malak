@@ -8,7 +8,7 @@
         },
         "version": "0.1.0"
     },
-    "host": "malak.ayinke.ventures",
+    "host": "http://localhost:5300",
     "basePath": "/v1",
     "paths": {
         "/auth/login": {

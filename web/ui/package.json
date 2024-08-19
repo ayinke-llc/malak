@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "swagger": "yarn swagger-typescript-api -p ../../docs/swagger.yaml -o ./client"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.0",
@@ -26,6 +27,7 @@
     "react-github-login": "^1.0.3",
     "react-social-icons": "^6.18.0",
     "sonner": "^1.5.0",
+    "swagger-typescript-api": "^13.0.21",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7"
   },

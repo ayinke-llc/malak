@@ -193,7 +193,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.1.0",
-	Host:             "malak.ayinke.ventures",
+	Host:             "http://localhost:5300",
 	BasePath:         "/v1",
 	Schemes:          []string{},
 	Title:            "Malak's API documentation",
