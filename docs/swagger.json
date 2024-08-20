@@ -11,7 +11,7 @@
         },
         "version": "0.1.0"
     },
-    "host": "45fe-102-89-34-40.ngrok-free.app",
+    "host": "9015-102-89-34-27.ngrok-free.app",
     "basePath": "/v1",
     "paths": {
         "/auth/connect/{provider}": {

@@ -1,5 +1,5 @@
 {
-  "name": "ui",
+  "name": "@ayinkeventures/malak",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "swagger": "yarn swagger-typescript-api -p ../../docs/swagger.yaml -o ./client"
+    "swagger": "bun swagger-typescript-api -p ../../docs/swagger.yaml -o ./client"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.0",
