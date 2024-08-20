@@ -18,11 +18,11 @@ type Workspace struct {
 	PlanID        uuid.UUID `json:"plan_id,omitempty"`
 
 	// Not required
+	// Dummy values work really
 	StripeCustomerID string `json:"stripe_customer_id,omitempty"`
 	SubscriptionID   string `json:"subscription_id,omitempty"`
 
 	Metadata PlanMetadata `json:"metadata,omitempty"`
-	IsActive bool         `json:"is_active,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`

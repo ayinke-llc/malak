@@ -1,0 +1,51 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE IF NOT EXISTS plans(
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    reference VARCHAR (200) NOT NULL,
+    plan_name VARCHAR (100) NOT NULL,
+    default_price_id VARCHAR (100) NOT NULL,
+    amount NUMERIC NOT NULL DEFAULT 0,
+
+    metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE IF NOT EXISTS users(
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email VARCHAR (100) UNIQUE NOT NULL,
+    full_name VARCHAR (100) NOT NULL,
+    metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE IF NOT EXISTS workspaces(
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    workspace_name VARCHAR (200) NOT NULL,
+    plan_id uuid NOT NULL REFERENCES plans(id),
+    stripe_customer_id VARCHAR (100) NOT NULL DEFAULT '',
+    subscription_id VARCHAR (100) NOT NULL default '',
+    metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE IF NOT EXISTS roles (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id uuid NOT NULL REFERENCES users(id),
+    workspace_id uuid NOT NULL REFERENCES workspaces(id),
+    role SMALLINT NOT NULL,
+
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
