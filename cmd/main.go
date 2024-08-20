@@ -138,7 +138,7 @@ func setDefaults() {
 	viper.SetDefault("otel.service_name", "makal")
 	viper.SetDefault("otel.endpoint", "localhost:3318")
 
-	viper.SetDefault("http.port", 3200)
+	viper.SetDefault("http.port", 5300)
 
 	viper.SetDefault("biling.stripe.is_enabled", false)
 	viper.SetDefault("billing.default_plan", uuid.Nil)

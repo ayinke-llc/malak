@@ -42,11 +42,11 @@ func buildRoutes(logger *logrus.Entry,
 
 	router := chi.NewRouter()
 
-	router.Use(middleware.AllowContentType("application/json"))
 	router.Use(middleware.RequestID)
 	router.Use(writeRequestIDHeader)
-	router.Use(jsonResponse)
+	router.Use(middleware.AllowContentType("application/json"))
 	router.Use(otelchi.Middleware("malak.server", otelchi.WithChiRoutes(router)))
+	router.Use(jsonResponse)
 
 	auth := &authHandler{
 		logger: logger,

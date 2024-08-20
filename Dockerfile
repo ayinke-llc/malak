@@ -1,4 +1,4 @@
-FROM golang:1.22.4 as build-env
+FROM golang:1.23 as build-env
 WORKDIR /go/malak
 
 COPY ./go.mod /go/malak

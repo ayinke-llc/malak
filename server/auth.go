@@ -45,7 +45,8 @@ func (a *authenticateUserRequest) Validate() error {
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /auth/login [post]
+// @Router /auth/connect/{provider} [post]
+// @Param provider  path string true "oauth2 provider"
 func (a *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	ctx, span, rid := getTracer(r.Context(), r, "Login", a.cfg.Otel.IsEnabled)
