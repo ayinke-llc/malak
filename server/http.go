@@ -53,7 +53,6 @@ func buildRoutes(logger *logrus.Entry,
 	}
 
 	router.Route("/v1", func(r chi.Router) {
-
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/connect/{provider}", auth.Login)
 		})

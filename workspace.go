@@ -42,11 +42,16 @@ type FindWorkspaceOptions struct {
 	ID               uuid.UUID
 }
 
+type CreateWorkspaceOptions struct {
+	User      *User
+	Workspace *Workspace
+}
+
 type WorkspaceRepository interface {
-	Create(context.Context, *Workspace) error
+	Create(context.Context, *CreateWorkspaceOptions) error
 	Get(context.Context, *FindWorkspaceOptions) (*Workspace, error)
 	Update(context.Context, *Workspace) error
 	List(context.Context, *User) ([]Workspace, error)
-	MarkInActive(context.Context, *Workspace) error
-	MarkActive(context.Context, *Workspace) error
+	// MarkInActive(context.Context, *Workspace) error
+	// MarkActive(context.Context, *Workspace) error
 }
