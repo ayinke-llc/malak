@@ -133,6 +133,7 @@ func setDefaults() {
 	viper.SetDefault("database.postgres.log_queries", true)
 	viper.SetDefault("database.database_type", config.DatabaseTypePostgres)
 	viper.SetDefault("database.postgres.dsn", "postgres://malak:malak@localhost:9432/malak?sslmode=disable")
+	viper.SetDefault("database.postgres.query_timeout", time.Second*5)
 
 	viper.SetDefault("otel.is_enabled", true)
 	viper.SetDefault("otel.use_tls", false)

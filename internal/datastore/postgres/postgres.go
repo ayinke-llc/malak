@@ -29,11 +29,16 @@ func New(cfg *config.Config, logger *logrus.Entry) (*bun.DB, error) {
 	db := bun.NewDB(pgdb, pgdialect.New())
 
 	if cfg.Database.Postgres.LogQueries {
+		lvl, err := logrus.ParseLevel(cfg.Logging.Level)
+		if err != nil {
+			return nil, err
+		}
+
 		db.AddQueryHook(logrusbun.NewQueryHook(logrusbun.QueryHookOptions{
 			Logger:     logger,
-			QueryLevel: logger.Level,
-			SlowLevel:  logger.Level,
-			ErrorLevel: logger.Level,
+			QueryLevel: lvl,
+			SlowLevel:  lvl,
+			ErrorLevel: lvl,
 		}))
 	}
 
