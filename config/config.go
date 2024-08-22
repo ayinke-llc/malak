@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"time"
 
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/google/uuid"
@@ -25,6 +26,9 @@ type Config struct {
 		Postgres     struct {
 			DSN        string `yaml:"dsn" mapstructure:"dsn"`
 			LogQueries bool   `yaml:"log_queries" mapstructure:"log_queries"`
+			// How much timeout should be used to run queries agains the db or the
+			// context dies
+			QueryTimeout time.Duration `yaml:"query_timeout" mapstructure:"query_timeout"`
 		} `yaml:"postgres" mapstructure:"postgres"`
 
 		Redis struct {
@@ -74,6 +78,10 @@ type Config struct {
 }
 
 func (c *Config) Validate() error {
+
+	if !c.Database.DatabaseType.IsValid() {
+		return errors.New("please use a valid database provider")
+	}
 
 	if !c.Auth.Google.IsEnabled {
 		return errors.New("at least one oauth authentication provider has to be turned on")

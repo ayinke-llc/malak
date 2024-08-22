@@ -7,6 +7,8 @@ import (
 	"syscall"
 
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/datastore/postgres"
+	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	"github.com/ayinke-llc/malak/server"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -45,8 +47,17 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			logger := logrus.WithField("host", h).
 				WithField("app", "malak")
 
-			srv, cleanupSrv := server.New(logger, *cfg)
-			_ = srv
+			db, err := postgres.New(cfg, logger)
+			if err != nil {
+				logger.WithError(err).Fatal("could not set up database connection")
+			}
+
+			userRepo := postgres.NewUserRepository(db)
+			workspaceRepo := postgres.NewWorkspaceRepository(db)
+
+			googleAuthProvider := socialauth.NewGoogle(*cfg)
+
+			srv, cleanupSrv := server.New(logger, *cfg, userRepo, workspaceRepo, googleAuthProvider)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {

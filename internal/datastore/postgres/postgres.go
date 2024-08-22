@@ -1,7 +1,9 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
+	"time"
 
 	"github.com/ayinke-llc/malak/config"
 	"github.com/oiime/logrusbun"
@@ -12,18 +14,19 @@ import (
 	"github.com/uptrace/bun/extra/bunotel"
 )
 
-func New(cfg config.Config, logger *logrus.Entry) (*bun.DB, error) {
+// TODO: this is horrible for sure
+var timeout time.Duration
+
+func withContext(ctx context.Context) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(ctx, timeout)
+}
+
+func New(cfg *config.Config, logger *logrus.Entry) (*bun.DB, error) {
 
 	pgdb := sql.OpenDB(
 		pgdriver.NewConnector(pgdriver.WithDSN(cfg.Database.Postgres.DSN)))
 
 	db := bun.NewDB(pgdb, pgdialect.New())
-
-	if cfg.Otel.IsEnabled {
-		db.AddQueryHook(
-			bunotel.NewQueryHook(bunotel.WithDBName("malak.database")),
-		)
-	}
 
 	if cfg.Database.Postgres.LogQueries {
 		db.AddQueryHook(logrusbun.NewQueryHook(logrusbun.QueryHookOptions{
@@ -34,5 +37,11 @@ func New(cfg config.Config, logger *logrus.Entry) (*bun.DB, error) {
 		}))
 	}
 
+	if cfg.Otel.IsEnabled {
+		db.AddQueryHook(
+			bunotel.NewQueryHook(bunotel.WithDBName("malak.database")))
+	}
+
+	timeout = cfg.Database.Postgres.QueryTimeout
 	return db, db.Ping()
 }

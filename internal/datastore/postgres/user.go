@@ -22,6 +22,9 @@ func NewUserRepository(db *bun.DB) malak.UserRepository {
 }
 
 func (u *userRepo) Update(ctx context.Context, user *malak.User) error {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
 	_, err := u.inner.NewUpdate().
 		Where("id = ?", user.ID).
 		Model(user).
@@ -30,6 +33,10 @@ func (u *userRepo) Update(ctx context.Context, user *malak.User) error {
 }
 
 func (u *userRepo) Get(ctx context.Context, opts *malak.FindUserOptions) (*malak.User, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
 	user := new(malak.User)
 
 	sel := u.inner.NewSelect().Model(user).Relation("Roles")
@@ -47,7 +54,11 @@ func (u *userRepo) Get(ctx context.Context, opts *malak.FindUserOptions) (*malak
 }
 
 func (u *userRepo) Create(ctx context.Context, user *malak.User) error {
-	err := u.inner.RunInTx(ctx, &sql.TxOptions{},
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return u.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
 			_, err := tx.NewInsert().Model(user).
 				Exec(ctx)
@@ -59,8 +70,6 @@ func (u *userRepo) Create(ctx context.Context, user *malak.User) error {
 				return err
 			}
 
-			return err
+			return nil
 		})
-
-	return err
 }

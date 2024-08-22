@@ -24,6 +24,10 @@ func NewWorkspaceRepository(inner *bun.DB) malak.WorkspaceRepository {
 
 func (o *workspaceRepo) Update(ctx context.Context,
 	org *malak.Workspace) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
 	_, err := o.inner.NewUpdate().
 		Where("id = ?", org.ID).
 		Model(org).
@@ -33,6 +37,10 @@ func (o *workspaceRepo) Update(ctx context.Context,
 
 func (o *workspaceRepo) Create(ctx context.Context,
 	opts *malak.CreateWorkspaceOptions) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
 	return o.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		_, err := tx.NewInsert().Model(opts.Workspace).Exec(ctx)
 		if err != nil {
@@ -58,6 +66,9 @@ func (o *workspaceRepo) Get(ctx context.Context,
 	opts *malak.FindWorkspaceOptions) (*malak.Workspace, error) {
 	workspace := new(malak.Workspace)
 
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
 	q := o.inner.NewSelect()
 
 	if !util.IsStringEmpty(opts.StripeCustomerID) {
@@ -79,6 +90,10 @@ func (o *workspaceRepo) Get(ctx context.Context,
 
 func (o *workspaceRepo) List(ctx context.Context, user *malak.User) (
 	[]malak.Workspace, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
 	workspaces := make([]malak.Workspace, 0)
 
 	return workspaces, o.inner.NewSelect().

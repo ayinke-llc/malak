@@ -4,7 +4,7 @@
 // @contact.name Ayinke Ventures
 // @contact.email lanre@ayinke.ventures
 
-// @host 9015-102-89-34-27.ngrok-free.app
+// @host d0f6-102-88-37-85.ngrok-free.app
 // @BasePath /v1
 // @schemes https
 

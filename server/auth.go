@@ -15,10 +15,11 @@ import (
 )
 
 type authHandler struct {
-	logger    *logrus.Entry
-	googleCfg socialauth.SocialAuthProvider
-	cfg       config.Config
-	userRepo  malak.UserRepository
+	logger        *logrus.Entry
+	googleCfg     socialauth.SocialAuthProvider
+	cfg           config.Config
+	userRepo      malak.UserRepository
+	workspaceRepo malak.WorkspaceRepository
 }
 
 type authenticateUserRequest struct {
