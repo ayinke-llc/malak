@@ -74,6 +74,10 @@ type Config struct {
 			Scopes       []string `yaml:"scopes" mapstructure:"scopes"`
 			IsEnabled    bool     `yaml:"is_enabled" mapstructure:"is_enabled"`
 		} `yaml:"google" mapstructure:"google"`
+
+		JWT struct {
+			Key string `yaml:"key" mapstructure:"key"`
+		} `yaml:"jwt" mapstructure:"jwt"`
 	} `yaml:"auth" mapstructure:"auth"`
 }
 
@@ -96,6 +100,10 @@ func (c *Config) Validate() error {
 		if util.IsStringEmpty(c.Auth.Google.ClientSecret) {
 			return errors.New("please provide Google oauth secret")
 		}
+	}
+
+	if util.IsStringEmpty(c.Auth.JWT.Key) {
+		return errors.New("please provide your JWT key")
 	}
 
 	return nil

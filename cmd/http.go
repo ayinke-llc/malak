@@ -8,6 +8,7 @@ import (
 
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
+	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	"github.com/ayinke-llc/malak/server"
 	"github.com/sirupsen/logrus"
@@ -57,7 +58,11 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			googleAuthProvider := socialauth.NewGoogle(*cfg)
 
-			srv, cleanupSrv := server.New(logger, *cfg, userRepo, workspaceRepo, googleAuthProvider)
+			tokenManager := jwttoken.New(*cfg)
+
+			srv, cleanupSrv := server.New(logger, *cfg,
+				tokenManager, userRepo, workspaceRepo,
+				googleAuthProvider)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {

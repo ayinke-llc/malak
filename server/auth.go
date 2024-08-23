@@ -3,9 +3,11 @@ package server
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
@@ -14,12 +16,16 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
+// ENUM(user)
+type CookieName string
+
 type authHandler struct {
 	logger        *logrus.Entry
 	googleCfg     socialauth.SocialAuthProvider
 	cfg           config.Config
 	userRepo      malak.UserRepository
 	workspaceRepo malak.WorkspaceRepository
+	tokenManager  jwttoken.JWTokenManager
 }
 
 type authenticateUserRequest struct {
@@ -34,6 +40,20 @@ func (a *authenticateUserRequest) Validate() error {
 	}
 
 	return nil
+}
+
+func writeCookie(w http.ResponseWriter, token jwttoken.JWTokenData) {
+
+	cookie := &http.Cookie{
+		Name:     CookieNameUser.String(),
+		Value:    token.Token,
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+		Path:     "/",
+		MaxAge:   -int(time.Since(token.ExpiresAt).Seconds()),
+	}
+	http.SetCookie(w, cookie)
 }
 
 // @Summary Sign in with a social login provider
@@ -105,7 +125,29 @@ func (a *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	err = a.userRepo.Create(ctx, user)
 	if errors.Is(err, malak.ErrUserExists) {
-		_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, err.Error()))
+		// if user exists
+		// fetch the user by email,
+		// and generate the token
+		user, err := a.userRepo.Get(ctx, &malak.FindUserOptions{
+			Email: user.Email,
+		})
+		if err != nil {
+			logger.WithError(err).Error("an error occurred while fetching user")
+			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while logging user into app"))
+			return
+		}
+
+		token, err := a.tokenManager.GenerateJWToken(jwttoken.JWTokenData{
+			UserID: user.ID,
+		})
+		if err != nil {
+			logger.WithError(err).Error("an error occurred while generating jwt token")
+			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while generating jwt token"))
+			return
+		}
+
+		writeCookie(w, token)
+		_ = render.Render(w, r, newAPIStatus(http.StatusOK, "logged in successfully"))
 		return
 	}
 
@@ -115,6 +157,16 @@ func (a *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	authToken, err := a.tokenManager.GenerateJWToken(jwttoken.JWTokenData{
+		UserID: user.ID,
+	})
+	if err != nil {
+		logger.WithError(err).Error("an error occurred while generating jwt token")
+		_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while generating jwt token"))
+		return
+	}
+
+	writeCookie(w, authToken)
 	_ = render.Render(w, r, createdUserResponse{
 		User:      user,
 		APIStatus: newAPIStatus(http.StatusOK, "user Successfully created"),

@@ -6,6 +6,7 @@ import (
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	chi "github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -16,12 +17,13 @@ import (
 
 func New(logger *logrus.Entry,
 	cfg config.Config,
+	jwtTokenManager jwttoken.JWTokenManager,
 	userRepo malak.UserRepository,
 	workspaceRepo malak.WorkspaceRepository,
 	googleAuthProvider socialauth.SocialAuthProvider) (*http.Server, func()) {
 
 	srv := &http.Server{
-		Handler: buildRoutes(logger, cfg, userRepo, workspaceRepo, googleAuthProvider),
+		Handler: buildRoutes(logger, cfg, jwtTokenManager, userRepo, workspaceRepo, googleAuthProvider),
 		Addr:    fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -43,7 +45,9 @@ func (rw *responseWriter) WriteHeader(code int) {
 }
 
 func buildRoutes(logger *logrus.Entry,
-	cfg config.Config, userRepo malak.UserRepository,
+	cfg config.Config,
+	jwtTokenManager jwttoken.JWTokenManager,
+	userRepo malak.UserRepository,
 	workspaceRepo malak.WorkspaceRepository,
 	googleAuthProvider socialauth.SocialAuthProvider) http.Handler {
 
@@ -60,6 +64,7 @@ func buildRoutes(logger *logrus.Entry,
 		userRepo:      userRepo,
 		workspaceRepo: workspaceRepo,
 		googleCfg:     googleAuthProvider,
+		tokenManager:  jwtTokenManager,
 	}
 
 	router.Route("/v1", func(r chi.Router) {
