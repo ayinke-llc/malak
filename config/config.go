@@ -74,6 +74,10 @@ type Config struct {
 			Scopes       []string `yaml:"scopes" mapstructure:"scopes"`
 			IsEnabled    bool     `yaml:"is_enabled" mapstructure:"is_enabled"`
 		} `yaml:"google" mapstructure:"google"`
+
+		JWT struct {
+			Key string `yaml:"key" mapstructure:"key"`
+		} `yaml:"jwt" mapstructure:"jwt"`
 	} `yaml:"auth" mapstructure:"auth"`
 }
 
