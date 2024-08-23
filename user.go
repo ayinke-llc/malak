@@ -67,6 +67,8 @@ type User struct {
 	bun.BaseModel `bun:"table:users" json:"-"`
 }
 
+func (u *User) HasWorkspace() bool { return u.Metadata.CurrentWorkspace != uuid.Nil }
+
 type FindUserOptions struct {
 	Email Email `json:"email,omitempty"`
 	ID    uuid.UUID

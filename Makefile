@@ -12,3 +12,9 @@ run:
 
 env:
 	infisical export --env=dev > .env
+
+test:
+	go test -v ./...
+
+test-all:
+	go test -v -tags integration ./... 
