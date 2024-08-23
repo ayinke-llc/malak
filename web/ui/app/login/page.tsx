@@ -9,11 +9,12 @@ import client from "@/lib/client"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "@/components/ui/use-toast"
 import { HttpResponse, ServerAPIStatus, ServerCreatedUserResponse } from "@/client/Api"
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
 
 export default function Login() {
 
   const { toast } = useToast();
+  const router = useRouter()
 
   const mutation = useMutation({
     mutationFn: ({ code }: { code: string }) => {
@@ -29,7 +30,7 @@ export default function Login() {
       })
     },
     onSuccess: (resp: HttpResponse<ServerCreatedUserResponse>) => {
-      redirect("/")
+      router.push("/")
     }
   })
 
