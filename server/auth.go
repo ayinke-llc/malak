@@ -57,7 +57,8 @@ func (a *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	logger := a.logger.WithField("method", "login").
 		WithField("request_id", rid).
-		WithField("provider", provider)
+		WithField("provider", provider).
+		WithContext(ctx)
 
 	span.SetAttributes(attribute.String("auth_provider", provider))
 
