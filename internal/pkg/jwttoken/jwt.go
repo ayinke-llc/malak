@@ -25,7 +25,7 @@ type jwtokenManager struct {
 }
 
 type JWTokenManager interface {
-	GenerateJWToken(JWTokenData) (string, error)
+	GenerateJWToken(JWTokenData) (JWTokenData, error)
 	ParseJWToken(string) (JWTokenData, error)
 }
 
@@ -35,7 +35,7 @@ func New(cfg config.Config) JWTokenManager {
 	}
 }
 
-func (t *jwtokenManager) GenerateJWToken(data JWTokenData) (string, error) {
+func (t *jwtokenManager) GenerateJWToken(data JWTokenData) (JWTokenData, error) {
 	claims := jwt.MapClaims{
 		"signer": "malak",
 		"id":     data.UserID,
@@ -44,10 +44,11 @@ func (t *jwtokenManager) GenerateJWToken(data JWTokenData) (string, error) {
 	jwtoken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	token, err := jwtoken.SignedString([]byte(t.signingKey))
 	if err != nil {
-		return "", fmt.Errorf("GenerateJWToken/SignedString: sign jwtoken failed: %w", err)
+		return JWTokenData{}, fmt.Errorf("GenerateJWToken/SignedString: sign jwtoken failed: %w", err)
 	}
+
 	data.Token = token
-	return data.Token, nil
+	return data, nil
 }
 
 func (t *jwtokenManager) ParseJWToken(JWToken string) (JWTokenData, error) {

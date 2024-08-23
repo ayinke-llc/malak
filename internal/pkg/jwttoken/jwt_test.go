@@ -44,7 +44,7 @@ func TestJWT_Parse(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
-	parsedToken, err := manager.ParseJWToken(token)
+	parsedToken, err := manager.ParseJWToken(token.Token)
 	require.NoError(t, err)
 
 	t.Log(parsedToken.ExpiresAt)
@@ -61,5 +61,5 @@ func TestJWT_Generate(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	require.NotEmpty(t, token)
+	require.NotEmpty(t, token.Token)
 }
