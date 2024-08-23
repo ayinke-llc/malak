@@ -113,6 +113,14 @@ func TestAuthHandler_Login(t *testing.T) {
 
 			require.Equal(t, v.expectedStatusCode, rr.Code)
 			verifyMatch(t, rr)
+
+			if rr.Code == http.StatusOK {
+				for _, v := range rr.Result().Cookies() {
+					if v.Name == CookieNameUser.String() {
+						require.NotEmpty(t, v.String())
+					}
+				}
+			}
 		})
 	}
 }
