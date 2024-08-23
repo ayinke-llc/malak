@@ -63,12 +63,13 @@ func (t *jwtokenManager) ParseJWToken(JWToken string) (JWTokenData, error) {
 		return JWTokenData{}, fmt.Errorf("ParseJWToken/Parse: parse JWToken failed: %w", err)
 	}
 
+	var ok bool
+
 	claims, ok := parsedJWToken.Claims.(jwt.MapClaims)
 	if !ok {
 		return JWTokenData{}, fmt.Errorf("ParseJWToken/parsedJWToken.Claims: error: JWToken wrong claims")
 	}
 
-	fmt.Println(claims)
 	id, ok := claims["id"].(string)
 	if !ok {
 		return JWTokenData{}, errors.New("user_id not exists")
