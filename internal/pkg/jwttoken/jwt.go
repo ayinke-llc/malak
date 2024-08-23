@@ -63,8 +63,6 @@ func (t *jwtokenManager) ParseJWToken(JWToken string) (JWTokenData, error) {
 		return JWTokenData{}, fmt.Errorf("ParseJWToken/Parse: parse JWToken failed: %w", err)
 	}
 
-	var ok bool
-
 	claims, ok := parsedJWToken.Claims.(jwt.MapClaims)
 	if !ok {
 		return JWTokenData{}, fmt.Errorf("ParseJWToken/parsedJWToken.Claims: error: JWToken wrong claims")
@@ -76,8 +74,8 @@ func (t *jwtokenManager) ParseJWToken(JWToken string) (JWTokenData, error) {
 	}
 
 	expiresAt, ok := claims["exp"].(int64)
-	if err != nil {
-		return JWTokenData{}, fmt.Errorf("ParseJWToken/parseJWTokenClaim/exp: %w", err)
+	if !ok {
+		return JWTokenData{}, fmt.Errorf("ParseJWToken/parseJWTokenClaim/exp: %w", "expiration date not found")
 	}
 
 	userID, err := uuid.Parse(id)
