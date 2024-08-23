@@ -12,10 +12,12 @@ import (
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	socialauth_mocks "github.com/ayinke-llc/malak/internal/pkg/socialauth/mocks"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/sebdah/goldie/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
@@ -48,6 +50,24 @@ func getConfig() config.Config {
 			IsEnabled bool   "yaml:\"is_enabled\" mapstructure:\"is_enabled\""
 		}{
 			IsEnabled: false,
+		},
+		Auth: struct {
+			Google struct {
+				ClientID     string   "yaml:\"client_id\" mapstructure:\"client_id\""
+				ClientSecret string   "yaml:\"client_secret\" mapstructure:\"client_secret\""
+				RedirectURI  string   "yaml:\"redirect_uri\" mapstructure:\"redirect_uri\""
+				Scopes       []string "yaml:\"scopes\" mapstructure:\"scopes\""
+				IsEnabled    bool     "yaml:\"is_enabled\" mapstructure:\"is_enabled\""
+			} "yaml:\"google\" mapstructure:\"google\""
+			JWT struct {
+				Key string "yaml:\"key\" mapstructure:\"key\""
+			} "yaml:\"jwt\" mapstructure:\"jwt\""
+		}{
+			JWT: struct {
+				Key string "yaml:\"key\" mapstructure:\"key\""
+			}{
+				Key: "a907e75f80910f5dc5b8c677de1de611ffa80be9d7d9f9dd614c8c7846db1062",
+			},
 		},
 	}
 }
@@ -124,7 +144,7 @@ func TestAuthHandler_Login(t *testing.T) {
 			provider: "google",
 		},
 		{
-			name: "could not create user because of duplicate emails",
+			name: "duplicate email. user gets logged in inside but could not fetch details from db",
 			mockFn: func(googleMock *socialauth_mocks.MockSocialAuthProvider, userRepo *malak_mocks.MockUserRepository) {
 				googleMock.EXPECT().
 					Validate(gomock.Any(), socialauth.ValidateOptions{
@@ -149,8 +169,51 @@ func TestAuthHandler_Login(t *testing.T) {
 					Create(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(malak.ErrUserExists)
+
+				userRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("could not fetch user"))
 			},
-			expectedStatusCode: http.StatusBadRequest,
+			expectedStatusCode: http.StatusInternalServerError,
+			req: authenticateUserRequest{
+				Code: "token",
+			},
+			provider: "google",
+		},
+		{
+			name: "duplicate email. user gets logged in",
+			mockFn: func(googleMock *socialauth_mocks.MockSocialAuthProvider, userRepo *malak_mocks.MockUserRepository) {
+				googleMock.EXPECT().
+					Validate(gomock.Any(), socialauth.ValidateOptions{
+						Code: "token",
+					}).
+					Times(1).
+					Return(&oauth2.Token{
+						AccessToken: "access-token",
+					}, nil)
+
+				user := socialauth.User{
+					Email: "test@test.com",
+					Name:  "TEST TEST",
+				}
+
+				googleMock.EXPECT().
+					User(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(user, nil)
+
+				userRepo.EXPECT().
+					Create(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.ErrUserExists)
+
+				userRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.User{
+						ID: uuid.New(),
+					}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
 			req: authenticateUserRequest{
 				Code: "token",
 			},
@@ -241,10 +304,11 @@ func TestAuthHandler_Login(t *testing.T) {
 			v.mockFn(googleCfg, userRepo)
 
 			a := &authHandler{
-				logger:    logger,
-				cfg:       getConfig(),
-				googleCfg: googleCfg,
-				userRepo:  userRepo,
+				logger:       logger,
+				cfg:          getConfig(),
+				googleCfg:    googleCfg,
+				userRepo:     userRepo,
+				tokenManager: jwttoken.New(getConfig()),
 			}
 
 			var b = bytes.NewBuffer(nil)

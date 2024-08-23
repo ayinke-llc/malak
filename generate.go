@@ -7,4 +7,5 @@ package malak
 //
 // Mocks generation
 //go:generate mockgen -source=internal/pkg/socialauth/social.go -destination=internal/pkg/socialauth/mocks/social.go -package=socialauth_mocks
+//go:generate mockgen -source=internal/pkg/jwttoken/jwt.go -destination=internal/pkg/jwttoken/mocks/token.go
 //go:generate mockgen -source=user.go -destination=mocks/user.go -package=malak_mocks
