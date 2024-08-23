@@ -109,7 +109,8 @@ func TestAuthHandler_Login(t *testing.T) {
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
 			req.Header.Add("Content-Type", "application/json")
 
-			a.Login(rr, req)
+			WrapMalakHTTPHandler(a.Login, getConfig(), "Auth.Login").
+				ServeHTTP(rr, req)
 
 			require.Equal(t, v.expectedStatusCode, rr.Code)
 			verifyMatch(t, rr)
