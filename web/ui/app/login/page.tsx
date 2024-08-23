@@ -39,7 +39,12 @@ export default function Login() {
     onSuccess: async (codeResponse) => {
       mutation.mutate({ code: codeResponse.code })
     },
-    onError: errorResponse => console.log(errorResponse),
+    onError: errorResponse => {
+      toast({
+        variant: "destructive",
+        title: errorResponse.error_description,
+      })
+    },
   });
 
   const loginWithGoogle = () => {
