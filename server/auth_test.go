@@ -73,8 +73,58 @@ func getConfig() config.Config {
 }
 
 func TestAuthHandler_Login(t *testing.T) {
+	for _, v := range generateLoginTestTable() {
 
-	tt := []struct {
+		t.Run(v.name, func(t *testing.T) {
+
+			logrus.SetOutput(io.Discard)
+
+			logger := logrus.WithField("test", true)
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			googleCfg := socialauth_mocks.NewMockSocialAuthProvider(controller)
+			userRepo := malak_mocks.NewMockUserRepository(controller)
+
+			v.mockFn(googleCfg, userRepo)
+
+			a := &authHandler{
+				logger:       logger,
+				cfg:          getConfig(),
+				googleCfg:    googleCfg,
+				userRepo:     userRepo,
+				tokenManager: jwttoken.New(getConfig()),
+			}
+
+			var b = bytes.NewBuffer(nil)
+
+			require.NoError(t, json.NewEncoder(b).Encode(&v.req))
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/", b)
+			ctx := chi.NewRouteContext()
+			ctx.URLParams.Add("provider", v.provider)
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
+			req.Header.Add("Content-Type", "application/json")
+
+			a.Login(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateLoginTestTable() []struct {
+	name               string
+	mockFn             func(googleMock *socialauth_mocks.MockSocialAuthProvider, userRepo *malak_mocks.MockUserRepository)
+	expectedStatusCode int
+	req                authenticateUserRequest
+	provider           string
+} {
+	return []struct {
 		name               string
 		mockFn             func(googleMock *socialauth_mocks.MockSocialAuthProvider, userRepo *malak_mocks.MockUserRepository)
 		expectedStatusCode int
@@ -285,48 +335,5 @@ func TestAuthHandler_Login(t *testing.T) {
 			},
 			provider: "google",
 		},
-	}
-
-	for _, v := range tt {
-
-		t.Run(v.name, func(t *testing.T) {
-
-			logrus.SetOutput(io.Discard)
-
-			logger := logrus.WithField("test", true)
-
-			controller := gomock.NewController(t)
-			defer controller.Finish()
-
-			googleCfg := socialauth_mocks.NewMockSocialAuthProvider(controller)
-			userRepo := malak_mocks.NewMockUserRepository(controller)
-
-			v.mockFn(googleCfg, userRepo)
-
-			a := &authHandler{
-				logger:       logger,
-				cfg:          getConfig(),
-				googleCfg:    googleCfg,
-				userRepo:     userRepo,
-				tokenManager: jwttoken.New(getConfig()),
-			}
-
-			var b = bytes.NewBuffer(nil)
-
-			require.NoError(t, json.NewEncoder(b).Encode(&v.req))
-
-			rr := httptest.NewRecorder()
-
-			req := httptest.NewRequest(http.MethodPost, "/", b)
-			ctx := chi.NewRouteContext()
-			ctx.URLParams.Add("provider", v.provider)
-			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
-			req.Header.Add("Content-Type", "application/json")
-
-			a.Login(rr, req)
-
-			require.Equal(t, v.expectedStatusCode, rr.Code)
-			verifyMatch(t, rr)
-		})
 	}
 }
