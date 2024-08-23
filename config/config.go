@@ -102,5 +102,9 @@ func (c *Config) Validate() error {
 		}
 	}
 
+	if util.IsStringEmpty(c.Auth.JWT.Key) {
+		return errors.New("please provide your JWT key")
+	}
+
 	return nil
 }
