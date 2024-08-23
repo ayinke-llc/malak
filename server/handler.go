@@ -39,7 +39,7 @@ func WrapMalakHTTPHandler(
 
 		logger := logrus.WithField("host", h).
 			WithField("app", "malak.http").
-			WithField("method", "login").
+			WithField("method", spanName).
 			WithField("request_id", rid).
 			WithContext(ctx)
 
