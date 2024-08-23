@@ -64,8 +64,10 @@ type User struct {
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" `
 	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" `
 
-	bun.BaseModel `bun:"table:roles" json:"-"`
+	bun.BaseModel `bun:"table:users" json:"-"`
 }
+
+func (u *User) HasWorkspace() bool { return u.Metadata.CurrentWorkspace != uuid.Nil }
 
 type FindUserOptions struct {
 	Email Email `json:"email,omitempty"`

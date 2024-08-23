@@ -6,19 +6,37 @@ import { Button } from "@/components/ui/button"
 import { useGoogleLogin } from "@react-oauth/google"
 import { MALAK_PRIVACY_POLICY_LINK, MALAK_TERMS_CONDITION_LINK } from "@/lib/config"
 import client from "@/lib/client"
+import { useMutation } from "@tanstack/react-query"
+import { useToast } from "@/components/ui/use-toast"
+import { HttpResponse, ServerAPIStatus, ServerCreatedUserResponse } from "@/client/Api"
+import { redirect } from "next/navigation"
 
 export default function Login() {
+
+  const { toast } = useToast();
+
+  const mutation = useMutation({
+    mutationFn: ({ code }: { code: string }) => {
+      return client.auth.connectCreate("google", {
+        code,
+      })
+    },
+    gcTime: 0,
+    onError: (err: HttpResponse<Response, ServerAPIStatus>): void => {
+      toast({
+        variant: "destructive",
+        title: err.error.message,
+      })
+    },
+    onSuccess: (resp: HttpResponse<ServerCreatedUserResponse>) => {
+      redirect("/")
+    }
+  })
 
   const googleLogin = useGoogleLogin({
     flow: 'auth-code',
     onSuccess: async (codeResponse) => {
-      console.log(codeResponse);
-
-      const response = await client.auth.connectCreate("google", {
-        code: codeResponse.code,
-      })
-
-      console.log(response);
+      mutation.mutate({ code: codeResponse.code })
     },
     onError: errorResponse => console.log(errorResponse),
   });

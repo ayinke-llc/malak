@@ -48,8 +48,13 @@ type Plan struct {
 	PlanName string `json:"plan_name,omitempty"`
 
 	// Can use a fake id really
-	StripeReference string       `json:"stripe_reference,omitempty"`
-	Metadata        PlanMetadata `json:"metadata,omitempty" bson:"metadata"`
+	// As this only matters if you turn on Stripe
+	Reference string       `json:"reference,omitempty"`
+	Metadata  PlanMetadata `json:"metadata,omitempty" bson:"metadata"`
+	// Stripe default price id. Again not needed if not using Stripe
+	DefaultPriceID string `json:"default_price_id,omitempty"`
+	// Defaults to zero
+	Amount int64 `json:"amount,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`

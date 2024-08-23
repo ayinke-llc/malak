@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/providers/theme";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { GOOGLE_CLIENT_ID } from "@/lib/config";
 import { Toaster } from "@/components/ui/sonner";
+import Providers from "@/components/providers/providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,17 +22,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
-        </GoogleOAuthProvider>
-        <Toaster position="top-center" />
+        <Providers>
+          <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
+          </GoogleOAuthProvider>
+          <Toaster position="top-center" />
+        </Providers>
       </body>
     </html>
   );

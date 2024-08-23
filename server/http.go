@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	chi "github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/riandyrn/otelchi"
@@ -14,9 +16,12 @@ import (
 
 func New(logger *logrus.Entry,
 	cfg config.Config,
-) (*http.Server, func()) {
+	userRepo malak.UserRepository,
+	workspaceRepo malak.WorkspaceRepository,
+	googleAuthProvider socialauth.SocialAuthProvider) (*http.Server, func()) {
+
 	srv := &http.Server{
-		Handler: buildRoutes(logger, cfg),
+		Handler: buildRoutes(logger, cfg, userRepo, workspaceRepo, googleAuthProvider),
 		Addr:    fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -38,7 +43,9 @@ func (rw *responseWriter) WriteHeader(code int) {
 }
 
 func buildRoutes(logger *logrus.Entry,
-	cfg config.Config) http.Handler {
+	cfg config.Config, userRepo malak.UserRepository,
+	workspaceRepo malak.WorkspaceRepository,
+	googleAuthProvider socialauth.SocialAuthProvider) http.Handler {
 
 	router := chi.NewRouter()
 
@@ -49,11 +56,13 @@ func buildRoutes(logger *logrus.Entry,
 	router.Use(jsonResponse)
 
 	auth := &authHandler{
-		logger: logger,
+		logger:        logger,
+		userRepo:      userRepo,
+		workspaceRepo: workspaceRepo,
+		googleCfg:     googleAuthProvider,
 	}
 
 	router.Route("/v1", func(r chi.Router) {
-
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/connect/{provider}", auth.Login)
 		})
