@@ -75,7 +75,7 @@ func (t *jwtokenManager) ParseJWToken(JWToken string) (JWTokenData, error) {
 
 	expiresAt, ok := claims["exp"].(int64)
 	if !ok {
-		return JWTokenData{}, fmt.Errorf("ParseJWToken/parseJWTokenClaim/exp: %w", "expiration date not found")
+		return JWTokenData{}, errors.New("ParseJWToken/parseJWTokenClaim/exp: expiration date not found")
 	}
 
 	userID, err := uuid.Parse(id)
