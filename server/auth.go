@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // ENUM(user)
@@ -68,37 +70,33 @@ func writeCookie(w http.ResponseWriter, token jwttoken.JWTokenData) {
 // @Failure 500 {object} APIStatus
 // @Router /auth/connect/{provider} [post]
 // @Param provider  path string true "oauth2 provider"
-func (a *authHandler) Login(w http.ResponseWriter, r *http.Request) {
-
-	ctx, span, rid := getTracer(r.Context(), r, "Login", a.cfg.Otel.IsEnabled)
-	defer span.End()
+func (a *authHandler) Login(
+	ctx context.Context,
+	span trace.Span,
+	logger *logrus.Entry,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
 
 	provider := chi.URLParam(r, "provider")
 
-	logger := a.logger.WithField("method", "login").
-		WithField("request_id", rid).
-		WithField("provider", provider).
-		WithContext(ctx)
+	logger = logger.WithField("provider", provider)
 
 	span.SetAttributes(attribute.String("auth_provider", provider))
 
 	logger.Debug("Authenticating user")
 
 	if provider != "google" {
-		_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, "unspported provider"))
-		return
+		return newAPIStatus(http.StatusBadRequest, "unspported provider"), StatusFailed
 	}
 
 	req := new(authenticateUserRequest)
 
 	if err := render.Bind(r, req); err != nil {
-		_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, "invalid request body"))
-		return
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
 	}
 
 	if err := req.Validate(); err != nil {
-		_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, err.Error()))
-		return
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
 	token, err := a.googleCfg.Validate(ctx, socialauth.ValidateOptions{
@@ -106,15 +104,13 @@ func (a *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		logger.WithError(err).Error("could not exchange token")
-		_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, "could not verify your sign in with Google"))
-		return
+		return newAPIStatus(http.StatusBadRequest, "could not verify your sign in with Google"), StatusFailed
 	}
 
 	u, err := a.googleCfg.User(ctx, token)
 	if err != nil {
 		logger.WithError(err).Error("could not fetch user details")
-		_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, "could not fetch user details from oauth2 provider"))
-		return
+		return newAPIStatus(http.StatusBadRequest, "could not fetch user details from oauth2 provider"), StatusFailed
 	}
 
 	user := &malak.User{
@@ -133,8 +129,7 @@ func (a *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			logger.WithError(err).Error("an error occurred while fetching user")
-			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while logging user into app"))
-			return
+			return newAPIStatus(http.StatusInternalServerError, "an error occurred while logging user into app"), StatusFailed
 		}
 
 		token, err := a.tokenManager.GenerateJWToken(jwttoken.JWTokenData{
@@ -142,19 +137,16 @@ func (a *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			logger.WithError(err).Error("an error occurred while generating jwt token")
-			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while generating jwt token"))
-			return
+			return newAPIStatus(http.StatusInternalServerError, "an error occurred while generating jwt token"), StatusFailed
 		}
 
 		writeCookie(w, token)
-		_ = render.Render(w, r, newAPIStatus(http.StatusOK, "logged in successfully"))
-		return
+		return newAPIStatus(http.StatusOK, "logged in successfully"), StatusSuccess
 	}
 
 	if err != nil {
 		logger.WithError(err).Error("an error occurred while creating user")
-		_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while creating user"))
-		return
+		return newAPIStatus(http.StatusInternalServerError, "an error occurred while creating user"), StatusFailed
 	}
 
 	authToken, err := a.tokenManager.GenerateJWToken(jwttoken.JWTokenData{
@@ -162,13 +154,14 @@ func (a *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		logger.WithError(err).Error("an error occurred while generating jwt token")
-		_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while generating jwt token"))
-		return
+		return newAPIStatus(http.StatusInternalServerError, "an error occurred while generating jwt token"), StatusFailed
 	}
 
 	writeCookie(w, authToken)
-	_ = render.Render(w, r, createdUserResponse{
+
+	resp := createdUserResponse{
 		User:      user,
 		APIStatus: newAPIStatus(http.StatusOK, "user Successfully created"),
-	})
+	}
+	return resp, StatusSuccess
 }
