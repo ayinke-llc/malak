@@ -39,8 +39,6 @@ const MobileLink: FC<PropsWithChildren<Props>> = ({ data }: Props) => {
   )
 }
 
-
-
 export {
   SideLink,
   MobileLink

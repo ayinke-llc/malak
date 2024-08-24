@@ -49,22 +49,22 @@ const links: MalakLink[] = [
   {
     name: "Updates",
     icon: ReaderIcon,
-    link: "/updates"
+    link: "/coming"
   },
   {
     name: "Dashboards",
     icon: ChartBar,
 
-    link: "/dashboards"
+    link: "/coming"
   },
   {
     name: "Decks",
-    link: "/decks",
+    link: "/coming",
     icon: Book,
   },
   {
     name: "Analytics",
-    link: "/analytics",
+    link: "/coming",
     icon: LineChart,
   }
 ]
