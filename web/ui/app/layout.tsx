@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/providers/theme";
-import { GoogleOAuthProvider } from '@react-oauth/google';
-import { GOOGLE_CLIENT_ID } from "@/lib/config";
-import { Toaster } from "@/components/ui/sonner";
 import Providers from "@/components/providers/providers";
+import Shell from "@/components/shell/dashboard";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,17 +20,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Providers>
-          <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {children}
-            </ThemeProvider>
-          </GoogleOAuthProvider>
-          <Toaster position="top-center" />
+          <Shell>
+            {children}
+          </Shell>
         </Providers>
       </body>
     </html>
