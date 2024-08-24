@@ -1,29 +1,24 @@
 package server
 
 import (
-	"errors"
 	"net/http"
-	"strings"
 
+	"github.com/ayinke-llc/malak"
+	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/render"
 	"github.com/sirupsen/logrus"
 )
 
 func tokenFromRequest(r *http.Request) (string, error) {
-	val := r.Header.Get("Authorization")
-	splitted := strings.Split(val, " ")
 
-	var t string
-
-	if len(splitted) != 2 {
-		return t, errors.New("invalid header structure")
+	c, err := r.Cookie(CookieNameUser.String())
+	if err != nil {
+		return "", err
 	}
 
-	if strings.ToUpper(splitted[0]) != "BEARER" {
-		return t, errors.New("invalid header structure")
-	}
-
-	return splitted[1], nil
+	return c.Value, nil
 }
 
 type contextKey string
@@ -33,10 +28,37 @@ const (
 	orgCtx  contextKey = "org"
 )
 
-func requireAuthentication(logger *logrus.Entry,
+func requireAuthentication(
+	logger *logrus.Entry,
+	jwtManager jwttoken.JWTokenManager,
+	cfg config.Config,
+	userRepo malak.UserRepository,
 ) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			ctx, span, rid := getTracer(r.Context(), r, "middleware.requireAuthentication", cfg.Otel.IsEnabled)
+			defer span.End()
+
+			logger = logger.WithField("request_id", rid)
+
+			token, err := tokenFromRequest(r)
+			if err != nil {
+				logger.WithError(err).Error("token not found in cookie")
+				_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "session expired"))
+				return
+			}
+
+			data, err := jwtManager.ParseJWToken(token)
+			if err != nil {
+				logger.WithError(err).Error("could not parse JWT token")
+				_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "could not validate JWT token"))
+				return
+			}
+
+			user, err := userRepo.Get(ctx, &malak.FindUserOptions{
+				ID: data.UserID,
+			})
 
 		})
 	}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
@@ -43,6 +44,10 @@ func (u *userRepo) Get(ctx context.Context, opts *malak.FindUserOptions) (*malak
 
 	if !util.IsStringEmpty(opts.Email.String()) {
 		sel = sel.Where("email = ?", opts.Email.String())
+	}
+
+	if opts.ID != uuid.Nil {
+		sel = sel.Where("id = ?", opts.ID)
 	}
 
 	err := sel.Scan(ctx)
