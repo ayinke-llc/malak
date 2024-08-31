@@ -10,11 +10,13 @@ import { useMutation } from "@tanstack/react-query"
 import { useToast } from "@/components/ui/use-toast"
 import { HttpResponse, ServerAPIStatus, ServerCreatedUserResponse } from "@/client/Api"
 import { useRouter } from "next/navigation"
+import useAuthStore from "@/store/auth"
 
 export default function Login() {
 
   const { toast } = useToast();
   const router = useRouter()
+  const { setUser, setToken } = useAuthStore()
 
   const mutation = useMutation({
     mutationFn: ({ code }: { code: string }) => {
@@ -30,6 +32,8 @@ export default function Login() {
       })
     },
     onSuccess: (resp: HttpResponse<ServerCreatedUserResponse>) => {
+      setUser(resp.data.user)
+      setToken(resp.data.token)
       router.push("/")
     }
   })

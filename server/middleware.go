@@ -1,6 +1,9 @@
 package server
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/ayinke-llc/malak"
@@ -13,6 +16,7 @@ import (
 
 func tokenFromRequest(r *http.Request) (string, error) {
 
+	fmt.Println(r.Cookies())
 	c, err := r.Cookie(CookieNameUser.String())
 	if err != nil {
 		return "", err
@@ -24,8 +28,8 @@ func tokenFromRequest(r *http.Request) (string, error) {
 type contextKey string
 
 const (
-	userCtx contextKey = "user"
-	orgCtx  contextKey = "org"
+	userCtx      contextKey = "user"
+	workspaceCtx            = "workspace"
 )
 
 func requireAuthentication(
@@ -59,19 +63,40 @@ func requireAuthentication(
 			user, err := userRepo.Get(ctx, &malak.FindUserOptions{
 				ID: data.UserID,
 			})
+			if errors.Is(err, malak.ErrUserNotFound) {
+				_ = render.Render(w, r, newAPIStatus(http.StatusForbidden, "user does not exists. JWT is invalid"))
+				return
+			}
 
+			if err != nil {
+				logger.WithError(err).Error("could not fetch user from database")
+				_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while checking user"))
+				return
+			}
+
+			r = r.WithContext(writeUserToCtx(ctx, user))
+
+			next.ServeHTTP(w, r)
 		})
 	}
 }
 
 func writeRequestIDHeader(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("X-Request-ID", r.Context().Value(middleware.RequestIDKey).(string))
+		w.Header().Set("X-Request-ID", retrieveRequestID(r))
 		next.ServeHTTP(w, r)
 	})
 }
 
 func retrieveRequestID(r *http.Request) string { return middleware.GetReqID(r.Context()) }
+
+func writeUserToCtx(ctx context.Context, user *malak.User) context.Context {
+	return context.WithValue(ctx, userCtx, user)
+}
+
+func getUserFromContext(ctx context.Context) *malak.User {
+	return ctx.Value(userCtx).(*malak.User)
+}
 
 func jsonResponse(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

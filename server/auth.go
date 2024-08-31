@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
@@ -42,20 +41,6 @@ func (a *authenticateUserRequest) Validate() error {
 	}
 
 	return nil
-}
-
-func writeCookie(w http.ResponseWriter, token jwttoken.JWTokenData) {
-
-	cookie := &http.Cookie{
-		Name:     CookieNameUser.String(),
-		Value:    token.Token,
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-		Path:     "/",
-		MaxAge:   -int(time.Since(token.ExpiresAt).Seconds()),
-	}
-	http.SetCookie(w, cookie)
 }
 
 // @Summary Sign in with a social login provider
@@ -140,8 +125,12 @@ func (a *authHandler) Login(
 			return newAPIStatus(http.StatusInternalServerError, "an error occurred while generating jwt token"), StatusFailed
 		}
 
-		writeCookie(w, token)
-		return newAPIStatus(http.StatusOK, "logged in successfully"), StatusSuccess
+		resp := createdUserResponse{
+			User:      user,
+			APIStatus: newAPIStatus(http.StatusOK, "Logged in Successfully"),
+			Token:     token.Token,
+		}
+		return resp, StatusSuccess
 	}
 
 	if err != nil {
@@ -157,11 +146,35 @@ func (a *authHandler) Login(
 		return newAPIStatus(http.StatusInternalServerError, "an error occurred while generating jwt token"), StatusFailed
 	}
 
-	writeCookie(w, authToken)
-
 	resp := createdUserResponse{
 		User:      user,
 		APIStatus: newAPIStatus(http.StatusOK, "user Successfully created"),
+		Token:     authToken.Token,
 	}
 	return resp, StatusSuccess
+}
+
+// @Summary Fetch current user. This api should also double as a token validation api
+// @Tags user
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} createdUserResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /user [get]
+func (a *authHandler) fetchCurrentUser(
+	ctx context.Context,
+	span trace.Span,
+	logger *logrus.Entry,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("Fetching user profile")
+
+	return createdUserResponse{
+		User:      getUserFromContext(r.Context()),
+		APIStatus: newAPIStatus(http.StatusOK, "user data successfully retrieved"),
+	}, StatusFailed
 }

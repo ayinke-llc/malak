@@ -52,16 +52,16 @@ type UserMetadata struct {
 }
 
 type User struct {
-	ID    uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	Email Email     `json:"email,omitempty"`
+	ID    uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id"`
+	Email Email     `json:"email"`
 
-	FullName string        `json:"full_name,omitempty"`
-	Metadata *UserMetadata `json:"metadata,omitempty" `
+	FullName string        `json:"full_name"`
+	Metadata *UserMetadata `json:"metadata" `
 
 	Roles UserRoles `json:"roles" bun:"rel:has-many,join:id=user_id"`
 
-	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" `
-	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" `
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at" `
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at" `
 	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" `
 
 	bun.BaseModel `bun:"table:users" json:"-"`

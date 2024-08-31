@@ -28,6 +28,14 @@ definitions:
         type: array
       updated_at:
         type: string
+    required:
+    - created_at
+    - email
+    - full_name
+    - id
+    - metadata
+    - roles
+    - updated_at
     type: object
   malak.UserMetadata:
     properties:
@@ -39,6 +47,8 @@ definitions:
           right place rather than always a list of all their workspaces and they
           have to select one
         type: string
+    required:
+    - current_workspace
     type: object
   malak.UserRole:
     properties:
@@ -54,27 +64,46 @@ definitions:
         type: string
       workspace_id:
         type: string
+    required:
+    - created_at
+    - id
+    - role
+    - updated_at
+    - user_id
+    - workspace_id
     type: object
   server.APIStatus:
     properties:
       message:
         description: Generic message that tells you the status of the operation
         type: string
+    required:
+    - message
     type: object
   server.authenticateUserRequest:
     properties:
       code:
         type: string
+    required:
+    - code
+    type: object
+  server.createWorkspaceRequest:
     type: object
   server.createdUserResponse:
     properties:
       message:
         description: Generic message that tells you the status of the operation
         type: string
+      token:
+        type: string
       user:
         $ref: '#/definitions/malak.User'
+    required:
+    - message
+    - token
+    - user
     type: object
-host: d0f6-102-88-37-85.ngrok-free.app
+host: localhost:5300
 info:
   contact:
     email: lanre@ayinke.ventures
@@ -124,11 +153,74 @@ paths:
       summary: Sign in with a social login provider
       tags:
       - auth
+  /user:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.createdUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+      summary: Fetch current user. This api should also double as a token validation
+        api
+      tags:
+      - user
+  /workspaces:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request body to create a workspace
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/server.createWorkspaceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.createdUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+      summary: Create a new workspace
+      tags:
+      - workspace
 schemes:
-- https
-securityDefinitions:
-  ApiKeyAuth:
-    in: header
-    name: Authorization
-    type: apiKey
+- http
 swagger: "2.0"

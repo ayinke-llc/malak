@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/ayinke-llc/malak"
@@ -25,14 +26,13 @@ type createWorkspaceRequest struct {
 // @Tags workspace
 // @Accept  json
 // @Produce  json
-// @Param message body createWorkspaceRequest true "auth exchange data"
+// @Param message body createWorkspaceRequest true "request body to create a workspace"
 // @Success 200 {object} createdUserResponse
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /auth/connect/{provider} [post]
-// @Param provider  path string true "oauth2 provider"
+// @Router /workspaces [post]
 func (wo *workspaceHandler) createWorkspace(
 	ctx context.Context,
 	span trace.Span,
@@ -40,5 +40,6 @@ func (wo *workspaceHandler) createWorkspace(
 	w http.ResponseWriter,
 	r *http.Request) (render.Renderer, Status) {
 
+	fmt.Println(getUserFromContext(r.Context()))
 	return nil, StatusFailed
 }
