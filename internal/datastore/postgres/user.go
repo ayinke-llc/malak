@@ -38,7 +38,9 @@ func (u *userRepo) Get(ctx context.Context, opts *malak.FindUserOptions) (*malak
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
 
-	user := new(malak.User)
+	user := &malak.User{
+		Roles: malak.UserRoles{},
+	}
 
 	sel := u.inner.NewSelect().Model(user).Relation("Roles")
 

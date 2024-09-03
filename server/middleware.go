@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
@@ -16,13 +16,12 @@ import (
 
 func tokenFromRequest(r *http.Request) (string, error) {
 
-	fmt.Println(r.Cookies())
-	c, err := r.Cookie(CookieNameUser.String())
-	if err != nil {
-		return "", err
+	ss := strings.Split(r.Header.Get("Authorization"), "Bearer")
+	if len(ss) != 2 {
+		return "", errors.New("bearer token not found")
 	}
 
-	return c.Value, nil
+	return ss[1], nil
 }
 
 type contextKey string

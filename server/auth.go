@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+
 	"net/http"
 
 	"github.com/ayinke-llc/malak"
@@ -102,6 +103,7 @@ func (a *authHandler) Login(
 		Email:    malak.Email(u.Email),
 		FullName: u.Name,
 		Metadata: &malak.UserMetadata{},
+		Roles:    malak.UserRoles{},
 	}
 
 	err = a.userRepo.Create(ctx, user)

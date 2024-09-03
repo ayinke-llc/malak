@@ -7,8 +7,6 @@ export default function Home() {
 
   const { user } = useAuthStore()
 
-  console.log(user)
-
   return (
     <div className="flex flex-col items-center gap-1 text-center">
       <h3 className="text-2xl font-bold tracking-tight">
