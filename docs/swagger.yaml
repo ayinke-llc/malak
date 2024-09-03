@@ -2,14 +2,14 @@ basePath: /v1
 definitions:
   malak.Role:
     enum:
-    - admin
-    - member
-    - billing
+      - admin
+      - member
+      - billing
     type: string
     x-enum-varnames:
-    - RoleAdmin
-    - RoleMember
-    - RoleBilling
+      - RoleAdmin
+      - RoleMember
+      - RoleBilling
   malak.User:
     properties:
       created_at:
@@ -21,21 +21,21 @@ definitions:
       id:
         type: string
       metadata:
-        $ref: '#/definitions/malak.UserMetadata'
+        $ref: "#/definitions/malak.UserMetadata"
       roles:
         items:
-          $ref: '#/definitions/malak.UserRole'
+          $ref: "#/definitions/malak.UserRole"
         type: array
       updated_at:
         type: string
     required:
-    - created_at
-    - email
-    - full_name
-    - id
-    - metadata
-    - roles
-    - updated_at
+      - created_at
+      - email
+      - full_name
+      - id
+      - metadata
+      - roles
+      - updated_at
     type: object
   malak.UserMetadata:
     properties:
@@ -48,7 +48,7 @@ definitions:
           have to select one
         type: string
     required:
-    - current_workspace
+      - current_workspace
     type: object
   malak.UserRole:
     properties:
@@ -57,7 +57,7 @@ definitions:
       id:
         type: string
       role:
-        $ref: '#/definitions/malak.Role'
+        $ref: "#/definitions/malak.Role"
       updated_at:
         type: string
       user_id:
@@ -65,12 +65,12 @@ definitions:
       workspace_id:
         type: string
     required:
-    - created_at
-    - id
-    - role
-    - updated_at
-    - user_id
-    - workspace_id
+      - created_at
+      - id
+      - role
+      - updated_at
+      - user_id
+      - workspace_id
     type: object
   server.APIStatus:
     properties:
@@ -78,14 +78,14 @@ definitions:
         description: Generic message that tells you the status of the operation
         type: string
     required:
-    - message
+      - message
     type: object
   server.authenticateUserRequest:
     properties:
       code:
         type: string
     required:
-    - code
+      - code
     type: object
   server.createWorkspaceRequest:
     type: object
@@ -97,11 +97,11 @@ definitions:
       token:
         type: string
       user:
-        $ref: '#/definitions/malak.User'
+        $ref: "#/definitions/malak.User"
     required:
-    - message
-    - token
-    - user
+      - message
+      - token
+      - user
     type: object
 host: localhost:5300
 info:
@@ -114,113 +114,119 @@ paths:
   /auth/connect/{provider}:
     post:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: auth exchange data
-        in: body
-        name: message
-        required: true
-        schema:
-          $ref: '#/definitions/server.authenticateUserRequest'
-      - description: oauth2 provider
-        in: path
-        name: provider
-        required: true
-        type: string
+        - description: auth exchange data
+          in: body
+          name: message
+          required: true
+          schema:
+            $ref: "#/definitions/server.authenticateUserRequest"
+        - description: oauth2 provider
+          in: path
+          name: provider
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.createdUserResponse'
+            $ref: "#/definitions/server.createdUserResponse"
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       summary: Sign in with a social login provider
       tags:
-      - auth
+        - auth
   /user:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.createdUserResponse'
+            $ref: "#/definitions/server.createdUserResponse"
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.APIStatus'
-      summary: Fetch current user. This api should also double as a token validation
+            $ref: "#/definitions/server.APIStatus"
+      summary:
+        Fetch current user. This api should also double as a token validation
         api
       tags:
-      - user
+        - user
   /workspaces:
     post:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: request body to create a workspace
-        in: body
-        name: message
-        required: true
-        schema:
-          $ref: '#/definitions/server.createWorkspaceRequest'
+        - description: request body to create a workspace
+          in: body
+          name: message
+          required: true
+          schema:
+            $ref: "#/definitions/server.createWorkspaceRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.createdUserResponse'
+            $ref: "#/definitions/server.createdUserResponse"
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       summary: Create a new workspace
       tags:
-      - workspace
+        - workspace
 schemes:
-- http
+  - http
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

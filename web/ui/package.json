@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "swagger": "bun swagger-typescript-api -p ../../docs/swagger.yaml -o ./client"
+    "swagger": "bun swagger-typescript-api --axios -p ../../docs/swagger.yaml -o ./client"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.0",

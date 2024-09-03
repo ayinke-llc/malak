@@ -25,7 +25,7 @@ const useAuthStore = create(
       },
       setUser: (user: MalakUser) => set({ user }),
       setToken: (token: string) => set({ token }),
-      logout: (): void => set({ user: null })
+      logout: (): void => set({ user: null, token: null })
     }), {
     "name": "auth",
   })

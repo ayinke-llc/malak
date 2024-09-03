@@ -16,9 +16,10 @@ import (
 
 func tokenFromRequest(r *http.Request) (string, error) {
 
-	ss := strings.Split(r.Header.Get("Authorization"), "Bearer")
+	ss := strings.Split(r.Header.Get("Authorization"), " ")
+
 	if len(ss) != 2 {
-		return "", errors.New("bearer token not found")
+		return "", errors.New("invalid bearer token structure")
 	}
 
 	return ss[1], nil
