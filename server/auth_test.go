@@ -13,6 +13,7 @@ import (
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
+	mock_jwttoken "github.com/ayinke-llc/malak/internal/pkg/jwttoken/mocks"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	socialauth_mocks "github.com/ayinke-llc/malak/internal/pkg/socialauth/mocks"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
@@ -87,6 +88,8 @@ func TestAuthHandler_Login(t *testing.T) {
 			googleCfg := socialauth_mocks.NewMockSocialAuthProvider(controller)
 			userRepo := malak_mocks.NewMockUserRepository(controller)
 
+			jwtMock := mock_jwttoken.NewMockJWTokenManager(controller)
+
 			v.mockFn(googleCfg, userRepo)
 
 			a := &authHandler{
@@ -94,7 +97,7 @@ func TestAuthHandler_Login(t *testing.T) {
 				cfg:          getConfig(),
 				googleCfg:    googleCfg,
 				userRepo:     userRepo,
-				tokenManager: jwttoken.New(getConfig()),
+				tokenManager: jwtMock,
 			}
 
 			var b = bytes.NewBuffer(nil)
@@ -109,19 +112,21 @@ func TestAuthHandler_Login(t *testing.T) {
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
 			req.Header.Add("Content-Type", "application/json")
 
+			if v.expectedStatusCode == http.StatusOK {
+				jwtMock.EXPECT().
+					GenerateJWToken(gomock.Any()).
+					Times(1).
+					Return(jwttoken.JWTokenData{
+						Token:  "b622268d-4512-4e3c-98da-88097753d4b9",
+						UserID: uuid.MustParse("7e6ad0c8-7a96-4add-a270-52615bd808e6"),
+					}, nil)
+			}
+
 			WrapMalakHTTPHandler(a.Login, getConfig(), "Auth.Login").
 				ServeHTTP(rr, req)
 
 			require.Equal(t, v.expectedStatusCode, rr.Code)
 			verifyMatch(t, rr)
-
-			if rr.Code == http.StatusOK {
-				for _, v := range rr.Result().Cookies() {
-					if v.Name == CookieNameUser.String() {
-						require.NotEmpty(t, v.String())
-					}
-				}
-			}
 		})
 	}
 }
@@ -133,6 +138,9 @@ func generateLoginTestTable() []struct {
 	req                authenticateUserRequest
 	provider           string
 } {
+
+	var reusedID = uuid.MustParse("37f41afb-afff-45cc-bcc0-71249d95df90")
+
 	return []struct {
 		name               string
 		mockFn             func(googleMock *socialauth_mocks.MockSocialAuthProvider, userRepo *malak_mocks.MockUserRepository)
@@ -269,7 +277,7 @@ func generateLoginTestTable() []struct {
 				userRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(&malak.User{
-						ID: uuid.New(),
+						ID: reusedID,
 					}, nil)
 			},
 			expectedStatusCode: http.StatusOK,

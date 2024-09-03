@@ -8,9 +8,10 @@ import { MALAK_PRIVACY_POLICY_LINK, MALAK_TERMS_CONDITION_LINK } from "@/lib/con
 import client from "@/lib/client"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "@/components/ui/use-toast"
-import { HttpResponse, ServerAPIStatus, ServerCreatedUserResponse } from "@/client/Api"
+import { ServerCreatedUserResponse } from "@/client/Api"
 import { useRouter } from "next/navigation"
 import useAuthStore from "@/store/auth"
+import { AxiosResponse } from "axios"
 
 export default function Login() {
 
@@ -25,13 +26,13 @@ export default function Login() {
       })
     },
     gcTime: 0,
-    onError: (err: HttpResponse<Response, ServerAPIStatus>): void => {
+    onError: (err: AxiosResponse<ServerCreatedUserResponse>): void => {
       toast({
         variant: "destructive",
-        title: err.error.message,
+        title: err.data.message,
       })
     },
-    onSuccess: (resp: HttpResponse<ServerCreatedUserResponse>) => {
+    onSuccess: (resp: AxiosResponse<ServerCreatedUserResponse>) => {
       setUser(resp.data.user)
       setToken(resp.data.token)
       router.push("/")
