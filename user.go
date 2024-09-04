@@ -15,7 +15,7 @@ const (
 	ErrUserExists   = malakError("User with email already exists")
 )
 
-// ENUM(admin,member,billing)
+// ENUM(admin,member,billing,investor,guest)
 type Role string
 
 type UserRole struct {

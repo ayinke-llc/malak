@@ -20,10 +20,11 @@ func New(logger *logrus.Entry,
 	jwtTokenManager jwttoken.JWTokenManager,
 	userRepo malak.UserRepository,
 	workspaceRepo malak.WorkspaceRepository,
+	planRepo malak.PlanRepository,
 	googleAuthProvider socialauth.SocialAuthProvider) (*http.Server, func()) {
 
 	srv := &http.Server{
-		Handler: buildRoutes(logger, cfg, jwtTokenManager, userRepo, workspaceRepo, googleAuthProvider),
+		Handler: buildRoutes(logger, cfg, jwtTokenManager, userRepo, workspaceRepo, planRepo, googleAuthProvider),
 		Addr:    fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -50,6 +51,7 @@ func buildRoutes(
 	jwtTokenManager jwttoken.JWTokenManager,
 	userRepo malak.UserRepository,
 	workspaceRepo malak.WorkspaceRepository,
+	planRepo malak.PlanRepository,
 	googleAuthProvider socialauth.SocialAuthProvider) http.Handler {
 
 	router := chi.NewRouter()
@@ -67,7 +69,12 @@ func buildRoutes(
 		tokenManager:  jwtTokenManager,
 	}
 
-	workspaceHandler := &workspaceHandler{}
+	workspaceHandler := &workspaceHandler{
+		workspaceRepo: workspaceRepo,
+		cfg:           cfg,
+		userRepo:      userRepo,
+		planRepo:      planRepo,
+	}
 
 	router.Route("/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {

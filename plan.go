@@ -2,15 +2,14 @@ package malak
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 var (
-	ErrPlanNotFound     = errors.New("plan does not exists")
-	ErrCounterExhausted = errors.New("no more units left")
+	ErrPlanNotFound     = malakError("plan does not exists")
+	ErrCounterExhausted = malakError("no more units left")
 )
 
 type Counter int64

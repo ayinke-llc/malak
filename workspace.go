@@ -3,6 +3,7 @@ package malak
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,6 +17,7 @@ type Workspace struct {
 
 	WorkspaceName string    `json:"workspace_name,omitempty"`
 	PlanID        uuid.UUID `json:"plan_id,omitempty"`
+	Reference     string    `json:"reference,omitempty"`
 
 	// Not required
 	// Dummy values work really
@@ -29,9 +31,10 @@ type Workspace struct {
 	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" bson:"deleted_at"`
 }
 
-func NewWorkspace(u *User, plan *Plan) *Workspace {
+func NewWorkspace(name string, u *User, plan *Plan) *Workspace {
 	return &Workspace{
-		WorkspaceName: shortid.MustGenerate(),
+		WorkspaceName: name,
+		Reference:     fmt.Sprintf("space_%s", shortid.MustGenerate()),
 		Metadata:      plan.Metadata,
 		PlanID:        plan.ID,
 	}

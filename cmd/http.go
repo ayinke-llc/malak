@@ -55,6 +55,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			userRepo := postgres.NewUserRepository(db)
 			workspaceRepo := postgres.NewWorkspaceRepository(db)
+			planRepo := postgres.NewPlanRepository(db)
 
 			googleAuthProvider := socialauth.NewGoogle(*cfg)
 
@@ -62,7 +63,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			srv, cleanupSrv := server.New(logger, *cfg,
 				tokenManager, userRepo, workspaceRepo,
-				googleAuthProvider)
+				planRepo, googleAuthProvider)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {
