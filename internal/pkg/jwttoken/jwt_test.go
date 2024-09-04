@@ -47,7 +47,6 @@ func TestJWT_Parse(t *testing.T) {
 	parsedToken, err := manager.ParseJWToken(token.Token)
 	require.NoError(t, err)
 
-	t.Log(parsedToken.ExpiresAt)
 	require.Equal(t, userID, parsedToken.UserID)
 }
 

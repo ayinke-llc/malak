@@ -44,7 +44,8 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.ResponseWriter.WriteHeader(code)
 }
 
-func buildRoutes(logger *logrus.Entry,
+func buildRoutes(
+	logger *logrus.Entry,
 	cfg config.Config,
 	jwtTokenManager jwttoken.JWTokenManager,
 	userRepo malak.UserRepository,
@@ -60,16 +61,27 @@ func buildRoutes(logger *logrus.Entry,
 	router.Use(jsonResponse)
 
 	auth := &authHandler{
-		logger:        logger,
 		userRepo:      userRepo,
 		workspaceRepo: workspaceRepo,
 		googleCfg:     googleAuthProvider,
 		tokenManager:  jwtTokenManager,
 	}
 
+	workspaceHandler := &workspaceHandler{}
+
 	router.Route("/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/connect/{provider}", WrapMalakHTTPHandler(auth.Login, cfg, "Auth.Login"))
+		})
+
+		r.Route("/user", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo))
+			r.Get("/", WrapMalakHTTPHandler(auth.fetchCurrentUser, cfg, "Auth.fetchCurrentUser"))
+		})
+
+		r.Route("/workspaces", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo))
+			r.Post("/", WrapMalakHTTPHandler(workspaceHandler.createWorkspace, cfg, "workspaces.new"))
 		})
 	})
 

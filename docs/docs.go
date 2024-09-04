@@ -81,6 +81,109 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Fetch current user. This api should also double as a token validation api",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.createdUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/workspaces": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "Create a new workspace",
+                "parameters": [
+                    {
+                        "description": "request body to create a workspace",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createWorkspaceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.createdUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -99,6 +202,15 @@ const docTemplate = `{
         },
         "malak.User": {
             "type": "object",
+            "required": [
+                "created_at",
+                "email",
+                "full_name",
+                "id",
+                "metadata",
+                "roles",
+                "updated_at"
+            ],
             "properties": {
                 "created_at": {
                     "type": "string"
@@ -128,6 +240,9 @@ const docTemplate = `{
         },
         "malak.UserMetadata": {
             "type": "object",
+            "required": [
+                "current_workspace"
+            ],
             "properties": {
                 "current_workspace": {
                     "description": "Used to keep track of the last used workspace\nIn the instance of multiple workspaces\nSo when next the user logs in, we remember and take them to the\nright place rather than always a list of all their workspaces and they\nhave to select one",
@@ -137,6 +252,14 @@ const docTemplate = `{
         },
         "malak.UserRole": {
             "type": "object",
+            "required": [
+                "created_at",
+                "id",
+                "role",
+                "updated_at",
+                "user_id",
+                "workspace_id"
+            ],
             "properties": {
                 "created_at": {
                     "type": "string"
@@ -160,6 +283,9 @@ const docTemplate = `{
         },
         "server.APIStatus": {
             "type": "object",
+            "required": [
+                "message"
+            ],
             "properties": {
                 "message": {
                     "description": "Generic message that tells you the status of the operation",
@@ -169,17 +295,31 @@ const docTemplate = `{
         },
         "server.authenticateUserRequest": {
             "type": "object",
+            "required": [
+                "code"
+            ],
             "properties": {
                 "code": {
                     "type": "string"
                 }
             }
         },
+        "server.createWorkspaceRequest": {
+            "type": "object"
+        },
         "server.createdUserResponse": {
             "type": "object",
+            "required": [
+                "message",
+                "token",
+                "user"
+            ],
             "properties": {
                 "message": {
                     "description": "Generic message that tells you the status of the operation",
+                    "type": "string"
+                },
+                "token": {
                     "type": "string"
                 },
                 "user": {
@@ -200,9 +340,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.1.0",
-	Host:             "d0f6-102-88-37-85.ngrok-free.app",
+	Host:             "localhost:5300",
 	BasePath:         "/v1",
-	Schemes:          []string{"https"},
+	Schemes:          []string{"http"},
 	Title:            "Malak's API documentation",
 	Description:      "",
 	InfoInstanceName: "swagger",

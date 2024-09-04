@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ayinke-llc/malak"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -71,6 +72,45 @@ func TestUser_Create(t *testing.T) {
 			}
 
 			require.NoError(t, err)
+		})
+	}
+}
+
+func TestUser_GetUserID(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	userRepo := NewUserRepository(client)
+
+	tt := []struct {
+		id       string
+		name     string
+		hasError bool
+	}{
+		{
+			id:   "f0271acc-981e-4229-9c94-4e2b208618f5",
+			name: "User 1 from fixtures",
+		},
+		{
+			id:       "fe76e7a4-9e9b-4cb6-934f-79e528b7c016",
+			name:     "user does not exists",
+			hasError: true,
+		},
+	}
+
+	for _, v := range tt {
+		t.Run(v.name, func(t *testing.T) {
+			user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+				ID: uuid.MustParse(v.id),
+			})
+			if v.hasError {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotEmpty(t, user.FullName)
+			require.Equal(t, v.id, user.ID.String())
 		})
 	}
 }

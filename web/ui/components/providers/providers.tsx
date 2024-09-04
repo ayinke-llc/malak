@@ -11,13 +11,13 @@ import { TooltipProvider } from '../ui/tooltip';
 import { ThemeProvider } from "@/components/providers/theme";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { GOOGLE_CLIENT_ID } from "@/lib/config";
+import UserProvider from './user';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
 
   const queryClient = new QueryClient()
 
   return (
-
     <ThemeProvider
       attribute="class"
       defaultTheme="system"
@@ -28,9 +28,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <ReactQueryDevtools initialIsOpen={false} />
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <TooltipProvider>
-            <Toaster />
-            <Sonner position="top-center" />
-            {children}
+            <UserProvider>
+              <Toaster />
+              <Sonner position="top-center" />
+              {children}
+            </UserProvider>
           </TooltipProvider>
         </GoogleOAuthProvider>
       </QueryClientProvider >
