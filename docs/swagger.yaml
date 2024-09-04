@@ -20,11 +20,15 @@ definitions:
     - admin
     - member
     - billing
+    - investor
+    - guest
     type: string
     x-enum-varnames:
     - RoleAdmin
     - RoleMember
     - RoleBilling
+    - RoleInvestor
+    - RoleGuest
   malak.User:
     properties:
       created_at:
@@ -97,6 +101,8 @@ definitions:
         $ref: '#/definitions/malak.PlanMetadata'
       plan_id:
         type: string
+      reference:
+        type: string
       stripe_customer_id:
         description: |-
           Not required
@@ -113,6 +119,7 @@ definitions:
     - id
     - metadata
     - plan_id
+    - reference
     - stripe_customer_id
     - subscription_id
     - updated_at
@@ -134,6 +141,11 @@ definitions:
     - code
     type: object
   server.createWorkspaceRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
     type: object
   server.createdUserResponse:
     properties:

@@ -215,12 +215,16 @@ const docTemplate = `{
             "enum": [
                 "admin",
                 "member",
-                "billing"
+                "billing",
+                "investor",
+                "guest"
             ],
             "x-enum-varnames": [
                 "RoleAdmin",
                 "RoleMember",
-                "RoleBilling"
+                "RoleBilling",
+                "RoleInvestor",
+                "RoleGuest"
             ]
         },
         "malak.User": {
@@ -311,6 +315,7 @@ const docTemplate = `{
                 "id",
                 "metadata",
                 "plan_id",
+                "reference",
                 "stripe_customer_id",
                 "subscription_id",
                 "updated_at",
@@ -327,6 +332,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/malak.PlanMetadata"
                 },
                 "plan_id": {
+                    "type": "string"
+                },
+                "reference": {
                     "type": "string"
                 },
                 "stripe_customer_id": {
@@ -368,7 +376,15 @@ const docTemplate = `{
             }
         },
         "server.createWorkspaceRequest": {
-            "type": "object"
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
         },
         "server.createdUserResponse": {
             "type": "object",
