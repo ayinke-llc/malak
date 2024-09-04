@@ -155,7 +155,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.createdUserResponse"
+                            "$ref": "#/definitions/server.fetchWorkspaceResponse"
                         }
                     },
                     "400": {
@@ -187,6 +187,29 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "malak.PlanMetadata": {
+            "type": "object",
+            "required": [
+                "team"
+            ],
+            "properties": {
+                "team": {
+                    "type": "object",
+                    "required": [
+                        "enabled",
+                        "size"
+                    ],
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "size": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
         "malak.Role": {
             "type": "string",
             "enum": [
@@ -281,6 +304,46 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.Workspace": {
+            "type": "object",
+            "required": [
+                "created_at",
+                "id",
+                "metadata",
+                "plan_id",
+                "stripe_customer_id",
+                "subscription_id",
+                "updated_at",
+                "workspace_name"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/malak.PlanMetadata"
+                },
+                "plan_id": {
+                    "type": "string"
+                },
+                "stripe_customer_id": {
+                    "description": "Not required\nDummy values work really",
+                    "type": "string"
+                },
+                "subscription_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_name": {
+                    "type": "string"
+                }
+            }
+        },
         "server.APIStatus": {
             "type": "object",
             "required": [
@@ -324,6 +387,22 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/malak.User"
+                }
+            }
+        },
+        "server.fetchWorkspaceResponse": {
+            "type": "object",
+            "required": [
+                "message",
+                "workspace"
+            ],
+            "properties": {
+                "message": {
+                    "description": "Generic message that tells you the status of the operation",
+                    "type": "string"
+                },
+                "workspace": {
+                    "$ref": "#/definitions/malak.Workspace"
                 }
             }
         }

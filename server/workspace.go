@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/ayinke-llc/malak"
@@ -27,7 +26,7 @@ type createWorkspaceRequest struct {
 // @Accept  json
 // @Produce  json
 // @Param message body createWorkspaceRequest true "request body to create a workspace"
-// @Success 200 {object} createdUserResponse
+// @Success 200 {object} fetchWorkspaceResponse
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
@@ -40,6 +39,5 @@ func (wo *workspaceHandler) createWorkspace(
 	w http.ResponseWriter,
 	r *http.Request) (render.Renderer, Status) {
 
-	fmt.Println(getUserFromContext(r.Context()))
 	return nil, StatusFailed
 }
