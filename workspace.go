@@ -3,11 +3,9 @@ package malak
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/teris-io/shortid"
 )
 
 var ErrWorkspaceNotFound = errors.New("workspace not found")
@@ -31,10 +29,11 @@ type Workspace struct {
 	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" bson:"deleted_at"`
 }
 
-func NewWorkspace(name string, u *User, plan *Plan) *Workspace {
+func NewWorkspace(name string, u *User,
+	plan *Plan, reference string) *Workspace {
 	return &Workspace{
 		WorkspaceName: name,
-		Reference:     fmt.Sprintf("space_%s", shortid.MustGenerate()),
+		Reference:     reference,
 		Metadata:      plan.Metadata,
 		PlanID:        plan.ID,
 	}

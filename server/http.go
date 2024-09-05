@@ -70,10 +70,11 @@ func buildRoutes(
 	}
 
 	workspaceHandler := &workspaceHandler{
-		workspaceRepo: workspaceRepo,
-		cfg:           cfg,
-		userRepo:      userRepo,
-		planRepo:      planRepo,
+		workspaceRepo:           workspaceRepo,
+		cfg:                     cfg,
+		userRepo:                userRepo,
+		planRepo:                planRepo,
+		referenceGenerationFunc: malak.GenerateReference,
 	}
 
 	router.Route("/v1", func(r chi.Router) {

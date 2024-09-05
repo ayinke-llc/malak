@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -34,6 +35,9 @@ func TestWorkspaceHandler_Create(t *testing.T) {
 				cfg:           getConfig(),
 				workspaceRepo: workspaceRepo,
 				planRepo:      planRepo,
+				referenceGenerationFunc: func(e malak.EntityType) string {
+					return "workspace_tt7-YieIgz"
+				},
 			}
 
 			var b = bytes.NewBuffer(nil)
@@ -63,8 +67,6 @@ func generateWorkspaceTestTable() []struct {
 	req                createWorkspaceRequest
 } {
 
-	// var reusedID = uuid.MustParse("37f41afb-afff-45cc-bcc0-71249d95df90")
-
 	return []struct {
 		name               string
 		mockFn             func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository)
@@ -79,6 +81,60 @@ func generateWorkspaceTestTable() []struct {
 			expectedStatusCode: http.StatusBadRequest,
 			req: createWorkspaceRequest{
 				Name: "",
+			},
+		},
+		{
+			name: "invalid name provided",
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository) {
+
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: createWorkspaceRequest{
+				Name: "iii",
+			},
+		},
+		{
+			name: "could not fetch plan",
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository) {
+				planRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("could not fetch plan"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: createWorkspaceRequest{
+				Name: "workspance name",
+			},
+		},
+		{
+			name: "could not create workspace",
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository) {
+				planRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Plan{}, nil)
+
+				workspaceRepo.EXPECT().Create(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(errors.New("oops"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: createWorkspaceRequest{
+				Name: "workspance name",
+			},
+		},
+		{
+			name: "created workspace",
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository) {
+				planRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Plan{}, nil)
+
+				workspaceRepo.EXPECT().Create(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusCreated,
+			req: createWorkspaceRequest{
+				Name: "workspance name",
 			},
 		},
 	}

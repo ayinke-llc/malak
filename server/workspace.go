@@ -15,10 +15,11 @@ import (
 )
 
 type workspaceHandler struct {
-	cfg           config.Config
-	userRepo      malak.UserRepository
-	workspaceRepo malak.WorkspaceRepository
-	planRepo      malak.PlanRepository
+	cfg                     config.Config
+	userRepo                malak.UserRepository
+	workspaceRepo           malak.WorkspaceRepository
+	planRepo                malak.PlanRepository
+	referenceGenerationFunc func(e malak.EntityType) string
 }
 
 type createWorkspaceRequest struct {
@@ -82,7 +83,8 @@ func (wo *workspaceHandler) createWorkspace(
 			"could not fetch default plan details"), StatusFailed
 	}
 
-	workspace := malak.NewWorkspace(req.Name, user, plan)
+	workspace := malak.NewWorkspace(req.Name, user, plan,
+		wo.referenceGenerationFunc(malak.EntityTypeWorkspace))
 
 	err = wo.workspaceRepo.Create(ctx, &malak.CreateWorkspaceOptions{
 		User:      user,
