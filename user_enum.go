@@ -18,6 +18,10 @@ const (
 	RoleMember Role = "member"
 	// RoleBilling is a Role of type billing.
 	RoleBilling Role = "billing"
+	// RoleInvestor is a Role of type investor.
+	RoleInvestor Role = "investor"
+	// RoleGuest is a Role of type guest.
+	RoleGuest Role = "guest"
 )
 
 var ErrInvalidRole = errors.New("not a valid Role")
@@ -35,9 +39,11 @@ func (x Role) IsValid() bool {
 }
 
 var _RoleValue = map[string]Role{
-	"admin":   RoleAdmin,
-	"member":  RoleMember,
-	"billing": RoleBilling,
+	"admin":    RoleAdmin,
+	"member":   RoleMember,
+	"billing":  RoleBilling,
+	"investor": RoleInvestor,
+	"guest":    RoleGuest,
 }
 
 // ParseRole attempts to convert a string to a Role.

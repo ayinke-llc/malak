@@ -48,3 +48,8 @@ type createdUserResponse struct {
 	Token string      `json:"token"`
 	APIStatus
 }
+
+type fetchWorkspaceResponse struct {
+	Workspace *malak.Workspace `json:"workspace,omitempty"`
+	APIStatus
+}

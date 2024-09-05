@@ -2,20 +2,19 @@ package malak
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/teris-io/shortid"
 )
 
-var ErrWorkspaceNotFound = errors.New("workspace not found")
+var ErrWorkspaceNotFound = malakError("workspace not found")
 
 type Workspace struct {
 	ID uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 
 	WorkspaceName string    `json:"workspace_name,omitempty"`
 	PlanID        uuid.UUID `json:"plan_id,omitempty"`
+	Reference     string    `json:"reference,omitempty"`
 
 	// Not required
 	// Dummy values work really
@@ -29,9 +28,11 @@ type Workspace struct {
 	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" bson:"deleted_at"`
 }
 
-func NewWorkspace(u *User, plan *Plan) *Workspace {
+func NewWorkspace(name string, u *User,
+	plan *Plan, reference string) *Workspace {
 	return &Workspace{
-		WorkspaceName: shortid.MustGenerate(),
+		WorkspaceName: name,
+		Reference:     reference,
 		Metadata:      plan.Metadata,
 		PlanID:        plan.ID,
 	}

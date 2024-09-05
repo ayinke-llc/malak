@@ -142,7 +142,7 @@ func setDefaults() {
 
 	viper.SetDefault("http.port", 5300)
 
-	viper.SetDefault("biling.stripe.is_enabled", false)
+	viper.SetDefault("biling.is_enabled", false)
 	viper.SetDefault("billing.default_plan", uuid.Nil)
 
 	viper.SetDefault("auth.google.scopes", []string{"profile", "email"})

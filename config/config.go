@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/ayinke-llc/malak/internal/pkg/util"
-	"github.com/google/uuid"
 )
 
 // Only Postgres for now. Later on we can add support for sqlite3
@@ -51,16 +50,16 @@ type Config struct {
 		Stripe struct {
 			APIKey    string `yaml:"api_key" mapstructure:"api_key"`
 			APISecret string `yaml:"api_secret" mapstructure:"api_secret"`
-
-			// If stripe is not enabled, then fake ids can be used in the
-			// plans table really
-			// Ideally self hosted users will want to disable this
-			IsEnabled bool `yaml:"is_enabled" mapstructure:"is_enabled"`
 		} `yaml:"stripe" mapstructure:"stripe"`
+
+		// If stripe is not enabled, then fake ids can be used in the
+		// plans table really
+		// Ideally self hosted users will want to disable this
+		IsEnabled bool `yaml:"is_enabled" mapstructure:"is_enabled"`
 
 		// Newly created workspaces will have this plan automatically
 		// applied upon creation
-		DefaultPlan uuid.UUID `yaml:"default_plan" mapstructure:"default_plan"`
+		DefaultPlanReference string `yaml:"default_plan_reference" mapstructure:"default_plan_reference"`
 	} `yaml:"billing" mapstructure:"billing"`
 
 	Email struct {
