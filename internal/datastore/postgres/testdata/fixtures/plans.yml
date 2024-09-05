@@ -1,0 +1,19 @@
+---
+- id: 4590c0bb-7dc1-4ec0-abef-61eb305059d1
+  reference: prod_QmtErtydaJZymT
+  plan_name: Core
+  default_price_id: price_1PvJSMIuzgc0GUapiNyXBEaH
+  amount: 40
+  metadata: "{}"
+  created_at: "2024-09-04 13:46:35.612449+00"
+  updated_at: "2024-09-04 13:46:35.612449+00"
+  deleted_at: null
+- id: 4ef53bbf-c660-4cf6-b737-6add758343df
+  reference: prod_QmtFLR9JvXLryD
+  plan_name: Scale
+  default_price_id: price_1PvJT8Iuzgc0GUapIRBpxCyJ
+  amount: 99
+  metadata: "{}"
+  created_at: "2024-09-04 13:46:35.612449+00"
+  updated_at: "2024-09-04 13:46:35.612449+00"
+  deleted_at: null

@@ -2,13 +2,12 @@ package malak
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-var ErrWorkspaceNotFound = errors.New("workspace not found")
+var ErrWorkspaceNotFound = malakError("workspace not found")
 
 type Workspace struct {
 	ID uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`

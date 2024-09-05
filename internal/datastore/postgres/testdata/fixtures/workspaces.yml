@@ -1,0 +1,11 @@
+---
+- id: ad2de1b3-db13-40f1-8ce3-5e2ab2dc10ee
+  workspace_name: First workspace
+  plan_id: 4590c0bb-7dc1-4ec0-abef-61eb305059d1
+  stripe_customer_id: ""
+  subscription_id: ""
+  metadata: '{"team": {}}'
+  created_at: "2024-09-04 15:17:53.669816+00"
+  updated_at: "2024-09-04 15:17:53.669816+00"
+  deleted_at: null
+  reference: space_Hrtmbk6IR
