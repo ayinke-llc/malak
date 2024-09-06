@@ -21,6 +21,7 @@ import { useMutation } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { AxiosError } from "axios"
 import { ServerAPIStatus } from "@/client/Api"
+import { useRouter } from "next/navigation"
 
 type CreateWorkspaceInput = {
   name: string
@@ -36,6 +37,7 @@ export default function Page() {
 
   const [loading, setLoading] = useState<boolean>(false)
   const [dialogOpened, setDialogOpened] = useState<boolean>(false)
+  const router = useRouter()
 
   const mutation = useMutation({
     mutationKey: ["create-workspace"],
@@ -44,6 +46,7 @@ export default function Page() {
       console.log(data.workspace)
       onDialogTrigger()
       toast.success(data.message)
+      router.push(`/workspaces/${data.workspace.reference}`)
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message
