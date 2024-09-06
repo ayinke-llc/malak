@@ -44,8 +44,9 @@ func newAPIStatus(code int, s string) APIStatus {
 }
 
 type createdUserResponse struct {
-	User  *malak.User `json:"user"`
-	Token string      `json:"token"`
+	User      *malak.User      `json:"user,omitempty"`
+	Workspace *malak.Workspace `json:"workspace,omitempty"`
+	Token     string           `json:"token,omitempty"`
 	APIStatus
 }
 

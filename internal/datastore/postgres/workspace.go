@@ -47,6 +47,16 @@ func (o *workspaceRepo) Create(ctx context.Context,
 			return err
 		}
 
+		if len(opts.User.Roles) == 0 {
+			opts.User.Metadata.CurrentWorkspace = opts.Workspace.ID
+			if _, err := tx.NewUpdate().
+				Model(opts.User).
+				Where("id = ?", opts.User.ID).
+				Exec(ctx); err != nil {
+				return err
+			}
+		}
+
 		var roles malak.UserRoles
 
 		roles = append(roles, &malak.UserRole{

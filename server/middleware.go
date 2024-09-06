@@ -11,6 +11,7 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -29,7 +30,7 @@ type contextKey string
 
 const (
 	userCtx      contextKey = "user"
-	workspaceCtx            = "workspace"
+	workspaceCtx contextKey = "workspace"
 )
 
 func requireAuthentication(
@@ -37,6 +38,7 @@ func requireAuthentication(
 	jwtManager jwttoken.JWTokenManager,
 	cfg config.Config,
 	userRepo malak.UserRepository,
+	workspaceRepo malak.WorkspaceRepository,
 ) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -63,11 +65,6 @@ func requireAuthentication(
 			user, err := userRepo.Get(ctx, &malak.FindUserOptions{
 				ID: data.UserID,
 			})
-			if errors.Is(err, malak.ErrUserNotFound) {
-				_ = render.Render(w, r, newAPIStatus(http.StatusForbidden, "user does not exists. JWT is invalid"))
-				return
-			}
-
 			if err != nil {
 				logger.WithError(err).Error("could not fetch user from database")
 				_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while checking user"))
@@ -75,6 +72,19 @@ func requireAuthentication(
 			}
 
 			r = r.WithContext(writeUserToCtx(ctx, user))
+
+			if user.Metadata.CurrentWorkspace != uuid.Nil {
+				workspace, err := workspaceRepo.Get(ctx, &malak.FindWorkspaceOptions{
+					ID: user.Metadata.CurrentWorkspace,
+				})
+				if err != nil {
+					logger.WithError(err).Error("could not fetch workspace from database")
+					_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while fetching workspace from database"))
+					return
+				}
+
+				r = r.WithContext(writeWorkspaceToCtx(r.Context(), workspace))
+			}
 
 			next.ServeHTTP(w, r)
 		})
@@ -92,6 +102,19 @@ func retrieveRequestID(r *http.Request) string { return middleware.GetReqID(r.Co
 
 func writeUserToCtx(ctx context.Context, user *malak.User) context.Context {
 	return context.WithValue(ctx, userCtx, user)
+}
+
+func writeWorkspaceToCtx(ctx context.Context, workspace *malak.Workspace) context.Context {
+	return context.WithValue(ctx, workspaceCtx, workspace)
+}
+
+func getWorkspaceFromContext(ctx context.Context) *malak.Workspace {
+	return ctx.Value(workspaceCtx).(*malak.Workspace)
+}
+
+func doesWorkspaceExistInContext(ctx context.Context) bool {
+	_, ok := ctx.Value(workspaceCtx).(*malak.Workspace)
+	return ok
 }
 
 func getUserFromContext(ctx context.Context) *malak.User {
