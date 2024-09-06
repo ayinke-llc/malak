@@ -2,17 +2,12 @@
 
 import client from "@/lib/client";
 import useAuthStore from "@/store/auth";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function UserProvider({ children }: { children: React.ReactNode }) {
-  const path = usePathname()
-  const { setUser, isAuthenticated, user, logout } = useAuthStore()
+  const { token, setUser, isAuthenticated, user, logout } = useAuthStore.getState()
   const router = useRouter()
-
-  // for some reason, it is not always set except you do it like this
-  // TODO: resolve this hack
-  const token = useAuthStore.getState().token;
 
   client.instance.interceptors.request.use(
     async (config) => {
@@ -54,7 +49,7 @@ export default function UserProvider({ children }: { children: React.ReactNode }
     }
   }, [token])
 
-  if (user !== null && user.roles.length === 0) {
+  if (user !== null && user.metadata.current_workspace.startsWith("0000")) {
     router.push("/workspaces/new")
   }
 

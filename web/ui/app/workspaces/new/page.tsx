@@ -22,6 +22,7 @@ import { toast } from "sonner"
 import { AxiosError } from "axios"
 import { ServerAPIStatus } from "@/client/Api"
 import { useRouter } from "next/navigation"
+import useAuthStore from "@/store/auth"
 
 type CreateWorkspaceInput = {
   name: string
@@ -38,15 +39,15 @@ export default function Page() {
   const [loading, setLoading] = useState<boolean>(false)
   const [dialogOpened, setDialogOpened] = useState<boolean>(false)
   const router = useRouter()
+  const { user } = useAuthStore.getState()
 
   const mutation = useMutation({
     mutationKey: ["create-workspace"],
     mutationFn: (data: CreateWorkspaceInput) => client.workspaces.workspacesCreate(data),
     onSuccess: ({ data }) => {
-      console.log(data.workspace)
       onDialogTrigger()
       toast.success(data.message)
-      router.push(`/workspaces/${data.workspace.reference}`)
+      router.push("/")
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message
