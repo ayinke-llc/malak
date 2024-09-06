@@ -30,7 +30,7 @@ type contextKey string
 
 const (
 	userCtx      contextKey = "user"
-	workspaceCtx            = "workspace"
+	workspaceCtx contextKey = "workspace"
 )
 
 func requireAuthentication(
