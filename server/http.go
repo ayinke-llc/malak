@@ -83,12 +83,12 @@ func buildRoutes(
 		})
 
 		r.Route("/user", func(r chi.Router) {
-			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo))
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 			r.Get("/", WrapMalakHTTPHandler(auth.fetchCurrentUser, cfg, "Auth.fetchCurrentUser"))
 		})
 
 		r.Route("/workspaces", func(r chi.Router) {
-			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo))
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 			r.Post("/", WrapMalakHTTPHandler(workspaceHandler.createWorkspace, cfg, "workspaces.new"))
 		})
 	})
