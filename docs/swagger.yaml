@@ -156,10 +156,13 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/malak.User'
+      workspace:
+        $ref: '#/definitions/malak.Workspace'
     required:
     - message
     - token
     - user
+    - workspace
     type: object
   server.fetchWorkspaceResponse:
     properties:

@@ -391,7 +391,8 @@ const docTemplate = `{
             "required": [
                 "message",
                 "token",
-                "user"
+                "user",
+                "workspace"
             ],
             "properties": {
                 "message": {
@@ -403,6 +404,9 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/malak.User"
+                },
+                "workspace": {
+                    "$ref": "#/definitions/malak.Workspace"
                 }
             }
         },
