@@ -10,6 +10,7 @@
     "swagger": "bun swagger-typescript-api --axios -p ../../docs/swagger.yaml -o ./client"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-avatar": "^1.1.0",
     "@radix-ui/react-dialog": "^1.1.1",
@@ -33,12 +34,14 @@
     "react": "^18",
     "react-dom": "^18",
     "react-github-login": "^1.0.3",
+    "react-hook-form": "^7.53.0",
     "react-social-icons": "^6.18.0",
     "sonner": "^1.5.0",
     "swagger-typescript-api": "^13.0.21",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.1",
+    "yup": "^1.4.0",
     "zustand": "^4.5.5"
   },
   "devDependencies": {

@@ -54,5 +54,9 @@ export default function UserProvider({ children }: { children: React.ReactNode }
     }
   }, [token])
 
+  if (user !== null && user.roles.length === 0) {
+    router.push("/workspaces/new")
+  }
+
   return children;
 }
