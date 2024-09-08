@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+<br />
+<div align="center">
 
-## Getting Started
+<h1 align="center">
+  Tremor – Dashboard Template
+</h1>
 
-First, run the development server:
+<h3 align="center">
+  <a href="https://dashboard-oss.tremor.so/overview">Preview OSS version</a> |
+  <a href="https://dashboard.tremor.so/overview">Preview full version</a> |
+  <a href="https://blocks.tremor.so/templates">Get full version</a>
+</h3>
+
+`Dashboard` is a SaaS application template from [Tremor](https://tremor.so). It's built
+using [`Tremor Raw`](https://raw.tremor.so/docs/getting-started/installation)
+and [Next.js](https://nextjs.org).
+
+<br />
+
+[![Tremor Banner](public/og_github.jpg)](https://dashboard-oss.tremor.so/overview)
+
+</div>
+
+<br />
+
+## Getting started
+
+1. Install the dependencies. We recommend using pnpm. If you want to use `npm`,
+   just replace `pnpm` with `npm`.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Then, start the development server:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+3. Visit [http://localhost:3000](http://localhost:3000) in your browser to view
+   the template.
 
-## Learn More
+## Notes
 
-To learn more about Next.js, take a look at the following resources:
+This project uses
+[`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to
+automatically optimize and load Inter, a custom Google Font.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This project uses
+[`Tremor Raw`](https://raw.tremor.so/docs/getting-started/installation)
+components for the UI.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## License
 
-## Deploy on Vercel
+This site template is licensed under the
+[Apache 2.0 License](https://github.com/tremorlabs/tremor-dashboard-template?tab=License-1-ov-file#readme).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Learn more
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+For a deeper understanding of the technologies used in this template, check out
+the resources listed below:
+
+- [Tremor Raw](https://raw.tremor.so) - Tremor Raw documentation
+- [Tailwind CSS](https://tailwindcss.com) - A utility-first CSS framework
+- [Next.js](https://nextjs.org/docs) - Next.js documentation
+- [Radix UI](https://www.radix-ui.com) - Radix UI Website
+- [Recharts](https://recharts.org) - Recharts documentation and website
+
+---
+
+Copyright © 2024 Tremor Labs, Inc. All rights reserved.
