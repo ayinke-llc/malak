@@ -14,7 +14,7 @@ import { siteConfig } from "./siteConfig"
 import Providers from "@/components/providers/providers"
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://yoururl.com"),
+  metadataBase: new URL("https://malak.vc"),
   title: siteConfig.name,
   description: siteConfig.description,
   keywords: [],
