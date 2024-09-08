@@ -1,12 +1,17 @@
 package server
 
 import (
+	"context"
 	"errors"
+	"net/http"
 	"strings"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"github.com/go-chi/render"
+	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type contactHandler struct {
@@ -48,4 +53,25 @@ func (c *createContactRequest) Validate() error {
 	c.LastName = util.Ref(lastName)
 
 	return nil
+}
+
+// @Summary Create a new contact
+// @Tags contacts
+// @Accept  json
+// @Produce  json
+// @Param message body createContactRequest true "contact request body"
+// @Success 200 {object} fetchContactResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /contacts [post]
+func (c *contactHandler) Create(
+	ctx context.Context,
+	span trace.Span,
+	logger *logrus.Entry,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	return newAPIStatus(http.StatusInternalServerError, "o"), StatusFailed
 }

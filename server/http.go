@@ -83,6 +83,10 @@ func buildRoutes(
 		referenceGenerationFunc: malak.GenerateReference,
 	}
 
+	contactHandler := &contactHandler{
+		cfg: cfg,
+	}
+
 	router.Route("/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/connect/{provider}", WrapMalakHTTPHandler(auth.Login, cfg, "Auth.Login"))
@@ -96,6 +100,11 @@ func buildRoutes(
 		r.Route("/workspaces", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 			r.Post("/", WrapMalakHTTPHandler(workspaceHandler.createWorkspace, cfg, "workspaces.new"))
+		})
+
+		r.Route("/contacts", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Post("/", WrapMalakHTTPHandler(contactHandler.Create, cfg, "contacts.create"))
 		})
 	})
 

@@ -82,6 +82,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/contacts": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "Create a new contact",
+                "parameters": [
+                    {
+                        "description": "contact request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createContactRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchContactResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/user": {
             "get": {
                 "consumes": [
@@ -187,6 +244,72 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "malak.Contact": {
+            "type": "object",
+            "required": [
+                "city",
+                "company",
+                "created_at",
+                "email",
+                "first_name",
+                "id",
+                "last_name",
+                "metadata",
+                "notes",
+                "owner_id",
+                "phone",
+                "reference",
+                "updated_at"
+            ],
+            "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "company": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/malak.CustomContactMetadata"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "owner_id": {
+                    "description": "User who owns the contact.\nDoes not mean who added the contact but who chases\nor follows up officially with the contact",
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.CustomContactMetadata": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
         "malak.PlanMetadata": {
             "type": "object",
             "required": [
@@ -375,6 +498,25 @@ const docTemplate = `{
                 }
             }
         },
+        "server.createContactRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "first_name",
+                "last_name"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                }
+            }
+        },
         "server.createWorkspaceRequest": {
             "type": "object",
             "required": [
@@ -407,6 +549,22 @@ const docTemplate = `{
                 },
                 "workspace": {
                     "$ref": "#/definitions/malak.Workspace"
+                }
+            }
+        },
+        "server.fetchContactResponse": {
+            "type": "object",
+            "required": [
+                "contact",
+                "message"
+            ],
+            "properties": {
+                "contact": {
+                    "$ref": "#/definitions/malak.Contact"
+                },
+                "message": {
+                    "description": "Generic message that tells you the status of the operation",
+                    "type": "string"
                 }
             }
         },

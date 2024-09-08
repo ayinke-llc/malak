@@ -54,3 +54,8 @@ type fetchWorkspaceResponse struct {
 	Workspace *malak.Workspace `json:"workspace,omitempty"`
 	APIStatus
 }
+
+type fetchContactResponse struct {
+	Contact *malak.Contact `json:"contact,omitempty"`
+	APIStatus
+}

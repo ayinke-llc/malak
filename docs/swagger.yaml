@@ -1,5 +1,56 @@
 basePath: /v1
 definitions:
+  malak.Contact:
+    properties:
+      city:
+        type: string
+      company:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      metadata:
+        $ref: '#/definitions/malak.CustomContactMetadata'
+      notes:
+        type: string
+      owner_id:
+        description: |-
+          User who owns the contact.
+          Does not mean who added the contact but who chases
+          or follows up officially with the contact
+        type: string
+      phone:
+        type: string
+      reference:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - city
+    - company
+    - created_at
+    - email
+    - first_name
+    - id
+    - last_name
+    - metadata
+    - notes
+    - owner_id
+    - phone
+    - reference
+    - updated_at
+    type: object
+  malak.CustomContactMetadata:
+    additionalProperties:
+      type: string
+    type: object
   malak.PlanMetadata:
     properties:
       team:
@@ -140,6 +191,19 @@ definitions:
     required:
     - code
     type: object
+  server.createContactRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    type: object
   server.createWorkspaceRequest:
     properties:
       name:
@@ -163,6 +227,17 @@ definitions:
     - token
     - user
     - workspace
+    type: object
+  server.fetchContactResponse:
+    properties:
+      contact:
+        $ref: '#/definitions/malak.Contact'
+      message:
+        description: Generic message that tells you the status of the operation
+        type: string
+    required:
+    - contact
+    - message
     type: object
   server.fetchWorkspaceResponse:
     properties:
@@ -225,6 +300,43 @@ paths:
       summary: Sign in with a social login provider
       tags:
       - auth
+  /contacts:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: contact request body
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/server.createContactRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.fetchContactResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+      summary: Create a new contact
+      tags:
+      - contacts
   /user:
     get:
       consumes:
