@@ -16,8 +16,7 @@ import { toast } from "sonner"
 export default function Login() {
 
   const router = useRouter()
-  const setUser = useAuthStore(state => state.setUser)
-  const setToken = useAuthStore(state => state.setToken)
+  const { setUser, setToken } = useAuthStore()
 
   const mutation = useMutation({
     mutationFn: ({ code }: { code: string }) => {

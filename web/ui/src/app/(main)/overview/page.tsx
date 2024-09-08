@@ -52,21 +52,21 @@ export type KpiEntry = {
 
 const data: KpiEntry[] = [
   {
-    title: "Rows read",
+    title: "Updates viewed",
     percentage: 48.1,
     current: 48.1,
     allowed: 100,
     unit: "M",
   },
   {
-    title: "Rows written",
+    title: "Updates reacted to",
     percentage: 78.3,
     current: 78.3,
     allowed: 100,
     unit: "M",
   },
   {
-    title: "Storage",
+    title: "CRM",
     percentage: 26,
     current: 5.2,
     allowed: 20,
@@ -148,7 +148,7 @@ export default function Overview() {
         </h1>
         <div className="mt-4 grid grid-cols-1 gap-14 sm:mt-8 sm:grid-cols-2 lg:mt-10 xl:grid-cols-3">
           <ProgressBarCard
-            title="Usage"
+            title="Updates analytics"
             change="+0.2%"
             value="68.1%"
             valueDescription="of allowed capacity"
@@ -158,7 +158,7 @@ export default function Overview() {
             data={data}
           />
           <ProgressBarCard
-            title="Workspace"
+            title="Investors"
             change="+2.9%"
             value="21.7%"
             valueDescription="weekly active users"
@@ -168,7 +168,7 @@ export default function Overview() {
             data={data2}
           />
           <CategoryBarCard
-            title="Costs"
+            title="Feedback"
             change="-1.4%"
             value="$293.5"
             valueDescription="current billing cycle"

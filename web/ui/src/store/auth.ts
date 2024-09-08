@@ -24,13 +24,13 @@ const useAuthStore = create(
       token: null,
       workspace: null,
       isAuthenticated: (): boolean => {
-        const { user, token, workspace } = get()
-        return user !== null && token !== null && workspace !== null
+        const { user, token } = get()
+        return user !== null && token !== null
       },
       setUser: (user: MalakUser) => set({ user }),
       setWorkspace: (workspace: MalakWorkspace) => set({ workspace }),
       setToken: (token: string) => set({ token }),
-      logout: (): void => set({ user: null, token: null })
+      logout: (): void => set({ user: null, token: null, workspace: null })
     }), {
     "name": "auth",
   })

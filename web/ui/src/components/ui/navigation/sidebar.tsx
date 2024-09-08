@@ -2,12 +2,6 @@
 
 import { siteConfig } from "@/app/siteConfig"
 import { cx, focusRing } from "@/lib/utils"
-import {
-  RiHome2Line,
-  RiLinkM,
-  RiListCheck,
-  RiSettings5Line,
-} from "@remixicon/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import MobileSidebar from "./MobileSidebar"
@@ -16,39 +10,7 @@ import {
   WorkspacesDropdownMobile,
 } from "./SidebarWorkspacesDropdown"
 import { UserProfileDesktop, UserProfileMobile } from "./UserProfile"
-
-const navigation = [
-  { name: "Overview", href: siteConfig.baseLinks.overview, icon: RiHome2Line },
-  { name: "Details", href: siteConfig.baseLinks.details, icon: RiListCheck },
-  {
-    name: "Settings",
-    href: siteConfig.baseLinks.settings,
-    icon: RiSettings5Line,
-  },
-] as const
-
-const shortcuts = [
-  {
-    name: "Add new user",
-    href: "#",
-    icon: RiLinkM,
-  },
-  {
-    name: "Workspace usage",
-    href: "#",
-    icon: RiLinkM,
-  },
-  {
-    name: "Cost spend control",
-    href: "#",
-    icon: RiLinkM,
-  },
-  {
-    name: "Analytics – Most recent Analytics",
-    href: "#",
-    icon: RiLinkM,
-  },
-] as const
+import { shortcuts, links } from "./navlist"
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -69,7 +31,7 @@ export function Sidebar() {
             className="flex flex-1 flex-col space-y-10"
           >
             <ul role="list" className="space-y-0.5">
-              {navigation.map((item) => (
+              {links.map((item) => (
                 <li key={item.name}>
                   <Link
                     href={item.href}
