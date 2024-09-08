@@ -1,4 +1,3 @@
-import { Badge } from "@/components/Badge"
 import { Button } from "@/components/Button"
 import {
   Dialog,
@@ -13,27 +12,6 @@ import {
 import { DropdownMenuItem } from "@/components/Dropdown"
 import { Input } from "@/components/Input"
 import { Label } from "@/components/Label"
-import { RadioCardGroup, RadioCardItem } from "@/components/RadioCard"
-
-export const plans: {
-  label: string
-  value: string
-  description: string
-  isRecommended: boolean
-}[] = [
-    {
-      label: "Core plan",
-      value: "core",
-      description: "Up to 200 investors",
-      isRecommended: true,
-    },
-    {
-      label: "Scale",
-      value: "scale",
-      description: "Up to 1,000 investors",
-      isRecommended: false,
-    },
-  ]
 
 export type ModalProps = {
   itemName: string
@@ -78,44 +56,9 @@ export function ModalAddWorkspace({
                     className="mt-2"
                   />
                   <p className="mt-2 text-xs text-gray-500">
-                    For best performance, choose a region closest to your
-                    application.
+                    Please provide the name of your product, startup or company
                   </p>
                 </div>
-              </div>
-              <div className="mt-4">
-                <Label htmlFor="database" className="font-medium">
-                  Choose your plan
-                </Label>
-                <RadioCardGroup
-                  defaultValue={plans[0].value}
-                  className="mt-2 grid grid-cols-1 gap-4 text-sm md:grid-cols-2"
-                >
-                  {plans.map((database) => (
-                    <RadioCardItem key={database.value} value={database.value}>
-                      <div className="flex items-start gap-3">
-                        <div>
-                          {database.isRecommended ? (
-                            <div className="flex items-center gap-2">
-                              <span className="leading-5">
-                                {database.label}
-                              </span>
-                              <Badge>Recommended</Badge>
-                            </div>
-                          ) : (
-                            <span>{database.label}</span>
-                          )}
-                          <p className="mt-1 text-xs text-gray-500">
-                            1/8 vCPU, 1 GB RAM
-                          </p>
-                        </div>
-                      </div>
-                    </RadioCardItem>
-                  ))}
-                </RadioCardGroup>
-                <p className="mt-2 text-xs text-gray-500">
-                  Each plan comes with a 10 day trial
-                </p>
               </div>
             </DialogHeader>
             <DialogFooter className="mt-6">
