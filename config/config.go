@@ -14,7 +14,8 @@ type DatabaseType string
 // ENUM(json,text)
 type LogFormat string
 
-// ENUM(redis,memory)
+// ENUM(memory)
+// TODO(adelowo): add Redis support?
 type RateLimiterType string
 
 type Config struct {
@@ -49,8 +50,10 @@ type Config struct {
 		Port      int `yaml:"port" mapstructure:"port"`
 		RateLimit struct {
 			// If redis, you have to configure the redis struct in the database field
-			Type      RateLimiterType `yaml:"type" mapstructure:"type"`
-			IsEnabled bool            `yaml:"is_enabled" mapstructure:"is_enabled"`
+			Type              RateLimiterType `yaml:"type" mapstructure:"type"`
+			IsEnabled         bool            `yaml:"is_enabled" mapstructure:"is_enabled"`
+			RequestsPerMinute uint64          `yaml:"requests_per_minute" mapstructure:"requests_per_minute"`
+			BurstInterval     time.Duration   `yaml:"burst_interval" mapstructure:"burst_interval"`
 		} `yaml:"rate_limit" mapstructure:"rate_limit"`
 	} `yaml:"http" mapstructure:"http"`
 

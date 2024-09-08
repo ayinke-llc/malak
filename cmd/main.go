@@ -128,7 +128,7 @@ func setDefaults() {
 	viper.SetDefault("logging.level", "debug")
 	viper.SetDefault("logging.format", config.LogFormatJson)
 
-	viper.SetDefault("database.redis.dsn", "redis://localhost:3379")
+	viper.SetDefault("database.redis.dsn", "redis://localhost:9379")
 	viper.SetDefault("database.postgres.database_type", config.DatabaseTypePostgres)
 	viper.SetDefault("database.postgres.log_queries", true)
 	viper.SetDefault("database.database_type", config.DatabaseTypePostgres)
@@ -142,7 +142,9 @@ func setDefaults() {
 
 	viper.SetDefault("http.port", 5300)
 	viper.SetDefault("http.rate_limit.is_enabled", true)
-	viper.SetDefault("http.rate_limit.type", "redis")
+	viper.SetDefault("http.rate_limit.type", config.RateLimiterTypeMemory)
+	viper.SetDefault("http.rate_limit.requests_per_minute", 10)
+	viper.SetDefault("http.rate_limit.bursst_interval", time.Minute)
 
 	viper.SetDefault("biling.is_enabled", false)
 	viper.SetDefault("billing.default_plan", uuid.Nil)

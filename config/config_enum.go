@@ -77,8 +77,6 @@ func ParseLogFormat(name string) (LogFormat, error) {
 }
 
 const (
-	// RateLimiterTypeRedis is a RateLimiterType of type redis.
-	RateLimiterTypeRedis RateLimiterType = "redis"
 	// RateLimiterTypeMemory is a RateLimiterType of type memory.
 	RateLimiterTypeMemory RateLimiterType = "memory"
 )
@@ -98,7 +96,6 @@ func (x RateLimiterType) IsValid() bool {
 }
 
 var _RateLimiterTypeValue = map[string]RateLimiterType{
-	"redis":  RateLimiterTypeRedis,
 	"memory": RateLimiterTypeMemory,
 }
 

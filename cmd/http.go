@@ -1,16 +1,26 @@
 package main
 
 import (
+	"context"
+	"errors"
+	"log"
 	"os"
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	"github.com/ayinke-llc/malak/server"
+	redisotel "github.com/redis/go-redis/extra/redisotel/v9"
+	redis "github.com/redis/go-redis/v9"
+	"github.com/sethvargo/go-limiter"
+	"github.com/sethvargo/go-limiter/httplimit"
+	"github.com/sethvargo/go-limiter/memorystore"
+	"github.com/sethvargo/go-limiter/noopstore"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -61,34 +71,49 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			tokenManager := jwttoken.New(*cfg)
 
+			opts, err := redis.ParseURL(cfg.Database.Redis.DSN)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			redisClient := redis.NewClient(opts)
+
+			if err := redisotel.InstrumentTracing(redisClient); err != nil {
+				log.Fatal(err)
+			}
+
+			if err := redisotel.InstrumentMetrics(redisClient); err != nil {
+				log.Fatal(err)
+			}
+
+			ctx, cancelFn := context.WithTimeout(context.Background(), time.Second*30)
+			defer cancelFn()
+
+			if err := redisClient.Ping(ctx).Err(); err != nil {
+				log.Fatal(err)
+			}
+
+			_ = redisClient
+
+			rateLimiterStore, err := getRatelimiter(*cfg)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			mid, err := httplimit.NewMiddleware(rateLimiterStore, server.HTTPThrottleKeyFunc)
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			srv, cleanupSrv := server.New(logger, *cfg,
 				tokenManager, userRepo, workspaceRepo,
-				planRepo, googleAuthProvider)
+				planRepo, googleAuthProvider, mid)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {
 					logger.WithError(err).Error("error with http server")
 				}
 			}()
-
-			// opts, err := redis.ParseURL(cfg.Database.Redis.DSN)
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
-			//
-			// redisClient := redis.NewClient(opts)
-			//
-			// if err := redisotel.InstrumentTracing(redisClient); err != nil {
-			// 	log.Fatal(err)
-			// }
-			//
-			// if err := redisotel.InstrumentMetrics(redisClient); err != nil {
-			// 	log.Fatal(err)
-			// }
-			//
-			// if err := redisClient.Ping(context.Background()).Err(); err != nil {
-			// 	log.Fatal(err)
-			// }
 
 			<-sig
 
@@ -98,4 +123,22 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 	}
 
 	c.AddCommand(cmd)
+}
+
+func getRatelimiter(cfg config.Config) (limiter.Store, error) {
+
+	if !cfg.HTTP.RateLimit.IsEnabled {
+		return noopstore.New()
+	}
+
+	switch cfg.HTTP.RateLimit.Type {
+	case config.RateLimiterTypeMemory:
+		return memorystore.New(&memorystore.Config{
+			Interval: cfg.HTTP.RateLimit.BurstInterval,
+			Tokens:   cfg.HTTP.RateLimit.RequestsPerMinute,
+		})
+
+	default:
+		return nil, errors.New("unsupported ratelimter")
+	}
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
+	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
@@ -32,6 +33,51 @@ const (
 	userCtx      contextKey = "user"
 	workspaceCtx contextKey = "workspace"
 )
+
+// HTTPThrottleKeyFunc throttles unauthenticated users by their IP.
+// It goes through cloudflare, X-Forwarded-For and X-Real-IP to determine the
+// correct IP
+//
+// For authenticated requests, it throttles individually instead of IP wild
+func HTTPThrottleKeyFunc(r *http.Request) (string, error) {
+	user, ok := r.Context().Value(userCtx).(*malak.User)
+	if !ok {
+		return getIP(r), nil
+	}
+
+	return user.ID.String(), nil
+}
+
+var xForwardedFor = http.CanonicalHeaderKey("X-Forwarded-For")
+var xRealIP = http.CanonicalHeaderKey("X-Real-IP")
+
+func getIP(r *http.Request) string {
+
+	cloudflareIP := r.Header.Get("CF-Connecting-IP")
+	if !util.IsStringEmpty(cloudflareIP) {
+		return cloudflareIP
+	}
+
+	if xff := r.Header.Get(xForwardedFor); xff != "" {
+		i := strings.Index(xff, ", ")
+
+		if i == -1 {
+			i = len(xff)
+		}
+
+		ip := xff[:i]
+		if !util.IsStringEmpty(ip) {
+			return ip
+		}
+	}
+
+	xIP := r.Header.Get(xRealIP)
+	if !util.IsStringEmpty(xIP) {
+		return xIP
+	}
+
+	return r.RemoteAddr
+}
 
 func requireAuthentication(
 	logger *logrus.Entry,
