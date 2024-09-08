@@ -141,6 +141,8 @@ func setDefaults() {
 	viper.SetDefault("otel.endpoint", "localhost:9318")
 
 	viper.SetDefault("http.port", 5300)
+	viper.SetDefault("http.rate_limit.is_enabled", true)
+	viper.SetDefault("http.rate_limit.type", "redis")
 
 	viper.SetDefault("biling.is_enabled", false)
 	viper.SetDefault("billing.default_plan", uuid.Nil)
