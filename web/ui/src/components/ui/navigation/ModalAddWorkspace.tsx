@@ -12,6 +12,16 @@ import {
 import { DropdownMenuItem } from "@/components/Dropdown"
 import { Input } from "@/components/Input"
 import { Label } from "@/components/Label"
+import { useForm, SubmitHandler } from "react-hook-form"
+import { yupResolver } from "@hookform/resolvers/yup"
+import * as yup from "yup"
+import { useState } from "react"
+import { useMutation } from "@tanstack/react-query"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+import { ServerAPIStatus } from "@/client/Api"
+import client from "@/lib/client"
+import { AxiosError } from "axios"
 
 export type ModalProps = {
   itemName: string
@@ -19,11 +29,59 @@ export type ModalProps = {
   onOpenChange: (open: boolean) => void
 }
 
+type CreateWorkspaceInput = {
+  name: string
+}
+
+const schema = yup
+  .object({
+    name: yup.string().min(5).max(50).required(),
+  })
+  .required()
+
 export function ModalAddWorkspace({
   itemName,
   onSelect,
   onOpenChange,
 }: ModalProps) {
+
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const router = useRouter()
+
+  const mutation = useMutation({
+    mutationKey: ["create-workspace"],
+    mutationFn: (data: CreateWorkspaceInput) => client.workspaces.workspacesCreate(data),
+    onSuccess: ({ data }) => {
+      onOpenChange(false)
+      toast.success(data.message)
+      router.push("/")
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      let msg = err.message
+      if (err.response !== undefined) {
+        msg = err.response?.data.message
+      }
+      toast.error(msg)
+    },
+    retry: false,
+    gcTime: Infinity,
+    onSettled: () => setLoading(false),
+  })
+
+  const {
+    register,
+    formState: { errors },
+    handleSubmit,
+  } = useForm({
+    resolver: yupResolver(schema),
+  })
+
+  const onSubmit: SubmitHandler<CreateWorkspaceInput> = (data) => {
+    setLoading(true)
+    mutation.mutate(data)
+  }
+
   return (
     <>
       <Dialog onOpenChange={onOpenChange}>
@@ -38,7 +96,7 @@ export function ModalAddWorkspace({
           </DropdownMenuItem>
         </DialogTrigger>
         <DialogContent className="sm:max-w-2xl">
-          <form>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <DialogHeader>
               <DialogTitle>Add new workspace</DialogTitle>
               <DialogDescription className="mt-1 text-sm leading-6">
@@ -50,14 +108,21 @@ export function ModalAddWorkspace({
                     Workspace name
                   </Label>
                   <Input
-                    id="workspace-name"
-                    name="workspace-name"
-                    placeholder="my_workspace"
+                    id="name"
+                    placeholder="Ayinke Ventures"
                     className="mt-2"
+                    {...register("name",)}
                   />
                   <p className="mt-2 text-xs text-gray-500">
                     Please provide the name of your product, startup or company
                   </p>
+                  {errors.name && (
+                    < p className="mt-4 text-xs text-red-600 dark:text-red-500">
+                      <span className="font-medium">
+                        {errors.name.message}
+                      </span>
+                    </p>
+                  )}
                 </div>
               </div>
             </DialogHeader>
@@ -70,15 +135,13 @@ export function ModalAddWorkspace({
                   Go back
                 </Button>
               </DialogClose>
-              <DialogClose asChild>
-                <Button type="submit" className="w-full sm:w-fit">
-                  Add workspace
-                </Button>
-              </DialogClose>
+              <Button type="submit" className="w-full sm:w-fit">
+                Add workspace
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
-      </Dialog>
+      </Dialog >
     </>
   )
 }
