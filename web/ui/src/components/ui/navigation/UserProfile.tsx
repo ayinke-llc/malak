@@ -24,7 +24,7 @@ export const UserProfileDesktop = () => {
           >
             ES
           </span>
-          <span>Emma Stone</span>
+          <span>Lanre Adelowo</span>
         </span>
         <RiMore2Fill
           className="size-4 shrink-0 text-gray-500 group-hover:text-gray-700 group-hover:dark:text-gray-400"
