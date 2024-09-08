@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation"
 import { ServerAPIStatus } from "@/client/Api"
 import client from "@/lib/client"
 import { AxiosError } from "axios"
+import useAuthStore from "@/store/auth"
 
 export type ModalProps = {
   itemName: string
@@ -47,14 +48,17 @@ export function ModalAddWorkspace({
 
   const [loading, setLoading] = useState<boolean>(false)
 
+  const setWorkspace = useAuthStore.getState().setWorkspace
+
   const router = useRouter()
 
   const mutation = useMutation({
     mutationKey: ["create-workspace"],
     mutationFn: (data: CreateWorkspaceInput) => client.workspaces.workspacesCreate(data),
     onSuccess: ({ data }) => {
-      onOpenChange(false)
+      setWorkspace(data.workspace)
       toast.success(data.message)
+      onOpenChange(false)
       router.push("/")
     },
     onError(err: AxiosError<ServerAPIStatus>) {
