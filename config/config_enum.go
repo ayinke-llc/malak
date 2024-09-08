@@ -75,3 +75,34 @@ func ParseLogFormat(name string) (LogFormat, error) {
 	}
 	return LogFormat(""), fmt.Errorf("%s is %w", name, ErrInvalidLogFormat)
 }
+
+const (
+	// RateLimiterTypeMemory is a RateLimiterType of type memory.
+	RateLimiterTypeMemory RateLimiterType = "memory"
+)
+
+var ErrInvalidRateLimiterType = errors.New("not a valid RateLimiterType")
+
+// String implements the Stringer interface.
+func (x RateLimiterType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x RateLimiterType) IsValid() bool {
+	_, err := ParseRateLimiterType(string(x))
+	return err == nil
+}
+
+var _RateLimiterTypeValue = map[string]RateLimiterType{
+	"memory": RateLimiterTypeMemory,
+}
+
+// ParseRateLimiterType attempts to convert a string to a RateLimiterType.
+func ParseRateLimiterType(name string) (RateLimiterType, error) {
+	if x, ok := _RateLimiterTypeValue[name]; ok {
+		return x, nil
+	}
+	return RateLimiterType(""), fmt.Errorf("%s is %w", name, ErrInvalidRateLimiterType)
+}

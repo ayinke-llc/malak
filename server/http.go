@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/riandyrn/otelchi"
 	"github.com/rs/cors"
+	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,11 +22,14 @@ func New(logger *logrus.Entry,
 	userRepo malak.UserRepository,
 	workspaceRepo malak.WorkspaceRepository,
 	planRepo malak.PlanRepository,
-	googleAuthProvider socialauth.SocialAuthProvider) (*http.Server, func()) {
+	googleAuthProvider socialauth.SocialAuthProvider,
+	mid *httplimit.Middleware) (*http.Server, func()) {
 
 	srv := &http.Server{
-		Handler: buildRoutes(logger, cfg, jwtTokenManager, userRepo, workspaceRepo, planRepo, googleAuthProvider),
-		Addr:    fmt.Sprintf(":%d", cfg.HTTP.Port),
+		Handler: buildRoutes(logger, cfg, jwtTokenManager,
+			userRepo, workspaceRepo, planRepo,
+			googleAuthProvider, mid),
+		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
 	return srv, initOTELCapabilities(cfg, logger)
@@ -52,7 +56,8 @@ func buildRoutes(
 	userRepo malak.UserRepository,
 	workspaceRepo malak.WorkspaceRepository,
 	planRepo malak.PlanRepository,
-	googleAuthProvider socialauth.SocialAuthProvider) http.Handler {
+	googleAuthProvider socialauth.SocialAuthProvider,
+	mid *httplimit.Middleware) http.Handler {
 
 	router := chi.NewRouter()
 
@@ -61,6 +66,7 @@ func buildRoutes(
 	router.Use(middleware.AllowContentType("application/json"))
 	router.Use(otelchi.Middleware("malak.server", otelchi.WithChiRoutes(router)))
 	router.Use(jsonResponse)
+	router.Use(mid.Handle)
 
 	auth := &authHandler{
 		userRepo:      userRepo,
