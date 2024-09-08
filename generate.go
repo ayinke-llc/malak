@@ -11,3 +11,4 @@ package malak
 //go:generate mockgen -source=user.go -destination=mocks/user.go -package=malak_mocks
 //go:generate mockgen -source=plan.go -destination=mocks/plan.go -package=malak_mocks
 //go:generate mockgen -source=workspace.go -destination=mocks/workspace.go -package=malak_mocks
+//go:generate mockgen -source=contact.go -destination=mocks/contact.go -package=malak_mocks
