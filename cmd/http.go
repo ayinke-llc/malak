@@ -113,6 +113,10 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			<-sig
 
+			if err := db.Close(); err != nil {
+				logger.WithError(err).Error("could not close db")
+			}
+
 			logger.Debug("shutting down Malak's server")
 			cleanupSrv()
 		},
