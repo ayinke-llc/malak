@@ -46,7 +46,7 @@ type Contact struct {
 	bun.BaseModel `json:"-"`
 }
 
-type FetchContactOption struct {
+type FetchContactOptions struct {
 	ID        uuid.UUID
 	Email     Email
 	Reference Reference
@@ -54,5 +54,5 @@ type FetchContactOption struct {
 
 type ContactRepository interface {
 	Create(context.Context, *Contact) error
-	Get(context.Context)
+	Get(context.Context, FetchContactOptions) (*Contact, error)
 }

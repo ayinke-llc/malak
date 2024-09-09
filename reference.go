@@ -16,6 +16,8 @@ type EntityType string
 
 type Reference string
 
+func (r Reference) String() string { return string(r) }
+
 type ReferenceGeneratorOperation interface {
 	Generate(EntityType) Reference
 }
