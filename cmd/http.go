@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"log"
 	"os"
 	"os/signal"
 	"strconv"
@@ -70,36 +69,36 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			opts, err := redis.ParseURL(cfg.Database.Redis.DSN)
 			if err != nil {
-				log.Fatal(err)
+				logger.WithError(err).Fatal("could not parse redis dsn")
 			}
 
 			redisClient := redis.NewClient(opts)
 
 			if err := redisotel.InstrumentTracing(redisClient); err != nil {
-				log.Fatal(err)
+				logger.WithError(err).Fatal("could not instrument tracing of redis client")
 			}
 
 			if err := redisotel.InstrumentMetrics(redisClient); err != nil {
-				log.Fatal(err)
+				logger.WithError(err).Fatal("could not instrument metrics of redis client")
 			}
 
 			ctx, cancelFn := context.WithTimeout(context.Background(), time.Second*30)
 			defer cancelFn()
 
 			if err := redisClient.Ping(ctx).Err(); err != nil {
-				log.Fatal(err)
+				logger.WithError(err).Error("could not ping Redis")
 			}
 
 			_ = redisClient
 
 			rateLimiterStore, err := getRatelimiter(*cfg)
 			if err != nil {
-				log.Fatal(err)
+				logger.WithError(err).Error("could not create rate limiter")
 			}
 
 			mid, err := httplimit.NewMiddleware(rateLimiterStore, server.HTTPThrottleKeyFunc)
 			if err != nil {
-				log.Fatal(err)
+				logger.WithError(err).Error("could not set up rate limiting middleware")
 			}
 
 			srv, cleanupSrv := server.New(logger, util.DeRef(cfg), db,
