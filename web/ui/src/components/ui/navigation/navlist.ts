@@ -1,4 +1,4 @@
-import { RemixiconComponentType, RiArrowDownLine, RiBook3Line, RiHome2Line, RiLinkM } from "@remixicon/react";
+import { RiArrowDownLine, RiBook3Line, RiContactsLine, RiHome2Line, RiLinkM } from "@remixicon/react";
 
 export const links = [
   {
@@ -15,6 +15,11 @@ export const links = [
     name: "Decks",
     href: "/decks",
     icon: RiBook3Line
+  },
+  {
+    name: "Contacts",
+    href: "/contacts",
+    icon: RiContactsLine
   }
 ] as const
 
