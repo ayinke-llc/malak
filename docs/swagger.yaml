@@ -8,6 +8,9 @@ definitions:
         type: string
       created_at:
         type: string
+      created_by:
+        description: User who added/created this contact
+        type: string
       email:
         type: string
       first_name:
@@ -36,6 +39,7 @@ definitions:
     - city
     - company
     - created_at
+    - created_by
     - email
     - first_name
     - id
@@ -334,7 +338,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/server.APIStatus'
-      summary: Create a new contact
+      summary: Creates a new contact
       tags:
       - contacts
   /user:

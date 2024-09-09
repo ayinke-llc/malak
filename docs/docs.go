@@ -93,7 +93,7 @@ const docTemplate = `{
                 "tags": [
                     "contacts"
                 ],
-                "summary": "Create a new contact",
+                "summary": "Creates a new contact",
                 "parameters": [
                     {
                         "description": "contact request body",
@@ -250,6 +250,7 @@ const docTemplate = `{
                 "city",
                 "company",
                 "created_at",
+                "created_by",
                 "email",
                 "first_name",
                 "id",
@@ -269,6 +270,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "description": "User who added/created this contact",
                     "type": "string"
                 },
                 "email": {

@@ -34,6 +34,9 @@ type Contact struct {
 	// or follows up officially with the contact
 	OwnerID uuid.UUID `json:"owner_id,omitempty"`
 
+	// User who added/created this contact
+	CreatedBy uuid.UUID `json:"created_by,omitempty"`
+
 	Metadata CustomContactMetadata `json:"metadata,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`

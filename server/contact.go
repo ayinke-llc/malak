@@ -15,7 +15,8 @@ import (
 )
 
 type contactHandler struct {
-	cfg config.Config
+	cfg         config.Config
+	contactRepo malak.ContactRepository
 }
 
 type createContactRequest struct {
@@ -55,7 +56,7 @@ func (c *createContactRequest) Validate() error {
 	return nil
 }
 
-// @Summary Create a new contact
+// @Summary Creates a new contact
 // @Tags contacts
 // @Accept  json
 // @Produce  json
@@ -73,5 +74,43 @@ func (c *contactHandler) Create(
 	w http.ResponseWriter,
 	r *http.Request) (render.Renderer, Status) {
 
-	return newAPIStatus(http.StatusInternalServerError, "o"), StatusFailed
+	user := getUserFromContext(r.Context())
+
+	logger.Debug("creating workspace")
+
+	req := new(createContactRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	contact := &malak.Contact{
+		Email:     req.Email,
+		FirstName: req.FirstName,
+		LastName:  util.DeRef(req.LastName),
+		CreatedBy: user.ID,
+		Metadata:  make(malak.CustomContactMetadata),
+	}
+
+	err := c.contactRepo.Create(ctx, contact)
+	if errors.Is(err, malak.ErrContactExists) {
+		return newAPIStatus(http.StatusConflict, err.Error()), StatusFailed
+	}
+
+	if err != nil {
+		logger.WithError(err).
+			Error("an error occurred while storing contact to the database")
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"an error occurred while creating contact"), StatusFailed
+	}
+
+	return fetchContactResponse{
+		APIStatus: newAPIStatus(http.StatusCreated, "contact was successfully created"),
+		Contact:   contact,
+	}, StatusSuccess
 }

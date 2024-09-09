@@ -6,15 +6,26 @@ import (
 	"github.com/teris-io/shortid"
 )
 
+// DEPRECATED
+func GenerateReference(e EntityType) string {
+	return fmt.Sprintf("%s_%s", e.String(), shortid.MustGenerate())
+}
+
 // ENUM(workspace,invoice,team,invite,contact,deck,update)
 type EntityType string
 
 type Reference string
 
-func NewReference(e EntityType) Reference {
-	return Reference(fmt.Sprintf("%s_%s", e.String(), shortid.MustGenerate()))
+type ReferenceGeneratorOperation interface {
+	Generate(EntityType) Reference
 }
 
-func GenerateReference(e EntityType) string {
-	return fmt.Sprintf("%s_%s", e.String(), shortid.MustGenerate())
+type ReferenceGenerator struct{}
+
+func NewReferenceGenerator() *ReferenceGenerator {
+	return &ReferenceGenerator{}
+}
+
+func (r *ReferenceGenerator) Generate(e EntityType) Reference {
+	return Reference(fmt.Sprintf("%s_%s", e.String(), shortid.MustGenerate()))
 }

@@ -89,7 +89,7 @@
                 "tags": [
                     "contacts"
                 ],
-                "summary": "Create a new contact",
+                "summary": "Creates a new contact",
                 "parameters": [
                     {
                         "description": "contact request body",
@@ -246,6 +246,7 @@
                 "city",
                 "company",
                 "created_at",
+                "created_by",
                 "email",
                 "first_name",
                 "id",
@@ -265,6 +266,10 @@
                     "type": "string"
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "description": "User who added/created this contact",
                     "type": "string"
                 },
                 "email": {
