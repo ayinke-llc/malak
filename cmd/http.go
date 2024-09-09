@@ -14,6 +14,7 @@ import (
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
+	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/ayinke-llc/malak/server"
 	redisotel "github.com/redis/go-redis/extra/redisotel/v9"
 	redis "github.com/redis/go-redis/v9"
@@ -63,10 +64,6 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				logger.WithError(err).Fatal("could not set up database connection")
 			}
 
-			userRepo := postgres.NewUserRepository(db)
-			workspaceRepo := postgres.NewWorkspaceRepository(db)
-			planRepo := postgres.NewPlanRepository(db)
-
 			googleAuthProvider := socialauth.NewGoogle(*cfg)
 
 			tokenManager := jwttoken.New(*cfg)
@@ -105,9 +102,8 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				log.Fatal(err)
 			}
 
-			srv, cleanupSrv := server.New(logger, *cfg,
-				tokenManager, userRepo, workspaceRepo,
-				planRepo, googleAuthProvider, mid)
+			srv, cleanupSrv := server.New(logger, util.DeRef(cfg), db,
+				tokenManager, googleAuthProvider, mid)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {

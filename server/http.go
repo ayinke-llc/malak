@@ -6,6 +6,7 @@ import (
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	chi "github.com/go-chi/chi/v5"
@@ -14,22 +15,19 @@ import (
 	"github.com/rs/cors"
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sirupsen/logrus"
+	"github.com/uptrace/bun"
 )
 
 func New(logger *logrus.Entry,
 	cfg config.Config,
+	db *bun.DB,
 	jwtTokenManager jwttoken.JWTokenManager,
-	userRepo malak.UserRepository,
-	workspaceRepo malak.WorkspaceRepository,
-	planRepo malak.PlanRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	mid *httplimit.Middleware) (*http.Server, func()) {
 
 	srv := &http.Server{
-		Handler: buildRoutes(logger, cfg, jwtTokenManager,
-			userRepo, workspaceRepo, planRepo,
-			googleAuthProvider, mid),
-		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
+		Handler: buildRoutes(logger, db, cfg, jwtTokenManager, googleAuthProvider, mid),
+		Addr:    fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
 	return srv, initOTELCapabilities(cfg, logger)
@@ -51,13 +49,15 @@ func (rw *responseWriter) WriteHeader(code int) {
 
 func buildRoutes(
 	logger *logrus.Entry,
+	db *bun.DB,
 	cfg config.Config,
 	jwtTokenManager jwttoken.JWTokenManager,
-	userRepo malak.UserRepository,
-	workspaceRepo malak.WorkspaceRepository,
-	planRepo malak.PlanRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	mid *httplimit.Middleware) http.Handler {
+
+	userRepo := postgres.NewUserRepository(db)
+	workspaceRepo := postgres.NewWorkspaceRepository(db)
+	planRepo := postgres.NewPlanRepository(db)
 
 	router := chi.NewRouter()
 
