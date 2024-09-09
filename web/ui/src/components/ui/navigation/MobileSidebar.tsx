@@ -1,4 +1,3 @@
-import { siteConfig } from "@/app/siteConfig"
 import { Button } from "@/components/Button"
 import {
   Drawer,
@@ -19,12 +18,11 @@ import { links, shortcuts } from "./navlist"
 
 export default function MobileSidebar() {
   const pathname = usePathname()
+
   const isActive = (itemHref: string) => {
-    if (itemHref === siteConfig.baseLinks.settings) {
-      return pathname.startsWith("/settings")
-    }
     return pathname === itemHref || pathname.startsWith(itemHref)
   }
+
   return (
     <>
       <Drawer>

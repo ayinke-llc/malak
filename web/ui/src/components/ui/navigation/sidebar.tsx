@@ -1,6 +1,5 @@
 "use client"
 
-import { siteConfig } from "@/app/siteConfig"
 import { cx, focusRing } from "@/lib/utils"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -14,12 +13,11 @@ import { shortcuts, links } from "./navlist"
 
 export function Sidebar() {
   const pathname = usePathname()
+
   const isActive = (itemHref: string) => {
-    if (itemHref === siteConfig.baseLinks.settings) {
-      return pathname.startsWith("/settings")
-    }
     return pathname === itemHref || pathname.startsWith(itemHref)
   }
+
   return (
     <>
       {/* sidebar (lg+) */}
