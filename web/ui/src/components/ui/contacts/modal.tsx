@@ -23,24 +23,23 @@ import { ServerAPIStatus } from "@/client/Api"
 import client from "@/lib/client"
 import { AxiosError } from "axios"
 import useAuthStore from "@/store/auth"
+import { CREATE_CONTACT_MUTATION } from "@/lib/query-constants"
 
 export type ModalProps = {
-  itemName: string
   onOpenChange: (open: boolean) => void
 }
 
-type CreateWorkspaceInput = {
-  name: string
+type CreateContactInput = {
+  email: string
 }
 
 const schema = yup
   .object({
-    name: yup.string().min(5).max(50).required(),
+    email: yup.string().required().email(),
   })
   .required()
 
 export default function CreateContactModal({
-  itemName,
   onOpenChange,
 }: ModalProps) {
 
@@ -51,18 +50,17 @@ export default function CreateContactModal({
   const router = useRouter()
 
   const mutation = useMutation({
-    mutationKey: ["create-workspace"],
-    mutationFn: (data: CreateWorkspaceInput) => client.workspaces.workspacesCreate(data),
+    mutationKey: [CREATE_CONTACT_MUTATION],
+    mutationFn: (data: CreateContactInput) => client.contacts.contactsCreate(data),
     onSuccess: ({ data }) => {
-      setWorkspace(data.workspace)
       toast.success(data.message)
       onOpenChange(false)
-      router.push("/")
+      router.push("/contacts")
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message
       if (err.response !== undefined) {
-        msg = err.response?.data.message
+        msg = err.response.data.message
       }
       toast.error(msg)
     },
@@ -79,41 +77,43 @@ export default function CreateContactModal({
     resolver: yupResolver(schema),
   })
 
-  const onSubmit: SubmitHandler<CreateWorkspaceInput> = (data) => {
+  const onSubmit: SubmitHandler<CreateContactInput> = (data) => {
     setLoading(true)
     mutation.mutate(data)
   }
 
   return (
-    <>
+    <div className="flex justify-center">
       <Dialog onOpenChange={onOpenChange}>
-        <DialogTrigger className="w-full text-right">
-          <Button type="button"
-            variant="primary"
-            className="items-center justify-center whitespace-nowrap">
-            <RiAddLine />
-            Add User
-          </Button>
+        <DialogTrigger asChild>
+          <div className="w-full text-right" >
+            <Button type="button"
+              variant="primary"
+              className="whitespace-nowrap">
+              <RiAddLine />
+              Add User
+            </Button>
+          </div>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-2xl max-w-xs">
-          <form onSubmit={handleSubmit(onSubmit)}>
+        <DialogContent className="sm:max-w-lg">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-y-1">
             <DialogHeader>
-              <DialogTitle>Add new workspace</DialogTitle>
+              <DialogTitle>Add a new contact</DialogTitle>
               <DialogDescription className="mt-1 text-sm leading-6">
-                Get started with connecting and building relationships with your investors
+                Get started with connecting and building relationships with a
+                specific investor
               </DialogDescription>
-              <div className="mt-4 grid grid-cols-1 gap-4">
-                <div>
-                  <Label htmlFor="workspace-name" className="font-medium">
-                    Contact email
-                  </Label>
-                  <Input
-                    id="workspace-name"
-                    name="workspace-name"
-                    placeholder="my_workspace"
-                    className="mt-2"
-                  />
-                </div>
+              <div className="mt-4">
+                <Label htmlFor="workspace-name" className="font-medium">
+                  Email address
+                </Label>
+                <Input
+                  id="email"
+                  placeholder="yo@lanre.wtf"
+                  className="mt-2"
+                  type="email"
+                  {...register("email")}
+                />
               </div>
             </DialogHeader>
             <DialogFooter className="mt-6">
@@ -125,13 +125,14 @@ export default function CreateContactModal({
                   Go back
                 </Button>
               </DialogClose>
-              <Button type="submit" className="w-full sm:w-fit">
-                Add workspace
+              <Button type="submit" className="w-full sm:w-fit"
+                isLoading={loading}>
+                Add Contact
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog >
-    </>
+    </div>
   )
 }

@@ -23,8 +23,7 @@ type pagingInfo struct {
 
 type APIStatus struct {
 	statusCode int
-	// Generic message that tells you the status of the operation
-	Message string `json:"message"`
+	Message    string `json:"message,omitempty" validate:"required"`
 }
 
 func (a APIStatus) Render(w http.ResponseWriter, r *http.Request) error {
@@ -44,18 +43,18 @@ func newAPIStatus(code int, s string) APIStatus {
 }
 
 type createdUserResponse struct {
-	User      *malak.User      `json:"user,omitempty"`
-	Workspace *malak.Workspace `json:"workspace,omitempty"`
-	Token     string           `json:"token,omitempty"`
+	User      malak.User       `json:"user,omitempty" validate:"required"`
+	Workspace *malak.Workspace `json:"workspace,omitempty" validate:"optional"`
+	Token     string           `json:"token,omitempty" validate:"required"`
 	APIStatus
 }
 
 type fetchWorkspaceResponse struct {
-	Workspace *malak.Workspace `json:"workspace,omitempty"`
-	APIStatus
+	Workspace malak.Workspace `json:"workspace,omitempty" validate:"required"`
+	APIStatus `validate:"required"`
 }
 
 type fetchContactResponse struct {
-	Contact *malak.Contact `json:"contact,omitempty"`
+	Contact malak.Contact `json:"contact,omitempty"`
 	APIStatus
 }

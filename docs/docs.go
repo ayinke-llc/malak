@@ -246,22 +246,6 @@ const docTemplate = `{
     "definitions": {
         "malak.Contact": {
             "type": "object",
-            "required": [
-                "city",
-                "company",
-                "created_at",
-                "created_by",
-                "email",
-                "first_name",
-                "id",
-                "last_name",
-                "metadata",
-                "notes",
-                "owner_id",
-                "phone",
-                "reference",
-                "updated_at"
-            ],
             "properties": {
                 "city": {
                     "type": "string"
@@ -317,16 +301,9 @@ const docTemplate = `{
         },
         "malak.PlanMetadata": {
             "type": "object",
-            "required": [
-                "team"
-            ],
             "properties": {
                 "team": {
                     "type": "object",
-                    "required": [
-                        "enabled",
-                        "size"
-                    ],
                     "properties": {
                         "enabled": {
                             "type": "boolean"
@@ -357,15 +334,6 @@ const docTemplate = `{
         },
         "malak.User": {
             "type": "object",
-            "required": [
-                "created_at",
-                "email",
-                "full_name",
-                "id",
-                "metadata",
-                "roles",
-                "updated_at"
-            ],
             "properties": {
                 "created_at": {
                     "type": "string"
@@ -395,9 +363,6 @@ const docTemplate = `{
         },
         "malak.UserMetadata": {
             "type": "object",
-            "required": [
-                "current_workspace"
-            ],
             "properties": {
                 "current_workspace": {
                     "description": "Used to keep track of the last used workspace\nIn the instance of multiple workspaces\nSo when next the user logs in, we remember and take them to the\nright place rather than always a list of all their workspaces and they\nhave to select one",
@@ -407,14 +372,6 @@ const docTemplate = `{
         },
         "malak.UserRole": {
             "type": "object",
-            "required": [
-                "created_at",
-                "id",
-                "role",
-                "updated_at",
-                "user_id",
-                "workspace_id"
-            ],
             "properties": {
                 "created_at": {
                     "type": "string"
@@ -438,17 +395,6 @@ const docTemplate = `{
         },
         "malak.Workspace": {
             "type": "object",
-            "required": [
-                "created_at",
-                "id",
-                "metadata",
-                "plan_id",
-                "reference",
-                "stripe_customer_id",
-                "subscription_id",
-                "updated_at",
-                "workspace_name"
-            ],
             "properties": {
                 "created_at": {
                     "type": "string"
@@ -487,7 +433,6 @@ const docTemplate = `{
             ],
             "properties": {
                 "message": {
-                    "description": "Generic message that tells you the status of the operation",
                     "type": "string"
                 }
             }
@@ -505,11 +450,6 @@ const docTemplate = `{
         },
         "server.createContactRequest": {
             "type": "object",
-            "required": [
-                "email",
-                "first_name",
-                "last_name"
-            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -524,9 +464,6 @@ const docTemplate = `{
         },
         "server.createWorkspaceRequest": {
             "type": "object",
-            "required": [
-                "name"
-            ],
             "properties": {
                 "name": {
                     "type": "string"
@@ -538,12 +475,10 @@ const docTemplate = `{
             "required": [
                 "message",
                 "token",
-                "user",
-                "workspace"
+                "user"
             ],
             "properties": {
                 "message": {
-                    "description": "Generic message that tells you the status of the operation",
                     "type": "string"
                 },
                 "token": {
@@ -560,7 +495,6 @@ const docTemplate = `{
         "server.fetchContactResponse": {
             "type": "object",
             "required": [
-                "contact",
                 "message"
             ],
             "properties": {
@@ -568,7 +502,6 @@ const docTemplate = `{
                     "$ref": "#/definitions/malak.Contact"
                 },
                 "message": {
-                    "description": "Generic message that tells you the status of the operation",
                     "type": "string"
                 }
             }
@@ -581,7 +514,6 @@ const docTemplate = `{
             ],
             "properties": {
                 "message": {
-                    "description": "Generic message that tells you the status of the operation",
                     "type": "string"
                 },
                 "workspace": {

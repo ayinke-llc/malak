@@ -55,13 +55,16 @@ func (mr *MockContactRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.Call
 }
 
 // Get mocks base method.
-func (m *MockContactRepository) Get(arg0 context.Context) {
+func (m *MockContactRepository) Get(arg0 context.Context, arg1 malak.FetchContactOptions) (*malak.Contact, error) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Get", arg0)
+	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret0, _ := ret[0].(*malak.Contact)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockContactRepositoryMockRecorder) Get(arg0 any) *gomock.Call {
+func (mr *MockContactRepositoryMockRecorder) Get(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockContactRepository)(nil).Get), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockContactRepository)(nil).Get), arg0, arg1)
 }

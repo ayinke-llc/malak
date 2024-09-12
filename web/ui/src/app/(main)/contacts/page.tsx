@@ -16,7 +16,7 @@ export default function Settings() {
                 View and manage all your existing contacts
               </p>
             </div>
-            <CreateContactModal itemName="lmao" onOpenChange={() => {
+            <CreateContactModal onOpenChange={() => {
               console.log("oops")
             }} />
           </div>

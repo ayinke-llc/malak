@@ -22,10 +22,10 @@ type contactHandler struct {
 type createContactRequest struct {
 	GenericRequest
 
-	Email     malak.Email `json:"email,omitempty"`
-	FirstName string      `json:"first_name,omitempty"`
+	Email     malak.Email `json:"email,omitempty" validate:"'required'"`
+	FirstName *string     `json:"first_name,omitempty" validate:"'required'"`
 
-	LastName *string `json:"last_name,omitempty"`
+	LastName *string `json:"last_name,omitempty" validate:"'required'"`
 }
 
 func (c *createContactRequest) Validate() error {
@@ -33,15 +33,15 @@ func (c *createContactRequest) Validate() error {
 		return errors.New("please provide the email address of the contact")
 	}
 
-	c.FirstName = strings.TrimSpace(c.FirstName)
+	firstName := strings.TrimSpace(util.DeRef(c.FirstName))
 
-	if util.IsStringEmpty(c.FirstName) {
-		return errors.New("please provide the first name of the contact")
+	if !util.IsStringEmpty(firstName) {
+		if len(firstName) > 100 {
+			return errors.New("contact's last name must be less than 100")
+		}
 	}
 
-	if len(c.FirstName) > 100 {
-		return errors.New("contact's first name must be less than 100")
-	}
+	c.FirstName = util.Ref(firstName)
 
 	lastName := strings.TrimSpace(util.DeRef(c.LastName))
 
@@ -90,7 +90,7 @@ func (c *contactHandler) Create(
 
 	contact := &malak.Contact{
 		Email:     req.Email,
-		FirstName: req.FirstName,
+		FirstName: util.DeRef(req.FirstName),
 		LastName:  util.DeRef(req.LastName),
 		CreatedBy: user.ID,
 		Metadata:  make(malak.CustomContactMetadata),
@@ -111,6 +111,6 @@ func (c *contactHandler) Create(
 
 	return fetchContactResponse{
 		APIStatus: newAPIStatus(http.StatusCreated, "contact was successfully created"),
-		Contact:   contact,
+		Contact:   util.DeRef(contact),
 	}, StatusSuccess
 }

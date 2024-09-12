@@ -2,7 +2,7 @@ package malak
 
 // Swagger generation
 //
-//go:generate swag init -g swagger.go  --requiredByDefault
+//go:generate swag init -g swagger.go
 //
 //
 // Mocks generation

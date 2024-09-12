@@ -35,21 +35,6 @@ definitions:
         type: string
       updated_at:
         type: string
-    required:
-    - city
-    - company
-    - created_at
-    - created_by
-    - email
-    - first_name
-    - id
-    - last_name
-    - metadata
-    - notes
-    - owner_id
-    - phone
-    - reference
-    - updated_at
     type: object
   malak.CustomContactMetadata:
     additionalProperties:
@@ -63,12 +48,7 @@ definitions:
             type: boolean
           size:
             type: integer
-        required:
-        - enabled
-        - size
         type: object
-    required:
-    - team
     type: object
   malak.Role:
     enum:
@@ -102,14 +82,6 @@ definitions:
         type: array
       updated_at:
         type: string
-    required:
-    - created_at
-    - email
-    - full_name
-    - id
-    - metadata
-    - roles
-    - updated_at
     type: object
   malak.UserMetadata:
     properties:
@@ -121,8 +93,6 @@ definitions:
           right place rather than always a list of all their workspaces and they
           have to select one
         type: string
-    required:
-    - current_workspace
     type: object
   malak.UserRole:
     properties:
@@ -138,13 +108,6 @@ definitions:
         type: string
       workspace_id:
         type: string
-    required:
-    - created_at
-    - id
-    - role
-    - updated_at
-    - user_id
-    - workspace_id
     type: object
   malak.Workspace:
     properties:
@@ -169,21 +132,10 @@ definitions:
         type: string
       workspace_name:
         type: string
-    required:
-    - created_at
-    - id
-    - metadata
-    - plan_id
-    - reference
-    - stripe_customer_id
-    - subscription_id
-    - updated_at
-    - workspace_name
     type: object
   server.APIStatus:
     properties:
       message:
-        description: Generic message that tells you the status of the operation
         type: string
     required:
     - message
@@ -203,22 +155,15 @@ definitions:
         type: string
       last_name:
         type: string
-    required:
-    - email
-    - first_name
-    - last_name
     type: object
   server.createWorkspaceRequest:
     properties:
       name:
         type: string
-    required:
-    - name
     type: object
   server.createdUserResponse:
     properties:
       message:
-        description: Generic message that tells you the status of the operation
         type: string
       token:
         type: string
@@ -230,23 +175,19 @@ definitions:
     - message
     - token
     - user
-    - workspace
     type: object
   server.fetchContactResponse:
     properties:
       contact:
         $ref: '#/definitions/malak.Contact'
       message:
-        description: Generic message that tells you the status of the operation
         type: string
     required:
-    - contact
     - message
     type: object
   server.fetchWorkspaceResponse:
     properties:
       message:
-        description: Generic message that tells you the status of the operation
         type: string
       workspace:
         $ref: '#/definitions/malak.Workspace'
