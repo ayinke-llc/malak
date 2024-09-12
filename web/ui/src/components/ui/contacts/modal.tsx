@@ -22,11 +22,9 @@ import { useRouter } from "next/navigation"
 import { ServerAPIStatus } from "@/client/Api"
 import client from "@/lib/client"
 import { AxiosError } from "axios"
-import useAuthStore from "@/store/auth"
 import { CREATE_CONTACT_MUTATION } from "@/lib/query-constants"
 
 export type ModalProps = {
-  onOpenChange: (open: boolean) => void
 }
 
 type CreateContactInput = {
@@ -40,22 +38,24 @@ const schema = yup
   .required()
 
 export default function CreateContactModal({
-  onOpenChange,
 }: ModalProps) {
 
   const [loading, setLoading] = useState<boolean>(false)
 
-  const setWorkspace = useAuthStore.getState().setWorkspace
+  const [hasOpenDialog, setHasOpenDialog] = useState(false)
 
   const router = useRouter()
+
+  const handleDialogItemOpenChange = (open: boolean) => {
+    setHasOpenDialog(open)
+  }
 
   const mutation = useMutation({
     mutationKey: [CREATE_CONTACT_MUTATION],
     mutationFn: (data: CreateContactInput) => client.contacts.contactsCreate(data),
     onSuccess: ({ data }) => {
       toast.success(data.message)
-      onOpenChange(false)
-      router.push("/contacts")
+      handleDialogItemOpenChange(false)
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message
@@ -84,7 +84,7 @@ export default function CreateContactModal({
 
   return (
     <div className="flex justify-center">
-      <Dialog onOpenChange={onOpenChange}>
+      <Dialog onOpenChange={handleDialogItemOpenChange} open={hasOpenDialog}>
         <DialogTrigger asChild>
           <div className="w-full text-right" >
             <Button type="button"
@@ -114,6 +114,13 @@ export default function CreateContactModal({
                   type="email"
                   {...register("email")}
                 />
+                {errors.email && (
+                  < p className="mt-4 text-xs text-red-600 dark:text-red-500">
+                    <span className="font-medium">
+                      {errors.email.message}
+                    </span>
+                  </p>
+                )}
               </div>
             </DialogHeader>
             <DialogFooter className="mt-6">

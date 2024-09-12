@@ -86,19 +86,19 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			defer cancelFn()
 
 			if err := redisClient.Ping(ctx).Err(); err != nil {
-				logger.WithError(err).Error("could not ping Redis")
+				logger.WithError(err).Fatal("could not ping Redis")
 			}
 
 			_ = redisClient
 
 			rateLimiterStore, err := getRatelimiter(*cfg)
 			if err != nil {
-				logger.WithError(err).Error("could not create rate limiter")
+				logger.WithError(err).Fatal("could not create rate limiter")
 			}
 
 			mid, err := httplimit.NewMiddleware(rateLimiterStore, server.HTTPThrottleKeyFunc)
 			if err != nil {
-				logger.WithError(err).Error("could not set up rate limiting middleware")
+				logger.WithError(err).Fatal("could not set up rate limiting middleware")
 			}
 
 			srv, cleanupSrv := server.New(logger, util.DeRef(cfg), db,
@@ -106,17 +106,17 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {
-					logger.WithError(err).Error("error with http server")
+					logger.WithError(err).Fatal("error with http server")
 				}
 			}()
 
 			<-sig
 
+			logger.Debug("shutting down Malak's server")
 			if err := db.Close(); err != nil {
 				logger.WithError(err).Error("could not close db")
 			}
 
-			logger.Debug("shutting down Malak's server")
 			cleanupSrv()
 		},
 	}

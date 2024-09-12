@@ -40,12 +40,11 @@ const (
 //
 // For authenticated requests, it throttles individually instead of IP wild
 func HTTPThrottleKeyFunc(r *http.Request) (string, error) {
-	user, ok := r.Context().Value(userCtx).(*malak.User)
-	if !ok {
-		return getIP(r), nil
+	if doesUserExistInContext(r.Context()) {
+		return getUserFromContext(r.Context()).ID.String(), nil
 	}
 
-	return user.ID.String(), nil
+	return getIP(r), nil
 }
 
 var xForwardedFor = http.CanonicalHeaderKey("X-Forwarded-For")
@@ -160,6 +159,11 @@ func getWorkspaceFromContext(ctx context.Context) *malak.Workspace {
 
 func doesWorkspaceExistInContext(ctx context.Context) bool {
 	_, ok := ctx.Value(workspaceCtx).(*malak.Workspace)
+	return ok
+}
+
+func doesUserExistInContext(ctx context.Context) bool {
+	_, ok := ctx.Value(userCtx).(*malak.User)
 	return ok
 }
 

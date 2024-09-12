@@ -2,7 +2,8 @@
 
 import CreateContactModal from "@/components/ui/contacts/modal"
 
-export default function Settings() {
+export default function Page() {
+
   return (
     <>
       <div className="pt-6">
@@ -16,9 +17,7 @@ export default function Settings() {
                 View and manage all your existing contacts
               </p>
             </div>
-            <CreateContactModal onOpenChange={() => {
-              console.log("oops")
-            }} />
+            <CreateContactModal />
           </div>
         </section>
       </div>

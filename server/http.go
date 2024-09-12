@@ -58,15 +58,11 @@ func buildRoutes(
 	userRepo := postgres.NewUserRepository(db)
 	workspaceRepo := postgres.NewWorkspaceRepository(db)
 	planRepo := postgres.NewPlanRepository(db)
+	contactRepo := postgres.NewContactRepository(db)
 
 	router := chi.NewRouter()
 
-	router.Use(middleware.RequestID)
-	router.Use(writeRequestIDHeader)
-	router.Use(middleware.AllowContentType("application/json"))
-	router.Use(otelchi.Middleware("malak.server", otelchi.WithChiRoutes(router)))
-	router.Use(jsonResponse)
-	router.Use(mid.Handle)
+	referenceGenerator := malak.NewReferenceGenerator()
 
 	auth := &authHandler{
 		userRepo:      userRepo,
@@ -84,8 +80,17 @@ func buildRoutes(
 	}
 
 	contactHandler := &contactHandler{
-		cfg: cfg,
+		cfg:                cfg,
+		contactRepo:        contactRepo,
+		referenceGenerator: referenceGenerator,
 	}
+
+	router.Use(middleware.RequestID)
+	router.Use(writeRequestIDHeader)
+	router.Use(middleware.AllowContentType("application/json"))
+	router.Use(otelchi.Middleware("malak.server", otelchi.WithChiRoutes(router)))
+	router.Use(jsonResponse)
+	router.Use(mid.Handle)
 
 	router.Route("/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {

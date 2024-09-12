@@ -15,8 +15,9 @@ import (
 )
 
 type contactHandler struct {
-	cfg         config.Config
-	contactRepo malak.ContactRepository
+	cfg                config.Config
+	contactRepo        malak.ContactRepository
+	referenceGenerator malak.ReferenceGeneratorOperation
 }
 
 type createContactRequest struct {
@@ -89,11 +90,15 @@ func (c *contactHandler) Create(
 	}
 
 	contact := &malak.Contact{
-		Email:     req.Email,
-		FirstName: util.DeRef(req.FirstName),
-		LastName:  util.DeRef(req.LastName),
+		Email:       req.Email,
+		FirstName:   util.DeRef(req.FirstName),
+		LastName:    util.DeRef(req.LastName),
+		Metadata:    make(malak.CustomContactMetadata),
+		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
+		Reference:   c.referenceGenerator.Generate(malak.EntityTypeContact),
+		// Default to the user who created it
+		OwnerID:   user.ID,
 		CreatedBy: user.ID,
-		Metadata:  make(malak.CustomContactMetadata),
 	}
 
 	err := c.contactRepo.Create(ctx, contact)

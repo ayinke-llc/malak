@@ -19,4 +19,4 @@ CREATE TABLE contacts (
   deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-ALTER TABLE contacts ADD CONSTRAINT contacts_reference_check_key CHECK (reference ~ 'contacts_[a-zA-Z0-9._]+');
+ALTER TABLE contacts ADD CONSTRAINT contacts_reference_check_key CHECK (reference ~ 'contact_[a-zA-Z0-9._]+');
