@@ -1,12 +1,7 @@
 import { Check, ChevronDown } from "lucide-react";
 import { EditorBubbleItem, useEditor } from "novel";
-
-import {
-  PopoverTrigger,
-  Popover,
-  PopoverContent,
-} from "@/components/Popover";
 import { Button } from "@/components/Button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover";
 
 export interface BubbleColorMenuItem {
   name: string;
@@ -100,18 +95,14 @@ export const ColorSelector = ({ open, onOpenChange }: ColorSelectorProps) => {
   const { editor } = useEditor();
 
   if (!editor) return null;
-  const activeColorItem = TEXT_COLORS.find(({ color }) =>
-    editor.isActive("textStyle", { color }),
-  );
+  const activeColorItem = TEXT_COLORS.find(({ color }) => editor.isActive("textStyle", { color }));
 
-  const activeHighlightItem = HIGHLIGHT_COLORS.find(({ color }) =>
-    editor.isActive("highlight", { color }),
-  );
+  const activeHighlightItem = HIGHLIGHT_COLORS.find(({ color }) => editor.isActive("highlight", { color }));
 
   return (
     <Popover modal={true} open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
-        <Button className="gap-2 rounded-none" variant="ghost">
+        <Button size="sm" className="gap-2 rounded-none" variant="ghost">
           <span
             className="rounded-sm px-1"
             style={{
@@ -131,12 +122,10 @@ export const ColorSelector = ({ open, onOpenChange }: ColorSelectorProps) => {
         align="start"
       >
         <div className="flex flex-col">
-          <div className="my-1 px-2 text-sm font-semibold text-muted-foreground">
-            Color
-          </div>
-          {TEXT_COLORS.map(({ name, color }, index) => (
+          <div className="my-1 px-2 text-sm font-semibold text-muted-foreground">Color</div>
+          {TEXT_COLORS.map(({ name, color }) => (
             <EditorBubbleItem
-              key={index}
+              key={name}
               onSelect={() => {
                 editor.commands.unsetColor();
                 name !== "Default" &&
@@ -150,10 +139,7 @@ export const ColorSelector = ({ open, onOpenChange }: ColorSelectorProps) => {
               className="flex cursor-pointer items-center justify-between px-2 py-1 text-sm hover:bg-accent"
             >
               <div className="flex items-center gap-2">
-                <div
-                  className="rounded-sm border px-2 py-px font-medium"
-                  style={{ color }}
-                >
+                <div className="rounded-sm border px-2 py-px font-medium" style={{ color }}>
                   A
                 </div>
                 <span>{name}</span>
@@ -162,12 +148,10 @@ export const ColorSelector = ({ open, onOpenChange }: ColorSelectorProps) => {
           ))}
         </div>
         <div>
-          <div className="my-1 px-2 text-sm font-semibold text-muted-foreground">
-            Background
-          </div>
-          {HIGHLIGHT_COLORS.map(({ name, color }, index) => (
+          <div className="my-1 px-2 text-sm font-semibold text-muted-foreground">Background</div>
+          {HIGHLIGHT_COLORS.map(({ name, color }) => (
             <EditorBubbleItem
-              key={index}
+              key={name}
               onSelect={() => {
                 editor.commands.unsetHighlight();
                 name !== "Default" && editor.chain().focus().setHighlight({ color }).run();
@@ -176,17 +160,12 @@ export const ColorSelector = ({ open, onOpenChange }: ColorSelectorProps) => {
               className="flex cursor-pointer items-center justify-between px-2 py-1 text-sm hover:bg-accent"
             >
               <div className="flex items-center gap-2">
-                <div
-                  className="rounded-sm border px-2 py-px font-medium"
-                  style={{ backgroundColor: color }}
-                >
+                <div className="rounded-sm border px-2 py-px font-medium" style={{ backgroundColor: color }}>
                   A
                 </div>
                 <span>{name}</span>
               </div>
-              {editor.isActive("highlight", { color }) && (
-                <Check className="h-4 w-4" />
-              )}
+              {editor.isActive("highlight", { color }) && <Check className="h-4 w-4" />}
             </EditorBubbleItem>
           ))}
         </div>

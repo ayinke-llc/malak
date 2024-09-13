@@ -17,6 +17,12 @@ const buttonVariants = tv({
     focusRing,
   ],
   variants: {
+    size: {
+      default: "h-10 px-4 py-2",
+      sm: "h-9 rounded-md px-3",
+      lg: "h-11 rounded-md px-8",
+      icon: "h-10 w-10",
+    },
     variant: {
       primary: [
         // border
@@ -89,6 +95,7 @@ const buttonVariants = tv({
   },
   defaultVariants: {
     variant: "primary",
+    size: "default"
   },
 })
 
@@ -109,6 +116,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       className,
       disabled,
       variant,
+      size,
       children,
       ...props
     }: ButtonProps,
@@ -118,7 +126,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <Component
         ref={forwardedRef}
-        className={cx(buttonVariants({ variant }), className)}
+        className={cx(buttonVariants({ variant, size }), className)}
         disabled={disabled || isLoading}
         {...props}
       >

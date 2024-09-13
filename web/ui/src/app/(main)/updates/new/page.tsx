@@ -1,9 +1,7 @@
 "use client"
 
-import Editor from "@/components/ui/updates/editor/editor"
-import { useState } from "react";
-
-
+import { Button } from "@/components/Button";
+import NovelEditor from "@/components/ui/updates/editor/editor"
 
 export default function Page() {
 
@@ -20,12 +18,13 @@ export default function Page() {
                 Sending a new update to your investors
               </p>
             </div>
-            <span>oops</span>
+            <Button type="submit">
+              Send
+            </Button>
           </div>
 
           <div className="mt-5">
-            <Editor />
-            <h1>FUCK</h1>
+            <NovelEditor />
           </div>
         </section>
       </div>
