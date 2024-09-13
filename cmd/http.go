@@ -106,7 +106,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {
-					logger.WithError(err).Fatal("error with http server")
+					logger.WithError(err).Error("error with http server")
 				}
 			}()
 

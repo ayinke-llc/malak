@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -30,7 +31,14 @@ func New(logger *logrus.Entry,
 		Addr:    fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
-	return srv, initOTELCapabilities(cfg, logger)
+	cleanupOtelResources := initOTELCapabilities(cfg, logger)
+
+	return srv, func() {
+		cleanupOtelResources()
+		if err := srv.Shutdown(context.Background()); err != nil {
+			logger.WithError(err).Error("could not shut down server gracefully")
+		}
+	}
 }
 
 type responseWriter struct {
