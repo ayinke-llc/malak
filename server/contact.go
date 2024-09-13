@@ -10,8 +10,8 @@ import (
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/render"
-	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
 )
 
 type contactHandler struct {
@@ -71,7 +71,7 @@ func (c *createContactRequest) Validate() error {
 func (c *contactHandler) Create(
 	ctx context.Context,
 	span trace.Span,
-	logger *logrus.Entry,
+	logger *zap.Logger,
 	w http.ResponseWriter,
 	r *http.Request) (render.Renderer, Status) {
 
@@ -107,8 +107,8 @@ func (c *contactHandler) Create(
 	}
 
 	if err != nil {
-		logger.WithError(err).
-			Error("an error occurred while storing contact to the database")
+		logger.
+			Error("an error occurred while storing contact to the database", zap.Error(err))
 		return newAPIStatus(
 			http.StatusInternalServerError,
 			"an error occurred while creating contact"), StatusFailed

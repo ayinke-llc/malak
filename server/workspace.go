@@ -10,8 +10,8 @@ import (
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/render"
-	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
 )
 
 type workspaceHandler struct {
@@ -54,7 +54,7 @@ func (c *createWorkspaceRequest) Validate() error {
 func (wo *workspaceHandler) createWorkspace(
 	ctx context.Context,
 	span trace.Span,
-	logger *logrus.Entry,
+	logger *zap.Logger,
 	w http.ResponseWriter,
 	r *http.Request) (render.Renderer, Status) {
 
@@ -76,9 +76,10 @@ func (wo *workspaceHandler) createWorkspace(
 		Reference: wo.cfg.Billing.DefaultPlanReference,
 	})
 	if err != nil {
-		logger.WithError(err).
-			WithField("plan_reference", wo.cfg.Billing.DefaultPlanReference).
-			Error("could not fetch default plan")
+		logger.
+			Error("could not fetch default plan",
+				zap.Error(err),
+				zap.String("plan_reference", wo.cfg.Billing.DefaultPlanReference))
 		return newAPIStatus(http.StatusInternalServerError,
 			"could not fetch default plan details"), StatusFailed
 	}
@@ -91,9 +92,9 @@ func (wo *workspaceHandler) createWorkspace(
 		Workspace: workspace,
 	})
 	if err != nil {
-		logger.WithError(err).
-			WithField("plan_reference", wo.cfg.Billing.DefaultPlanReference).
-			Error("could not fetch default plan")
+		logger.Error("could not fetch default plan",
+			zap.Error(err),
+			zap.String("plan_reference", wo.cfg.Billing.DefaultPlanReference))
 		return newAPIStatus(http.StatusInternalServerError,
 			"could not create workspace"), StatusFailed
 	}

@@ -15,11 +15,11 @@ import (
 	"github.com/riandyrn/otelchi"
 	"github.com/rs/cors"
 	"github.com/sethvargo/go-limiter/httplimit"
-	"github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
+	"go.uber.org/zap"
 )
 
-func New(logger *logrus.Entry,
+func New(logger *zap.Logger,
 	cfg config.Config,
 	db *bun.DB,
 	jwtTokenManager jwttoken.JWTokenManager,
@@ -36,7 +36,7 @@ func New(logger *logrus.Entry,
 	return srv, func() {
 		cleanupOtelResources()
 		if err := srv.Shutdown(context.Background()); err != nil {
-			logger.WithError(err).Error("could not shut down server gracefully")
+			logger.Error("could not shut down server gracefully", zap.Error(err))
 		}
 	}
 }
@@ -56,7 +56,7 @@ func (rw *responseWriter) WriteHeader(code int) {
 }
 
 func buildRoutes(
-	logger *logrus.Entry,
+	logger *zap.Logger,
 	db *bun.DB,
 	cfg config.Config,
 	jwtTokenManager jwttoken.JWTokenManager,
@@ -102,22 +102,26 @@ func buildRoutes(
 
 	router.Route("/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
-			r.Post("/connect/{provider}", WrapMalakHTTPHandler(auth.Login, cfg, "Auth.Login"))
+			r.Post("/connect/{provider}",
+				WrapMalakHTTPHandler(logger, auth.Login, cfg, "Auth.Login"))
 		})
 
 		r.Route("/user", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
-			r.Get("/", WrapMalakHTTPHandler(auth.fetchCurrentUser, cfg, "Auth.fetchCurrentUser"))
+			r.Get("/",
+				WrapMalakHTTPHandler(logger, auth.fetchCurrentUser, cfg, "Auth.fetchCurrentUser"))
 		})
 
 		r.Route("/workspaces", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
-			r.Post("/", WrapMalakHTTPHandler(workspaceHandler.createWorkspace, cfg, "workspaces.new"))
+			r.Post("/",
+				WrapMalakHTTPHandler(logger, workspaceHandler.createWorkspace, cfg, "workspaces.new"))
 		})
 
 		r.Route("/contacts", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
-			r.Post("/", WrapMalakHTTPHandler(contactHandler.Create, cfg, "contacts.create"))
+			r.Post("/",
+				WrapMalakHTTPHandler(logger, contactHandler.Create, cfg, "contacts.create"))
 		})
 	})
 

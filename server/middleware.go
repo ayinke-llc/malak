@@ -13,7 +13,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 )
 
 func tokenFromRequest(r *http.Request) (string, error) {
@@ -79,7 +79,7 @@ func getIP(r *http.Request) string {
 }
 
 func requireAuthentication(
-	logger *logrus.Entry,
+	logger *zap.Logger,
 	jwtManager jwttoken.JWTokenManager,
 	cfg config.Config,
 	userRepo malak.UserRepository,
@@ -91,18 +91,20 @@ func requireAuthentication(
 			ctx, span, rid := getTracer(r.Context(), r, "middleware.requireAuthentication", cfg.Otel.IsEnabled)
 			defer span.End()
 
-			logger = logger.WithField("request_id", rid)
+			logger = logger.With(
+				zap.String("request_id", rid),
+			)
 
 			token, err := tokenFromRequest(r)
 			if err != nil {
-				logger.WithError(err).Error("token not found in cookie")
+				logger.Error("token not found in cookie", zap.Error(err))
 				_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "session expired"))
 				return
 			}
 
 			data, err := jwtManager.ParseJWToken(token)
 			if err != nil {
-				logger.WithError(err).Error("could not parse JWT token")
+				logger.Error("could not parse JWT", zap.Error(err))
 				_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "could not validate JWT token"))
 				return
 			}
@@ -111,7 +113,7 @@ func requireAuthentication(
 				ID: data.UserID,
 			})
 			if err != nil {
-				logger.WithError(err).Error("could not fetch user from database")
+				logger.Error("could not fetch user from database", zap.Error(err))
 				_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while checking user"))
 				return
 			}
@@ -123,7 +125,7 @@ func requireAuthentication(
 					ID: user.Metadata.CurrentWorkspace,
 				})
 				if err != nil {
-					logger.WithError(err).Error("could not fetch workspace from database")
+					logger.Error("could not fetch workspace from database", zap.Error(err))
 					_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while fetching workspace from database"))
 					return
 				}

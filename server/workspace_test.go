@@ -4,24 +4,29 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/ayinke-llc/malak"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
+	"go.uber.org/zap"
 )
+
+func getLogger(t *testing.T) *zap.Logger {
+
+	logger, err := zap.NewDevelopment()
+	require.NoError(t, err)
+
+	return logger
+}
 
 func TestWorkspaceHandler_Create(t *testing.T) {
 	for _, v := range generateWorkspaceTestTable() {
 
 		t.Run(v.name, func(t *testing.T) {
-
-			logrus.SetOutput(io.Discard)
 
 			controller := gomock.NewController(t)
 			defer controller.Finish()
@@ -51,7 +56,7 @@ func TestWorkspaceHandler_Create(t *testing.T) {
 
 			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
 
-			WrapMalakHTTPHandler(a.createWorkspace, getConfig(), "workspaces.new").
+			WrapMalakHTTPHandler(getLogger(t), a.createWorkspace, getConfig(), "workspaces.new").
 				ServeHTTP(rr, req)
 
 			require.Equal(t, v.expectedStatusCode, rr.Code)

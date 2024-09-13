@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/ayinke-llc/malak/config"
-	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -20,6 +19,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/trace/noop"
+	"go.uber.org/zap"
 )
 
 var tracer = otel.Tracer("malak.server")
@@ -50,7 +50,8 @@ func initResources() (*resource.Resource, error) {
 	)
 }
 
-func initOTELCapabilities(cfg config.Config, logger *logrus.Entry) func() {
+func initOTELCapabilities(cfg config.Config,
+	logger *zap.Logger) func() {
 
 	if !cfg.Otel.IsEnabled {
 		return func() {}
@@ -64,7 +65,8 @@ func initOTELCapabilities(cfg config.Config, logger *logrus.Entry) func() {
 
 	resources, err := initResources()
 	if err != nil {
-		logger.WithError(err).Fatal("could not setup OTEL tracing resources")
+		logger.Fatal("could not setup OTEL tracing resources",
+			zap.Error(err))
 	}
 
 	var (
@@ -113,7 +115,8 @@ func initOTELCapabilities(cfg config.Config, logger *logrus.Entry) func() {
 		otlptracehttp.NewClient(traceOptions...))
 
 	if err != nil {
-		logger.WithError(err).Fatal("could not setup OTEL tracing")
+		logger.Fatal("could not setup OTEL tracing resources",
+			zap.Error(err))
 	}
 
 	otel.SetTracerProvider(
@@ -140,7 +143,8 @@ func initOTELCapabilities(cfg config.Config, logger *logrus.Entry) func() {
 	metricExporter, err := otlpmetrichttp.New(
 		context.Background(), metricsOptions...)
 	if err != nil {
-		logger.WithError(err).Fatal("could not set up Metrics exporter")
+		logger.Fatal("could not setup metrics exporter",
+			zap.Error(err))
 	}
 
 	otel.SetMeterProvider(
@@ -157,9 +161,10 @@ func initOTELCapabilities(cfg config.Config, logger *logrus.Entry) func() {
 	}
 }
 
-func regiterMetrics(logger *logrus.Entry) {
+func regiterMetrics(logger *zap.Logger) {
 	err := runtime.Start(runtime.WithMinimumReadMemStatsInterval(time.Second))
 	if err != nil {
-		logger.WithError(err).Fatal("could not gather runtime metrics")
+		logger.Fatal("could not gather runtime metrics",
+			zap.Error(err))
 	}
 }

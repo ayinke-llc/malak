@@ -10,7 +10,6 @@ import (
 
 	"github.com/ayinke-llc/malak/config"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -58,29 +57,7 @@ func Execute() error {
 				return err
 			}
 
-			logrus.SetOutput(os.Stdout)
-
-			var formatter logrus.Formatter = &logrus.JSONFormatter{}
-
-			if cfg.Logging.Format == config.LogFormatText {
-				formatter = &logrus.TextFormatter{}
-			}
-
-			logrus.SetFormatter(formatter)
-
-			lvl, err := logrus.ParseLevel(cfg.Logging.Level)
-			if err != nil {
-				lvl = logrus.DebugLevel
-			}
-
-			logrus.SetLevel(lvl)
-
-			if err := cfg.Validate(); err != nil {
-				logrus.WithError(err).Error("could not validate configuration")
-				return err
-			}
-
-			return nil
+			return cfg.Validate()
 		},
 	}
 
@@ -125,8 +102,7 @@ func initializeConfig(cfg *config.Config, pathToFile string) error {
 
 func setDefaults() {
 
-	viper.SetDefault("logging.level", "debug")
-	viper.SetDefault("logging.format", config.LogFormatJson)
+	viper.SetDefault("logging.mode", config.LogModeDev)
 
 	viper.SetDefault("database.redis.dsn", "redis://localhost:9379")
 	viper.SetDefault("database.postgres.database_type", config.DatabaseTypePostgres)
