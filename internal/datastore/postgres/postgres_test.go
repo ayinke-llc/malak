@@ -22,12 +22,9 @@ import (
 func getConfig(dsn string) *config.Config {
 	return &config.Config{
 		Logging: struct {
-			Level  string           "yaml:\"level\" mapstructure:\"level\""
-			Format config.LogFormat "yaml:\"format\" mapstructure:\"format\""
-			Mode   config.LogMode   "yaml:\"mode\" mapstructure:\"mode\""
+			Mode config.LogMode "yaml:\"mode\" mapstructure:\"mode\""
 		}{
-			Level: "debug",
-			Mode:  config.LogModeDev,
+			Mode: config.LogModeDev,
 		},
 		Database: struct {
 			DatabaseType config.DatabaseType "yaml:\"database_type\" mapstructure:\"database_type\""

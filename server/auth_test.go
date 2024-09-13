@@ -116,7 +116,7 @@ func TestAuthHandler_Login(t *testing.T) {
 					}, nil)
 			}
 
-			WrapMalakHTTPHandler(a.Login, getConfig(), "Auth.Login").
+			WrapMalakHTTPHandler(getLogger(t), a.Login, getConfig(), "Auth.Login").
 				ServeHTTP(rr, req)
 
 			require.Equal(t, v.expectedStatusCode, rr.Code)
