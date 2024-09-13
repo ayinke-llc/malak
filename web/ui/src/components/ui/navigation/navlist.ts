@@ -1,4 +1,4 @@
-import { RiArrowDownLine, RiBook3Line, RiContactsLine, RiHome2Line, RiLinkM } from "@remixicon/react";
+import { RiArchiveStackLine, RiBook3Line, RiContactsLine, RiHome2Line, RiLinkM } from "@remixicon/react";
 
 export const links = [
   {
@@ -9,7 +9,7 @@ export const links = [
   {
     name: "Updates",
     href: "/updates",
-    icon: RiArrowDownLine
+    icon: RiArchiveStackLine
   },
   {
     name: "Decks",
