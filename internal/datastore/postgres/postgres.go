@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/alexlast/bunzap"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
@@ -30,11 +31,11 @@ func New(cfg *config.Config, logger *zap.Logger) (*bun.DB, error) {
 	db := bun.NewDB(pgdb, pgdialect.New())
 
 	if cfg.Database.Postgres.LogQueries {
-		// db.AddQueryHook(
-		// 	bunzap.NewQueryHook(
-		// 		bunzap.QueryHookOptions{
-		// 			Logger: logger,
-		// 		}))
+		db.AddQueryHook(
+			bunzap.NewQueryHook(
+				bunzap.QueryHookOptions{
+					Logger: logger,
+				}))
 	}
 
 	if cfg.Otel.IsEnabled {

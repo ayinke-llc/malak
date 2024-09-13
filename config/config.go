@@ -11,9 +11,6 @@ import (
 // ENUM(postgres)
 type DatabaseType string
 
-// ENUM(json,text)
-type LogFormat string
-
 // ENUM(prod,dev)
 type LogMode string
 
@@ -23,9 +20,7 @@ type RateLimiterType string
 
 type Config struct {
 	Logging struct {
-		Level  string    `yaml:"level" mapstructure:"level"`
-		Format LogFormat `yaml:"format" mapstructure:"format"`
-		Mode   LogMode   `yaml:"mode" mapstructure:"mode"`
+		Mode LogMode `yaml:"mode" mapstructure:"mode"`
 	} `yaml:"logging" mapstructure:"logging"`
 
 	Database struct {

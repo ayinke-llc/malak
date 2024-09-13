@@ -102,8 +102,6 @@ func initializeConfig(cfg *config.Config, pathToFile string) error {
 
 func setDefaults() {
 
-	viper.SetDefault("logging.level", "debug")
-	viper.SetDefault("logging.format", config.LogFormatJson)
 	viper.SetDefault("logging.mode", config.LogModeDev)
 
 	viper.SetDefault("database.redis.dsn", "redis://localhost:9379")

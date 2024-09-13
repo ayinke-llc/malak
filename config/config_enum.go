@@ -43,40 +43,6 @@ func ParseDatabaseType(name string) (DatabaseType, error) {
 }
 
 const (
-	// LogFormatJson is a LogFormat of type json.
-	LogFormatJson LogFormat = "json"
-	// LogFormatText is a LogFormat of type text.
-	LogFormatText LogFormat = "text"
-)
-
-var ErrInvalidLogFormat = errors.New("not a valid LogFormat")
-
-// String implements the Stringer interface.
-func (x LogFormat) String() string {
-	return string(x)
-}
-
-// IsValid provides a quick way to determine if the typed value is
-// part of the allowed enumerated values
-func (x LogFormat) IsValid() bool {
-	_, err := ParseLogFormat(string(x))
-	return err == nil
-}
-
-var _LogFormatValue = map[string]LogFormat{
-	"json": LogFormatJson,
-	"text": LogFormatText,
-}
-
-// ParseLogFormat attempts to convert a string to a LogFormat.
-func ParseLogFormat(name string) (LogFormat, error) {
-	if x, ok := _LogFormatValue[name]; ok {
-		return x, nil
-	}
-	return LogFormat(""), fmt.Errorf("%s is %w", name, ErrInvalidLogFormat)
-}
-
-const (
 	// LogModeProd is a LogMode of type prod.
 	LogModeProd LogMode = "prod"
 	// LogModeDev is a LogMode of type dev.
