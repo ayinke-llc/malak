@@ -18,7 +18,6 @@ import * as yup from "yup"
 import { useState } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
 import { ServerAPIStatus } from "@/client/Api"
 import client from "@/lib/client"
 import { AxiosError } from "axios"
@@ -44,8 +43,6 @@ export default function CreateContactModal({
 
   const [hasOpenDialog, setHasOpenDialog] = useState(false)
 
-  const router = useRouter()
-
   const handleDialogItemOpenChange = (open: boolean) => {
     setHasOpenDialog(open)
   }
@@ -56,6 +53,7 @@ export default function CreateContactModal({
     onSuccess: ({ data }) => {
       toast.success(data.message)
       handleDialogItemOpenChange(false)
+      reset()
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message
@@ -73,8 +71,12 @@ export default function CreateContactModal({
     register,
     formState: { errors },
     handleSubmit,
+    reset,
   } = useForm({
     resolver: yupResolver(schema),
+    defaultValues: {
+      email: "",
+    }
   })
 
   const onSubmit: SubmitHandler<CreateContactInput> = (data) => {

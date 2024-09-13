@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
@@ -40,10 +41,24 @@ func (o *contactRepo) Create(ctx context.Context,
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
 
-	_, err := o.inner.NewInsert().
-		Model(contact).
-		Exec(ctx)
-	return err
+	return o.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		_, err := tx.NewInsert().
+			Model(contact).
+			Exec(ctx)
+
+		if err != nil {
+
+			if strings.Contains(err.Error(), "duplicate key value violates") {
+				return malak.ErrContactExists
+			}
+
+			return err
+		}
+
+		return nil
+	})
+
 }
 
 func (o *contactRepo) Get(ctx context.Context,
