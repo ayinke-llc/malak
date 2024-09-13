@@ -153,7 +153,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 					zap.Error(err))
 			}
 
-			logger.Sync()
+			_ = logger.Sync()
 		},
 	}
 
