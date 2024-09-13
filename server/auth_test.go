@@ -20,7 +20,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/sebdah/goldie/v2"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 	"golang.org/x/oauth2"
@@ -77,8 +76,6 @@ func TestAuthHandler_Login(t *testing.T) {
 	for _, v := range generateLoginTestTable() {
 
 		t.Run(v.name, func(t *testing.T) {
-
-			logrus.SetOutput(io.Discard)
 
 			controller := gomock.NewController(t)
 			defer controller.Finish()

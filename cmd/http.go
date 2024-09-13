@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"os/signal"
 	"strconv"
@@ -21,9 +22,9 @@ import (
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/sethvargo/go-limiter/noopstore"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.uber.org/zap"
 )
 
 const (
@@ -55,12 +56,34 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			h, _ := os.Hostname()
 
-			logger := logrus.WithField("host", h).
-				WithField("app", "malak")
+			var logger *zap.Logger
+			var err error
+
+			switch cfg.Logging.Mode {
+			case config.LogModeProd:
+
+				logger, err = zap.NewProduction()
+				if err != nil {
+					fmt.Printf(`{"error":%s}`, err)
+					os.Exit(1)
+				}
+
+			case config.LogModeDev:
+
+				logger, err = zap.NewDevelopment()
+				if err != nil {
+					fmt.Printf(`{"error":%s}`, err)
+					os.Exit(1)
+				}
+			}
+
+			logger = logger.With(zap.String("host", h),
+				zap.String("app", "malak"))
 
 			db, err := postgres.New(cfg, logger)
 			if err != nil {
-				logger.WithError(err).Fatal("could not set up database connection")
+				logger.Fatal("could not set up database connection",
+					zap.Error(err))
 			}
 
 			googleAuthProvider := socialauth.NewGoogle(*cfg)
@@ -69,36 +92,45 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			opts, err := redis.ParseURL(cfg.Database.Redis.DSN)
 			if err != nil {
-				logger.WithError(err).Fatal("could not parse redis dsn")
+				logger.Fatal("could not parse redis dsn",
+					zap.Error(err))
 			}
 
 			redisClient := redis.NewClient(opts)
 
-			if err := redisotel.InstrumentTracing(redisClient); err != nil {
-				logger.WithError(err).Fatal("could not instrument tracing of redis client")
-			}
+			if cfg.Otel.IsEnabled {
 
-			if err := redisotel.InstrumentMetrics(redisClient); err != nil {
-				logger.WithError(err).Fatal("could not instrument metrics of redis client")
+				if err := redisotel.InstrumentTracing(redisClient); err != nil {
+					logger.Fatal("could not instrument tracing of redis client",
+						zap.Error(err))
+				}
+
+				if err := redisotel.InstrumentMetrics(redisClient); err != nil {
+					logger.Fatal("could not instrument metrics collection of redis client",
+						zap.Error(err))
+				}
 			}
 
 			ctx, cancelFn := context.WithTimeout(context.Background(), time.Second*30)
 			defer cancelFn()
 
 			if err := redisClient.Ping(ctx).Err(); err != nil {
-				logger.WithError(err).Fatal("could not ping Redis")
+				logger.Fatal("could not ping redis",
+					zap.Error(err))
 			}
 
 			_ = redisClient
 
 			rateLimiterStore, err := getRatelimiter(*cfg)
 			if err != nil {
-				logger.WithError(err).Fatal("could not create rate limiter")
+				logger.Fatal("could not create rate limiter",
+					zap.Error(err))
 			}
 
 			mid, err := httplimit.NewMiddleware(rateLimiterStore, server.HTTPThrottleKeyFunc)
 			if err != nil {
-				logger.WithError(err).Fatal("could not set up rate limiting middleware")
+				logger.Fatal("could not rate limiting middleware",
+					zap.Error(err))
 			}
 
 			srv, cleanupSrv := server.New(logger, util.DeRef(cfg), db,
@@ -106,18 +138,22 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {
-					logger.WithError(err).Error("error with http server")
+					logger.Error("error with http server",
+						zap.Error(err))
 				}
 			}()
 
 			<-sig
 
+			cleanupSrv()
+
 			logger.Debug("shutting down Malak's server")
 			if err := db.Close(); err != nil {
-				logger.WithError(err).Error("could not close db")
+				logger.Error("could not close db",
+					zap.Error(err))
 			}
 
-			cleanupSrv()
+			logger.Sync()
 		},
 	}
 

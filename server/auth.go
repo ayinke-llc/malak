@@ -13,9 +13,9 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
 )
 
 // ENUM(user)
@@ -58,13 +58,13 @@ func (a *authenticateUserRequest) Validate() error {
 func (a *authHandler) Login(
 	ctx context.Context,
 	span trace.Span,
-	logger *logrus.Entry,
+	logger *zap.Logger,
 	w http.ResponseWriter,
 	r *http.Request) (render.Renderer, Status) {
 
 	provider := chi.URLParam(r, "provider")
 
-	logger = logger.WithField("provider", provider)
+	logger = logger.With(zap.String("provider", provider))
 
 	span.SetAttributes(attribute.String("auth_provider", provider))
 
@@ -88,13 +88,13 @@ func (a *authHandler) Login(
 		Code: req.Code,
 	})
 	if err != nil {
-		logger.WithError(err).Error("could not exchange token")
+		logger.Error("could not exchange token", zap.Error(err))
 		return newAPIStatus(http.StatusBadRequest, "could not verify your sign in with Google"), StatusFailed
 	}
 
 	u, err := a.googleCfg.User(ctx, token)
 	if err != nil {
-		logger.WithError(err).Error("could not fetch user details")
+		logger.Error("could not fetch user details from google", zap.Error(err))
 		return newAPIStatus(http.StatusBadRequest, "could not fetch user details from oauth2 provider"), StatusFailed
 	}
 
@@ -114,7 +114,7 @@ func (a *authHandler) Login(
 			Email: user.Email,
 		})
 		if err != nil {
-			logger.WithError(err).Error("an error occurred while fetching user")
+			logger.Error("an error occurred while fetching user", zap.Error(err))
 			return newAPIStatus(http.StatusInternalServerError, "an error occurred while logging user into app"), StatusFailed
 		}
 
@@ -122,7 +122,7 @@ func (a *authHandler) Login(
 			UserID: user.ID,
 		})
 		if err != nil {
-			logger.WithError(err).Error("an error occurred while generating jwt token")
+			logger.Error("an error occurred while generating jwt token", zap.Error(err))
 			return newAPIStatus(http.StatusInternalServerError, "an error occurred while generating jwt token"), StatusFailed
 		}
 
@@ -135,7 +135,7 @@ func (a *authHandler) Login(
 	}
 
 	if err != nil {
-		logger.WithError(err).Error("an error occurred while creating user")
+		logger.Error("an error occurred while creating user", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "an error occurred while creating user"), StatusFailed
 	}
 
@@ -143,7 +143,7 @@ func (a *authHandler) Login(
 		UserID: user.ID,
 	})
 	if err != nil {
-		logger.WithError(err).Error("an error occurred while generating jwt token")
+		logger.Error("an error occurred while generating jwt token", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "an error occurred while generating jwt token"), StatusFailed
 	}
 
@@ -168,7 +168,7 @@ func (a *authHandler) Login(
 func (a *authHandler) fetchCurrentUser(
 	ctx context.Context,
 	span trace.Span,
-	logger *logrus.Entry,
+	logger *zap.Logger,
 	w http.ResponseWriter,
 	r *http.Request) (render.Renderer, Status) {
 

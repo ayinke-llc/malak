@@ -14,6 +14,9 @@ type DatabaseType string
 // ENUM(json,text)
 type LogFormat string
 
+// ENUM(prod,dev)
+type LogMode string
+
 // ENUM(memory)
 // TODO(adelowo): add Redis support?
 type RateLimiterType string
@@ -22,6 +25,7 @@ type Config struct {
 	Logging struct {
 		Level  string    `yaml:"level" mapstructure:"level"`
 		Format LogFormat `yaml:"format" mapstructure:"format"`
+		Mode   LogMode   `yaml:"mode" mapstructure:"mode"`
 	} `yaml:"logging" mapstructure:"logging"`
 
 	Database struct {
@@ -92,6 +96,10 @@ type Config struct {
 }
 
 func (c *Config) Validate() error {
+
+	if !c.Logging.Mode.IsValid() {
+		return errors.New("please provide a valid logging mode")
+	}
 
 	if !c.Database.DatabaseType.IsValid() {
 		return errors.New("please use a valid database provider")

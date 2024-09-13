@@ -3,13 +3,12 @@ package server
 import (
 	"context"
 	"net/http"
-	"os"
 
 	"github.com/ayinke-llc/malak/config"
 	"github.com/go-chi/render"
-	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
 )
 
 // ENUM(success,failed)
@@ -20,35 +19,30 @@ type Status uint8
 type MalakHTTPHandler func(
 	context.Context,
 	trace.Span,
-	*logrus.Entry,
+	*zap.Logger,
 	http.ResponseWriter,
 	*http.Request) (render.Renderer, Status)
 
 // WrapMalakHTTPHandler is a middleware that wraps our handlers and manages errors
 func WrapMalakHTTPHandler(
+	logger *zap.Logger,
 	handler MalakHTTPHandler,
 	cfg config.Config,
 	spanName string) http.HandlerFunc {
-
-	h, _ := os.Hostname()
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx, span, rid := getTracer(r.Context(), r, spanName, cfg.Otel.IsEnabled)
 		defer span.End()
 
-		logger := logrus.WithField("host", h).
-			WithField("app", "malak.http").
-			WithField("method", spanName).
-			WithField("request_id", rid).
-			WithContext(ctx)
+		logger = logger.With(zap.String("request_id", rid))
 
 		if doesWorkspaceExistInContext(r.Context()) {
-			logger = logger.WithField("workspace_id", getWorkspaceFromContext(r.Context()).ID)
+			logger = logger.With(zap.String("workspace_id", getWorkspaceFromContext(r.Context()).ID.String()))
 		}
 
 		if doesUserExistInContext(r.Context()) {
-			logger = logger.WithField("user_id", getUserFromContext(r.Context()).ID)
+			logger = logger.With(zap.String("user_id", getUserFromContext(r.Context()).ID.String()))
 		}
 
 		resp, status := handler(ctx, span, logger, w, r)

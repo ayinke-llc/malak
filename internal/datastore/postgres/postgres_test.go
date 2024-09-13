@@ -12,11 +12,11 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"github.com/uptrace/bun"
+	"go.uber.org/zap"
 )
 
 func getConfig(dsn string) *config.Config {
@@ -24,8 +24,10 @@ func getConfig(dsn string) *config.Config {
 		Logging: struct {
 			Level  string           "yaml:\"level\" mapstructure:\"level\""
 			Format config.LogFormat "yaml:\"format\" mapstructure:\"format\""
+			Mode   config.LogMode   "yaml:\"mode\" mapstructure:\"mode\""
 		}{
 			Level: "debug",
+			Mode:  config.LogModeDev,
 		},
 		Database: struct {
 			DatabaseType config.DatabaseType "yaml:\"database_type\" mapstructure:\"database_type\""
@@ -119,7 +121,8 @@ func setupDatabase(t *testing.T) (*bun.DB, func()) {
 
 	prepareTestDatabase(t, dsn)
 
-	logger := logrus.WithField("app", "test")
+	logger, err := zap.NewDevelopment()
+	require.NoError(t, err)
 
 	db, err := New(getConfig(dsn), logger)
 	require.NoError(t, err)

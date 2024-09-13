@@ -77,6 +77,40 @@ func ParseLogFormat(name string) (LogFormat, error) {
 }
 
 const (
+	// LogModeProd is a LogMode of type prod.
+	LogModeProd LogMode = "prod"
+	// LogModeDev is a LogMode of type dev.
+	LogModeDev LogMode = "dev"
+)
+
+var ErrInvalidLogMode = errors.New("not a valid LogMode")
+
+// String implements the Stringer interface.
+func (x LogMode) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x LogMode) IsValid() bool {
+	_, err := ParseLogMode(string(x))
+	return err == nil
+}
+
+var _LogModeValue = map[string]LogMode{
+	"prod": LogModeProd,
+	"dev":  LogModeDev,
+}
+
+// ParseLogMode attempts to convert a string to a LogMode.
+func ParseLogMode(name string) (LogMode, error) {
+	if x, ok := _LogModeValue[name]; ok {
+		return x, nil
+	}
+	return LogMode(""), fmt.Errorf("%s is %w", name, ErrInvalidLogMode)
+}
+
+const (
 	// RateLimiterTypeMemory is a RateLimiterType of type memory.
 	RateLimiterTypeMemory RateLimiterType = "memory"
 )

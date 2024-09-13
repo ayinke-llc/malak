@@ -6,12 +6,11 @@ import (
 	"time"
 
 	"github.com/ayinke-llc/malak/config"
-	"github.com/oiime/logrusbun"
-	"github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/extra/bunotel"
+	"go.uber.org/zap"
 )
 
 // TODO: this is horrible for sure
@@ -21,30 +20,27 @@ func withContext(ctx context.Context) (context.Context, context.CancelFunc) {
 	return context.WithTimeout(ctx, timeout)
 }
 
-func New(cfg *config.Config, logger *logrus.Entry) (*bun.DB, error) {
+func New(cfg *config.Config, logger *zap.Logger) (*bun.DB, error) {
 
 	pgdb := sql.OpenDB(
-		pgdriver.NewConnector(pgdriver.WithDSN(cfg.Database.Postgres.DSN)))
+		pgdriver.NewConnector(
+			pgdriver.WithDSN(
+				cfg.Database.Postgres.DSN)))
 
 	db := bun.NewDB(pgdb, pgdialect.New())
 
 	if cfg.Database.Postgres.LogQueries {
-		lvl, err := logrus.ParseLevel(cfg.Logging.Level)
-		if err != nil {
-			return nil, err
-		}
-
-		db.AddQueryHook(logrusbun.NewQueryHook(logrusbun.QueryHookOptions{
-			Logger:     logger,
-			QueryLevel: lvl,
-			SlowLevel:  lvl,
-			ErrorLevel: lvl,
-		}))
+		// db.AddQueryHook(
+		// 	bunzap.NewQueryHook(
+		// 		bunzap.QueryHookOptions{
+		// 			Logger: logger,
+		// 		}))
 	}
 
 	if cfg.Otel.IsEnabled {
 		db.AddQueryHook(
-			bunotel.NewQueryHook(bunotel.WithDBName("malak.database")))
+			bunotel.NewQueryHook(
+				bunotel.WithDBName("malak.database")))
 	}
 
 	timeout = cfg.Database.Postgres.QueryTimeout
