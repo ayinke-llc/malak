@@ -1,11 +1,13 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	chi "github.com/go-chi/chi/v5"
@@ -14,25 +16,29 @@ import (
 	"github.com/rs/cors"
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sirupsen/logrus"
+	"github.com/uptrace/bun"
 )
 
 func New(logger *logrus.Entry,
 	cfg config.Config,
+	db *bun.DB,
 	jwtTokenManager jwttoken.JWTokenManager,
-	userRepo malak.UserRepository,
-	workspaceRepo malak.WorkspaceRepository,
-	planRepo malak.PlanRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	mid *httplimit.Middleware) (*http.Server, func()) {
 
 	srv := &http.Server{
-		Handler: buildRoutes(logger, cfg, jwtTokenManager,
-			userRepo, workspaceRepo, planRepo,
-			googleAuthProvider, mid),
-		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
+		Handler: buildRoutes(logger, db, cfg, jwtTokenManager, googleAuthProvider, mid),
+		Addr:    fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
-	return srv, initOTELCapabilities(cfg, logger)
+	cleanupOtelResources := initOTELCapabilities(cfg, logger)
+
+	return srv, func() {
+		cleanupOtelResources()
+		if err := srv.Shutdown(context.Background()); err != nil {
+			logger.WithError(err).Error("could not shut down server gracefully")
+		}
+	}
 }
 
 type responseWriter struct {
@@ -51,22 +57,20 @@ func (rw *responseWriter) WriteHeader(code int) {
 
 func buildRoutes(
 	logger *logrus.Entry,
+	db *bun.DB,
 	cfg config.Config,
 	jwtTokenManager jwttoken.JWTokenManager,
-	userRepo malak.UserRepository,
-	workspaceRepo malak.WorkspaceRepository,
-	planRepo malak.PlanRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	mid *httplimit.Middleware) http.Handler {
 
+	userRepo := postgres.NewUserRepository(db)
+	workspaceRepo := postgres.NewWorkspaceRepository(db)
+	planRepo := postgres.NewPlanRepository(db)
+	contactRepo := postgres.NewContactRepository(db)
+
 	router := chi.NewRouter()
 
-	router.Use(middleware.RequestID)
-	router.Use(writeRequestIDHeader)
-	router.Use(middleware.AllowContentType("application/json"))
-	router.Use(otelchi.Middleware("malak.server", otelchi.WithChiRoutes(router)))
-	router.Use(jsonResponse)
-	router.Use(mid.Handle)
+	referenceGenerator := malak.NewReferenceGenerator()
 
 	auth := &authHandler{
 		userRepo:      userRepo,
@@ -83,6 +87,19 @@ func buildRoutes(
 		referenceGenerationFunc: malak.GenerateReference,
 	}
 
+	contactHandler := &contactHandler{
+		cfg:                cfg,
+		contactRepo:        contactRepo,
+		referenceGenerator: referenceGenerator,
+	}
+
+	router.Use(middleware.RequestID)
+	router.Use(writeRequestIDHeader)
+	router.Use(middleware.AllowContentType("application/json"))
+	router.Use(otelchi.Middleware("malak.server", otelchi.WithChiRoutes(router)))
+	router.Use(jsonResponse)
+	router.Use(mid.Handle)
+
 	router.Route("/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/connect/{provider}", WrapMalakHTTPHandler(auth.Login, cfg, "Auth.Login"))
@@ -96,6 +113,11 @@ func buildRoutes(
 		r.Route("/workspaces", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 			r.Post("/", WrapMalakHTTPHandler(workspaceHandler.createWorkspace, cfg, "workspaces.new"))
+		})
+
+		r.Route("/contacts", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Post("/", WrapMalakHTTPHandler(contactHandler.Create, cfg, "contacts.create"))
 		})
 	})
 

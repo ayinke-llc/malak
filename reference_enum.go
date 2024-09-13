@@ -20,6 +20,12 @@ const (
 	EntityTypeTeam EntityType = "team"
 	// EntityTypeInvite is a EntityType of type invite.
 	EntityTypeInvite EntityType = "invite"
+	// EntityTypeContact is a EntityType of type contact.
+	EntityTypeContact EntityType = "contact"
+	// EntityTypeDeck is a EntityType of type deck.
+	EntityTypeDeck EntityType = "deck"
+	// EntityTypeUpdate is a EntityType of type update.
+	EntityTypeUpdate EntityType = "update"
 )
 
 var ErrInvalidEntityType = errors.New("not a valid EntityType")
@@ -41,6 +47,9 @@ var _EntityTypeValue = map[string]EntityType{
 	"invoice":   EntityTypeInvoice,
 	"team":      EntityTypeTeam,
 	"invite":    EntityTypeInvite,
+	"contact":   EntityTypeContact,
+	"deck":      EntityTypeDeck,
+	"update":    EntityTypeUpdate,
 }
 
 // ParseEntityType attempts to convert a string to a EntityType.

@@ -80,8 +80,6 @@ func TestAuthHandler_Login(t *testing.T) {
 
 			logrus.SetOutput(io.Discard)
 
-			logger := logrus.WithField("test", true)
-
 			controller := gomock.NewController(t)
 			defer controller.Finish()
 
@@ -93,7 +91,6 @@ func TestAuthHandler_Login(t *testing.T) {
 			v.mockFn(googleCfg, userRepo)
 
 			a := &authHandler{
-				logger:       logger,
 				cfg:          getConfig(),
 				googleCfg:    googleCfg,
 				userRepo:     userRepo,

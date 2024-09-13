@@ -37,7 +37,7 @@ export const WorkspacesDropdownDesktop = () => {
 
   const handleDialogItemOpenChange = (open: boolean) => {
     setHasOpenDialog(open)
-    if (open === false) {
+    if (!open) {
       setDropdownOpen(false)
     }
   }

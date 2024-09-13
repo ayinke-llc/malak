@@ -99,7 +99,7 @@ func (wo *workspaceHandler) createWorkspace(
 	}
 
 	return fetchWorkspaceResponse{
-		Workspace: workspace,
+		Workspace: util.DeRef(workspace),
 		APIStatus: newAPIStatus(http.StatusCreated, "workspace successfully created"),
 	}, StatusSuccess
 }

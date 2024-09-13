@@ -22,7 +22,6 @@ import (
 type CookieName string
 
 type authHandler struct {
-	logger        *logrus.Entry
 	googleCfg     socialauth.SocialAuthProvider
 	cfg           config.Config
 	userRepo      malak.UserRepository
@@ -33,7 +32,7 @@ type authHandler struct {
 type authenticateUserRequest struct {
 	GenericRequest
 
-	Code string `json:"code,omitempty"`
+	Code string `json:"code,omitempty" validate:"required"`
 }
 
 func (a *authenticateUserRequest) Validate() error {
@@ -128,7 +127,7 @@ func (a *authHandler) Login(
 		}
 
 		resp := createdUserResponse{
-			User:      user,
+			User:      util.DeRef(user),
 			APIStatus: newAPIStatus(http.StatusOK, "Logged in Successfully"),
 			Token:     token.Token,
 		}
@@ -149,7 +148,7 @@ func (a *authHandler) Login(
 	}
 
 	resp := createdUserResponse{
-		User:      user,
+		User:      util.DeRef(user),
 		APIStatus: newAPIStatus(http.StatusOK, "user Successfully created"),
 		Token:     authToken.Token,
 	}
@@ -181,7 +180,7 @@ func (a *authHandler) fetchCurrentUser(
 	}
 
 	return createdUserResponse{
-		User:      getUserFromContext(r.Context()),
+		User:      util.DeRef(getUserFromContext(r.Context())),
 		Workspace: workspace,
 		APIStatus: newAPIStatus(http.StatusOK, "user data successfully retrieved"),
 	}, StatusFailed

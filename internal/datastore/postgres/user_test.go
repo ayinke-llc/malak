@@ -88,7 +88,7 @@ func TestUser_GetUserID(t *testing.T) {
 		hasError bool
 	}{
 		{
-			id:   "f0271acc-981e-4229-9c94-4e2b208618f5",
+			id:   "1aa6b38e-33d3-499f-bc9d-3090738f29e6",
 			name: "User 1 from fixtures",
 		},
 		{
@@ -129,10 +129,6 @@ func TestUser_Get(t *testing.T) {
 		{
 			email: "lanre@test.com",
 			name:  "User 1 from fixtures",
-		},
-		{
-			email: "yo@test.com",
-			name:  "User 2 from fixtures",
 		},
 		{
 			email:    "unknown@google.com",

@@ -82,6 +82,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/contacts": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "Creates a new contact",
+                "parameters": [
+                    {
+                        "description": "contact request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createContactRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchContactResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/user": {
             "get": {
                 "consumes": [
@@ -187,18 +244,66 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "malak.Contact": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "company": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "description": "User who added/created this contact",
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/malak.CustomContactMetadata"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "owner_id": {
+                    "description": "User who owns the contact.\nDoes not mean who added the contact but who chases\nor follows up officially with the contact",
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.CustomContactMetadata": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
         "malak.PlanMetadata": {
             "type": "object",
-            "required": [
-                "team"
-            ],
             "properties": {
                 "team": {
                     "type": "object",
-                    "required": [
-                        "enabled",
-                        "size"
-                    ],
                     "properties": {
                         "enabled": {
                             "type": "boolean"
@@ -229,15 +334,6 @@ const docTemplate = `{
         },
         "malak.User": {
             "type": "object",
-            "required": [
-                "created_at",
-                "email",
-                "full_name",
-                "id",
-                "metadata",
-                "roles",
-                "updated_at"
-            ],
             "properties": {
                 "created_at": {
                     "type": "string"
@@ -267,9 +363,6 @@ const docTemplate = `{
         },
         "malak.UserMetadata": {
             "type": "object",
-            "required": [
-                "current_workspace"
-            ],
             "properties": {
                 "current_workspace": {
                     "description": "Used to keep track of the last used workspace\nIn the instance of multiple workspaces\nSo when next the user logs in, we remember and take them to the\nright place rather than always a list of all their workspaces and they\nhave to select one",
@@ -279,14 +372,6 @@ const docTemplate = `{
         },
         "malak.UserRole": {
             "type": "object",
-            "required": [
-                "created_at",
-                "id",
-                "role",
-                "updated_at",
-                "user_id",
-                "workspace_id"
-            ],
             "properties": {
                 "created_at": {
                     "type": "string"
@@ -310,17 +395,6 @@ const docTemplate = `{
         },
         "malak.Workspace": {
             "type": "object",
-            "required": [
-                "created_at",
-                "id",
-                "metadata",
-                "plan_id",
-                "reference",
-                "stripe_customer_id",
-                "subscription_id",
-                "updated_at",
-                "workspace_name"
-            ],
             "properties": {
                 "created_at": {
                     "type": "string"
@@ -359,7 +433,6 @@ const docTemplate = `{
             ],
             "properties": {
                 "message": {
-                    "description": "Generic message that tells you the status of the operation",
                     "type": "string"
                 }
             }
@@ -375,11 +448,22 @@ const docTemplate = `{
                 }
             }
         },
+        "server.createContactRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                }
+            }
+        },
         "server.createWorkspaceRequest": {
             "type": "object",
-            "required": [
-                "name"
-            ],
             "properties": {
                 "name": {
                     "type": "string"
@@ -391,12 +475,10 @@ const docTemplate = `{
             "required": [
                 "message",
                 "token",
-                "user",
-                "workspace"
+                "user"
             ],
             "properties": {
                 "message": {
-                    "description": "Generic message that tells you the status of the operation",
                     "type": "string"
                 },
                 "token": {
@@ -410,6 +492,20 @@ const docTemplate = `{
                 }
             }
         },
+        "server.fetchContactResponse": {
+            "type": "object",
+            "required": [
+                "message"
+            ],
+            "properties": {
+                "contact": {
+                    "$ref": "#/definitions/malak.Contact"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "server.fetchWorkspaceResponse": {
             "type": "object",
             "required": [
@@ -418,7 +514,6 @@ const docTemplate = `{
             ],
             "properties": {
                 "message": {
-                    "description": "Generic message that tells you the status of the operation",
                     "type": "string"
                 },
                 "workspace": {

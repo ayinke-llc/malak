@@ -43,6 +43,14 @@ func WrapMalakHTTPHandler(
 			WithField("request_id", rid).
 			WithContext(ctx)
 
+		if doesWorkspaceExistInContext(r.Context()) {
+			logger = logger.WithField("workspace_id", getWorkspaceFromContext(r.Context()).ID)
+		}
+
+		if doesUserExistInContext(r.Context()) {
+			logger = logger.WithField("user_id", getUserFromContext(r.Context()).ID)
+		}
+
 		resp, status := handler(ctx, span, logger, w, r)
 		switch status {
 		case StatusFailed:

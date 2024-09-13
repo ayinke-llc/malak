@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"log"
 	"os"
 	"os/signal"
 	"strconv"
@@ -14,6 +13,7 @@ import (
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
+	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/ayinke-llc/malak/server"
 	redisotel "github.com/redis/go-redis/extra/redisotel/v9"
 	redis "github.com/redis/go-redis/v9"
@@ -63,51 +63,46 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				logger.WithError(err).Fatal("could not set up database connection")
 			}
 
-			userRepo := postgres.NewUserRepository(db)
-			workspaceRepo := postgres.NewWorkspaceRepository(db)
-			planRepo := postgres.NewPlanRepository(db)
-
 			googleAuthProvider := socialauth.NewGoogle(*cfg)
 
 			tokenManager := jwttoken.New(*cfg)
 
 			opts, err := redis.ParseURL(cfg.Database.Redis.DSN)
 			if err != nil {
-				log.Fatal(err)
+				logger.WithError(err).Fatal("could not parse redis dsn")
 			}
 
 			redisClient := redis.NewClient(opts)
 
 			if err := redisotel.InstrumentTracing(redisClient); err != nil {
-				log.Fatal(err)
+				logger.WithError(err).Fatal("could not instrument tracing of redis client")
 			}
 
 			if err := redisotel.InstrumentMetrics(redisClient); err != nil {
-				log.Fatal(err)
+				logger.WithError(err).Fatal("could not instrument metrics of redis client")
 			}
 
 			ctx, cancelFn := context.WithTimeout(context.Background(), time.Second*30)
 			defer cancelFn()
 
 			if err := redisClient.Ping(ctx).Err(); err != nil {
-				log.Fatal(err)
+				logger.WithError(err).Fatal("could not ping Redis")
 			}
 
 			_ = redisClient
 
 			rateLimiterStore, err := getRatelimiter(*cfg)
 			if err != nil {
-				log.Fatal(err)
+				logger.WithError(err).Fatal("could not create rate limiter")
 			}
 
 			mid, err := httplimit.NewMiddleware(rateLimiterStore, server.HTTPThrottleKeyFunc)
 			if err != nil {
-				log.Fatal(err)
+				logger.WithError(err).Fatal("could not set up rate limiting middleware")
 			}
 
-			srv, cleanupSrv := server.New(logger, *cfg,
-				tokenManager, userRepo, workspaceRepo,
-				planRepo, googleAuthProvider, mid)
+			srv, cleanupSrv := server.New(logger, util.DeRef(cfg), db,
+				tokenManager, googleAuthProvider, mid)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {
@@ -118,6 +113,10 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			<-sig
 
 			logger.Debug("shutting down Malak's server")
+			if err := db.Close(); err != nil {
+				logger.WithError(err).Error("could not close db")
+			}
+
 			cleanupSrv()
 		},
 	}
