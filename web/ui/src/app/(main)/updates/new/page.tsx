@@ -1,5 +1,9 @@
 "use client"
 
+import Editor from "@/components/ui/updates/editor/editor"
+import { useState } from "react";
+
+
 
 export default function Page() {
 
@@ -17,6 +21,11 @@ export default function Page() {
               </p>
             </div>
             <span>oops</span>
+          </div>
+
+          <div className="mt-5">
+            <Editor />
+            <h1>FUCK</h1>
           </div>
         </section>
       </div>
