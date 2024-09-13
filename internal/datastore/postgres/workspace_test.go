@@ -46,7 +46,7 @@ func TestWorkspace_Update(t *testing.T) {
 
 	// from workspaces.yml migration
 	workspace, err := repo.Get(context.Background(), &malak.FindWorkspaceOptions{
-		ID: uuid.MustParse("ad2de1b3-db13-40f1-8ce3-5e2ab2dc10ee"),
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
 
@@ -57,7 +57,7 @@ func TestWorkspace_Update(t *testing.T) {
 	require.NoError(t, repo.Update(context.TODO(), workspace))
 
 	newWorkspace, err := repo.Get(context.Background(), &malak.FindWorkspaceOptions{
-		ID: uuid.MustParse("ad2de1b3-db13-40f1-8ce3-5e2ab2dc10ee"),
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
 
@@ -73,7 +73,7 @@ func TestWorkspace_Get(t *testing.T) {
 
 	// from workspaces.yml migration
 	workspace, err := repo.Get(context.Background(), &malak.FindWorkspaceOptions{
-		ID: uuid.MustParse("ad2de1b3-db13-40f1-8ce3-5e2ab2dc10ee"),
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
 
@@ -94,8 +94,8 @@ func TestWorkspace_List(t *testing.T) {
 	repo := NewWorkspaceRepository(client)
 
 	workspaces, err := repo.List(context.Background(), &malak.User{
-		ID: uuid.MustParse("938dffb8-b1c5-424b-a63a-61cfa962f184"),
+		ID: uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
 	})
 	require.NoError(t, err)
-	require.Len(t, workspaces, 1)
+	require.Len(t, workspaces, 2)
 }

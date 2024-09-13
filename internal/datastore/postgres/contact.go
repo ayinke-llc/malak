@@ -22,18 +22,18 @@ func NewContactRepository(inner *bun.DB) malak.ContactRepository {
 	}
 }
 
-func (o *contactRepo) Update(ctx context.Context,
-	org *malak.Workspace) error {
-
-	ctx, cancelFn := withContext(ctx)
-	defer cancelFn()
-
-	_, err := o.inner.NewUpdate().
-		Where("id = ?", org.ID).
-		Model(org).
-		Exec(ctx)
-	return err
-}
+// func (o *contactRepo) Update(ctx context.Context,
+// 	org *malak.Workspace) error {
+//
+// 	ctx, cancelFn := withContext(ctx)
+// 	defer cancelFn()
+//
+// 	_, err := o.inner.NewUpdate().
+// 		Where("id = ?", org.ID).
+// 		Model(org).
+// 		Exec(ctx)
+// 	return err
+// }
 
 func (o *contactRepo) Create(ctx context.Context,
 	contact *malak.Contact) error {
