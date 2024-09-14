@@ -1,6 +1,5 @@
 "use client";
 
-import { defaultEditorContent } from "./default-content";
 import {
   EditorCommand,
   EditorCommandEmpty,
@@ -31,6 +30,7 @@ const hljs = require('highlight.js');
 const extensions = [...defaultExtensions, slashCommand];
 
 const NovelEditor = () => {
+
   const [initialContent, setInitialContent] = useState<null | JSONContent>(null);
   const [saveStatus, setSaveStatus] = useState("Saved");
   const [charsCount, setCharsCount] = useState();
@@ -60,13 +60,6 @@ const NovelEditor = () => {
     setSaveStatus("Saved");
   }, 500);
 
-  useEffect(() => {
-    const content = window.localStorage.getItem("novel-content");
-    if (content) setInitialContent(JSON.parse(content));
-    else setInitialContent(defaultEditorContent);
-  }, []);
-
-  if (!initialContent) return null;
 
   return (
     <div className="relative w-full max-w-screen-lg">
@@ -78,7 +71,7 @@ const NovelEditor = () => {
       </div>
       <EditorRoot>
         <EditorContent
-          initialContent={initialContent}
+          initialContent={initialContent as JSONContent}
           extensions={extensions}
           className="relative min-h-[500px] w-full max-w-screen-lg border-muted bg-background sm:mb-[calc(20vh)] sm:rounded-lg sm:border sm:shadow-lg"
           editorProps={{
@@ -98,13 +91,17 @@ const NovelEditor = () => {
           }}
           slotAfter={<ImageResizer />}
         >
-          <EditorCommand className="z-50 h-auto max-h-[330px] overflow-y-auto rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all">
+          <EditorCommand className="bg-white dark:bg-indigo-500 z-50 h-auto max-h-[330px] overflow-y-auto rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all">
             <EditorCommandEmpty className="px-2 text-muted-foreground">No results</EditorCommandEmpty>
             <EditorCommandList>
               {suggestionItems.map((item) => (
                 <EditorCommandItem
                   value={item.title}
-                  onCommand={(val) => item.command(val)}
+                  onCommand={(val) => {
+                    if (item.command !== undefined) {
+                      item.command(val)
+                    }
+                  }}
                   className="flex w-full items-center space-x-2 rounded-md px-2 py-1 text-left text-sm hover:bg-accent aria-selected:bg-accent"
                   key={item.title}
                 >
