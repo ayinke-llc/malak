@@ -90,7 +90,7 @@ const SendTestButton = ({ }: ButtonProps) => {
                 </div>
 
                 <div className="mt-4">
-                  <Switch disabled id="r3" />
+                  <Switch disabled id="r3" {...register("link")} />
                   <Label disabled htmlFor="r3">
                     Coming soon. Generate a test preview link you can share
                   </Label>
@@ -116,7 +116,6 @@ const SendTestButton = ({ }: ButtonProps) => {
         </Dialog>
       </div>
     </>
-
   )
 }
 

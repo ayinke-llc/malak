@@ -1,5 +1,5 @@
 import { Button } from "@/components/Button";
-import { RiMailSendLine } from "@remixicon/react";
+import { RiArrowDownSLine, RiArrowDownWideLine, RiArrowDropDownLine, RiMailSendLine } from "@remixicon/react";
 import { ButtonProps } from "./props";
 
 const SendUpdateButton = ({ }: ButtonProps) => {
@@ -12,7 +12,6 @@ const SendUpdateButton = ({ }: ButtonProps) => {
       <RiMailSendLine size={18} />
       Send
     </Button>
-
   )
 }
 
