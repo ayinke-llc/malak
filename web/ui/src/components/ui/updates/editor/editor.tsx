@@ -24,6 +24,8 @@ import GenerativeMenuSwitch from "./generative/generative-menu-switch";
 import { uploadFn } from "./image-upload";
 import { TextButtons } from "./selectors/text-buttons";
 import { slashCommand, suggestionItems } from "./slash-command";
+import { defaultEditorContent } from "./default-value";
+import { toast } from "sonner";
 
 const hljs = require('highlight.js');
 
@@ -31,7 +33,7 @@ const extensions = [...defaultExtensions, slashCommand];
 
 const NovelEditor = () => {
 
-  const [initialContent, setInitialContent] = useState<null | JSONContent>(null);
+  const [initialContent, setInitialContent] = useState<null | JSONContent>(defaultEditorContent);
   const [saveStatus, setSaveStatus] = useState("Saved");
   const [charsCount, setCharsCount] = useState();
 
@@ -39,6 +41,7 @@ const NovelEditor = () => {
   const [openColor, setOpenColor] = useState(false);
   const [openLink, setOpenLink] = useState(false);
   const [openAI, setOpenAI] = useState(false);
+
 
   //Apply Codeblock Highlighting on the HTML from editor.getHTML()
   const highlightCodeblocks = (content: string) => {
@@ -52,11 +55,31 @@ const NovelEditor = () => {
   };
 
   const debouncedUpdates = useDebouncedCallback(async (editor: EditorInstance) => {
-    const json = editor.getJSON();
+
+    const updatedJSON = editor.getJSON();
+
+    const title = updatedJSON.content?.at(0)
+
+    if (!title) {
+      toast.error("updates must include a title. Please add a title using a heading")
+      return
+    }
+
+    if (title.type !== "heading") {
+      toast.error("Your heading must be the first item in the editor. It serves as the title of your update.")
+      return
+    }
+
+    const content = title.content?.at(0)
+
+    if (content?.type != "text" && content?.text?.trim().length === 0) {
+      toast.error("Title can only include text and must not be empty")
+      return
+    }
+
+    console.log(editor.storage.markdown.getMarkdown())
+
     setCharsCount(editor.storage.characterCount.words());
-    window.localStorage.setItem("html-content", highlightCodeblocks(editor.getHTML()));
-    window.localStorage.setItem("novel-content", JSON.stringify(json));
-    window.localStorage.setItem("markdown", editor.storage.markdown.getMarkdown());
     setSaveStatus("Saved");
   }, 500);
 

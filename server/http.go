@@ -116,6 +116,10 @@ func buildRoutes(
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, workspaceHandler.createWorkspace, cfg, "workspaces.new"))
+
+			r.Route("/updates", func(r chi.Router) {
+				// r.Post()
+			})
 		})
 
 		r.Route("/contacts", func(r chi.Router) {
