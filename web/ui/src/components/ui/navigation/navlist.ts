@@ -1,4 +1,4 @@
-import { RiArrowDownLine, RiBook3Line, RiContactsLine, RiHome2Line, RiLinkM } from "@remixicon/react";
+import { RiArchiveStackLine, RiBook3Line, RiContactsLine, RiHome2Line, RiLinkM } from "@remixicon/react";
 
 export const links = [
   {
@@ -9,7 +9,7 @@ export const links = [
   {
     name: "Updates",
     href: "/updates",
-    icon: RiArrowDownLine
+    icon: RiArchiveStackLine
   },
   {
     name: "Decks",
@@ -25,22 +25,22 @@ export const links = [
 
 export const shortcuts = [
   {
-    name: "Add new user",
+    name: "Send a new update",
+    href: "/updates/new",
+    icon: RiLinkM,
+  },
+  {
+    name: "Analytics of your last update",
     href: "#",
     icon: RiLinkM,
   },
   {
-    name: "Workspace usage",
+    name: "Fundraising",
     href: "#",
     icon: RiLinkM,
   },
   {
-    name: "Cost spend control",
-    href: "#",
-    icon: RiLinkM,
-  },
-  {
-    name: "Analytics – Most recent Analytics",
+    name: "Captable",
     href: "#",
     icon: RiLinkM,
   },
