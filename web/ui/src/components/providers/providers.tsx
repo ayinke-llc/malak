@@ -5,9 +5,8 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { ThemeProvider } from "@/components/providers/theme";
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { Toaster } from "sonner"
+import { Toaster } from "sonner";
 import { GOOGLE_CLIENT_ID } from "@/lib/config";
 import UserProvider from './user';
 

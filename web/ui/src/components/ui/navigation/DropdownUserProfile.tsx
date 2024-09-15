@@ -48,51 +48,6 @@ export function DropdownUserProfile({
         <DropdownMenuContent align={align}>
           <DropdownMenuLabel>lanre@ayinke.ventures</DropdownMenuLabel>
           <DropdownMenuGroup>
-            <DropdownMenuSubMenu>
-              <DropdownMenuSubMenuTrigger>Theme</DropdownMenuSubMenuTrigger>
-              <DropdownMenuSubMenuContent>
-                <DropdownMenuRadioGroup
-                  value={theme}
-                  onValueChange={(value) => {
-                    setTheme(value)
-                  }}
-                >
-                  <DropdownMenuRadioItem
-                    aria-label="Switch to Light Mode"
-                    value="light"
-                    iconType="check"
-                  >
-                    <RiSunLine className="size-4 shrink-0" aria-hidden="true" />
-                    Light
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem
-                    aria-label="Switch to Dark Mode"
-                    value="dark"
-                    iconType="check"
-                  >
-                    <RiMoonLine
-                      className="size-4 shrink-0"
-                      aria-hidden="true"
-                    />
-                    Dark
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem
-                    aria-label="Switch to System Mode"
-                    value="system"
-                    iconType="check"
-                  >
-                    <RiComputerLine
-                      className="size-4 shrink-0"
-                      aria-hidden="true"
-                    />
-                    System
-                  </DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuSubMenuContent>
-            </DropdownMenuSubMenu>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
             <DropdownMenuItem>
               Changelog
               <RiArrowRightUpLine
@@ -108,7 +63,7 @@ export function DropdownUserProfile({
               />
             </DropdownMenuItem>
             <DropdownMenuItem>
-              Join Slack community
+              Join Discord community
               <RiArrowRightUpLine
                 className="mb-1 ml-1 size-2.5 shrink-0 text-gray-500"
                 aria-hidden="true"
