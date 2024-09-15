@@ -7,7 +7,7 @@ The Opensource Investors' relationship hub. [Learn more](https://malak.vc)
 > [!WARNING]
 > Actively being built and not ready yet :)
 
-- Opencore
+- 100% Opensource. Own your own data, metrics, and story
 - Send investors' updates to anyone via email
 - Manage metrics automatically from many sources. [See Integrations](https://malak.vc/integrations)
 - Create, manage and share your decks.
