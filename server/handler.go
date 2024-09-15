@@ -6,6 +6,7 @@ import (
 
 	"github.com/ayinke-llc/malak/config"
 	"github.com/go-chi/render"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -38,11 +39,17 @@ func WrapMalakHTTPHandler(
 		logger = logger.With(zap.String("request_id", rid))
 
 		if doesWorkspaceExistInContext(r.Context()) {
-			logger = logger.With(zap.String("workspace_id", getWorkspaceFromContext(r.Context()).ID.String()))
+			workspace := getWorkspaceFromContext(r.Context()).ID.String()
+			logger = logger.With(zap.String("workspace_id", workspace))
+			span.SetAttributes(
+				attribute.String("workspace_id", workspace))
 		}
 
 		if doesUserExistInContext(r.Context()) {
-			logger = logger.With(zap.String("user_id", getUserFromContext(r.Context()).ID.String()))
+			userID := getUserFromContext(r.Context()).ID.String()
+			logger = logger.With(zap.String("user_id", userID))
+			span.SetAttributes(
+				attribute.String("user_id", userID))
 		}
 
 		resp, status := handler(ctx, span, logger, w, r)
