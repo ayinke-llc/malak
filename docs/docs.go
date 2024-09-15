@@ -241,6 +241,52 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/workspaces/updates": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "updates"
+                ],
+                "summary": "Create a new update",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.createdUpdateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -333,6 +379,58 @@ const docTemplate = `{
                 "RoleBilling",
                 "RoleInvestor",
                 "RoleGuest"
+            ]
+        },
+        "malak.Update": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/malak.UpdateMetadata"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "sent_at": {
+                    "type": "string"
+                },
+                "sent_by": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/malak.UpdateStatus"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.UpdateMetadata": {
+            "type": "object"
+        },
+        "malak.UpdateStatus": {
+            "type": "string",
+            "enum": [
+                "draft",
+                "sent"
+            ],
+            "x-enum-varnames": [
+                "UpdateStatusDraft",
+                "UpdateStatusSent"
             ]
         },
         "malak.User": {
@@ -470,6 +568,21 @@ const docTemplate = `{
             "properties": {
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "server.createdUpdateResponse": {
+            "type": "object",
+            "required": [
+                "message",
+                "update"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "update": {
+                    "$ref": "#/definitions/malak.Update"
                 }
             }
         },

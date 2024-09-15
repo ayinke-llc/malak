@@ -175,12 +175,12 @@ func (a *authHandler) fetchCurrentUser(
 	logger.Debug("Fetching user profile")
 
 	var workspace *malak.Workspace = nil
-	if doesWorkspaceExistInContext(r.Context()) {
-		workspace = getWorkspaceFromContext(r.Context())
+	if doesWorkspaceExistInContext(ctx) {
+		workspace = getWorkspaceFromContext(ctx)
 	}
 
 	return createdUserResponse{
-		User:      util.DeRef(getUserFromContext(r.Context())),
+		User:      util.DeRef(getUserFromContext(ctx)),
 		Workspace: workspace,
 		APIStatus: newAPIStatus(http.StatusOK, "user data successfully retrieved"),
 	}, StatusFailed

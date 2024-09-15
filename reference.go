@@ -12,8 +12,8 @@ func GenerateReference(e EntityType) string {
 }
 
 // ENUM(
-// workspace,invoice,team,
-// invite,contact,
+// workspace,invoice,
+// team,invite,contact,
 // deck,update,link,room,
 // recipient,schedule)
 type EntityType string

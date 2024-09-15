@@ -13,10 +13,10 @@ type updatesRepo struct {
 	inner *bun.DB
 }
 
-func NewUpdatesRepository(db *bun.DB) (malak.UpdateRepository, error) {
+func NewUpdatesRepository(db *bun.DB) malak.UpdateRepository {
 	return &updatesRepo{
 		inner: db,
-	}, nil
+	}
 }
 
 // func (o *contactRepo) Update(ctx context.Context,

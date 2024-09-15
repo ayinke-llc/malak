@@ -67,6 +67,7 @@ func buildRoutes(
 	workspaceRepo := postgres.NewWorkspaceRepository(db)
 	planRepo := postgres.NewPlanRepository(db)
 	contactRepo := postgres.NewContactRepository(db)
+	updateRepo := postgres.NewUpdatesRepository(db)
 
 	router := chi.NewRouter()
 
@@ -91,6 +92,11 @@ func buildRoutes(
 		cfg:                cfg,
 		contactRepo:        contactRepo,
 		referenceGenerator: referenceGenerator,
+	}
+
+	updateHandler := &updatesHandler{
+		referenceGenerator: referenceGenerator,
+		updateRepo:         updateRepo,
 	}
 
 	router.Use(middleware.RequestID)
@@ -118,7 +124,8 @@ func buildRoutes(
 				WrapMalakHTTPHandler(logger, workspaceHandler.createWorkspace, cfg, "workspaces.new"))
 
 			r.Route("/updates", func(r chi.Router) {
-				// r.Post()
+				r.Post("/",
+					WrapMalakHTTPHandler(logger, updateHandler.create, cfg, "updates.new"))
 			})
 		})
 

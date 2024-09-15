@@ -66,6 +66,41 @@ definitions:
     - RoleBilling
     - RoleInvestor
     - RoleGuest
+  malak.Update:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: string
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/malak.UpdateMetadata'
+      reference:
+        type: string
+      sent_at:
+        type: string
+      sent_by:
+        type: string
+      status:
+        $ref: '#/definitions/malak.UpdateStatus'
+      updated_at:
+        type: string
+      workspace_id:
+        type: string
+    type: object
+  malak.UpdateMetadata:
+    type: object
+  malak.UpdateStatus:
+    enum:
+    - draft
+    - sent
+    type: string
+    x-enum-varnames:
+    - UpdateStatusDraft
+    - UpdateStatusSent
   malak.User:
     properties:
       created_at:
@@ -162,6 +197,16 @@ definitions:
     properties:
       name:
         type: string
+    type: object
+  server.createdUpdateResponse:
+    properties:
+      message:
+        type: string
+      update:
+        $ref: '#/definitions/malak.Update'
+    required:
+    - message
+    - update
     type: object
   server.createdUserResponse:
     properties:
@@ -353,6 +398,36 @@ paths:
       summary: Create a new workspace
       tags:
       - workspace
+  /workspaces/updates:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.createdUpdateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+      summary: Create a new update
+      tags:
+      - updates
 schemes:
 - http
 securityDefinitions:
