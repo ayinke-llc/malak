@@ -12,6 +12,46 @@ import (
 )
 
 const (
+	// UpdateSendScheduleScheduled is a UpdateSendSchedule of type scheduled.
+	UpdateSendScheduleScheduled UpdateSendSchedule = "scheduled"
+	// UpdateSendScheduleCancelled is a UpdateSendSchedule of type cancelled.
+	UpdateSendScheduleCancelled UpdateSendSchedule = "cancelled"
+	// UpdateSendScheduleSent is a UpdateSendSchedule of type sent.
+	UpdateSendScheduleSent UpdateSendSchedule = "sent"
+	// UpdateSendScheduleFailed is a UpdateSendSchedule of type failed.
+	UpdateSendScheduleFailed UpdateSendSchedule = "failed"
+)
+
+var ErrInvalidUpdateSendSchedule = errors.New("not a valid UpdateSendSchedule")
+
+// String implements the Stringer interface.
+func (x UpdateSendSchedule) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x UpdateSendSchedule) IsValid() bool {
+	_, err := ParseUpdateSendSchedule(string(x))
+	return err == nil
+}
+
+var _UpdateSendScheduleValue = map[string]UpdateSendSchedule{
+	"scheduled": UpdateSendScheduleScheduled,
+	"cancelled": UpdateSendScheduleCancelled,
+	"sent":      UpdateSendScheduleSent,
+	"failed":    UpdateSendScheduleFailed,
+}
+
+// ParseUpdateSendSchedule attempts to convert a string to a UpdateSendSchedule.
+func ParseUpdateSendSchedule(name string) (UpdateSendSchedule, error) {
+	if x, ok := _UpdateSendScheduleValue[name]; ok {
+		return x, nil
+	}
+	return UpdateSendSchedule(""), fmt.Errorf("%s is %w", name, ErrInvalidUpdateSendSchedule)
+}
+
+const (
 	// UpdateStatusDraft is a UpdateStatus of type draft.
 	UpdateStatusDraft UpdateStatus = "draft"
 	// UpdateStatusSent is a UpdateStatus of type sent.
