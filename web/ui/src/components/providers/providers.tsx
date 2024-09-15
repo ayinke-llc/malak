@@ -16,21 +16,14 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient()
 
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-    >
-      <QueryClientProvider client={queryClient}>
-        <ReactQueryDevtools initialIsOpen={false} />
-        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-          <Toaster position="top-center" />
-          <UserProvider>
-            {children}
-          </UserProvider>
-        </GoogleOAuthProvider>
-      </QueryClientProvider >
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ReactQueryDevtools initialIsOpen={false} />
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <Toaster position="top-center" />
+        <UserProvider>
+          {children}
+        </UserProvider>
+      </GoogleOAuthProvider>
+    </QueryClientProvider >
   )
 }

@@ -12,8 +12,12 @@ RUN go mod verify
 # COPY the source code as the last step
 COPY . .
 
+ARG VERSION=dev
+ARG COMMIT=none
+ARG DATE=unknown
+
 RUN CGO_ENABLED=0
-RUN go install ./cmd
+RUN go install -ldflags="-X main.Version=${VERSION} -X main.Commit=${COMMIT} -X main.Date=${DATE}" ./cmd/...
 
 FROM gcr.io/distroless/base
 COPY --from=build-env /go/bin/cmd /

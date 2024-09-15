@@ -31,25 +31,3 @@ jobs:
 
       - name: Run tests with coverage
         run: go test -v -tags integration ./... -coverprofile=coverage.out -covermode=atomic
-      #
-      # - name: Generate package-level coverage report
-      #   run: |
-      #     echo "COVERAGE_REPORT<<EOF" >> $GITHUB_ENV
-      #     echo "| Package | Coverage |" >> $GITHUB_ENV
-      #     echo "|---------|----------|" >> $GITHUB_ENV
-      #     go tool cover -func=coverage.out | grep -v "^[^\/]*$" | awk '{print "| " $1 " | " $NF " |"}' | sort | uniq >> $GITHUB_ENV
-      #     echo "EOF" >> $GITHUB_ENV
-      #     TOTAL=$(go tool cover -func=coverage.out | grep "total:" | awk '{print $3}')
-      #     echo "TOTAL_COVERAGE=$TOTAL" >> $GITHUB_ENV
-      #
-      # - name: Comment PR
-      #   uses: actions/github-script@v6
-      #   with:
-      #     github-token: ${{secrets.GITHUB_TOKEN}}
-      #     script: |
-      #       github.rest.issues.createComment({
-      #         issue_number: context.issue.number,
-      #         owner: context.repo.owner,
-      #         repo: context.repo.repo,
-      #         body: '## Package-Level Code Coverage Report\n\n```\n' + process.env.COVERAGE_REPORT + '\n```'
-      #        })
