@@ -12,6 +12,43 @@ import (
 )
 
 const (
+	// ListUpdateFilterStatusDraft is a ListUpdateFilterStatus of type draft.
+	ListUpdateFilterStatusDraft ListUpdateFilterStatus = "draft"
+	// ListUpdateFilterStatusSent is a ListUpdateFilterStatus of type sent.
+	ListUpdateFilterStatusSent ListUpdateFilterStatus = "sent"
+	// ListUpdateFilterStatusAll is a ListUpdateFilterStatus of type all.
+	ListUpdateFilterStatusAll ListUpdateFilterStatus = "all"
+)
+
+var ErrInvalidListUpdateFilterStatus = errors.New("not a valid ListUpdateFilterStatus")
+
+// String implements the Stringer interface.
+func (x ListUpdateFilterStatus) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x ListUpdateFilterStatus) IsValid() bool {
+	_, err := ParseListUpdateFilterStatus(string(x))
+	return err == nil
+}
+
+var _ListUpdateFilterStatusValue = map[string]ListUpdateFilterStatus{
+	"draft": ListUpdateFilterStatusDraft,
+	"sent":  ListUpdateFilterStatusSent,
+	"all":   ListUpdateFilterStatusAll,
+}
+
+// ParseListUpdateFilterStatus attempts to convert a string to a ListUpdateFilterStatus.
+func ParseListUpdateFilterStatus(name string) (ListUpdateFilterStatus, error) {
+	if x, ok := _ListUpdateFilterStatusValue[name]; ok {
+		return x, nil
+	}
+	return ListUpdateFilterStatus(""), fmt.Errorf("%s is %w", name, ErrInvalidListUpdateFilterStatus)
+}
+
+const (
 	// UpdateSendScheduleScheduled is a UpdateSendSchedule of type scheduled.
 	UpdateSendScheduleScheduled UpdateSendSchedule = "scheduled"
 	// UpdateSendScheduleCancelled is a UpdateSendSchedule of type cancelled.

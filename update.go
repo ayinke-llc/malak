@@ -11,6 +11,9 @@ import (
 // ENUM(draft,sent)
 type UpdateStatus string
 
+// ENUM(draft,sent,all)
+type ListUpdateFilterStatus string
+
 // ENUM(scheduled,cancelled,sent,failed)
 type UpdateSendSchedule string
 
@@ -86,8 +89,15 @@ type FetchUpdateOptions struct {
 	ID        uuid.UUID
 }
 
+type ListUpdateOptions struct {
+	Paginator   Paginator
+	WorkspaceID uuid.UUID
+	Status      ListUpdateFilterStatus
+}
+
 type UpdateRepository interface {
 	Create(context.Context, *Update) error
 	// Update(context.Context, *Update) error
 	// Get(context.Context, FetchUpdateOptions) (*Update, error)
+	List(context.Context, ListUpdateOptions) ([]Update, PaginatedResultMetadata, error)
 }
