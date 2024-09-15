@@ -33,6 +33,7 @@ export default function Page() {
         msg = err.response.data.message
       }
       toast.error(msg)
+      router.push("/updates")
     },
     retry: false,
     gcTime: Infinity,
@@ -41,7 +42,7 @@ export default function Page() {
 
   useEffect(() => {
     mutation.mutate()
-  }, [router])
+  }, [])
 
   return (
     <div className="pt-6">
