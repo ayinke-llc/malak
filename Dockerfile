@@ -14,10 +14,9 @@ COPY . .
 
 ARG VERSION=dev
 ARG COMMIT=none
-ARG DATE=unknown
 
 RUN CGO_ENABLED=0
-RUN go install -ldflags="-X main.Version=${VERSION} -X main.Commit=${COMMIT} -X main.Date=${DATE}" ./cmd/...
+RUN go install -ldflags="-X main.Version=${VERSION} -X main.Commit=${COMMIT}" ./cmd/...
 
 FROM gcr.io/distroless/base
 COPY --from=build-env /go/bin/cmd /

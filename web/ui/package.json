@@ -22,6 +22,7 @@
     "@radix-ui/react-select": "^2.1.1",
     "@radix-ui/react-separator": "^1.1.0",
     "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-switch": "^1.1.0",
     "@react-aria/datepicker": "^3.11.1",
     "@react-oauth/google": "^0.12.1",
     "@react-stately/datepicker": "^3.10.1",
