@@ -26,6 +26,14 @@ const (
 	EntityTypeDeck EntityType = "deck"
 	// EntityTypeUpdate is a EntityType of type update.
 	EntityTypeUpdate EntityType = "update"
+	// EntityTypeLink is a EntityType of type link.
+	EntityTypeLink EntityType = "link"
+	// EntityTypeRoom is a EntityType of type room.
+	EntityTypeRoom EntityType = "room"
+	// EntityTypeRecipient is a EntityType of type recipient.
+	EntityTypeRecipient EntityType = "recipient"
+	// EntityTypeSchedule is a EntityType of type schedule.
+	EntityTypeSchedule EntityType = "schedule"
 )
 
 var ErrInvalidEntityType = errors.New("not a valid EntityType")
@@ -50,6 +58,10 @@ var _EntityTypeValue = map[string]EntityType{
 	"contact":   EntityTypeContact,
 	"deck":      EntityTypeDeck,
 	"update":    EntityTypeUpdate,
+	"link":      EntityTypeLink,
+	"room":      EntityTypeRoom,
+	"recipient": EntityTypeRecipient,
+	"schedule":  EntityTypeSchedule,
 }
 
 // ParseEntityType attempts to convert a string to a EntityType.
