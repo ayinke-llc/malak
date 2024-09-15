@@ -1,16 +1,14 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
+import { siteConfig } from "./siteConfig"
+import Providers from "@/components/providers/providers"
 
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-inter",
 })
-
-import { Sidebar } from "@/components/ui/navigation/sidebar"
-import { siteConfig } from "./siteConfig"
-import Providers from "@/components/providers/providers"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://malak.vc"),
@@ -50,14 +48,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.className} overflow-y-scroll scroll-auto antialiased selection:bg-indigo-100 selection:text-indigo-700 dark:bg-gray-950`}
         suppressHydrationWarning
+        className={`${inter.className} overflow-y-scroll scroll-auto antialiased 
+selection:bg-indigo-100 selection:text-indigo-700 dark:bg-gray-950`}
       >
         <Providers>
-          <div className="mx-auto max-w-screen-2xl">
-            <Sidebar />
-            <main className="lg:pl-72">{children}</main>
-          </div>
+          {children}
         </Providers>
       </body>
     </html>
