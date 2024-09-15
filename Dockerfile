@@ -1,7 +1,7 @@
-FROM golang:1.23 as build-env
+FROM golang:1.23 AS build-env
 WORKDIR /go/malak
 
-LABEL org.opencontainers.image.description "Open source Investors' relationship hub for Founders"
+LABEL org.opencontainers.image.description="Open source Investors' relationship hub for Founders"
 
 COPY ./go.mod /go/malak
 COPY ./go.sum /go/malak

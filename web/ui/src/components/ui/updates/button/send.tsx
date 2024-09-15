@@ -9,18 +9,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/Dialog";
-import { Input } from "@/components/Input";
 import { Label } from "@/components/Label";
 import { Switch } from "@/components/Switch";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { RiMailSendLine } from "@remixicon/react";
+import * as EmailValidator from 'email-validator';
+import { Option } from "lucide-react";
+import { useEditor } from "novel";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
+import CreatableSelect from 'react-select/creatable';
+import { toast } from "sonner";
 import * as yup from "yup";
 import { ButtonProps } from "./props";
-import { Option } from "lucide-react";
-import CreatableSelect from 'react-select/creatable';
-import { EditorBubbleItem, useEditor } from "novel";
+import { Select } from "../../custom/select/select";
 
 interface Option {
   readonly label: string;
@@ -30,7 +32,7 @@ interface Option {
 type SendUpdateInput = {
   email: string
   link?: boolean
-  recipients: Option[]
+  recipients?: Option[]
 }
 
 const schema = yup
@@ -59,12 +61,19 @@ const SendUpdateButton = ({ }: ButtonProps) => {
 
   const createNewContact = (inputValue: string) => {
     setLoading(true);
+
+    if (!EmailValidator.validate(inputValue)) {
+      toast.error("you can only add an email address as a new recipient")
+      setLoading(false)
+      return
+    }
+
     setTimeout(() => {
       const newOption = createOption(inputValue);
       setLoading(false);
       setOptions((prev) => [...prev, newOption]);
       setValue((prev) => [...prev, newOption]);
-    }, 1000);
+    }, 9000);
   };
 
   const {
@@ -118,24 +127,21 @@ const SendUpdateButton = ({ }: ButtonProps) => {
                     value={value}
                   />
                 </div>
+
                 <div className="mt-4">
-                  <Label htmlFor="workspace-name" className="font-medium">
-                    Email address
+                  <Label htmlFor="select-author" className="font-medium">
+                    Select Author
                   </Label>
-                  <Input
-                    id="email"
-                    placeholder="yo@lanre.wtf"
-                    className="mt-2"
-                    type="email"
-                    {...register("email")}
-                  />
-                  {errors.email && (
-                    < p className="mt-4 text-xs text-red-600 dark:text-red-500">
-                      <span className="font-medium">
-                        {errors.email.message}
-                      </span>
-                    </p>
-                  )}
+                  <Select data={[
+                    {
+                      label: "Lanre Adelowo",
+                      value: "lanre"
+                    },
+                    {
+                      label: "Ayinke",
+                      value: "ayinke"
+                    }
+                  ]} />
                 </div>
 
                 <div className="mt-4">
@@ -151,12 +157,14 @@ const SendUpdateButton = ({ }: ButtonProps) => {
                     type={"button"}
                     className="mt-2 w-full sm:mt-0 sm:w-fit"
                     variant="secondary"
+                    isLoading={loading}
                   >
                     Cancel
                   </Button>
                 </DialogClose>
                 <Button type="submit"
-                  className="w-full sm:w-fit">
+                  className="w-full sm:w-fit"
+                  isLoading={loading}>
                   Send
                 </Button>
               </DialogFooter>
