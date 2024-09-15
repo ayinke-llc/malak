@@ -35,6 +35,8 @@ definitions:
         type: string
       updated_at:
         type: string
+      workspace_id:
+        type: string
     type: object
   malak.CustomContactMetadata:
     additionalProperties:
@@ -183,6 +185,7 @@ definitions:
       message:
         type: string
     required:
+    - contact
     - message
     type: object
   server.fetchWorkspaceResponse:

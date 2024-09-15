@@ -55,6 +55,6 @@ type fetchWorkspaceResponse struct {
 }
 
 type fetchContactResponse struct {
-	Contact malak.Contact `json:"contact,omitempty"`
+	Contact malak.Contact `json:"contact,omitempty" validate:"required"`
 	APIStatus
 }

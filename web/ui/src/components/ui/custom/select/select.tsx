@@ -8,7 +8,6 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "../avatar/avatar"
 import { RemixiconComponentType } from "@remixicon/react"
 
-
 export type SelectProps = {
   data: {
     value: string
@@ -32,10 +31,11 @@ export function Select({ data }: SelectProps) {
           >
             <div className="flex items-center">
               {item.icon && <item.icon className="mr-2 h-4 w-4" />}
-              {item.avatarURL && <Avatar>
-                <AvatarImage src={item.avatarURL} />
-                <AvatarFallback>AY</AvatarFallback>
-              </Avatar>}
+              {item.avatarURL && (
+                <Avatar className="mr-2 h-4 w-4" >
+                  <AvatarImage src={item.avatarURL} />
+                  <AvatarFallback>AY</AvatarFallback>
+                </Avatar>)}
               {item.label}
             </div>
           </SelectItem>

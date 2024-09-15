@@ -290,6 +290,9 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
                 }
             }
         },
@@ -495,6 +498,7 @@ const docTemplate = `{
         "server.fetchContactResponse": {
             "type": "object",
             "required": [
+                "contact",
                 "message"
             ],
             "properties": {

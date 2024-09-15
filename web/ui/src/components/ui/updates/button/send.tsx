@@ -23,6 +23,11 @@ import { toast } from "sonner";
 import * as yup from "yup";
 import { ButtonProps } from "./props";
 import { Select } from "../../custom/select/select";
+import client from "@/lib/client";
+import { ServerAPIStatus } from "@/client/Api";
+import { CREATE_CONTACT_MUTATION } from "@/lib/query-constants";
+import { useMutation } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 
 interface Option {
   readonly label: string;
@@ -55,9 +60,32 @@ const SendUpdateButton = ({ }: ButtonProps) => {
 
   const [value, setValue] = useState<Option[]>([]);
 
-  const createOption = (input: string): Option => {
-    return { value: input, label: input }
-  }
+  const contactMutation = useMutation({
+    mutationKey: [CREATE_CONTACT_MUTATION],
+    mutationFn: (data: { email: string }) => client.contacts.contactsCreate(data),
+    onSuccess: ({ data }) => {
+
+      toast.info(`${data.contact.email} has been added as a contact now`)
+
+      const newOption = {
+        value: data.contact.id,
+        label: data.contact.email
+      } as Option
+
+      setOptions((prev) => [...prev, newOption]);
+      setValue((prev) => [...prev, newOption]);
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      let msg = err.message
+      if (err.response !== undefined) {
+        msg = err.response.data.message
+      }
+      toast.error(msg)
+    },
+    retry: false,
+    gcTime: Infinity,
+    onSettled: () => setLoading(false),
+  })
 
   const createNewContact = (inputValue: string) => {
     setLoading(true);
@@ -68,12 +96,7 @@ const SendUpdateButton = ({ }: ButtonProps) => {
       return
     }
 
-    setTimeout(() => {
-      const newOption = createOption(inputValue);
-      setLoading(false);
-      setOptions((prev) => [...prev, newOption]);
-      setValue((prev) => [...prev, newOption]);
-    }, 9000);
+    contactMutation.mutate({ email: inputValue })
   };
 
   const {

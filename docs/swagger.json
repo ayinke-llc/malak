@@ -286,6 +286,9 @@
                 },
                 "updated_at": {
                     "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
                 }
             }
         },
@@ -491,6 +494,7 @@
         "server.fetchContactResponse": {
             "type": "object",
             "required": [
+                "contact",
                 "message"
             ],
             "properties": {
