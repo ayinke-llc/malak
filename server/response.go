@@ -63,3 +63,9 @@ type createdUpdateResponse struct {
 	Update malak.Update `json:"update,omitempty" validate:"required"`
 	APIStatus
 }
+
+type listUpdateResponse struct {
+	Updates []malak.Update `json:"updates,omitempty" validate:"required"`
+	Meta    meta           `json:"meta,omitempty" validate:"required"`
+	APIStatus
+}

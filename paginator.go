@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 const (
@@ -12,12 +13,19 @@ const (
 )
 
 type PaginatedResultMetadata struct {
-	Total int
+	Total int64
 }
 
 type Paginator struct {
 	PerPage int64
 	Page    int64
+}
+
+func (p Paginator) OTELAttributes() []attribute.KeyValue {
+	return []attribute.KeyValue{
+		attribute.Int64("per_page", p.PerPage),
+		attribute.Int64("page", p.Page),
+	}
 }
 
 func (p Paginator) Offset() int64 {

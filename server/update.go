@@ -71,7 +71,7 @@ func (u *updatesHandler) create(
 // @Tags updates
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} createdUpdateResponse
+// @Success 200 {object} listUpdateResponse
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
@@ -89,12 +89,24 @@ func (u *updatesHandler) list(
 	user := getUserFromContext(r.Context())
 	workspace := getWorkspaceFromContext(r.Context())
 
-	opt := malak.ListUpdateOptions{
+	filterStatus := malak.ListUpdateFilterStatus(r.URL.Query().Get("view"))
+
+	if !filterStatus.IsValid() {
+		filterStatus = malak.ListUpdateFilterStatusAll
+	}
+
+	opts := malak.ListUpdateOptions{
+		Status:      filterStatus,
 		Paginator:   malak.PaginatorFromRequest(r),
 		WorkspaceID: workspace.ID,
 	}
 
-	updates, metadata, err := u.updateRepo.List(ctx, opt)
+	span.SetAttributes(
+		append(opts.Paginator.OTELAttributes(),
+			attribute.String("view",
+				filterStatus.String()))...)
+
+	updates, metadata, err := u.updateRepo.List(ctx, opts)
 
 	if err != nil {
 
@@ -108,7 +120,13 @@ func (u *updatesHandler) list(
 
 	_, _, _, _ = workspace, user, metadata, updates
 
-	return createdUpdateResponse{
-		APIStatus: newAPIStatus(http.StatusCreated, "update successfully created"),
+	return listUpdateResponse{
+		APIStatus: newAPIStatus(http.StatusCreated, "updatees fetched"),
+		Updates:   updates,
+		Meta: meta{
+			Paging: pagingInfo{
+				Total: metadata.Total,
+			},
+		},
 	}, StatusSuccess
 }
