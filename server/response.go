@@ -12,13 +12,13 @@ type GenericRequest struct{}
 func (g GenericRequest) Bind(_ *http.Request) error { return nil }
 
 type meta struct {
-	Paging pagingInfo `json:"paging"`
+	Paging pagingInfo `json:"paging,omitempty" validate:"required"`
 }
 
 type pagingInfo struct {
-	Total   int64 `json:"total"`
-	PerPage int64 `json:"per_page"`
-	Page    int64 `json:"page"`
+	Total   int64 `json:"total,omitempty" validate:"required"`
+	PerPage int64 `json:"per_page,omitempty" validate:"required"`
+	Page    int64 `json:"page,omitempty" validate:"required"`
 }
 
 type APIStatus struct {

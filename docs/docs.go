@@ -254,6 +254,26 @@ const docTemplate = `{
                     "updates"
                 ],
                 "summary": "List updates",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page to query data from. Defaults to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number to items to return. Defaults to 10 items",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter results by the status of the update.",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -706,6 +726,9 @@ const docTemplate = `{
         },
         "server.meta": {
             "type": "object",
+            "required": [
+                "paging"
+            ],
             "properties": {
                 "paging": {
                     "$ref": "#/definitions/server.pagingInfo"
@@ -714,6 +737,11 @@ const docTemplate = `{
         },
         "server.pagingInfo": {
             "type": "object",
+            "required": [
+                "page",
+                "per_page",
+                "total"
+            ],
             "properties": {
                 "page": {
                     "type": "integer"

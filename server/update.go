@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/ayinke-llc/malak"
@@ -71,6 +72,9 @@ func (u *updatesHandler) create(
 // @Tags updates
 // @Accept  json
 // @Produce  json
+// @Param page query int false "Page to query data from. Defaults to 1"
+// @Param per_page query int false "Number to items to return. Defaults to 10 items"
+// @Param status query string false "filter results by the status of the update."
 // @Success 200 {object} listUpdateResponse
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
@@ -86,7 +90,6 @@ func (u *updatesHandler) list(
 
 	logger.Debug("Listing updates")
 
-	user := getUserFromContext(r.Context())
 	workspace := getWorkspaceFromContext(r.Context())
 
 	filterStatus := malak.ListUpdateFilterStatus(r.URL.Query().Get("view"))
@@ -95,6 +98,7 @@ func (u *updatesHandler) list(
 		filterStatus = malak.ListUpdateFilterStatusAll
 	}
 
+	fmt.Println(r.URL.Query().Encode())
 	opts := malak.ListUpdateOptions{
 		Status:      filterStatus,
 		Paginator:   malak.PaginatorFromRequest(r),
@@ -106,8 +110,7 @@ func (u *updatesHandler) list(
 			attribute.String("view",
 				filterStatus.String()))...)
 
-	updates, metadata, err := u.updateRepo.List(ctx, opts)
-
+	updates, err := u.updateRepo.List(ctx, opts)
 	if err != nil {
 
 		logger.Error("could not list updates",
@@ -118,14 +121,13 @@ func (u *updatesHandler) list(
 			"could not list updates"), StatusFailed
 	}
 
-	_, _, _, _ = workspace, user, metadata, updates
-
 	return listUpdateResponse{
 		APIStatus: newAPIStatus(http.StatusCreated, "updatees fetched"),
 		Updates:   updates,
 		Meta: meta{
 			Paging: pagingInfo{
-				Total: metadata.Total,
+				PerPage: opts.Paginator.PerPage,
+				Page:    opts.Paginator.Page,
 			},
 		},
 	}, StatusSuccess

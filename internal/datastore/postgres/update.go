@@ -34,6 +34,22 @@ func (u *updatesRepo) Create(ctx context.Context,
 }
 
 func (u *updatesRepo) List(ctx context.Context,
-	opts malak.ListUpdateOptions) ([]malak.Update, malak.PaginatedResultMetadata, error) {
-	return nil, malak.PaginatedResultMetadata{}, nil
+	opts malak.ListUpdateOptions) ([]malak.Update, error) {
+
+	updates := make([]malak.Update, 0, opts.Paginator.PerPage)
+
+	q := u.inner.NewSelect().
+		Order("created_at DESC").
+		Where("workspace_id = ?", opts.WorkspaceID)
+
+	if opts.Status != malak.ListUpdateFilterStatusAll {
+		q = q.Where("status = ?", opts.Status)
+	}
+
+	err := q.Model(&updates).
+		Limit(int(opts.Paginator.PerPage)).
+		Offset(int(opts.Paginator.Offset())).
+		Scan(ctx)
+
+	return updates, err
 }

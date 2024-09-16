@@ -99,5 +99,5 @@ type UpdateRepository interface {
 	Create(context.Context, *Update) error
 	// Update(context.Context, *Update) error
 	// Get(context.Context, FetchUpdateOptions) (*Update, error)
-	List(context.Context, ListUpdateOptions) ([]Update, PaginatedResultMetadata, error)
+	List(context.Context, ListUpdateOptions) ([]Update, error)
 }

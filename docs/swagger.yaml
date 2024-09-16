@@ -262,6 +262,8 @@ definitions:
     properties:
       paging:
         $ref: '#/definitions/server.pagingInfo'
+    required:
+    - paging
     type: object
   server.pagingInfo:
     properties:
@@ -271,6 +273,10 @@ definitions:
         type: integer
       total:
         type: integer
+    required:
+    - page
+    - per_page
+    - total
     type: object
 host: localhost:5300
 info:
@@ -431,6 +437,19 @@ paths:
     get:
       consumes:
       - application/json
+      parameters:
+      - description: Page to query data from. Defaults to 1
+        in: query
+        name: page
+        type: integer
+      - description: Number to items to return. Defaults to 10 items
+        in: query
+        name: per_page
+        type: integer
+      - description: filter results by the status of the update.
+        in: query
+        name: status
+        type: string
       produces:
       - application/json
       responses:

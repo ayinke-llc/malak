@@ -55,13 +55,12 @@ func (mr *MockUpdateRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.Call 
 }
 
 // List mocks base method.
-func (m *MockUpdateRepository) List(arg0 context.Context, arg1 malak.ListUpdateOptions) ([]malak.Update, malak.PaginatedResultMetadata, error) {
+func (m *MockUpdateRepository) List(arg0 context.Context, arg1 malak.ListUpdateOptions) ([]malak.Update, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List", arg0, arg1)
 	ret0, _ := ret[0].([]malak.Update)
-	ret1, _ := ret[1].(malak.PaginatedResultMetadata)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // List indicates an expected call of List.
