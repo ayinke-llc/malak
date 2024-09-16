@@ -86,6 +86,11 @@ definitions:
         type: string
       status:
         $ref: '#/definitions/malak.UpdateStatus'
+      title:
+        description: |-
+          Not persisted at all
+          Only calculated at runtime
+        type: string
       updated_at:
         type: string
       workspace_id:

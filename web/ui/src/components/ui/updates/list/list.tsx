@@ -23,7 +23,6 @@ const ListUpdatesTable = () => {
   } = useInfiniteQuery({
     queryKey: [LIST_UPDATES],
     queryFn: ({ pageParam }) => {
-      console.log(pageParam)
       return client.workspaces.updatesList({
         page: pageParam,
       })

@@ -475,6 +475,10 @@ const docTemplate = `{
                 "status": {
                     "$ref": "#/definitions/malak.UpdateStatus"
                 },
+                "title": {
+                    "description": "Not persisted at all\nOnly calculated at runtime",
+                    "type": "string"
+                },
                 "updated_at": {
                     "type": "string"
                 },

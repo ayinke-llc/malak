@@ -10,7 +10,7 @@ const SingleUpdate = (update: MalakUpdate) => {
       <div key={update.id} className="flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors">
         <div className="flex flex-col space-y-1">
           <div className="flex items-center space-x-2">
-            <h3 className="font-semibold">{update.reference}</h3>
+            <h3 className="font-semibold">{update.title}</h3>
             <Badge variant="error" className="text-xs">
               {update.status}
             </Badge>

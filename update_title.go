@@ -12,7 +12,7 @@ import (
 
 const ErrHeaderNotFound = malakError("could not find title of update")
 
-func getFirstHeader(markdown string) (string, error) {
+func getFirstHeader(markdown UpdateContent) (string, error) {
 	doc := goldmark.New().
 		Parser().
 		Parse(text.

@@ -34,7 +34,6 @@ export default function Page() {
             </div>
           </div>
         </section>
-
         <div className="mt-10 sm:mt-4">
           <ListUpdatesTable />
         </div>

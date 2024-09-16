@@ -2,6 +2,7 @@ package malak
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -48,8 +49,20 @@ type Update struct {
 func (u *Update) IsSent() bool { return u.Status == UpdateStatusSent }
 
 func (u *Update) MarshalJSON() ([]byte, error) {
+	type Alias Update
 
-	return nil, nil
+	title, err := getFirstHeader(u.Content)
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(&struct {
+		*Alias
+		Title string `json:"title"`
+	}{
+		Alias: (*Alias)(u),
+		Title: title,
+	})
 }
 
 type UpdateLink struct {
