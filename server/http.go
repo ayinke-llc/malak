@@ -126,6 +126,8 @@ func buildRoutes(
 			r.Route("/updates", func(r chi.Router) {
 				r.Post("/",
 					WrapMalakHTTPHandler(logger, updateHandler.create, cfg, "updates.new"))
+				r.Get("/",
+					WrapMalakHTTPHandler(logger, updateHandler.list, cfg, "updates.list"))
 			})
 		})
 

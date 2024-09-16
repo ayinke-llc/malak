@@ -86,6 +86,11 @@ definitions:
         type: string
       status:
         $ref: '#/definitions/malak.UpdateStatus'
+      title:
+        description: |-
+          Not persisted at all
+          Only calculated at runtime
+        type: string
       updated_at:
         type: string
       workspace_id:
@@ -243,6 +248,41 @@ definitions:
     - message
     - workspace
     type: object
+  server.listUpdateResponse:
+    properties:
+      message:
+        type: string
+      meta:
+        $ref: '#/definitions/server.meta'
+      updates:
+        items:
+          $ref: '#/definitions/malak.Update'
+        type: array
+    required:
+    - message
+    - meta
+    - updates
+    type: object
+  server.meta:
+    properties:
+      paging:
+        $ref: '#/definitions/server.pagingInfo'
+    required:
+    - paging
+    type: object
+  server.pagingInfo:
+    properties:
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+    required:
+    - page
+    - per_page
+    - total
+    type: object
 host: localhost:5300
 info:
   contact:
@@ -399,6 +439,48 @@ paths:
       tags:
       - workspace
   /workspaces/updates:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Page to query data from. Defaults to 1
+        in: query
+        name: page
+        type: integer
+      - description: Number to items to return. Defaults to 10 items
+        in: query
+        name: per_page
+        type: integer
+      - description: filter results by the status of the update.
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.listUpdateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+      summary: List updates
+      tags:
+      - updates
     post:
       consumes:
       - application/json

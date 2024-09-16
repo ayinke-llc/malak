@@ -24,3 +24,5 @@ The Opensource Investors' relationship hub. [Learn more](https://malak.vc)
 ### Frontend
 
 - NextJS
+- [Tremor](https://tremor.so)
+- Tailwind CSS

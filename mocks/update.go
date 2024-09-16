@@ -53,3 +53,18 @@ func (mr *MockUpdateRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.Call 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUpdateRepository)(nil).Create), arg0, arg1)
 }
+
+// List mocks base method.
+func (m *MockUpdateRepository) List(arg0 context.Context, arg1 malak.ListUpdateOptions) ([]malak.Update, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", arg0, arg1)
+	ret0, _ := ret[0].([]malak.Update)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// List indicates an expected call of List.
+func (mr *MockUpdateRepositoryMockRecorder) List(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockUpdateRepository)(nil).List), arg0, arg1)
+}

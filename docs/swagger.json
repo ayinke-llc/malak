@@ -239,6 +239,70 @@
             }
         },
         "/workspaces/updates": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "updates"
+                ],
+                "summary": "List updates",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page to query data from. Defaults to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number to items to return. Defaults to 10 items",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter results by the status of the update.",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.listUpdateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -406,6 +470,10 @@
                 },
                 "status": {
                     "$ref": "#/definitions/malak.UpdateStatus"
+                },
+                "title": {
+                    "description": "Not persisted at all\nOnly calculated at runtime",
+                    "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
@@ -631,6 +699,58 @@
                 },
                 "workspace": {
                     "$ref": "#/definitions/malak.Workspace"
+                }
+            }
+        },
+        "server.listUpdateResponse": {
+            "type": "object",
+            "required": [
+                "message",
+                "meta",
+                "updates"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "meta": {
+                    "$ref": "#/definitions/server.meta"
+                },
+                "updates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.Update"
+                    }
+                }
+            }
+        },
+        "server.meta": {
+            "type": "object",
+            "required": [
+                "paging"
+            ],
+            "properties": {
+                "paging": {
+                    "$ref": "#/definitions/server.pagingInfo"
+                }
+            }
+        },
+        "server.pagingInfo": {
+            "type": "object",
+            "required": [
+                "page",
+                "per_page",
+                "total"
+            ],
+            "properties": {
+                "page": {
+                    "type": "integer"
+                },
+                "per_page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         }

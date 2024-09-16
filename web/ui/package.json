@@ -31,6 +31,7 @@
     "@tailwindcss/typography": "^0.5.15",
     "@tanstack/react-query": "^5.55.0",
     "@tanstack/react-query-devtools": "^5.55.0",
+    "@tanstack/react-table": "^8.20.5",
     "ai": "^3.3.36",
     "autoprefixer": "^10.4.20",
     "axios": "^1.7.7",
