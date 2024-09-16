@@ -3,6 +3,7 @@ import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { Divider } from "@/components/Divider";
 import { RiMoreLine, RiPushpinLine } from "@remixicon/react";
+import UpdateBadge from "../../custom/update/badge";
 
 const SingleUpdate = (update: MalakUpdate) => {
   return (
@@ -10,10 +11,8 @@ const SingleUpdate = (update: MalakUpdate) => {
       <div key={update.id} className="flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors">
         <div className="flex flex-col space-y-1">
           <div className="flex items-center space-x-2">
-            <h3 className="font-semibold">{update.title}</h3>
-            <Badge variant="error" className="text-xs">
-              {update.status}
-            </Badge>
+            <h3 className="font-semibold">{update.reference}</h3>
+            <UpdateBadge status={update.status as string} />
           </div>
           <p className="text-sm text-muted-foreground">{update.created_at}</p>
         </div>
