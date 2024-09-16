@@ -31,17 +31,26 @@ type Update struct {
 	SentBy      uuid.UUID     `json:"sent_by,omitempty" bun:",nullzero"`
 	Content     UpdateContent `json:"content,omitempty"`
 
+	// Not persisted at all
+	// Only calculated at runtime
+	Title string `json:"title,omitempty" bun:"-"`
+
 	Metadata UpdateMetadata `json:"metadata,omitempty"`
 
 	SentAt    *time.Time `bun:",nullzero" json:"sent_at,omitempty"`
-	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at" `
-	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at" `
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
 	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
 
 	bun.BaseModel `json:"-"`
 }
 
 func (u *Update) IsSent() bool { return u.Status == UpdateStatusSent }
+
+func (u *Update) MarshalJSON() ([]byte, error) {
+
+	return nil, nil
+}
 
 type UpdateLink struct {
 	ID        uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`

@@ -26,6 +26,7 @@ require (
 	github.com/uptrace/bun/dialect/pgdialect v1.2.1
 	github.com/uptrace/bun/driver/pgdriver v1.2.1
 	github.com/uptrace/bun/extra/bunotel v1.2.1
+	github.com/yuin/goldmark v1.4.13
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.53.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.53.0
 	go.opentelemetry.io/otel v1.28.0

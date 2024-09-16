@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/ayinke-llc/malak"
@@ -98,7 +97,6 @@ func (u *updatesHandler) list(
 		filterStatus = malak.ListUpdateFilterStatusAll
 	}
 
-	fmt.Println(r.URL.Query().Encode())
 	opts := malak.ListUpdateOptions{
 		Status:      filterStatus,
 		Paginator:   malak.PaginatorFromRequest(r),

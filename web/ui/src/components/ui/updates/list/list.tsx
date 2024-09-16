@@ -4,12 +4,14 @@ import { LIST_UPDATES } from "@/lib/query-constants"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import SingleUpdate from "./single"
 import { Button } from "@/components/Button"
+import { toast } from "sonner"
+import Skeleton from "../../custom/loader/skeleton"
 
 export type UpdateListTableProps = {
   data: MalakUpdate[]
 }
 
-const UpdatesListTable = () => {
+const ListUpdatesTable = () => {
 
   const {
     data,
@@ -37,21 +39,33 @@ const UpdatesListTable = () => {
     initialPageParam: 1,
   })
 
+  if (error) {
+    toast.error(error.message)
+  }
+
   return (
     <div>
-      {data?.pages?.map((value, idx) => {
-        return value?.data?.updates?.map((update, idx) => {
-          return <SingleUpdate {...update} key={idx} />
-        })
-      })}
+      {isFetching ?
+        <Skeleton count={30} /> : (
+          data?.pages?.map((value) => {
+            return value?.data?.updates?.map((update, idx) => {
+              return <SingleUpdate {...update} key={idx} />
+            })
+          }))}
 
-      {hasNextPage && <Button
-        variant="primary"
-        onClick={() => fetchNextPage()}>
-        Load more
-      </Button>}
+      {isFetchingNextPage && <Skeleton count={30} />}
+
+      {hasNextPage && (
+        <div className="mt-5">
+          <Button
+            variant="secondary"
+            onClick={() => fetchNextPage()}>
+            Load more
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
 
-export default UpdatesListTable;
+export default ListUpdatesTable;

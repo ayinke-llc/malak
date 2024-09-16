@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/Button"
-import UpdatesListTable from "@/components/ui/updates/list/list"
+import ListUpdatesTable from "@/components/ui/updates/list/list"
 import { RiAddLine } from "@remixicon/react"
 import Link from "next/link"
 
@@ -36,7 +36,7 @@ export default function Page() {
         </section>
 
         <div className="mt-10 sm:mt-4">
-          <UpdatesListTable />
+          <ListUpdatesTable />
         </div>
       </div>
     </>

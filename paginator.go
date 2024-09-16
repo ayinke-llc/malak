@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	defaultNumOfItemPerPage = 5
+	defaultNumOfItemPerPage = 8
 )
 
 type PaginatedResultMetadata struct {
