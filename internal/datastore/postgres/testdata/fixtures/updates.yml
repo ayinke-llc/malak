@@ -1,0 +1,36 @@
+- id: 0011a73a-64c4-41b2-9c08-dd2416ed99b2
+  workspace_id: c12da796-9362-4c70-b2cb-fc8a1eba2526
+  status: draft
+  reference: update_cRiQsRRHR
+  created_by: 1aa6b38e-33d3-499f-bc9d-3090738f29e6
+  sent_by: null
+  content: ""
+  metadata: "{}"
+  sent_at: null
+  created_at: "2024-09-16 17:54:05.451647+00"
+  updated_at: "2024-09-16 17:54:05.451647+00"
+  deleted_at: null
+- id: 07b0c648-12fd-44fc-a280-946de2700e65
+  workspace_id: c12da796-9362-4c70-b2cb-fc8a1eba2526
+  status: draft
+  reference: update_O-54dq6IR
+  created_by: 1aa6b38e-33d3-499f-bc9d-3090738f29e6
+  sent_by: null
+  content: ""
+  metadata: "{}"
+  sent_at: null
+  created_at: "2024-09-15 19:18:13.35185+00"
+  updated_at: "2024-09-15 19:18:13.35185+00"
+  deleted_at: null
+- id: 0902ef67-903e-47b8-8f9d-111a9e0ca0c7
+  workspace_id: c12da796-9362-4c70-b2cb-fc8a1eba2526
+  status: draft
+  reference: update_NCox_gRNg
+  created_by: 1aa6b38e-33d3-499f-bc9d-3090738f29e6
+  sent_by: null
+  content: ""
+  metadata: "{}"
+  sent_at: null
+  created_at: "2024-09-16 18:42:56.040247+00"
+  updated_at: "2024-09-16 18:42:56.040247+00"
+  deleted_at: null
