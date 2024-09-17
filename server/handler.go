@@ -66,6 +66,9 @@ func WrapMalakHTTPHandler(
 			return
 		}
 
-		_ = render.Render(w, r, resp)
+		err := render.Render(w, r, resp)
+		if err != nil {
+			logger.Error("could not write http response", zap.Error(err))
+		}
 	}
 }

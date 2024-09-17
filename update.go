@@ -34,7 +34,7 @@ type Update struct {
 
 	// Not persisted at all
 	// Only calculated at runtime
-	Title string `json:"title,omitempty" bun:"-"`
+	Title string `json:"title" bun:"-"`
 
 	Metadata UpdateMetadata `json:"metadata,omitempty"`
 

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/text"
@@ -36,10 +35,6 @@ func getFirstHeader(markdown UpdateContent) (string, error) {
 		}
 		return ast.WalkContinue, nil
 	})
-
-	if util.IsStringEmpty(title) {
-		return "", ErrHeaderNotFound
-	}
 
 	return strings.TrimSpace(title), nil
 }

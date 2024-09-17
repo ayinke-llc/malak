@@ -12,5 +12,5 @@ Some content here
 ## Second Title
 More content`
 
-	getFirstHeader(markdown)
+	getFirstHeader(UpdateContent(markdown))
 }
