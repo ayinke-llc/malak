@@ -10,9 +10,9 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -100,19 +100,18 @@ func initOTELCapabilities(cfg config.Config,
 		metricsSuffixEndpoint = splittedEndpoint[1] + metricsSuffixEndpoint
 	}
 
-	var traceOptions = []otlptracehttp.Option{
-		otlptracehttp.WithEndpoint(cfg.Otel.Endpoint),
-		otlptracehttp.WithURLPath(tracesSuffixEndpoint),
-		otlptracehttp.WithHeaders(headers),
+	var traceOptions = []otlptracegrpc.Option{
+		otlptracegrpc.WithEndpoint(cfg.Otel.Endpoint),
+		otlptracegrpc.WithHeaders(headers),
 	}
 
 	if !cfg.Otel.UseTLS {
-		traceOptions = append(traceOptions, otlptracehttp.WithInsecure())
+		traceOptions = append(traceOptions, otlptracegrpc.WithInsecure())
 	}
 
 	traceExporter, err := otlptrace.New(
 		context.Background(),
-		otlptracehttp.NewClient(traceOptions...))
+		otlptracegrpc.NewClient(traceOptions...))
 
 	if err != nil {
 		logger.Fatal("could not setup OTEL tracing resources",
@@ -130,17 +129,16 @@ func initOTELCapabilities(cfg config.Config,
 		),
 	)
 
-	var metricsOptions = []otlpmetrichttp.Option{
-		otlpmetrichttp.WithEndpoint(cfg.Otel.Endpoint),
-		otlpmetrichttp.WithURLPath(metricsSuffixEndpoint),
-		otlpmetrichttp.WithHeaders(headers),
+	var metricsOptions = []otlpmetricgrpc.Option{
+		otlpmetricgrpc.WithEndpoint(cfg.Otel.Endpoint),
+		otlpmetricgrpc.WithHeaders(headers),
 	}
 
 	if !cfg.Otel.UseTLS {
-		metricsOptions = append(metricsOptions, otlpmetrichttp.WithInsecure())
+		metricsOptions = append(metricsOptions, otlpmetricgrpc.WithInsecure())
 	}
 
-	metricExporter, err := otlpmetrichttp.New(
+	metricExporter, err := otlpmetricgrpc.New(
 		context.Background(), metricsOptions...)
 	if err != nil {
 		logger.Fatal("could not setup metrics exporter",
