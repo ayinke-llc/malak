@@ -19,7 +19,7 @@ func getFirstHeader(markdown UpdateContent) (string, error) {
 
 	var title string
 
-	ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+	err := ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		if entering && n.Kind() == ast.KindHeading {
 			heading := n.(*ast.Heading)
 			if heading.Level == 2 {
@@ -36,5 +36,5 @@ func getFirstHeader(markdown UpdateContent) (string, error) {
 		return ast.WalkContinue, nil
 	})
 
-	return strings.TrimSpace(title), nil
+	return strings.TrimSpace(title), err
 }
