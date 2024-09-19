@@ -120,7 +120,7 @@ func (u *updatesHandler) list(
 	}
 
 	return listUpdateResponse{
-		APIStatus: newAPIStatus(http.StatusCreated, "updatees fetched"),
+		APIStatus: newAPIStatus(http.StatusCreated, "updates fetched"),
 		Updates:   updates,
 		Meta: meta{
 			Paging: pagingInfo{

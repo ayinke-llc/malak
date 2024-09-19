@@ -13,3 +13,4 @@ package malak
 //go:generate mockgen -source=workspace.go -destination=mocks/workspace.go -package=malak_mocks
 //go:generate mockgen -source=contact.go -destination=mocks/contact.go -package=malak_mocks
 //go:generate mockgen -source=update.go -destination=mocks/update.go -package=malak_mocks
+//go:generate mockgen -source=reference.go -destination=mocks/reference.go -package=malak_mocks
