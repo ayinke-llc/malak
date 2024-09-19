@@ -14,7 +14,7 @@ Some content here
 ## Second Title
 More content`
 
-	getFirstHeader(UpdateContent(markdown))
+	_, _ = getFirstHeader(UpdateContent(markdown))
 }
 
 func TestGetFirstHeader(t *testing.T) {
