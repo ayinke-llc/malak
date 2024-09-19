@@ -35,6 +35,8 @@ definitions:
         type: string
       updated_at:
         type: string
+      workspace_id:
+        type: string
     type: object
   malak.CustomContactMetadata:
     additionalProperties:
@@ -64,6 +66,46 @@ definitions:
     - RoleBilling
     - RoleInvestor
     - RoleGuest
+  malak.Update:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: string
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/malak.UpdateMetadata'
+      reference:
+        type: string
+      sent_at:
+        type: string
+      sent_by:
+        type: string
+      status:
+        $ref: '#/definitions/malak.UpdateStatus'
+      title:
+        description: |-
+          Not persisted at all
+          Only calculated at runtime
+        type: string
+      updated_at:
+        type: string
+      workspace_id:
+        type: string
+    type: object
+  malak.UpdateMetadata:
+    type: object
+  malak.UpdateStatus:
+    enum:
+    - draft
+    - sent
+    type: string
+    x-enum-varnames:
+    - UpdateStatusDraft
+    - UpdateStatusSent
   malak.User:
     properties:
       created_at:
@@ -161,6 +203,16 @@ definitions:
       name:
         type: string
     type: object
+  server.createdUpdateResponse:
+    properties:
+      message:
+        type: string
+      update:
+        $ref: '#/definitions/malak.Update'
+    required:
+    - message
+    - update
+    type: object
   server.createdUserResponse:
     properties:
       message:
@@ -183,6 +235,7 @@ definitions:
       message:
         type: string
     required:
+    - contact
     - message
     type: object
   server.fetchWorkspaceResponse:
@@ -194,6 +247,41 @@ definitions:
     required:
     - message
     - workspace
+    type: object
+  server.listUpdateResponse:
+    properties:
+      message:
+        type: string
+      meta:
+        $ref: '#/definitions/server.meta'
+      updates:
+        items:
+          $ref: '#/definitions/malak.Update'
+        type: array
+    required:
+    - message
+    - meta
+    - updates
+    type: object
+  server.meta:
+    properties:
+      paging:
+        $ref: '#/definitions/server.pagingInfo'
+    required:
+    - paging
+    type: object
+  server.pagingInfo:
+    properties:
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+    required:
+    - page
+    - per_page
+    - total
     type: object
 host: localhost:5300
 info:
@@ -350,6 +438,78 @@ paths:
       summary: Create a new workspace
       tags:
       - workspace
+  /workspaces/updates:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Page to query data from. Defaults to 1
+        in: query
+        name: page
+        type: integer
+      - description: Number to items to return. Defaults to 10 items
+        in: query
+        name: per_page
+        type: integer
+      - description: filter results by the status of the update.
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.listUpdateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+      summary: List updates
+      tags:
+      - updates
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.createdUpdateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+      summary: Create a new update
+      tags:
+      - updates
 schemes:
 - http
 securityDefinitions:

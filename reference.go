@@ -11,7 +11,11 @@ func GenerateReference(e EntityType) string {
 	return fmt.Sprintf("%s_%s", e.String(), shortid.MustGenerate())
 }
 
-// ENUM(workspace,invoice,team,invite,contact,deck,update)
+// ENUM(
+// workspace,invoice,
+// team,invite,contact,
+// deck,update,link,room,
+// recipient,schedule)
 type EntityType string
 
 type Reference string
@@ -29,5 +33,9 @@ func NewReferenceGenerator() *ReferenceGenerator {
 }
 
 func (r *ReferenceGenerator) Generate(e EntityType) Reference {
-	return Reference(fmt.Sprintf("%s_%s", e.String(), shortid.MustGenerate()))
+	return Reference(
+		fmt.Sprintf(
+			"%s_%s",
+			e.String(),
+			shortid.MustGenerate()))
 }

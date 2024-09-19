@@ -30,4 +30,11 @@ jobs:
         run: go build -o malak ./cmd
 
       - name: Run tests with coverage
-        run: go test -v -tags integration ./... -coverprofile=coverage.out -covermode=atomic
+        run: go test -v -tags integration ./... -coverprofile=coverage.txt
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.txt
+          fail_ci_if_error: true

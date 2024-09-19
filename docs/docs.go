@@ -241,6 +241,116 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/workspaces/updates": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "updates"
+                ],
+                "summary": "List updates",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page to query data from. Defaults to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number to items to return. Defaults to 10 items",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter results by the status of the update.",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.listUpdateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "updates"
+                ],
+                "summary": "Create a new update",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.createdUpdateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -290,6 +400,9 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
                 }
             }
         },
@@ -330,6 +443,62 @@ const docTemplate = `{
                 "RoleBilling",
                 "RoleInvestor",
                 "RoleGuest"
+            ]
+        },
+        "malak.Update": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/malak.UpdateMetadata"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "sent_at": {
+                    "type": "string"
+                },
+                "sent_by": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/malak.UpdateStatus"
+                },
+                "title": {
+                    "description": "Not persisted at all\nOnly calculated at runtime",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.UpdateMetadata": {
+            "type": "object"
+        },
+        "malak.UpdateStatus": {
+            "type": "string",
+            "enum": [
+                "draft",
+                "sent"
+            ],
+            "x-enum-varnames": [
+                "UpdateStatusDraft",
+                "UpdateStatusSent"
             ]
         },
         "malak.User": {
@@ -470,6 +639,21 @@ const docTemplate = `{
                 }
             }
         },
+        "server.createdUpdateResponse": {
+            "type": "object",
+            "required": [
+                "message",
+                "update"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "update": {
+                    "$ref": "#/definitions/malak.Update"
+                }
+            }
+        },
         "server.createdUserResponse": {
             "type": "object",
             "required": [
@@ -495,6 +679,7 @@ const docTemplate = `{
         "server.fetchContactResponse": {
             "type": "object",
             "required": [
+                "contact",
                 "message"
             ],
             "properties": {
@@ -518,6 +703,58 @@ const docTemplate = `{
                 },
                 "workspace": {
                     "$ref": "#/definitions/malak.Workspace"
+                }
+            }
+        },
+        "server.listUpdateResponse": {
+            "type": "object",
+            "required": [
+                "message",
+                "meta",
+                "updates"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "meta": {
+                    "$ref": "#/definitions/server.meta"
+                },
+                "updates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.Update"
+                    }
+                }
+            }
+        },
+        "server.meta": {
+            "type": "object",
+            "required": [
+                "paging"
+            ],
+            "properties": {
+                "paging": {
+                    "$ref": "#/definitions/server.pagingInfo"
+                }
+            }
+        },
+        "server.pagingInfo": {
+            "type": "object",
+            "required": [
+                "page",
+                "per_page",
+                "total"
+            ],
+            "properties": {
+                "page": {
+                    "type": "integer"
+                },
+                "per_page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         }

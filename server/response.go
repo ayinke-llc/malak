@@ -12,13 +12,13 @@ type GenericRequest struct{}
 func (g GenericRequest) Bind(_ *http.Request) error { return nil }
 
 type meta struct {
-	Paging pagingInfo `json:"paging"`
+	Paging pagingInfo `json:"paging,omitempty" validate:"required"`
 }
 
 type pagingInfo struct {
-	Total   int64 `json:"total"`
-	PerPage int64 `json:"per_page"`
-	Page    int64 `json:"page"`
+	Total   int64 `json:"total,omitempty" validate:"required"`
+	PerPage int64 `json:"per_page,omitempty" validate:"required"`
+	Page    int64 `json:"page,omitempty" validate:"required"`
 }
 
 type APIStatus struct {
@@ -55,6 +55,17 @@ type fetchWorkspaceResponse struct {
 }
 
 type fetchContactResponse struct {
-	Contact malak.Contact `json:"contact,omitempty"`
+	Contact malak.Contact `json:"contact,omitempty" validate:"required"`
+	APIStatus
+}
+
+type createdUpdateResponse struct {
+	Update malak.Update `json:"update,omitempty" validate:"required"`
+	APIStatus
+}
+
+type listUpdateResponse struct {
+	Updates []malak.Update `json:"updates,omitempty" validate:"required"`
+	Meta    meta           `json:"meta,omitempty" validate:"required"`
 	APIStatus
 }

@@ -7,11 +7,10 @@ import {
   EditorCommandList,
   EditorContent,
   type EditorInstance,
-  EditorRoot,
-  type JSONContent,
+  EditorRoot
 } from "novel";
 import { ImageResizer, handleCommandNavigation } from "novel/extensions";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { defaultExtensions } from "./extensions";
 import { ColorSelector } from "./selectors/color-selector";
@@ -24,15 +23,20 @@ import GenerativeMenuSwitch from "./generative/generative-menu-switch";
 import { uploadFn } from "./image-upload";
 import { TextButtons } from "./selectors/text-buttons";
 import { slashCommand, suggestionItems } from "./slash-command";
+import { defaultEditorContent } from "./default-value";
+import { toast } from "sonner";
 
-const hljs = require('highlight.js');
+export type EditorProps = {
+  reference: string | undefined
+}
 
-const extensions = [...defaultExtensions, slashCommand];
+const NovelEditor = ({ reference }: EditorProps) => {
 
-const NovelEditor = () => {
+  if (reference === undefined || reference === "") {
+    return null
+  }
 
-  const [initialContent, setInitialContent] = useState<null | JSONContent>(null);
-  const [saveStatus, setSaveStatus] = useState("Saved");
+  const [saveStatus, setSaveStatus] = useState<"Saved" | "Unsaved">("Saved");
   const [charsCount, setCharsCount] = useState();
 
   const [openNode, setOpenNode] = useState(false);
@@ -40,23 +44,35 @@ const NovelEditor = () => {
   const [openLink, setOpenLink] = useState(false);
   const [openAI, setOpenAI] = useState(false);
 
-  //Apply Codeblock Highlighting on the HTML from editor.getHTML()
-  const highlightCodeblocks = (content: string) => {
-    const doc = new DOMParser().parseFromString(content, 'text/html');
-    doc.querySelectorAll('pre code').forEach((el) => {
-      // @ts-ignore
-      // https://highlightjs.readthedocs.io/en/latest/api.html?highlight=highlightElement#highlightelement
-      hljs.highlightElement(el);
-    });
-    return new XMLSerializer().serializeToString(doc);
-  };
+  // Let the user actually type a bunch of stuff before we create the update
+  const [isCreated, setIsCreated] = useState<boolean>(false)
 
   const debouncedUpdates = useDebouncedCallback(async (editor: EditorInstance) => {
-    const json = editor.getJSON();
+
+    const updatedJSON = editor.getJSON();
+
+    const title = updatedJSON.content?.at(0)
+
+    if (!title) {
+      toast.error("updates must include a title. Please add a title using a heading")
+      return
+    }
+
+    if (title.type !== "heading") {
+      toast.error("Your heading must be the first item in the editor. It serves as the title of your update.")
+      return
+    }
+
+    const content = title.content?.at(0)
+
+    if (content?.type != "text" && content?.text?.trim().length === 0) {
+      toast.error("Title can only include text and must not be empty")
+      return
+    }
+
+    console.log(editor.storage.markdown.getMarkdown())
+
     setCharsCount(editor.storage.characterCount.words());
-    window.localStorage.setItem("html-content", highlightCodeblocks(editor.getHTML()));
-    window.localStorage.setItem("novel-content", JSON.stringify(json));
-    window.localStorage.setItem("markdown", editor.storage.markdown.getMarkdown());
     setSaveStatus("Saved");
   }, 500);
 
@@ -71,8 +87,8 @@ const NovelEditor = () => {
       </div>
       <EditorRoot>
         <EditorContent
-          initialContent={initialContent as JSONContent}
-          extensions={extensions}
+          initialContent={defaultEditorContent}
+          extensions={[...defaultExtensions, slashCommand]}
           className="relative min-h-[500px] w-full max-w-screen-lg border-muted bg-background sm:mb-[calc(20vh)] sm:rounded-lg sm:border sm:shadow-lg"
           editorProps={{
             handleDOMEvents: {

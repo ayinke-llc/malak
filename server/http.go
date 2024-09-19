@@ -67,6 +67,7 @@ func buildRoutes(
 	workspaceRepo := postgres.NewWorkspaceRepository(db)
 	planRepo := postgres.NewPlanRepository(db)
 	contactRepo := postgres.NewContactRepository(db)
+	updateRepo := postgres.NewUpdatesRepository(db)
 
 	router := chi.NewRouter()
 
@@ -93,6 +94,11 @@ func buildRoutes(
 		referenceGenerator: referenceGenerator,
 	}
 
+	updateHandler := &updatesHandler{
+		referenceGenerator: referenceGenerator,
+		updateRepo:         updateRepo,
+	}
+
 	router.Use(middleware.RequestID)
 	router.Use(writeRequestIDHeader)
 	router.Use(middleware.AllowContentType("application/json"))
@@ -116,6 +122,13 @@ func buildRoutes(
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, workspaceHandler.createWorkspace, cfg, "workspaces.new"))
+
+			r.Route("/updates", func(r chi.Router) {
+				r.Post("/",
+					WrapMalakHTTPHandler(logger, updateHandler.create, cfg, "updates.new"))
+				r.Get("/",
+					WrapMalakHTTPHandler(logger, updateHandler.list, cfg, "updates.list"))
+			})
 		})
 
 		r.Route("/contacts", func(r chi.Router) {
