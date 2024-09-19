@@ -114,7 +114,7 @@ func setDefaults() {
 	viper.SetDefault("otel.is_enabled", true)
 	viper.SetDefault("otel.use_tls", false)
 	viper.SetDefault("otel.service_name", "makal")
-	viper.SetDefault("otel.endpoint", "localhost:9318")
+	viper.SetDefault("otel.endpoint", "localhost:9317")
 
 	viper.SetDefault("http.port", 5300)
 	viper.SetDefault("http.rate_limit.is_enabled", true)
