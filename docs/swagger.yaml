@@ -215,18 +215,23 @@ definitions:
     type: object
   server.createdUserResponse:
     properties:
+      current_workspace:
+        $ref: '#/definitions/malak.Workspace'
       message:
         type: string
       token:
         type: string
       user:
         $ref: '#/definitions/malak.User'
-      workspace:
-        $ref: '#/definitions/malak.Workspace'
+      workspaces:
+        items:
+          $ref: '#/definitions/malak.Workspace'
+        type: array
     required:
     - message
     - token
     - user
+    - workspaces
     type: object
   server.fetchContactResponse:
     properties:

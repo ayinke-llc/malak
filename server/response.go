@@ -43,9 +43,10 @@ func newAPIStatus(code int, s string) APIStatus {
 }
 
 type createdUserResponse struct {
-	User      malak.User       `json:"user,omitempty" validate:"required"`
-	Workspace *malak.Workspace `json:"workspace,omitempty" validate:"optional"`
-	Token     string           `json:"token,omitempty" validate:"required"`
+	User             malak.User        `json:"user,omitempty" validate:"required"`
+	Workspaces       []malak.Workspace `json:"workspaces,omitempty" validate:"required"`
+	CurrentWorkspace *malak.Workspace  `json:"current_workspace,omitempty" validate:"optional"`
+	Token            string            `json:"token,omitempty" validate:"required"`
 	APIStatus
 }
 

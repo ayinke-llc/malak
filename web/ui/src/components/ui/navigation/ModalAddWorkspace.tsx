@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation"
 import { ServerAPIStatus } from "@/client/Api"
 import client from "@/lib/client"
 import { AxiosError } from "axios"
-import useAuthStore from "@/store/auth"
+import useWorkspacesStore from "@/store/workspace"
 
 export type ModalProps = {
   itemName: string
@@ -48,7 +48,7 @@ export function ModalAddWorkspace({
 
   const [loading, setLoading] = useState<boolean>(false)
 
-  const setWorkspace = useAuthStore.getState().setWorkspace
+  const setWorkspace = useWorkspacesStore.getState().setCurrent
 
   const router = useRouter()
 
@@ -99,8 +99,8 @@ export function ModalAddWorkspace({
             {itemName}
           </DropdownMenuItem>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-2xl">
-          <form onSubmit={handleSubmit(onSubmit)}>
+        <DialogContent className="sm:max-w-lg">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-y-1">
             <DialogHeader>
               <DialogTitle>Add new workspace</DialogTitle>
               <DialogDescription className="mt-1 text-sm leading-6">

@@ -2,11 +2,17 @@
 
 import client from "@/lib/client";
 import useAuthStore from "@/store/auth";
+import useWorkspacesStore from "@/store/workspace";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function UserProvider({ children }: { children: React.ReactNode }) {
-  const { token, setUser, setWorkspace, isAuthenticated, user, workspace, logout } = useAuthStore.getState()
+  const { token, setUser,
+    isAuthenticated,
+    logout } = useAuthStore.getState()
+
+  const { setWorkspaces, setCurrent } = useWorkspacesStore.getState()
+
   const router = useRouter()
 
   client.instance.interceptors.request.use(
@@ -43,7 +49,11 @@ export default function UserProvider({ children }: { children: React.ReactNode }
     if (isAuthenticated()) {
       client.user.userList().then(res => {
         setUser(res.data.user)
-        setWorkspace(res.data.workspace)
+        if (res.data.current_workspace !== undefined) {
+          setCurrent(res.data.current_workspace)
+        }
+
+        setWorkspaces(res.data.workspaces)
       }).catch((err) => {
         console.log(err, "authenticate user")
       })
