@@ -21,6 +21,7 @@ import { ServerAPIStatus } from "@/client/Api"
 import { AxiosError } from "axios"
 import { toast } from "sonner"
 import Skeleton from "../custom/loader/skeleton"
+import { useRouter } from "next/navigation"
 
 
 export const WorkspacesDropdownDesktop = () => {
@@ -34,6 +35,8 @@ export const WorkspacesDropdownDesktop = () => {
   const workspaces = useWorkspacesStore.getState().workspaces
   const current = useWorkspacesStore.getState().current
   const setCurrent = useWorkspacesStore.getState().setCurrent
+
+  const router = useRouter()
 
   const handleDialogItemSelect = () => {
     focusRef.current = dropdownTriggerRef.current
@@ -52,6 +55,7 @@ export const WorkspacesDropdownDesktop = () => {
     onSuccess: ({ data }) => {
       setCurrent(data.workspace)
       toast.success(data.message)
+      window.location.reload()
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message
@@ -176,6 +180,7 @@ export const WorkspacesDropdownMobile = () => {
   const current = useWorkspacesStore.getState().current
   const setCurrent = useWorkspacesStore.getState().setCurrent
 
+
   const [loading, setLoading] = useState<boolean>(false)
 
   const mutation = useMutation({
@@ -184,6 +189,7 @@ export const WorkspacesDropdownMobile = () => {
     onSuccess: ({ data }) => {
       setCurrent(data.workspace)
       toast.success(data.message)
+      window.location.reload()
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message
