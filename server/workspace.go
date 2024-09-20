@@ -158,6 +158,6 @@ func (wo *workspaceHandler) switchCurrentWorkspaceForUser(
 
 	return fetchWorkspaceResponse{
 		Workspace: util.DeRef(workspace),
-		APIStatus: newAPIStatus(http.StatusCreated, "user's default workspace updated"),
+		APIStatus: newAPIStatus(http.StatusOK, "user's default workspace updated"),
 	}, StatusSuccess
 }
