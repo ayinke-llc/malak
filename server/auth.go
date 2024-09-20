@@ -193,5 +193,5 @@ func (a *authHandler) fetchCurrentUser(
 		CurrentWorkspace: workspace,
 		Workspaces:       workspaces,
 		APIStatus:        newAPIStatus(http.StatusOK, "user data successfully retrieved"),
-	}, StatusFailed
+	}, StatusSuccess
 }

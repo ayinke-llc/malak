@@ -72,6 +72,104 @@ func getConfig() config.Config {
 	}
 }
 
+func getFetchCurrentUserData() []struct {
+	name               string
+	mockFn             func(workspaceRepo *malak_mocks.MockWorkspaceRepository)
+	expectedStatusCode int
+	addWorkspace       bool
+} {
+
+	return []struct {
+		name               string
+		mockFn             func(workspaceRepo *malak_mocks.MockWorkspaceRepository)
+		expectedStatusCode int
+		addWorkspace       bool
+	}{
+		{
+			name: "could not list workspaces",
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository) {
+				workspaceRepo.EXPECT().List(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("could not list workspaces"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "listed workspaces",
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository) {
+				workspaceRepo.EXPECT().List(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]malak.Workspace{
+						{
+							Reference: "workspace_oops",
+						},
+						{
+							Reference: "workspace_oopskfjk",
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "listed workspaces with current workspace",
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository) {
+				workspaceRepo.EXPECT().List(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]malak.Workspace{
+						{
+							Reference: "workspace_oops",
+						},
+						{
+							Reference: "workspace_oopskfjk",
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
+func TestAuthHandler_FetchCurrentUser(t *testing.T) {
+	for _, v := range getFetchCurrentUserData() {
+
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			workspaceRepo := malak_mocks.NewMockWorkspaceRepository(controller)
+
+			v.mockFn(workspaceRepo)
+
+			a := &authHandler{
+				cfg:           getConfig(),
+				workspaceRepo: workspaceRepo,
+			}
+
+			var b = bytes.NewBuffer(nil)
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/", b)
+			ctx := chi.NewRouteContext()
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+
+			if v.addWorkspace {
+				req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+			}
+
+			WrapMalakHTTPHandler(getLogger(t), a.fetchCurrentUser, getConfig(), "Auth.fetchCurrentUser").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
 func TestAuthHandler_Login(t *testing.T) {
 	for _, v := range generateLoginTestTable() {
 
