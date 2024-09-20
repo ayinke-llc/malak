@@ -10,10 +10,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	awsCreds "github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
+	"github.com/ayinke-llc/malak/internal/pkg/uploader"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/ayinke-llc/malak/server"
 	redisotel "github.com/redis/go-redis/extra/redisotel/v9"
@@ -127,14 +131,40 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 					zap.Error(err))
 			}
 
+			resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+				return aws.Endpoint{
+					URL: cfg.Uploader.S3.Endpoint,
+				}, nil
+			})
+
+			s3Config, err := awsConfig.LoadDefaultConfig(
+				context.Background(),
+				awsConfig.WithEndpointResolverWithOptions(resolver),
+				awsConfig.WithRegion(cfg.Uploader.S3.Region),
+				awsConfig.WithCredentialsProvider(
+					awsCreds.NewStaticCredentialsProvider(
+						cfg.Uploader.S3.AccessKey,
+						cfg.Uploader.S3.AccessSecret,
+						"")),
+			)
+
+			uploadHandler, err := uploader.NewS3FromConfig(s3Config, uploader.S3Options{
+				Bucket: cfg.Uploader.S3.Bucket,
+			})
+			if err != nil {
+				logger.Fatal("could not setup s3 client", zap.Error(err))
+			}
+
 			mid, err := httplimit.NewMiddleware(rateLimiterStore, server.HTTPThrottleKeyFunc)
 			if err != nil {
 				logger.Fatal("could not rate limiting middleware",
 					zap.Error(err))
 			}
 
-			srv, cleanupSrv := server.New(logger, util.DeRef(cfg), db,
-				tokenManager, googleAuthProvider, mid)
+			srv, cleanupSrv := server.New(logger,
+				util.DeRef(cfg), db,
+				tokenManager, googleAuthProvider,
+				mid, uploadHandler)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {

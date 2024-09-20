@@ -352,6 +352,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/workspaces/updates/image": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "updates"
+                ],
+                "summary": "Upload an image",
+                "operationId": "uploadImage",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.uploadImageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/workspaces/{reference}": {
             "post": {
                 "consumes": [
@@ -818,6 +865,21 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "server.uploadImageResponse": {
+            "type": "object",
+            "required": [
+                "message",
+                "url"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         }

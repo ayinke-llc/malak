@@ -10,6 +10,7 @@ import (
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
+	"github.com/ayinke-llc/malak/internal/pkg/uploader"
 	chi "github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/riandyrn/otelchi"
@@ -24,11 +25,12 @@ func New(logger *zap.Logger,
 	db *bun.DB,
 	jwtTokenManager jwttoken.JWTokenManager,
 	googleAuthProvider socialauth.SocialAuthProvider,
-	mid *httplimit.Middleware) (*http.Server, func()) {
+	mid *httplimit.Middleware, uploadImpl uploader.Uploader) (*http.Server, func()) {
 
 	srv := &http.Server{
-		Handler: buildRoutes(logger, db, cfg, jwtTokenManager, googleAuthProvider, mid),
-		Addr:    fmt.Sprintf(":%d", cfg.HTTP.Port),
+		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
+			googleAuthProvider, mid, uploadImpl),
+		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
 	cleanupOtelResources := initOTELCapabilities(cfg, logger)
@@ -61,7 +63,8 @@ func buildRoutes(
 	cfg config.Config,
 	jwtTokenManager jwttoken.JWTokenManager,
 	googleAuthProvider socialauth.SocialAuthProvider,
-	mid *httplimit.Middleware) http.Handler {
+	mid *httplimit.Middleware,
+	uploadImpl uploader.Uploader) http.Handler {
 
 	userRepo := postgres.NewUserRepository(db)
 	workspaceRepo := postgres.NewWorkspaceRepository(db)
@@ -97,6 +100,7 @@ func buildRoutes(
 	updateHandler := &updatesHandler{
 		referenceGenerator: referenceGenerator,
 		updateRepo:         updateRepo,
+		uploaderImpl:       uploadImpl,
 	}
 
 	router.Use(middleware.RequestID)
@@ -131,6 +135,8 @@ func buildRoutes(
 					WrapMalakHTTPHandler(logger, updateHandler.create, cfg, "updates.new"))
 				r.Get("/",
 					WrapMalakHTTPHandler(logger, updateHandler.list, cfg, "updates.list"))
+				r.Post("/image",
+					WrapMalakHTTPHandler(logger, updateHandler.uploadImage, cfg, "updates.image_upload"))
 			})
 		})
 

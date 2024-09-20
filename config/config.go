@@ -18,6 +18,9 @@ type LogMode string
 // TODO(adelowo): add Redis support?
 type RateLimiterType string
 
+// ENUM(s3)
+type UploadDriver string
+
 type Config struct {
 	Logging struct {
 		Mode LogMode `yaml:"mode" mapstructure:"mode"`
@@ -72,6 +75,18 @@ type Config struct {
 		DefaultPlanReference string `yaml:"default_plan_reference" mapstructure:"default_plan_reference"`
 	} `yaml:"billing" mapstructure:"billing"`
 
+	Uploader struct {
+		Driver UploadDriver `yaml:"driver" mapstructure:"driver"`
+
+		S3 struct {
+			AccessKey    string `yaml:"access_key" mapstructure:"access_key"`
+			AccessSecret string `yaml:"access_secret" mapstructure:"access_secret"`
+			Region       string `yaml:"region" mapstructure:"region"`
+			Endpoint     string `yaml:"endpoint" mapstructure:"endpoint"`
+			Bucket       string `yaml:"bucket" mapstructure:"bucket"`
+		} `yaml:"s3" mapstructure:"s3"`
+	} `yaml:"uploader" mapstructure:"uploader"`
+
 	Email struct {
 	}
 
@@ -98,6 +113,22 @@ func (c *Config) Validate() error {
 
 	if !c.Database.DatabaseType.IsValid() {
 		return errors.New("please use a valid database provider")
+	}
+
+	if !c.Uploader.Driver.IsValid() {
+		return errors.New("please provide a valid upload driver like s3")
+	}
+
+	if util.IsStringEmpty(c.Uploader.S3.AccessKey) {
+		return errors.New("please provide your s3 access key")
+	}
+
+	if util.IsStringEmpty(c.Uploader.S3.AccessSecret) {
+		return errors.New("please provide your s3 access secret key")
+	}
+
+	if util.IsStringEmpty(c.Uploader.S3.Bucket) {
+		c.Uploader.S3.Bucket = "malak"
 	}
 
 	if !c.Auth.Google.IsEnabled {

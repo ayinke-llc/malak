@@ -106,3 +106,34 @@ func ParseRateLimiterType(name string) (RateLimiterType, error) {
 	}
 	return RateLimiterType(""), fmt.Errorf("%s is %w", name, ErrInvalidRateLimiterType)
 }
+
+const (
+	// UploadDriverS3 is a UploadDriver of type s3.
+	UploadDriverS3 UploadDriver = "s3"
+)
+
+var ErrInvalidUploadDriver = errors.New("not a valid UploadDriver")
+
+// String implements the Stringer interface.
+func (x UploadDriver) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x UploadDriver) IsValid() bool {
+	_, err := ParseUploadDriver(string(x))
+	return err == nil
+}
+
+var _UploadDriverValue = map[string]UploadDriver{
+	"s3": UploadDriverS3,
+}
+
+// ParseUploadDriver attempts to convert a string to a UploadDriver.
+func ParseUploadDriver(name string) (UploadDriver, error) {
+	if x, ok := _UploadDriverValue[name]; ok {
+		return x, nil
+	}
+	return UploadDriver(""), fmt.Errorf("%s is %w", name, ErrInvalidUploadDriver)
+}

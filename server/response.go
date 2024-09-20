@@ -70,3 +70,8 @@ type listUpdateResponse struct {
 	Meta    meta           `json:"meta,omitempty" validate:"required"`
 	APIStatus
 }
+
+type uploadImageResponse struct {
+	URL string `json:"url,omitempty" validate:"required"`
+	APIStatus
+}
