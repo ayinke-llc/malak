@@ -99,8 +99,8 @@ export function ModalAddWorkspace({
             {itemName}
           </DropdownMenuItem>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-2xl">
-          <form onSubmit={handleSubmit(onSubmit)}>
+        <DialogContent className="sm:max-w-lg">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-y-1">
             <DialogHeader>
               <DialogTitle>Add new workspace</DialogTitle>
               <DialogDescription className="mt-1 text-sm leading-6">
