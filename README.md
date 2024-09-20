@@ -1,5 +1,7 @@
 # Malak
 
+[![codecov](https://codecov.io/gh/ayinke-llc/malak/graph/badge.svg?token=J1AVNTOCVY)](https://codecov.io/gh/ayinke-llc/malak)
+
 The Opensource Investors' relationship hub. [Learn more](https://malak.vc)
 
 ## Features

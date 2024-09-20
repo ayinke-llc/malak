@@ -85,6 +85,10 @@ func (o *workspaceRepo) Get(ctx context.Context,
 		q = q.Where("stripe_customer_id = ?", opts.StripeCustomerID)
 	}
 
+	if !util.IsStringEmpty(opts.Reference.String()) {
+		q = q.Where("reference = ?", opts.Reference)
+	}
+
 	if opts.ID != uuid.Nil {
 		q = q.Where("id = ?", opts.ID)
 	}

@@ -9,7 +9,9 @@ import (
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -102,5 +104,60 @@ func (wo *workspaceHandler) createWorkspace(
 	return fetchWorkspaceResponse{
 		Workspace: util.DeRef(workspace),
 		APIStatus: newAPIStatus(http.StatusCreated, "workspace successfully created"),
+	}, StatusSuccess
+}
+
+// @Summary Switch current workspace
+// @Tags workspace
+// @Accept  json
+// @Produce  json
+// @id switchworkspace
+// @Param reference path string required "Workspace unique reference.. e.g update_"
+// @Success 200 {object} fetchWorkspaceResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/{reference} [post]
+func (wo *workspaceHandler) switchCurrentWorkspaceForUser(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	user := getUserFromContext(r.Context())
+
+	ref := chi.URLParam(r, "reference")
+
+	span.SetAttributes(attribute.String("reference", ref))
+
+	logger = logger.With(zap.String("reference", ref))
+
+	logger.Debug("switching workspaces")
+
+	workspace, err := wo.workspaceRepo.Get(ctx, &malak.FindWorkspaceOptions{
+		Reference: malak.Reference(ref),
+	})
+	if err != nil {
+		logger.Error("could not fetch workspace",
+			zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"could not fetch the workspace by reference to switch to"), StatusFailed
+	}
+
+	user.Metadata.CurrentWorkspace = workspace.ID
+
+	if err := wo.userRepo.Update(ctx, user); err != nil {
+		logger.Error("could not update user's current workspace",
+			zap.Error(err))
+
+		return newAPIStatus(http.StatusInternalServerError,
+			"could not update user's current workspace"), StatusFailed
+	}
+
+	return fetchWorkspaceResponse{
+		Workspace: util.DeRef(workspace),
+		APIStatus: newAPIStatus(http.StatusCreated, "user's default workspace updated"),
 	}, StatusSuccess
 }

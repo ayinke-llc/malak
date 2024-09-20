@@ -123,6 +123,9 @@ func buildRoutes(
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, workspaceHandler.createWorkspace, cfg, "workspaces.new"))
 
+			r.Post("/{reference}",
+				WrapMalakHTTPHandler(logger, workspaceHandler.switchCurrentWorkspaceForUser, cfg, "workspaces.switch"))
+
 			r.Route("/updates", func(r chi.Router) {
 				r.Post("/",
 					WrapMalakHTTPHandler(logger, updateHandler.create, cfg, "updates.new"))

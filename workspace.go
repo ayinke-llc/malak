@@ -41,6 +41,7 @@ func NewWorkspace(name string, u *User,
 type FindWorkspaceOptions struct {
 	StripeCustomerID string
 	ID               uuid.UUID
+	Reference        Reference
 }
 
 type CreateWorkspaceOptions struct {
