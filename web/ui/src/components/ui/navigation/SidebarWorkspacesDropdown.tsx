@@ -13,6 +13,7 @@ import { cx, focusInput } from "@/lib/utils"
 import { RiArrowRightSLine, RiExpandUpDownLine } from "@remixicon/react"
 import React from "react"
 import { ModalAddWorkspace } from "./ModalAddWorkspace"
+import useWorkspacesStore from "@/store/workspace"
 
 const workspaces = [
   {
@@ -31,6 +32,9 @@ export const WorkspacesDropdownDesktop = () => {
   const dropdownTriggerRef = React.useRef<null | HTMLButtonElement>(null)
   const focusRef = React.useRef<null | HTMLButtonElement>(null)
 
+  const workspaces = useWorkspacesStore.getState().workspaces
+  const current = useWorkspacesStore.getState().current
+
   const handleDialogItemSelect = () => {
     focusRef.current = dropdownTriggerRef.current
   }
@@ -43,7 +47,6 @@ export const WorkspacesDropdownDesktop = () => {
   }
   return (
     <>
-      {/* sidebar (lg+) */}
       <DropdownMenu
         open={dropdownOpen}
         onOpenChange={setDropdownOpen}
@@ -93,23 +96,28 @@ export const WorkspacesDropdownDesktop = () => {
               Workspaces ({workspaces.length})
             </DropdownMenuLabel>
             {workspaces.map((workspace) => (
-              <DropdownMenuItem key={workspace.value}>
+              <DropdownMenuItem key={workspace.reference}>
                 <div className="flex w-full items-center gap-x-2.5">
                   <span
                     className={cx(
-                      workspace.color,
-                      "flex aspect-square size-8 items-center justify-center rounded p-2 text-xs font-medium text-white",
+                      "bg-indigo-600 dark:bg-indigo-500",
+                      "uppercase flex aspect-square size-8 items-center justify-center rounded p-2 text-xs font-medium text-white",
                     )}
                     aria-hidden="true"
                   >
-                    {workspace.initials}
+                    {workspace.workspace_name?.split(' ')
+                      .slice(0, 2)
+                      .map((name) => name[0])
+                      .join('')}
                   </span>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
-                      {workspace.name}
+                  <div className={cx(
+                    workspace.reference === current?.reference && "text-indigo-600 dark:text-indigo-400",
+                  )}>
+                    <p className="text-sm font-medium">
+                      {workspace.workspace_name}
                     </p>
-                    <p className="text-xs text-gray-700 dark:text-gray-400">
-                      {workspace.role}
+                    <p className="text-xs">
+                      {workspace.reference}
                     </p>
                   </div>
                 </div>
