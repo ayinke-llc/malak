@@ -118,8 +118,13 @@ export const WorkspacesDropdownDesktop = () => {
             <DropdownMenuLabel>
               Workspaces ({workspaces.length})
             </DropdownMenuLabel>
-            {loading ? <Skeleton count={2} /> : workspaces.map((workspace) => (
+            {loading ? (
+              <DropdownMenuItem>
+                <Skeleton count={3} />
+              </DropdownMenuItem>
+            ) : workspaces.map((workspace) => (
               <DropdownMenuItem key={workspace.reference} onClick={() => {
+                setLoading(true)
                 mutation.mutate(workspace.reference as string)
               }}>
                 <div className="flex w-full items-center gap-x-2.5">
@@ -172,6 +177,26 @@ export const WorkspacesDropdownMobile = () => {
   const setCurrent = useWorkspacesStore.getState().setCurrent
 
   const [loading, setLoading] = useState<boolean>(false)
+
+  const mutation = useMutation({
+    mutationKey: [SWITCH_WORKSPACE],
+    mutationFn: (reference: string) => client.workspaces.switchworkspace(reference),
+    onSuccess: ({ data }) => {
+      setCurrent(data.workspace)
+      toast.success(data.message)
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      let msg = err.message
+      if (err.response !== undefined) {
+        msg = err.response?.data.message
+      }
+      toast.error(msg)
+    },
+    retry: false,
+    gcTime: Infinity,
+    onSettled: () => setLoading(false),
+  })
+
 
   const handleDialogItemSelect = () => {
     focusRef.current = dropdownTriggerRef.current
@@ -234,8 +259,17 @@ export const WorkspacesDropdownMobile = () => {
             <DropdownMenuLabel>
               Workspaces ({workspaces.length})
             </DropdownMenuLabel>
-            {loading ? <Skeleton count={3} /> : workspaces.map((workspace) => (
-              <DropdownMenuItem key={workspace.reference}>
+            {loading ? (
+              <DropdownMenuItem>
+                <Skeleton count={3} />
+              </DropdownMenuItem>
+            ) : workspaces.map((workspace) => (
+              <DropdownMenuItem
+                key={workspace.reference}
+                onClick={() => {
+                  setLoading(true)
+                  mutation.mutate(workspace.reference as string)
+                }}>
                 <div className="flex w-full items-center gap-x-2.5">
                   <span
                     className={cx(
