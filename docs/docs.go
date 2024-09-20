@@ -659,9 +659,13 @@ const docTemplate = `{
             "required": [
                 "message",
                 "token",
-                "user"
+                "user",
+                "workspaces"
             ],
             "properties": {
+                "current_workspace": {
+                    "$ref": "#/definitions/malak.Workspace"
+                },
                 "message": {
                     "type": "string"
                 },
@@ -671,8 +675,11 @@ const docTemplate = `{
                 "user": {
                     "$ref": "#/definitions/malak.User"
                 },
-                "workspace": {
-                    "$ref": "#/definitions/malak.Workspace"
+                "workspaces": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.Workspace"
+                    }
                 }
             }
         },

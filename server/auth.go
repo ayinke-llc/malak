@@ -174,14 +174,24 @@ func (a *authHandler) fetchCurrentUser(
 
 	logger.Debug("Fetching user profile")
 
+	user := getUserFromContext(ctx)
+
 	var workspace *malak.Workspace = nil
 	if doesWorkspaceExistInContext(ctx) {
 		workspace = getWorkspaceFromContext(ctx)
 	}
 
+	workspaces, err := a.workspaceRepo.List(ctx, user)
+	if err != nil {
+		logger.Error("could not list workspaces", zap.Error(err))
+		return newAPIStatus(
+			http.StatusInternalServerError, "could not list all your current workspaces"), StatusFailed
+	}
+
 	return createdUserResponse{
-		User:      util.DeRef(getUserFromContext(ctx)),
-		Workspace: workspace,
-		APIStatus: newAPIStatus(http.StatusOK, "user data successfully retrieved"),
+		User:             util.DeRef(user),
+		CurrentWorkspace: workspace,
+		Workspaces:       workspaces,
+		APIStatus:        newAPIStatus(http.StatusOK, "user data successfully retrieved"),
 	}, StatusFailed
 }

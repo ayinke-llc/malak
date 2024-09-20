@@ -655,9 +655,13 @@
             "required": [
                 "message",
                 "token",
-                "user"
+                "user",
+                "workspaces"
             ],
             "properties": {
+                "current_workspace": {
+                    "$ref": "#/definitions/malak.Workspace"
+                },
                 "message": {
                     "type": "string"
                 },
@@ -667,8 +671,11 @@
                 "user": {
                     "$ref": "#/definitions/malak.User"
                 },
-                "workspace": {
-                    "$ref": "#/definitions/malak.Workspace"
+                "workspaces": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.Workspace"
+                    }
                 }
             }
         },
