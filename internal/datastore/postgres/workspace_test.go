@@ -79,6 +79,13 @@ func TestWorkspace_Get(t *testing.T) {
 
 	require.Equal(t, workspace.WorkspaceName, "First workspace")
 
+	workspaceFromRef, err := repo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		Reference: malak.Reference(workspace.Reference),
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, workspaceFromRef.WorkspaceName, "First workspace")
+
 	_, err = repo.Get(context.Background(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("cb5955cc-be42-4fe9-9155-250f4cc0ecc8"),
 	})

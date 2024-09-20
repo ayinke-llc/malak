@@ -11,20 +11,17 @@ import {
 } from "@/components/Dropdown"
 import { cx, focusInput } from "@/lib/utils"
 import { RiArrowRightSLine, RiExpandUpDownLine } from "@remixicon/react"
-import React from "react"
+import React, { useState } from "react"
 import { ModalAddWorkspace } from "./ModalAddWorkspace"
 import useWorkspacesStore from "@/store/workspace"
+import { useMutation } from "@tanstack/react-query"
+import { SWITCH_WORKSPACE } from "@/lib/query-constants"
+import client from "@/lib/client"
+import { ServerAPIStatus } from "@/client/Api"
+import { AxiosError } from "axios"
+import { toast } from "sonner"
+import Skeleton from "../custom/loader/skeleton"
 
-const workspaces = [
-  {
-    value: "retail-analytics",
-    name: "Ayinke Ventures",
-    initials: "AV",
-    role: "Admin",
-    color: "bg-indigo-600 dark:bg-indigo-500",
-  },
-  // Add more workspaces...
-]
 
 export const WorkspacesDropdownDesktop = () => {
   const [dropdownOpen, setDropdownOpen] = React.useState(false)
@@ -32,8 +29,11 @@ export const WorkspacesDropdownDesktop = () => {
   const dropdownTriggerRef = React.useRef<null | HTMLButtonElement>(null)
   const focusRef = React.useRef<null | HTMLButtonElement>(null)
 
+  const [loading, setLoading] = useState<boolean>(false)
+
   const workspaces = useWorkspacesStore.getState().workspaces
   const current = useWorkspacesStore.getState().current
+  const setCurrent = useWorkspacesStore.getState().setCurrent
 
   const handleDialogItemSelect = () => {
     focusRef.current = dropdownTriggerRef.current
@@ -45,8 +45,28 @@ export const WorkspacesDropdownDesktop = () => {
       setDropdownOpen(false)
     }
   }
+
+  const mutation = useMutation({
+    mutationKey: [SWITCH_WORKSPACE],
+    mutationFn: (reference: string) => client.workspaces.switchworkspace(reference),
+    onSuccess: ({ data }) => {
+      setCurrent(data.workspace)
+      toast.success(data.message)
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      let msg = err.message
+      if (err.response !== undefined) {
+        msg = err.response?.data.message
+      }
+      toast.error(msg)
+    },
+    retry: false,
+    gcTime: Infinity,
+    onSettled: () => setLoading(false),
+  })
+
   return (
-    <>
+    <div suppressHydrationWarning={true}>
       <DropdownMenu
         open={dropdownOpen}
         onOpenChange={setDropdownOpen}
@@ -60,10 +80,13 @@ export const WorkspacesDropdownDesktop = () => {
             )}
           >
             <span
-              className="flex aspect-square size-8 items-center justify-center rounded bg-indigo-600 p-2 text-xs font-medium text-white dark:bg-indigo-500"
+              className="uppercase flex aspect-square size-8 items-center justify-center rounded bg-indigo-600 p-2 text-xs font-medium text-white dark:bg-indigo-500"
               aria-hidden="true"
             >
-              RA
+              {current?.workspace_name?.split(' ')
+                .slice(0, 2)
+                .map((name) => name[0])
+                .join('')}
             </span>
             <div className="flex w-full items-center justify-between gap-x-4 truncate">
               <div className="truncate">
@@ -95,8 +118,15 @@ export const WorkspacesDropdownDesktop = () => {
             <DropdownMenuLabel>
               Workspaces ({workspaces.length})
             </DropdownMenuLabel>
-            {workspaces.map((workspace) => (
-              <DropdownMenuItem key={workspace.reference}>
+            {loading ? (
+              <DropdownMenuItem>
+                <Skeleton count={3} />
+              </DropdownMenuItem>
+            ) : workspaces.map((workspace) => (
+              <DropdownMenuItem key={workspace.reference} onClick={() => {
+                setLoading(true)
+                mutation.mutate(workspace.reference as string)
+              }}>
                 <div className="flex w-full items-center gap-x-2.5">
                   <span
                     className={cx(
@@ -132,7 +162,7 @@ export const WorkspacesDropdownDesktop = () => {
           />
         </DropdownMenuContent>
       </DropdownMenu>
-    </>
+    </div>
   )
 }
 
@@ -141,6 +171,32 @@ export const WorkspacesDropdownMobile = () => {
   const [hasOpenDialog, setHasOpenDialog] = React.useState(false)
   const dropdownTriggerRef = React.useRef<null | HTMLButtonElement>(null)
   const focusRef = React.useRef<null | HTMLButtonElement>(null)
+
+  const workspaces = useWorkspacesStore.getState().workspaces
+  const current = useWorkspacesStore.getState().current
+  const setCurrent = useWorkspacesStore.getState().setCurrent
+
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const mutation = useMutation({
+    mutationKey: [SWITCH_WORKSPACE],
+    mutationFn: (reference: string) => client.workspaces.switchworkspace(reference),
+    onSuccess: ({ data }) => {
+      setCurrent(data.workspace)
+      toast.success(data.message)
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      let msg = err.message
+      if (err.response !== undefined) {
+        msg = err.response?.data.message
+      }
+      toast.error(msg)
+    },
+    retry: false,
+    gcTime: Infinity,
+    onSettled: () => setLoading(false),
+  })
+
 
   const handleDialogItemSelect = () => {
     focusRef.current = dropdownTriggerRef.current
@@ -153,8 +209,7 @@ export const WorkspacesDropdownMobile = () => {
     }
   }
   return (
-    <>
-      {/* sidebar (xs-lg) */}
+    <div suppressHydrationWarning={true}>
       <DropdownMenu
         open={dropdownOpen}
         onOpenChange={setDropdownOpen}
@@ -164,19 +219,23 @@ export const WorkspacesDropdownMobile = () => {
           <button className="flex items-center gap-x-1.5 rounded-md p-2 hover:bg-gray-100 focus:outline-none hover:dark:bg-gray-900">
             <span
               className={cx(
+                "uppercase",
                 "flex aspect-square size-7 items-center justify-center rounded bg-indigo-600 p-2 text-xs font-medium text-white dark:bg-indigo-500",
               )}
               aria-hidden="true"
             >
-              RA
+              {current?.workspace_name?.split(' ')
+                .slice(0, 2)
+                .map((name) => name[0])
+                .join('')}
             </span>
             <RiArrowRightSLine
               className="size-4 shrink-0 text-gray-500"
               aria-hidden="true"
             />
             <div className="flex w-full items-center justify-between gap-x-3 truncate">
-              <p className="truncate whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-50">
-                Ayinke Ventures
+              <p className="truncate whitespace-nowrap text-sm font-medium text-indigo-600 capitalize">
+                {current?.workspace_name}
               </p>
               <RiExpandUpDownLine
                 className="size-4 shrink-0 text-gray-500"
@@ -200,24 +259,38 @@ export const WorkspacesDropdownMobile = () => {
             <DropdownMenuLabel>
               Workspaces ({workspaces.length})
             </DropdownMenuLabel>
-            {workspaces.map((workspace) => (
-              <DropdownMenuItem key={workspace.value}>
+            {loading ? (
+              <DropdownMenuItem>
+                <Skeleton count={3} />
+              </DropdownMenuItem>
+            ) : workspaces.map((workspace) => (
+              <DropdownMenuItem
+                key={workspace.reference}
+                onClick={() => {
+                  setLoading(true)
+                  mutation.mutate(workspace.reference as string)
+                }}>
                 <div className="flex w-full items-center gap-x-2.5">
                   <span
                     className={cx(
-                      workspace.color,
-                      "flex size-8 items-center justify-center rounded p-2 text-xs font-medium text-white",
+                      "bg-indigo-600 dark:bg-indigo-500",
+                      "uppercase flex size-8 items-center justify-center rounded p-2 text-xs font-medium text-white",
                     )}
                     aria-hidden="true"
                   >
-                    {workspace.initials}
+                    {workspace.workspace_name?.split(' ')
+                      .slice(0, 2)
+                      .map((name) => name[0])
+                      .join('')}
                   </span>
-                  <div>
+                  <div className={cx(
+                    workspace.reference === current?.reference && "text-indigo-600 dark:text-indigo-400",
+                  )}>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-50">
-                      {workspace.name}
+                      {workspace.workspace_name}
                     </p>
                     <p className="text-xs text-gray-700 dark:text-gray-300">
-                      {workspace.role}
+                      {workspace.reference}
                     </p>
                   </div>
                 </div>
@@ -232,6 +305,6 @@ export const WorkspacesDropdownMobile = () => {
           />
         </DropdownMenuContent>
       </DropdownMenu>
-    </>
+    </div>
   )
 }

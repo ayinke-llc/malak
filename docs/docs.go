@@ -351,6 +351,62 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/workspaces/{reference}": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "Switch current workspace",
+                "operationId": "switchworkspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace unique reference.. e.g update_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchWorkspaceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
