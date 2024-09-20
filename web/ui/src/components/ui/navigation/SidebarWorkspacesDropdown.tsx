@@ -67,10 +67,10 @@ export const WorkspacesDropdownDesktop = () => {
             </span>
             <div className="flex w-full items-center justify-between gap-x-4 truncate">
               <div className="truncate">
-                <p className="truncate whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-50">
-                  Ayinke Ventures
+                <p className="truncate whitespace-nowrap text-sm font-medium text-indigo-600 capitalize">
+                  {current?.workspace_name}
                 </p>
-                <p className="whitespace-nowrap text-left text-xs text-gray-700 dark:text-gray-300">
+                <p className="whitespace-nowrap text-left text-xs text-indigo-600 capitalize">
                   Admin
                 </p>
               </div>
