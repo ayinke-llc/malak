@@ -201,7 +201,11 @@ func (u *updatesHandler) update(
 
 	update.Content = req.Update
 
-	// if err := u.updateRepo.
+	if err := u.updateRepo.Update(ctx, update); err != nil {
+		logger.Error("could not update content", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"could not update content"), StatusFailed
+	}
 
 	return newAPIStatus(http.StatusCreated,
 		"updates fetched"), StatusSuccess

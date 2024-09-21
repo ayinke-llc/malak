@@ -21,6 +21,19 @@ func NewUpdatesRepository(db *bun.DB) malak.UpdateRepository {
 	}
 }
 
+func (u *updatesRepo) Update(ctx context.Context,
+	update *malak.Update) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	_, err := u.inner.NewUpdate().
+		Where("id = ?", update.ID).
+		Model(update).
+		Exec(ctx)
+	return err
+}
+
 func (u *updatesRepo) Get(ctx context.Context,
 	opts malak.FetchUpdateOptions) (*malak.Update, error) {
 

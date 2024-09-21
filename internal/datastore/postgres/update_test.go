@@ -9,6 +9,34 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestUpdates_Update(t *testing.T) {
+
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	updatesRepo := NewUpdatesRepository(client)
+
+	update, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
+		Reference: "update_O-54dq6IR",
+	})
+	require.NoError(t, err)
+
+	updatedContent := malak.UpdateContent("Updated content")
+
+	require.NotEqual(t, update.Content, updatedContent)
+
+	update.Content = updatedContent
+
+	require.NoError(t, updatesRepo.Update(context.Background(), update))
+
+	updatedItem, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
+		Reference: "update_O-54dq6IR",
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, updatedItem.Content, updatedContent)
+}
+
 func TestUpdates_Get(t *testing.T) {
 
 	client, teardownFunc := setupDatabase(t)
