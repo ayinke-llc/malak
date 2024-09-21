@@ -186,7 +186,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 						w.Header().Set("Content-Type", "application/json")
 						w.WriteHeader(http.StatusInternalServerError)
-						json.NewEncoder(w).Encode(server.APIStatus{
+						_ = json.NewEncoder(w).Encode(server.APIStatus{
 							Message: fmt.Sprintf("could not upload file...%s", err.Error()),
 						})
 					}
