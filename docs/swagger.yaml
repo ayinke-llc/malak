@@ -189,6 +189,13 @@ definitions:
     required:
     - code
     type: object
+  server.contentUpdateRequest:
+    properties:
+      update:
+        type: string
+    required:
+    - update
+    type: object
   server.createContactRequest:
     properties:
       email:
@@ -532,10 +539,17 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: update unique reference.. e.g update_
-        in: path
-        name: reference
-        required: true
+      - description: Page to query data from. Defaults to 1
+        in: query
+        name: page
+        type: integer
+      - description: Number to items to return. Defaults to 10 items
+        in: query
+        name: per_page
+        type: integer
+      - description: filter results by the status of the update.
+        in: query
+        name: status
         type: string
       produces:
       - application/json
@@ -543,7 +557,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: '#/definitions/server.listUpdateResponse'
         "400":
           description: Bad Request
           schema:
@@ -560,7 +574,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/server.APIStatus'
-      summary: Update a specific update
+      summary: List updates
       tags:
       - updates
     post:
@@ -590,6 +604,49 @@ paths:
           schema:
             $ref: '#/definitions/server.APIStatus'
       summary: Create a new update
+      tags:
+      - updates
+  /workspaces/updates/{reference}:
+    post:
+      consumes:
+      - application/json
+      operationId: updateContent
+      parameters:
+      - description: update unique reference.. e.g update_
+        in: path
+        name: reference
+        required: true
+        type: string
+      - description: update content body
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/server.contentUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+      summary: Update a specific update
       tags:
       - updates
 schemes:

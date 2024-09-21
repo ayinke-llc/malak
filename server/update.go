@@ -150,6 +150,7 @@ func (c *contentUpdateRequest) Validate() error {
 
 // @Summary Update a specific update
 // @Tags updates
+// @id updateContent
 // @Accept  json
 // @Produce  json
 // @Param reference path string required "update unique reference.. e.g update_"
@@ -159,7 +160,7 @@ func (c *contentUpdateRequest) Validate() error {
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /workspaces/updates [get]
+// @Router /workspaces/updates/{reference} [post]
 func (u *updatesHandler) update(
 	ctx context.Context,
 	span trace.Span,
@@ -208,5 +209,5 @@ func (u *updatesHandler) update(
 	}
 
 	return newAPIStatus(http.StatusCreated,
-		"updates fetched"), StatusSuccess
+		"updates stored"), StatusSuccess
 }

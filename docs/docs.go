@@ -309,21 +309,32 @@ const docTemplate = `{
                 "tags": [
                     "updates"
                 ],
-                "summary": "Update a specific update",
+                "summary": "List updates",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "description": "Page to query data from. Defaults to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number to items to return. Defaults to 10 items",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
-                        "description": "update unique reference.. e.g update_",
-                        "name": "reference",
-                        "in": "path",
-                        "required": true
+                        "description": "filter results by the status of the update.",
+                        "name": "status",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.APIStatus"
+                            "$ref": "#/definitions/server.listUpdateResponse"
                         }
                     },
                     "400": {
@@ -368,6 +379,71 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/server.createdUpdateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/workspaces/updates/{reference}": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "updates"
+                ],
+                "summary": "Update a specific update",
+                "operationId": "updateContent",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "update unique reference.. e.g update_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update content body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.contentUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
                         }
                     },
                     "400": {
@@ -714,6 +790,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "code": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.contentUpdateRequest": {
+            "type": "object",
+            "required": [
+                "update"
+            ],
+            "properties": {
+                "update": {
                     "type": "string"
                 }
             }
