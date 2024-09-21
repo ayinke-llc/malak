@@ -15,7 +15,7 @@ import {
   type EditorInstance,
   EditorRoot
 } from "novel";
-import { ImageResizer, handleCommandNavigation } from "novel/extensions";
+import { handleCommandNavigation } from "novel/extensions";
 import { handleImageDrop, handleImagePaste } from "novel/plugins";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -31,6 +31,7 @@ import { NodeSelector } from "./selectors/node-selector";
 import { TextButtons } from "./selectors/text-buttons";
 import { slashCommand, suggestionItems } from "./slash-command";
 import { Separator } from "./ui/separator";
+import { Converter } from "showdown";
 
 export type EditorProps = {
   reference: string | undefined
@@ -48,6 +49,10 @@ const NovelEditor = ({ reference }: EditorProps) => {
   const [openColor, setOpenColor] = useState(false);
   const [openLink, setOpenLink] = useState(false);
   const [openAI, setOpenAI] = useState(false);
+
+
+  const showdownConverter = new Converter()
+  showdownConverter.setFlavor("github")
 
   const mutation = useMutation({
     mutationKey: [UPDATE_CONTENT],
@@ -90,13 +95,8 @@ const NovelEditor = ({ reference }: EditorProps) => {
       return
     }
 
-
-    const markdownContent = editor.storage.markdown.getMarkdown()
-
-    console.log(editor.getHTML())
-
     mutation.mutate({
-      update: markdownContent,
+      update: showdownConverter.makeMarkdown(editor.getHTML()),
     })
 
     setCharsCount(editor.storage.characterCount.words())

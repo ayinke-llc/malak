@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"regexp"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/microcosm-cc/bluemonday"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -140,7 +142,29 @@ type contentUpdateRequest struct {
 	GenericRequest
 }
 
+var compiledAllowRegexp = regexp.MustCompile(`[a-z; -]*`)
+
 func (c *contentUpdateRequest) Validate() error {
+
+	p := bluemonday.UGCPolicy()
+
+	p.AllowDataAttributes()
+
+	// Youtube iframe check
+	p.AllowElements("iframe")
+	p.AllowAttrs("width").Matching(bluemonday.Number).OnElements("iframe")
+	p.AllowAttrs("height").Matching(bluemonday.Number).OnElements("iframe")
+	p.AllowAttrs("src").OnElements("iframe")
+	p.AllowAttrs("frameborder").Matching(bluemonday.Number).OnElements("iframe")
+	p.AllowAttrs("allow").Matching(compiledAllowRegexp).OnElements("iframe")
+	p.AllowAttrs("allowfullscreen").OnElements("iframe")
+
+	// TWITTER embed
+	p.AllowAttrs("src").OnElements("div")
+	p.AllowStyles("color").OnElements("span")
+
+	c.Update = malak.UpdateContent(p.Sanitize(string(c.Update)))
+
 	if util.IsStringEmpty(string(c.Update)) {
 		return errors.New("pleae provide the content")
 	}

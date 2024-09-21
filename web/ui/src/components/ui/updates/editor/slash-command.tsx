@@ -4,7 +4,7 @@ import { uploadFn } from "./image-upload";
 import {
   RiCodeLine, RiH1, RiH2, RiH3, RiImageLine,
   RiListOrdered, RiListUnordered, RiQuoteText,
-  RiSquareLine, RiText
+  RiSquareLine, RiText, RiTwitterXLine, RiYoutubeLine
 } from "@remixicon/react";
 
 export const suggestionItems = createSuggestionItems([
@@ -145,6 +145,59 @@ export const suggestionItems = createSuggestionItems([
         }
       };
       input.click();
+    },
+  },
+  {
+    title: "Youtube",
+    description: "Embed a Youtube video.",
+    searchTerms: ["video", "youtube", "embed"],
+    icon: <RiYoutubeLine size={18} />,
+    command: ({ editor, range }) => {
+      const videoLink = prompt("Please enter Youtube Video Link");
+      //From https://regexr.com/3dj5t
+      const ytregex = new RegExp(
+        /^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$/,
+      );
+
+      if (ytregex.test(videoLink as string)) {
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .setYoutubeVideo({
+            src: videoLink as string,
+          })
+          .run();
+      } else {
+        if (videoLink !== null) {
+          alert("Please enter a correct Youtube Video Link");
+        }
+      }
+    },
+  },
+  {
+    title: "Twitter",
+    description: "Embed a Tweet.",
+    searchTerms: ["twitter", "embed"],
+    icon: <RiTwitterXLine size={18} />,
+    command: ({ editor, range }) => {
+      const tweetLink = prompt("Please enter Twitter Link");
+      const tweetRegex = new RegExp(/^https?:\/\/(www\.)?x\.com\/([a-zA-Z0-9_]{1,15})(\/status\/(\d+))?(\/\S*)?$/);
+
+      if (tweetRegex.test(tweetLink as string)) {
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .setTweet({
+            src: tweetLink as string,
+          })
+          .run();
+      } else {
+        if (tweetLink !== null) {
+          alert("Please enter a correct Twitter Link");
+        }
+      }
     },
   },
 ]);

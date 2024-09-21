@@ -72,6 +72,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.27.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.31.0 // indirect
 	github.com/aws/smithy-go v1.21.0 // indirect
+	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudinary/cloudinary-go/v2 v2.7.0 // indirect
@@ -98,6 +99,7 @@ require (
 	github.com/go-openapi/spec v0.20.4 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/gorilla/css v1.0.1 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -111,6 +113,7 @@ require (
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
+	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/patternmatcher v0.6.0 // indirect
