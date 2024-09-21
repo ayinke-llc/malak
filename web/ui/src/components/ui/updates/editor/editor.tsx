@@ -1,5 +1,11 @@
 "use client";
 
+import { ServerAPIStatus, ServerContentUpdateRequest } from "@/client/Api";
+import { Badge } from "@/components/Badge";
+import client from "@/lib/client";
+import { UPDATE_CONTENT } from "@/lib/query-constants";
+import { useMutation } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 import {
   EditorCommand,
   EditorCommandEmpty,
@@ -9,22 +15,23 @@ import {
   type EditorInstance,
   EditorRoot
 } from "novel";
-import { ImageResizer, handleCommandNavigation } from "novel/extensions";
-import { useState } from "react";
-import { useDebouncedCallback } from "use-debounce";
-import { defaultExtensions } from "./extensions";
-import { ColorSelector } from "./selectors/color-selector";
-import { LinkSelector } from "./selectors/link-selector";
-import { NodeSelector } from "./selectors/node-selector";
-import { MathSelector } from "./selectors/math-selector";
-import { Separator } from "./ui/separator";
+import { handleCommandNavigation } from "novel/extensions";
 import { handleImageDrop, handleImagePaste } from "novel/plugins";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useDebouncedCallback } from "use-debounce";
+import { defaultEditorContent } from "./default-value";
+import { defaultExtensions } from "./extensions";
 import GenerativeMenuSwitch from "./generative/generative-menu-switch";
 import { uploadFn } from "./image-upload";
+import { ColorSelector } from "./selectors/color-selector";
+import { LinkSelector } from "./selectors/link-selector";
+import { MathSelector } from "./selectors/math-selector";
+import { NodeSelector } from "./selectors/node-selector";
 import { TextButtons } from "./selectors/text-buttons";
 import { slashCommand, suggestionItems } from "./slash-command";
-import { defaultEditorContent } from "./default-value";
-import { toast } from "sonner";
+import { Separator } from "./ui/separator";
+import { Converter } from "showdown";
 
 export type EditorProps = {
   reference: string | undefined
@@ -36,16 +43,34 @@ const NovelEditor = ({ reference }: EditorProps) => {
     return null
   }
 
-  const [saveStatus, setSaveStatus] = useState<"Saved" | "Unsaved">("Saved");
+  const [saveStatus, setSaveStatus] = useState<"Saved" | "Unsaved" | "Storing">("Saved");
   const [charsCount, setCharsCount] = useState();
-
   const [openNode, setOpenNode] = useState(false);
   const [openColor, setOpenColor] = useState(false);
   const [openLink, setOpenLink] = useState(false);
   const [openAI, setOpenAI] = useState(false);
 
-  // Let the user actually type a bunch of stuff before we create the update
-  const [isCreated, setIsCreated] = useState<boolean>(false)
+
+  const showdownConverter = new Converter()
+  showdownConverter.setFlavor("github")
+
+  const mutation = useMutation({
+    mutationKey: [UPDATE_CONTENT],
+    mutationFn: (data: ServerContentUpdateRequest) => client.workspaces.updateContent(reference, data),
+    onSuccess: ({ data }) => {
+      setSaveStatus("Saved")
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      let msg = err.message
+      if (err.response !== undefined) {
+        msg = err.response.data.message
+      }
+      toast.error(msg)
+      setSaveStatus("Unsaved")
+    },
+    retry: false,
+    gcTime: Infinity,
+  })
 
   const debouncedUpdates = useDebouncedCallback(async (editor: EditorInstance) => {
 
@@ -70,20 +95,31 @@ const NovelEditor = ({ reference }: EditorProps) => {
       return
     }
 
-    console.log(editor.storage.markdown.getMarkdown())
+    mutation.mutate({
+      update: showdownConverter.makeMarkdown(editor.getHTML()),
+    })
 
-    setCharsCount(editor.storage.characterCount.words());
-    setSaveStatus("Saved");
-  }, 500);
+    setCharsCount(editor.storage.characterCount.words())
+  }, 1000);
 
+  const getVariant = (): "warning" | "error" | "success" | "neutral" => {
+    switch (saveStatus) {
+      case "Saved":
+        return "success"
+      case "Unsaved":
+        return "warning"
+      case "Storing":
+        return "warning"
+      default:
+        return "neutral"
+    }
+  }
 
   return (
     <div className="relative w-full max-w-screen-lg">
       <div className="flex absolute right-5 top-5 z-10 mb-5 gap-2">
-        <div className="rounded-lg bg-accent px-2 py-1 text-sm text-muted-foreground">{saveStatus}</div>
-        <div className={charsCount ? "rounded-lg bg-accent px-2 py-1 text-sm text-muted-foreground" : "hidden"}>
-          {charsCount} Words
-        </div>
+        <Badge className="uppercase" variant={getVariant()}>{saveStatus}</Badge>
+        <Badge className={charsCount ? "uppercase px-2 py-1" : "hidden"} variant="neutral">{charsCount} Words</Badge>
       </div>
       <EditorRoot>
         <EditorContent
@@ -102,10 +138,10 @@ const NovelEditor = ({ reference }: EditorProps) => {
             },
           }}
           onUpdate={({ editor }) => {
+            setSaveStatus("Storing")
             debouncedUpdates(editor);
             setSaveStatus("Unsaved");
           }}
-          slotAfter={<ImageResizer />}
         >
           <EditorCommand className="bg-white dark:bg-indigo-500 z-50 h-auto max-h-[330px] overflow-y-auto rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all">
             <EditorCommandEmpty className="px-2 text-muted-foreground">No results</EditorCommandEmpty>
@@ -133,7 +169,7 @@ const NovelEditor = ({ reference }: EditorProps) => {
             </EditorCommandList>
           </EditorCommand>
 
-          <GenerativeMenuSwitch open={openAI} onOpenChange={setOpenAI}>
+          <GenerativeMenuSwitch open={openAI} onOpenChange={setOpenAI} withAI={false}>
             <Separator orientation="vertical" />
             <NodeSelector open={openNode} onOpenChange={setOpenNode} />
             <Separator orientation="vertical" />
@@ -148,7 +184,7 @@ const NovelEditor = ({ reference }: EditorProps) => {
           </GenerativeMenuSwitch>
         </EditorContent>
       </EditorRoot>
-    </div>
+    </div >
   );
 };
 

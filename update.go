@@ -9,6 +9,10 @@ import (
 	"github.com/uptrace/bun"
 )
 
+const (
+	ErrUpdateNotFound = malakError("update not exists")
+)
+
 // ENUM(draft,sent)
 type UpdateStatus string
 
@@ -119,7 +123,7 @@ type ListUpdateOptions struct {
 
 type UpdateRepository interface {
 	Create(context.Context, *Update) error
-	// Update(context.Context, *Update) error
-	// Get(context.Context, FetchUpdateOptions) (*Update, error)
+	Update(context.Context, *Update) error
+	Get(context.Context, FetchUpdateOptions) (*Update, error)
 	List(context.Context, ListUpdateOptions) ([]Update, error)
 }

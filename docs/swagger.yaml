@@ -189,6 +189,13 @@ definitions:
     required:
     - code
     type: object
+  server.contentUpdateRequest:
+    properties:
+      update:
+        type: string
+    required:
+    - update
+    type: object
   server.createContactRequest:
     properties:
       email:
@@ -597,6 +604,49 @@ paths:
           schema:
             $ref: '#/definitions/server.APIStatus'
       summary: Create a new update
+      tags:
+      - updates
+  /workspaces/updates/{reference}:
+    post:
+      consumes:
+      - application/json
+      operationId: updateContent
+      parameters:
+      - description: update unique reference.. e.g update_
+        in: path
+        name: reference
+        required: true
+        type: string
+      - description: update content body
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/server.contentUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+      summary: Update a specific update
       tags:
       - updates
 schemes:
