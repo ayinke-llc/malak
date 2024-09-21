@@ -9,6 +9,32 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestUpdates_Get(t *testing.T) {
+
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	updatesRepo := NewUpdatesRepository(client)
+
+	_, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
+		Reference: "update_O-54dq6IR",
+	})
+	require.NoError(t, err)
+
+	updateByID, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
+		ID: uuid.MustParse("0902ef67-903e-47b8-8f9d-111a9e0ca0c7"),
+	})
+	require.NoError(t, err)
+
+	update, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
+		ID:     uuid.MustParse("0902ef67-903e-47b8-8f9d-111a9e0ca0c7"),
+		Status: malak.UpdateStatusDraft,
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, update, updateByID)
+}
+
 func TestUpdates_Create(t *testing.T) {
 
 	client, teardownFunc := setupDatabase(t)

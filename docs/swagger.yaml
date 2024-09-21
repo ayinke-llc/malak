@@ -532,17 +532,10 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: Page to query data from. Defaults to 1
-        in: query
-        name: page
-        type: integer
-      - description: Number to items to return. Defaults to 10 items
-        in: query
-        name: per_page
-        type: integer
-      - description: filter results by the status of the update.
-        in: query
-        name: status
+      - description: update unique reference.. e.g update_
+        in: path
+        name: reference
+        required: true
         type: string
       produces:
       - application/json
@@ -550,7 +543,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.listUpdateResponse'
+            $ref: '#/definitions/server.APIStatus'
         "400":
           description: Bad Request
           schema:
@@ -567,7 +560,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/server.APIStatus'
-      summary: List updates
+      summary: Update a specific update
       tags:
       - updates
     post:

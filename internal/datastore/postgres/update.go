@@ -3,8 +3,11 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/ayinke-llc/malak"
+	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
@@ -16,6 +19,36 @@ func NewUpdatesRepository(db *bun.DB) malak.UpdateRepository {
 	return &updatesRepo{
 		inner: db,
 	}
+}
+
+func (u *updatesRepo) Get(ctx context.Context,
+	opts malak.FetchUpdateOptions) (*malak.Update, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	update := &malak.Update{}
+
+	sel := u.inner.NewSelect().Model(update)
+
+	if !util.IsStringEmpty(opts.Reference.String()) {
+		sel = sel.Where("reference = ?", opts.Reference)
+	}
+
+	if opts.ID != uuid.Nil {
+		sel = sel.Where("id = ?", opts.ID)
+	}
+
+	if opts.Status.IsValid() {
+		sel = sel.Where("status = ?", opts.Status)
+	}
+
+	err := sel.Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = malak.ErrUpdateNotFound
+	}
+
+	return update, err
 }
 
 func (u *updatesRepo) Create(ctx context.Context,

@@ -305,32 +305,21 @@
                 "tags": [
                     "updates"
                 ],
-                "summary": "List updates",
+                "summary": "Update a specific update",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Page to query data from. Defaults to 1",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Number to items to return. Defaults to 10 items",
-                        "name": "per_page",
-                        "in": "query"
-                    },
-                    {
                         "type": "string",
-                        "description": "filter results by the status of the update.",
-                        "name": "status",
-                        "in": "query"
+                        "description": "update unique reference.. e.g update_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.listUpdateResponse"
+                            "$ref": "#/definitions/server.APIStatus"
                         }
                     },
                     "400": {

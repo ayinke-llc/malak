@@ -54,6 +54,21 @@ func (mr *MockUpdateRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUpdateRepository)(nil).Create), arg0, arg1)
 }
 
+// Get mocks base method.
+func (m *MockUpdateRepository) Get(arg0 context.Context, arg1 malak.FetchUpdateOptions) (*malak.Update, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret0, _ := ret[0].(*malak.Update)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockUpdateRepositoryMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUpdateRepository)(nil).Get), arg0, arg1)
+}
+
 // List mocks base method.
 func (m *MockUpdateRepository) List(arg0 context.Context, arg1 malak.ListUpdateOptions) ([]malak.Update, error) {
 	m.ctrl.T.Helper()

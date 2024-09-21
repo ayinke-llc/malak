@@ -38,14 +38,10 @@ const NovelEditor = ({ reference }: EditorProps) => {
 
   const [saveStatus, setSaveStatus] = useState<"Saved" | "Unsaved">("Saved");
   const [charsCount, setCharsCount] = useState();
-
   const [openNode, setOpenNode] = useState(false);
   const [openColor, setOpenColor] = useState(false);
   const [openLink, setOpenLink] = useState(false);
   const [openAI, setOpenAI] = useState(false);
-
-  // Let the user actually type a bunch of stuff before we create the update
-  const [isCreated, setIsCreated] = useState<boolean>(false)
 
   const debouncedUpdates = useDebouncedCallback(async (editor: EditorInstance) => {
 

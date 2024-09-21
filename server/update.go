@@ -2,11 +2,13 @@ package server
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -131,4 +133,76 @@ func (u *updatesHandler) list(
 			},
 		},
 	}, StatusSuccess
+}
+
+type contentUpdateRequest struct {
+	Update malak.UpdateContent `json:"update,omitempty" validate:"required"`
+	GenericRequest
+}
+
+func (c *contentUpdateRequest) Validate() error {
+	if util.IsStringEmpty(string(c.Update)) {
+		return errors.New("pleae provide the content")
+	}
+
+	return nil
+}
+
+// @Summary Update a specific update
+// @Tags updates
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "update unique reference.. e.g update_"
+// @Param message body contentUpdateRequest true "update content body"
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/updates [get]
+func (u *updatesHandler) update(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	ref := chi.URLParam(r, "reference")
+
+	span.SetAttributes(attribute.String("reference", ref))
+
+	logger = logger.With(zap.String("reference", ref))
+
+	logger.Debug("Updating specific update")
+
+	req := new(contentUpdateRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	update, err := u.updateRepo.Get(ctx, malak.FetchUpdateOptions{
+		Reference: malak.Reference(ref),
+	})
+	if errors.Is(err, malak.ErrUpdateNotFound) {
+		return newAPIStatus(http.StatusNotFound,
+			"update does not exists"), StatusFailed
+	}
+
+	if err != nil {
+		logger.Error("could not fetch update", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"an error occurred while fetching update"), StatusFailed
+	}
+
+	update.Content = req.Update
+
+	// if err := u.updateRepo.
+
+	return newAPIStatus(http.StatusCreated,
+		"updates fetched"), StatusSuccess
 }

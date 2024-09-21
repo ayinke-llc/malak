@@ -32,9 +32,6 @@ func (u *updatesHandler) uploadImage(
 
 	logger.Debug("file uploaded using Gulter")
 
-	// user := getUserFromContext(r.Context())
-	// workspace := getWorkspaceFromContext(r.Context())
-
 	files, err := gulter.FilesFromContextWithKey(r, "image_body")
 	if err != nil {
 		logger.Error("could not fetch gulter uploaded files", zap.Error(err))
