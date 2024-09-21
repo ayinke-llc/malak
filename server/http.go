@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/adelowo/gulter"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
@@ -24,11 +25,12 @@ func New(logger *zap.Logger,
 	db *bun.DB,
 	jwtTokenManager jwttoken.JWTokenManager,
 	googleAuthProvider socialauth.SocialAuthProvider,
-	mid *httplimit.Middleware) (*http.Server, func()) {
+	mid *httplimit.Middleware, gulterHandler *gulter.Gulter) (*http.Server, func()) {
 
 	srv := &http.Server{
-		Handler: buildRoutes(logger, db, cfg, jwtTokenManager, googleAuthProvider, mid),
-		Addr:    fmt.Sprintf(":%d", cfg.HTTP.Port),
+		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
+			googleAuthProvider, mid, gulterHandler),
+		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
 	cleanupOtelResources := initOTELCapabilities(cfg, logger)
@@ -61,7 +63,9 @@ func buildRoutes(
 	cfg config.Config,
 	jwtTokenManager jwttoken.JWTokenManager,
 	googleAuthProvider socialauth.SocialAuthProvider,
-	mid *httplimit.Middleware) http.Handler {
+	ratelimiterMiddleware *httplimit.Middleware,
+	gulterHandler *gulter.Gulter,
+) http.Handler {
 
 	userRepo := postgres.NewUserRepository(db)
 	workspaceRepo := postgres.NewWorkspaceRepository(db)
@@ -97,14 +101,18 @@ func buildRoutes(
 	updateHandler := &updatesHandler{
 		referenceGenerator: referenceGenerator,
 		updateRepo:         updateRepo,
+		cfg:                cfg,
 	}
 
 	router.Use(middleware.RequestID)
 	router.Use(writeRequestIDHeader)
-	router.Use(middleware.AllowContentType("application/json"))
-	router.Use(otelchi.Middleware("malak.server", otelchi.WithChiRoutes(router)))
+	router.Use(
+		middleware.AllowContentType("application/json", "multipart/form-data"))
+	router.Use(
+		otelchi.Middleware("malak.server",
+			otelchi.WithChiRoutes(router)))
 	router.Use(jsonResponse)
-	router.Use(mid.Handle)
+	router.Use(ratelimiterMiddleware.Handle)
 
 	router.Route("/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
@@ -127,6 +135,7 @@ func buildRoutes(
 				WrapMalakHTTPHandler(logger, workspaceHandler.switchCurrentWorkspaceForUser, cfg, "workspaces.switch"))
 
 			r.Route("/updates", func(r chi.Router) {
+
 				r.Post("/",
 					WrapMalakHTTPHandler(logger, updateHandler.create, cfg, "updates.new"))
 				r.Get("/",
@@ -138,6 +147,14 @@ func buildRoutes(
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, contactHandler.Create, cfg, "contacts.create"))
+		})
+
+		r.Route("/images", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(gulterHandler.Upload("image_body"))
+
+			r.Post("/upload",
+				WrapMalakHTTPHandler(logger, updateHandler.uploadImage, cfg, "updates.image_upload"))
 		})
 	})
 

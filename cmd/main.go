@@ -111,6 +111,10 @@ func setDefaults() {
 	viper.SetDefault("database.postgres.dsn", "postgres://malak:malak@localhost:9432/malak?sslmode=disable")
 	viper.SetDefault("database.postgres.query_timeout", time.Second*5)
 
+	viper.SetDefault("uploader.driver", config.UploadDriverS3)
+	viper.SetDefault("uploader.max_upload_size", 10<<20) // 10MB
+	viper.SetDefault("uploader.s3.use_tls", true)
+
 	viper.SetDefault("otel.is_enabled", true)
 	viper.SetDefault("otel.use_tls", false)
 	viper.SetDefault("otel.service_name", "makal")

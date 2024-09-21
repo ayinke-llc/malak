@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/ayinke-llc/malak"
+	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/render"
 	"go.opentelemetry.io/otel/attribute"
@@ -15,6 +16,7 @@ import (
 type updatesHandler struct {
 	referenceGenerator malak.ReferenceGeneratorOperation
 	updateRepo         malak.UpdateRepository
+	cfg                config.Config
 }
 
 // @Summary Create a new update

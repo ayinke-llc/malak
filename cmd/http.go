@@ -2,14 +2,22 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
 	"syscall"
 	"time"
 
+	"github.com/adelowo/gulter"
+	"github.com/adelowo/gulter/storage"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	awsCreds "github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
@@ -127,14 +135,78 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 					zap.Error(err))
 			}
 
+			httpClient := &http.Client{
+				Transport: &http.Transport{
+					TLSClientConfig: &tls.Config{
+						InsecureSkipVerify: !cfg.Uploader.S3.UseTLS,
+					},
+				},
+			}
+
+			s3Config, err := awsConfig.LoadDefaultConfig(
+				context.Background(),
+				awsConfig.WithRegion(cfg.Uploader.S3.Region),
+				awsConfig.WithHTTPClient(httpClient),
+				awsConfig.WithCredentialsProvider(
+					awsCreds.NewStaticCredentialsProvider(
+						cfg.Uploader.S3.AccessKey,
+						cfg.Uploader.S3.AccessSecret,
+						"")),
+				awsConfig.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+					return aws.Endpoint{
+						URL:               cfg.Uploader.S3.Endpoint,
+						SigningRegion:     cfg.Uploader.S3.Region,
+						HostnameImmutable: true,
+					}, nil
+				})),
+			)
+			if err != nil {
+				logger.Fatal("could not set up S3 config",
+					zap.Error(err))
+			}
+
+			s3Store, err := storage.NewS3FromConfig(s3Config, storage.S3Options{
+				Bucket:       cfg.Uploader.S3.Bucket,
+				DebugMode:    cfg.Uploader.S3.LogOperations,
+				UsePathStyle: true,
+			})
+			if err != nil {
+				logger.Fatal("could not set up S3 client",
+					zap.Error(err))
+			}
+
+			gulterHandler, err := gulter.New(
+				gulter.WithMaxFileSize(cfg.Uploader.MaxUploadSize),
+				gulter.WithValidationFunc(gulter.MimeTypeValidator("image/jpeg", "image/png")),
+				gulter.WithStorage(s3Store),
+				gulter.WithIgnoreNonExistentKey(true),
+				gulter.WithErrorResponseHandler(func(err error) http.HandlerFunc {
+					return func(w http.ResponseWriter, _ *http.Request) {
+						logger.Error("could not upload file", zap.Error(err))
+
+						w.Header().Set("Content-Type", "application/json")
+						w.WriteHeader(http.StatusInternalServerError)
+						_ = json.NewEncoder(w).Encode(server.APIStatus{
+							Message: fmt.Sprintf("could not upload file...%s", err.Error()),
+						})
+					}
+				}),
+			)
+			if err != nil {
+				logger.Fatal("could not set up gulter uploader",
+					zap.Error(err))
+			}
+
 			mid, err := httplimit.NewMiddleware(rateLimiterStore, server.HTTPThrottleKeyFunc)
 			if err != nil {
 				logger.Fatal("could not rate limiting middleware",
 					zap.Error(err))
 			}
 
-			srv, cleanupSrv := server.New(logger, util.DeRef(cfg), db,
-				tokenManager, googleAuthProvider, mid)
+			srv, cleanupSrv := server.New(logger,
+				util.DeRef(cfg), db,
+				tokenManager, googleAuthProvider,
+				mid, gulterHandler)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {
