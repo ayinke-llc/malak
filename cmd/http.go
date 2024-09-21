@@ -152,7 +152,9 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 						cfg.Uploader.S3.AccessKey,
 						cfg.Uploader.S3.AccessSecret,
 						"")),
+				//nolint:staticcheck
 				awsConfig.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+					//nolint:staticcheck
 					return aws.Endpoint{
 						URL:               cfg.Uploader.S3.Endpoint,
 						SigningRegion:     cfg.Uploader.S3.Region,
