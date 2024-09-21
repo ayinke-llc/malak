@@ -8,6 +8,7 @@ import (
 	"github.com/adelowo/gulter"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	_ "github.com/ayinke-llc/malak/docs"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
@@ -16,6 +17,7 @@ import (
 	"github.com/riandyrn/otelchi"
 	"github.com/rs/cors"
 	"github.com/sethvargo/go-limiter/httplimit"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"github.com/uptrace/bun"
 	"go.uber.org/zap"
 )
@@ -66,6 +68,20 @@ func buildRoutes(
 	ratelimiterMiddleware *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
 ) http.Handler {
+
+	if cfg.HTTP.Swagger.UIEnabled {
+		go func() {
+			r := chi.NewRouter()
+
+			r.Get("/swagger/*", httpSwagger.Handler(
+				httpSwagger.URL(fmt.Sprintf("http://localhost:%d/swagger/doc.json", cfg.HTTP.Swagger.Port)),
+			))
+
+			if err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.HTTP.Swagger.Port), r); err != nil {
+				logger.Error("error with swagger server", zap.Error(err))
+			}
+		}()
+	}
 
 	userRepo := postgres.NewUserRepository(db)
 	workspaceRepo := postgres.NewWorkspaceRepository(db)

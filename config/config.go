@@ -57,6 +57,10 @@ type Config struct {
 			RequestsPerMinute uint64          `yaml:"requests_per_minute" mapstructure:"requests_per_minute"`
 			BurstInterval     time.Duration   `yaml:"burst_interval" mapstructure:"burst_interval"`
 		} `yaml:"rate_limit" mapstructure:"rate_limit"`
+		Swagger struct {
+			Port      int  `mapstructure:"port" yaml:"port"`
+			UIEnabled bool `mapstructure:"ui_enabled" yaml:"ui_enabled"`
+		} `mapstructure:"swagger" yaml:"swagger"`
 	} `yaml:"http" mapstructure:"http"`
 
 	Billing struct {
