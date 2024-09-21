@@ -232,6 +232,6 @@ func (u *updatesHandler) update(
 			"could not update content"), StatusFailed
 	}
 
-	return newAPIStatus(http.StatusCreated,
+	return newAPIStatus(http.StatusOK,
 		"updates stored"), StatusSuccess
 }
