@@ -2,14 +2,19 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
 	"syscall"
 	"time"
 
+	"github.com/adelowo/gulter"
+	"github.com/adelowo/gulter/storage"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	awsCreds "github.com/aws/aws-sdk-go-v2/credentials"
@@ -17,7 +22,6 @@ import (
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
-	"github.com/ayinke-llc/malak/internal/pkg/uploader"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/ayinke-llc/malak/server"
 	redisotel "github.com/redis/go-redis/extra/redisotel/v9"
@@ -131,28 +135,66 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 					zap.Error(err))
 			}
 
-			resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-				return aws.Endpoint{
-					URL: cfg.Uploader.S3.Endpoint,
-				}, nil
-			})
+			httpClient := &http.Client{
+				Transport: &http.Transport{
+					TLSClientConfig: &tls.Config{
+						InsecureSkipVerify: !cfg.Uploader.S3.UseTLS,
+					},
+				},
+			}
 
 			s3Config, err := awsConfig.LoadDefaultConfig(
 				context.Background(),
-				awsConfig.WithEndpointResolverWithOptions(resolver),
 				awsConfig.WithRegion(cfg.Uploader.S3.Region),
+				awsConfig.WithHTTPClient(httpClient),
 				awsConfig.WithCredentialsProvider(
 					awsCreds.NewStaticCredentialsProvider(
 						cfg.Uploader.S3.AccessKey,
 						cfg.Uploader.S3.AccessSecret,
 						"")),
+				awsConfig.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+					return aws.Endpoint{
+						URL:               cfg.Uploader.S3.Endpoint,
+						SigningRegion:     cfg.Uploader.S3.Region,
+						HostnameImmutable: true,
+					}, nil
+				})),
 			)
+			if err != nil {
+				logger.Fatal("could not set up S3 config",
+					zap.Error(err))
+			}
 
-			uploadHandler, err := uploader.NewS3FromConfig(s3Config, uploader.S3Options{
-				Bucket: cfg.Uploader.S3.Bucket,
+			s3Store, err := storage.NewS3FromConfig(s3Config, storage.S3Options{
+				Bucket:       cfg.Uploader.S3.Bucket,
+				DebugMode:    cfg.Uploader.S3.LogOperations,
+				UsePathStyle: true,
 			})
 			if err != nil {
-				logger.Fatal("could not setup s3 client", zap.Error(err))
+				logger.Fatal("could not set up S3 client",
+					zap.Error(err))
+			}
+
+			gulterHandler, err := gulter.New(
+				gulter.WithMaxFileSize(cfg.Uploader.MaxUploadSize),
+				gulter.WithValidationFunc(gulter.MimeTypeValidator("image/jpeg", "image/png")),
+				gulter.WithStorage(s3Store),
+				gulter.WithIgnoreNonExistentKey(true),
+				gulter.WithErrorResponseHandler(func(err error) http.HandlerFunc {
+					return func(w http.ResponseWriter, _ *http.Request) {
+						logger.Error("could not upload file", zap.Error(err))
+
+						w.Header().Set("Content-Type", "application/json")
+						w.WriteHeader(http.StatusInternalServerError)
+						json.NewEncoder(w).Encode(server.APIStatus{
+							Message: fmt.Sprintf("could not upload file...%s", err.Error()),
+						})
+					}
+				}),
+			)
+			if err != nil {
+				logger.Fatal("could not set up gulter uploader",
+					zap.Error(err))
 			}
 
 			mid, err := httplimit.NewMiddleware(rateLimiterStore, server.HTTPThrottleKeyFunc)
@@ -164,7 +206,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			srv, cleanupSrv := server.New(logger,
 				util.DeRef(cfg), db,
 				tokenManager, googleAuthProvider,
-				mid, uploadHandler)
+				mid, gulterHandler)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {

@@ -76,14 +76,19 @@ type Config struct {
 	} `yaml:"billing" mapstructure:"billing"`
 
 	Uploader struct {
-		Driver UploadDriver `yaml:"driver" mapstructure:"driver"`
+		Driver        UploadDriver `yaml:"driver" mapstructure:"driver"`
+		MaxUploadSize int64        `yaml:"max_upload_size" mapstructure:"max_upload_size"`
 
 		S3 struct {
-			AccessKey    string `yaml:"access_key" mapstructure:"access_key"`
-			AccessSecret string `yaml:"access_secret" mapstructure:"access_secret"`
-			Region       string `yaml:"region" mapstructure:"region"`
-			Endpoint     string `yaml:"endpoint" mapstructure:"endpoint"`
-			Bucket       string `yaml:"bucket" mapstructure:"bucket"`
+			AccessKey     string `yaml:"access_key" mapstructure:"access_key"`
+			AccessSecret  string `yaml:"access_secret" mapstructure:"access_secret"`
+			Region        string `yaml:"region" mapstructure:"region"`
+			Endpoint      string `yaml:"endpoint" mapstructure:"endpoint"`
+			LogOperations bool   `yaml:"log_operations" mapstructure:"log_operations"`
+			Bucket        string `yaml:"bucket" mapstructure:"bucket"`
+			// Enabled by default but you can disable this if running
+			// your own internal Minio or something
+			UseTLS bool `yaml:"use_tls" mapstructure:"use_tls"`
 		} `yaml:"s3" mapstructure:"s3"`
 	} `yaml:"uploader" mapstructure:"uploader"`
 
