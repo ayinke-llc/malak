@@ -27,7 +27,7 @@ jobs:
         run: go mod download && go mod verify
 
       - name: Build app to make sure there are zero issues
-        run: go build -o malak ./go.yml
+        run: go build -o malak
 
       - name: Run go generate
         run: go generate ./...
