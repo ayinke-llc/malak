@@ -99,3 +99,13 @@ func (u *updatesRepo) List(ctx context.Context,
 
 	return updates, err
 }
+
+func (u *updatesRepo) Delete(ctx context.Context,
+	update *malak.Update) error {
+
+	_, err := u.inner.NewDelete().Model(update).
+		Where("id = ?", update.ID).
+		Exec(ctx)
+
+	return err
+}

@@ -9,6 +9,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestUpdates_Delete(t *testing.T) {
+
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	updatesRepo := NewUpdatesRepository(client)
+	id := uuid.MustParse("0902ef67-903e-47b8-8f9d-111a9e0ca0c7")
+
+	// workspaces.yml testdata
+	updateByID, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
+		ID: id,
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, updatesRepo.Delete(context.Background(), updateByID))
+
+	_, err = updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
+		ID: id,
+	})
+	require.Error(t, err)
+	require.Equal(t, malak.ErrUpdateNotFound, err)
+}
+
 func TestUpdates_Update(t *testing.T) {
 
 	client, teardownFunc := setupDatabase(t)

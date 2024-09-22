@@ -4,29 +4,38 @@ import { Divider } from "@/components/Divider";
 import { RiDeleteBin2Line, RiFileCopyLine, RiMoreLine, RiPushpinLine } from "@remixicon/react";
 import UpdateBadge from "../../custom/update/badge";
 import {
-  Dialog, DialogTrigger, DialogContent, DialogTitle,
-  DialogHeader, DialogFooter, DialogDescription,
-  DialogClose
+  Dialog, DialogContent, DialogTitle,
+  DialogHeader, DialogFooter, DialogDescription
 } from "@/components/Dialog";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/Popover";
 import { useMutation } from "@tanstack/react-query";
-import { DUPLICATE_UPDATE } from "@/lib/query-constants";
+import { DELETE_UPDATE, DUPLICATE_UPDATE } from "@/lib/query-constants";
 import { useState } from "react";
 import client from "@/lib/client";
 import { AxiosError, AxiosResponse } from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
+import { EVENT_UPDATE_DELETE, EVENT_UPDATE_DUPLICATE } from "@/lib/analytics-constansts";
 
 const SingleUpdate = (update: MalakUpdate) => {
 
   const [loading, setLoading] = useState<boolean>(false)
+  const [deleted, setDeleted] = useState<boolean>(false)
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState<boolean>(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false)
 
   const router = useRouter()
+
+  const posthog = usePostHog()
 
   const duplicateMutation = useMutation({
     mutationKey: [DUPLICATE_UPDATE],
     retry: false,
     gcTime: Infinity,
+    onMutate: () => {
+      posthog?.capture(EVENT_UPDATE_DUPLICATE)
+    },
     onSettled: () => setLoading(false),
     mutationFn: (reference: string) => client.workspaces.duplicateUpdate(reference),
     onError(err: AxiosError<ServerAPIStatus>) {
@@ -37,10 +46,39 @@ const SingleUpdate = (update: MalakUpdate) => {
       toast.error(msg)
     },
     onSuccess: (resp: AxiosResponse<ServerCreatedUpdateResponse>) => {
-      toast.success("update has been duplicated")
+      toast.success(resp.data.message)
+      setDuplicateDialogOpen(false)
       router.push(`/updates/${resp.data.update.reference}`)
     }
   })
+
+  const deletionMutation = useMutation({
+    mutationKey: [DELETE_UPDATE],
+    retry: false,
+    gcTime: Infinity,
+    onMutate: () => {
+      posthog?.capture(EVENT_UPDATE_DELETE)
+    },
+    onSettled: () => setLoading(false),
+    mutationFn: (reference: string) => client.workspaces.deleteUpdate(reference),
+    onError(err: AxiosError<ServerAPIStatus>) {
+      let msg = err.message
+      if (err.response !== undefined) {
+        msg = err.response.data.message
+      }
+      toast.error(msg)
+    },
+    onSuccess: (resp: AxiosResponse<ServerAPIStatus>) => {
+      setDeleteDialogOpen(false)
+      setDeleted(true)
+      toast.success(resp.data.message)
+    }
+  })
+
+  if (deleted) {
+    // essentially remove it from the list
+    return null
+  }
 
   return (
     <>
@@ -64,16 +102,17 @@ const SingleUpdate = (update: MalakUpdate) => {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-40 p-0">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start rounded-none px-2 py-1.5 text-sm"
-                  >
-                    <RiFileCopyLine className="mr-2 h-4 w-4" />
-                    Duplicate
-                  </Button>
-                </DialogTrigger>
+              <Dialog open={duplicateDialogOpen}>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start rounded-none px-2 py-1.5 text-sm"
+                  onClick={() => {
+                    setDuplicateDialogOpen(true)
+                  }}
+                >
+                  <RiFileCopyLine className="mr-2 h-4 w-4" />
+                  Duplicate
+                </Button>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Duplicate update</DialogTitle>
@@ -83,13 +122,15 @@ const SingleUpdate = (update: MalakUpdate) => {
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter className="mt-4">
-                    <DialogClose asChild>
-                      <Button
-                        variant="secondary"
-                        isLoading={loading}>
-                        Cancel
-                      </Button>
-                    </DialogClose>
+                    <Button
+                      variant="secondary"
+                      isLoading={loading}
+                      onClick={() => {
+                        setDuplicateDialogOpen(false)
+                      }}
+                    >
+                      Cancel
+                    </Button>
                     <Button
                       loadingText="Duplicating"
                       isLoading={loading}
@@ -102,16 +143,17 @@ const SingleUpdate = (update: MalakUpdate) => {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start rounded-none px-2 py-1.5 text-sm text-red-600"
-                  >
-                    <RiDeleteBin2Line className="mr-2 h-4 w-4" />
-                    Delete
-                  </Button>
-                </DialogTrigger>
+              <Dialog open={deleteDialogOpen}>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start rounded-none px-2 py-1.5 text-sm text-red-600"
+                  onClick={() => {
+                    setDeleteDialogOpen(true)
+                  }}
+                >
+                  <RiDeleteBin2Line className="mr-2 h-4 w-4" />
+                  Delete
+                </Button>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Confirm Deletion</DialogTitle>
@@ -120,10 +162,22 @@ const SingleUpdate = (update: MalakUpdate) => {
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter className="mt-4">
-                    <DialogClose asChild>
-                      <Button variant="secondary">Cancel</Button>
-                    </DialogClose>
-                    <Button variant="destructive">Delete</Button>
+                    <Button
+                      variant="secondary"
+                      isLoading={loading}
+                      onClick={() => {
+                        setDeleteDialogOpen(false)
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button variant="destructive"
+                      loadingText="Deleting"
+                      isLoading={loading}
+                      onClick={() => {
+                        setLoading(true)
+                        deletionMutation.mutate(update.reference as string)
+                      }}>Delete</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
