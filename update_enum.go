@@ -49,6 +49,40 @@ func ParseListUpdateFilterStatus(name string) (ListUpdateFilterStatus, error) {
 }
 
 const (
+	// UpdatePinStatusPinned is a UpdatePinStatus of type pinned.
+	UpdatePinStatusPinned UpdatePinStatus = "pinned"
+	// UpdatePinStatusUnpinned is a UpdatePinStatus of type unpinned.
+	UpdatePinStatusUnpinned UpdatePinStatus = "unpinned"
+)
+
+var ErrInvalidUpdatePinStatus = errors.New("not a valid UpdatePinStatus")
+
+// String implements the Stringer interface.
+func (x UpdatePinStatus) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x UpdatePinStatus) IsValid() bool {
+	_, err := ParseUpdatePinStatus(string(x))
+	return err == nil
+}
+
+var _UpdatePinStatusValue = map[string]UpdatePinStatus{
+	"pinned":   UpdatePinStatusPinned,
+	"unpinned": UpdatePinStatusUnpinned,
+}
+
+// ParseUpdatePinStatus attempts to convert a string to a UpdatePinStatus.
+func ParseUpdatePinStatus(name string) (UpdatePinStatus, error) {
+	if x, ok := _UpdatePinStatusValue[name]; ok {
+		return x, nil
+	}
+	return UpdatePinStatus(""), fmt.Errorf("%s is %w", name, ErrInvalidUpdatePinStatus)
+}
+
+const (
 	// UpdateSendScheduleScheduled is a UpdateSendSchedule of type scheduled.
 	UpdateSendScheduleScheduled UpdateSendSchedule = "scheduled"
 	// UpdateSendScheduleCancelled is a UpdateSendSchedule of type cancelled.

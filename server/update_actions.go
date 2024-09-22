@@ -130,3 +130,56 @@ func (u *updatesHandler) delete(
 			"update has been deleted"),
 		StatusSuccess
 }
+
+// @Tags updates
+// @Summary Toggle pinned status a specific update
+// @id pinUpdate
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "update unique reference.. e.g update_"
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/updates/{reference}/pin [post]
+func (u *updatesHandler) togglePinned(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	ref := chi.URLParam(r, "reference")
+
+	span.SetAttributes(attribute.String("reference", ref))
+
+	logger = logger.With(zap.String("reference", ref))
+
+	logger.Debug("Deleting update")
+
+	update, err := u.updateRepo.Get(ctx, malak.FetchUpdateOptions{
+		Reference: malak.Reference(ref),
+	})
+	if errors.Is(err, malak.ErrUpdateNotFound) {
+		return newAPIStatus(http.StatusNotFound,
+			"update does not exists"), StatusFailed
+	}
+
+	if err != nil {
+		logger.Error("could not fetch update", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"an error occurred while fetching update"), StatusFailed
+	}
+
+	if err := u.updateRepo.Delete(ctx, update); err != nil {
+		logger.Error("could not create updates", zap.Error(err))
+
+		return newAPIStatus(http.StatusInternalServerError,
+			"could not create updates"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK,
+			"update has been deleted"),
+		StatusSuccess
+}
