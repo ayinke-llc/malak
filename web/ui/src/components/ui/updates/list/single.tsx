@@ -23,6 +23,7 @@ const SingleUpdate = (update: MalakUpdate) => {
 
   const [loading, setLoading] = useState<boolean>(false)
   const [deleted, setDeleted] = useState<boolean>(false)
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState<boolean>(false)
 
   const router = useRouter()
 
@@ -46,6 +47,7 @@ const SingleUpdate = (update: MalakUpdate) => {
     },
     onSuccess: (resp: AxiosResponse<ServerCreatedUpdateResponse>) => {
       toast.success(resp.data.message)
+      setDuplicateDialogOpen(false)
       router.push(`/updates/${resp.data.update.reference}`)
     }
   })
@@ -99,16 +101,17 @@ const SingleUpdate = (update: MalakUpdate) => {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-40 p-0">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start rounded-none px-2 py-1.5 text-sm"
-                  >
-                    <RiFileCopyLine className="mr-2 h-4 w-4" />
-                    Duplicate
-                  </Button>
-                </DialogTrigger>
+              <Dialog open={duplicateDialogOpen}>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start rounded-none px-2 py-1.5 text-sm"
+                  onClick={() => {
+                    setDuplicateDialogOpen(true)
+                  }}
+                >
+                  <RiFileCopyLine className="mr-2 h-4 w-4" />
+                  Duplicate
+                </Button>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Duplicate update</DialogTitle>
@@ -118,13 +121,15 @@ const SingleUpdate = (update: MalakUpdate) => {
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter className="mt-4">
-                    <DialogClose asChild>
-                      <Button
-                        variant="secondary"
-                        isLoading={loading}>
-                        Cancel
-                      </Button>
-                    </DialogClose>
+                    <Button
+                      variant="secondary"
+                      isLoading={loading}
+                      onClick={() => {
+                        setDuplicateDialogOpen(false)
+                      }}
+                    >
+                      Cancel
+                    </Button>
                     <Button
                       loadingText="Duplicating"
                       isLoading={loading}
