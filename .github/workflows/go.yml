@@ -54,7 +54,7 @@ jobs:
 
       - name: Run tests with coverage
         ## skip generated files, tools/ folder which is really just a bunch of scripts. Also skips package main
-        run: go test `go list ./... | grep -v ./mocks | grep -v ./tools | grep -v ./swagger | grep -v ./cmd` -v -tags integration ./... -coverprofile=coverage.txt
+        run: go test $(go list ./... | grep -v -E '/(mocks|tools|swagger|cmd|deployment)/') -v -tags integration -coverprofile=coverage.txt -covermode=atomic
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
