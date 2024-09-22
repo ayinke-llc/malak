@@ -22,9 +22,6 @@ type ListUpdateFilterStatus string
 // ENUM(scheduled,cancelled,sent,failed)
 type UpdateSendSchedule string
 
-// ENUM(pinned,unpinned)
-type UpdatePinStatus string
-
 type UpdateContent string
 
 type UpdateMetadata struct {

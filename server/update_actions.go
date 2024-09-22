@@ -156,7 +156,7 @@ func (u *updatesHandler) togglePinned(
 
 	logger = logger.With(zap.String("reference", ref))
 
-	logger.Debug("Deleting update")
+	logger.Debug("Toggling update's pin status")
 
 	update, err := u.updateRepo.Get(ctx, malak.FetchUpdateOptions{
 		Reference: malak.Reference(ref),
@@ -172,14 +172,33 @@ func (u *updatesHandler) togglePinned(
 			"an error occurred while fetching update"), StatusFailed
 	}
 
-	if err := u.updateRepo.Delete(ctx, update); err != nil {
-		logger.Error("could not create updates", zap.Error(err))
-
+	pinned, err := u.pinnedUpdateRepo.Get(ctx, malak.FetchPinnedUpdate{
+		UpdateID: update.ID,
+	})
+	if err != nil && !errors.Is(err, malak.ErrPinnedUpdateNotExists) {
+		logger.Error("could not fetch pinned updates", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError,
-			"could not create updates"), StatusFailed
+			"an error occurred while fetching pinned updates"), StatusFailed
 	}
 
-	return newAPIStatus(http.StatusOK,
-			"update has been deleted"),
-		StatusSuccess
+	var status = malak.PinStatePin
+	if pinned != nil {
+		status = malak.PinStateUnpin
+	}
+
+	if err := u.pinnedUpdateRepo.Pin(
+		ctx, update, status, getUserFromContext(ctx)); err != nil {
+
+		logger.Error("could not toggle pinned status of update",
+			zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"could not toggle pinned status"), StatusFailed
+	}
+
+	var msg = "update has been pinned"
+	if status == malak.PinStateUnpin {
+		msg = "update has been unpinned"
+	}
+
+	return newAPIStatus(http.StatusOK, msg), StatusSuccess
 }
