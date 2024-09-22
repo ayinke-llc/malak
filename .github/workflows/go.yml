@@ -40,6 +40,8 @@ jobs:
 
       - name: Check for uncommitted changes
         run: |
+          ## binary from the go build step
+          rm malak
           if [[ -n $(git status --porcelain) ]]; then
             echo "There are uncommitted changes after running 'go generate':"
             echo "Run go generate ./... locally then commit again"
