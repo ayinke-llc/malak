@@ -12,11 +12,14 @@ import { useRouter } from "next/navigation"
 import useAuthStore from "@/store/auth"
 import { AxiosResponse } from "axios"
 import { toast } from "sonner"
+import { usePostHog } from "posthog-js/react"
+import { EVENT_LOGIN_BUTTON_CLICKED } from "@/lib/analytics-constansts"
 
 export default function Login() {
 
   const router = useRouter()
   const { setUser, setToken } = useAuthStore()
+  const posthog = usePostHog()
 
   const mutation = useMutation({
     mutationFn: ({ code }: { code: string }) => {
@@ -29,6 +32,7 @@ export default function Login() {
       toast.error(err.data.message)
     },
     onSuccess: (resp: AxiosResponse<ServerCreatedUserResponse>) => {
+      posthog?.identify(resp.data.user.id)
       setUser(resp.data.user)
       setToken(resp.data.token)
       router.push("/")
@@ -46,6 +50,9 @@ export default function Login() {
   });
 
   const loginWithGoogle = () => {
+    posthog?.capture(EVENT_LOGIN_BUTTON_CLICKED, {
+      auth: "google"
+    })
     googleLogin()
   }
 
