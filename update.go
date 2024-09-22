@@ -126,4 +126,5 @@ type UpdateRepository interface {
 	Update(context.Context, *Update) error
 	Get(context.Context, FetchUpdateOptions) (*Update, error)
 	List(context.Context, ListUpdateOptions) ([]Update, error)
+	Delete(context.Context, *Update) error
 }
