@@ -16,11 +16,10 @@ import (
 
 // @Summary Duplicate a specific update
 // @Tags updates
-// @id duplicateContent
+// @id duplicateUpdate
 // @Accept  json
 // @Produce  json
 // @Param reference path string required "update unique reference.. e.g update_"
-// @Param message body contentUpdateRequest true "update content body"
 // @Success 200 {object} createdUpdateResponse
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus

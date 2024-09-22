@@ -1,5 +1,5 @@
-import { MalakUpdate } from "@/client/Api";
 import { Button } from "@/components/Button";
+import { MalakUpdate, ServerAPIStatus, ServerCreatedUpdateResponse } from "@/client/Api";
 import { Divider } from "@/components/Divider";
 import { RiDeleteBin2Line, RiFileCopyLine, RiMoreLine, RiPushpinLine } from "@remixicon/react";
 import UpdateBadge from "../../custom/update/badge";
@@ -9,8 +9,39 @@ import {
   DialogClose
 } from "@/components/Dialog";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/Popover";
+import { useMutation } from "@tanstack/react-query";
+import { DUPLICATE_UPDATE } from "@/lib/query-constants";
+import { useState } from "react";
+import client from "@/lib/client";
+import { AxiosError, AxiosResponse } from "axios";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const SingleUpdate = (update: MalakUpdate) => {
+
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const router = useRouter()
+
+  const duplicateMutation = useMutation({
+    mutationKey: [DUPLICATE_UPDATE],
+    retry: false,
+    gcTime: Infinity,
+    onSettled: () => setLoading(false),
+    mutationFn: (reference: string) => client.workspaces.duplicateUpdate(reference),
+    onError(err: AxiosError<ServerAPIStatus>) {
+      let msg = err.message
+      if (err.response !== undefined) {
+        msg = err.response.data.message
+      }
+      toast.error(msg)
+    },
+    onSuccess: (resp: AxiosResponse<ServerCreatedUpdateResponse>) => {
+      toast.success("update has been duplicated")
+      router.push(`/updates/${resp.data.update.reference}`)
+    }
+  })
+
   return (
     <>
       <div key={update.id}
@@ -53,9 +84,21 @@ const SingleUpdate = (update: MalakUpdate) => {
                   </DialogHeader>
                   <DialogFooter className="mt-4">
                     <DialogClose asChild>
-                      <Button variant="secondary">Cancel</Button>
+                      <Button
+                        variant="secondary"
+                        isLoading={loading}>
+                        Cancel
+                      </Button>
                     </DialogClose>
-                    <Button>Confirm</Button>
+                    <Button
+                      loadingText="Duplicating"
+                      isLoading={loading}
+                      onClick={() => {
+                        setLoading(true)
+                        duplicateMutation.mutate(update.reference as string)
+                      }}>
+                      Duplicate
+                    </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>

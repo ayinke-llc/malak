@@ -653,19 +653,13 @@ paths:
     post:
       consumes:
       - application/json
-      operationId: duplicateContent
+      operationId: duplicateUpdate
       parameters:
       - description: update unique reference.. e.g update_
         in: path
         name: reference
         required: true
         type: string
-      - description: update content body
-        in: body
-        name: message
-        required: true
-        schema:
-          $ref: '#/definitions/server.contentUpdateRequest'
       produces:
       - application/json
       responses:

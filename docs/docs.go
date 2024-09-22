@@ -485,7 +485,7 @@ const docTemplate = `{
                     "updates"
                 ],
                 "summary": "Duplicate a specific update",
-                "operationId": "duplicateContent",
+                "operationId": "duplicateUpdate",
                 "parameters": [
                     {
                         "type": "string",
@@ -493,15 +493,6 @@ const docTemplate = `{
                         "name": "reference",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "update content body",
-                        "name": "message",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/server.contentUpdateRequest"
-                        }
                     }
                 ],
                 "responses": {
