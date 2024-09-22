@@ -42,7 +42,7 @@ func TestServer_New(t *testing.T) {
 		cfg := getConfig()
 
 		cfg.HTTP.Swagger.UIEnabled = true
-		cfg.HTTP.Swagger.Port = 9999
+		cfg.HTTP.Swagger.Port = 9990
 
 		srv, closeFn := New(getLogger(t), cfg, &bun.DB{},
 			jwttoken.New(cfg), socialauth.NewGoogle(cfg), &httplimit.Middleware{},
