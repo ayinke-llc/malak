@@ -27,10 +27,26 @@ jobs:
         run: go mod download && go mod verify
 
       - name: Build app to make sure there are zero issues
-        run: go build -o malak ./cmd
+        run: go build -o malak ./go.yml
+
+      - name: Run go generate
+        run: go generate ./...
+
+      - name: Check for uncommitted changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "There are uncommitted changes after running 'go generate':"
+            echo "Run go generate ./... locally then commit again"
+            git status
+            git diff
+            exit 1
+          else
+            echo "No changes detected after running 'go generate'"
+          fi
 
       - name: Run tests with coverage
-        run: go test -v -tags integration ./... -coverprofile=coverage.txt
+        ## skip generated files, tools/ folder which is really just a bunch of scripts. Also skips package main
+        run: go test `go list ./... | grep -v ./mocks | grep -v ./tools | grep -v ./swagger | grep -v ./cmd` -v -tags integration ./... -coverprofile=coverage.txt
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
