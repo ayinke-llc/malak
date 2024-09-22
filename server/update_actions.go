@@ -89,7 +89,7 @@ func (u *updatesHandler) duplicate(
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /workspaces/updates/{reference}/duplicate [post]
+// @Router /workspaces/updates/{reference} [delete]
 func (u *updatesHandler) delete(
 	ctx context.Context,
 	span trace.Span,

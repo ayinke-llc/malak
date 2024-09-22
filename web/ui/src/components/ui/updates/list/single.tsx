@@ -10,18 +10,19 @@ import {
 } from "@/components/Dialog";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/Popover";
 import { useMutation } from "@tanstack/react-query";
-import { DUPLICATE_UPDATE } from "@/lib/query-constants";
+import { DELETE_UPDATE, DUPLICATE_UPDATE } from "@/lib/query-constants";
 import { useState } from "react";
 import client from "@/lib/client";
 import { AxiosError, AxiosResponse } from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { usePostHog } from "posthog-js/react";
-import { EVENT_UPDATE_DUPLICATE } from "@/lib/analytics-constansts";
+import { EVENT_UPDATE_DELETE, EVENT_UPDATE_DUPLICATE } from "@/lib/analytics-constansts";
 
 const SingleUpdate = (update: MalakUpdate) => {
 
   const [loading, setLoading] = useState<boolean>(false)
+  const [deleted, setDeleted] = useState<boolean>(false)
 
   const router = useRouter()
 
@@ -44,10 +45,37 @@ const SingleUpdate = (update: MalakUpdate) => {
       toast.error(msg)
     },
     onSuccess: (resp: AxiosResponse<ServerCreatedUpdateResponse>) => {
-      toast.success("update has been duplicated")
+      toast.success(resp.data.message)
       router.push(`/updates/${resp.data.update.reference}`)
     }
   })
+
+  const deletionMutation = useMutation({
+    mutationKey: [DELETE_UPDATE],
+    retry: false,
+    gcTime: Infinity,
+    onMutate: () => {
+      posthog?.capture(EVENT_UPDATE_DELETE)
+    },
+    onSettled: () => setLoading(false),
+    mutationFn: (reference: string) => client.workspaces.deleteUpdate(reference),
+    onError(err: AxiosError<ServerAPIStatus>) {
+      let msg = err.message
+      if (err.response !== undefined) {
+        msg = err.response.data.message
+      }
+      toast.error(msg)
+    },
+    onSuccess: (resp: AxiosResponse<ServerAPIStatus>) => {
+      toast.success(resp.data.message)
+      setDeleted(true)
+    }
+  })
+
+  if (deleted) {
+    // essentially remove it from the list
+    return null
+  }
 
   return (
     <>
@@ -128,9 +156,19 @@ const SingleUpdate = (update: MalakUpdate) => {
                   </DialogHeader>
                   <DialogFooter className="mt-4">
                     <DialogClose asChild>
-                      <Button variant="secondary">Cancel</Button>
+                      <Button
+                        variant="secondary"
+                        isLoading={loading}>
+                        Cancel
+                      </Button>
                     </DialogClose>
-                    <Button variant="destructive">Delete</Button>
+                    <Button variant="destructive"
+                      loadingText="Deleting"
+                      isLoading={loading}
+                      onClick={() => {
+                        setLoading(true)
+                        deletionMutation.mutate(update.reference as string)
+                      }}>Delete</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
