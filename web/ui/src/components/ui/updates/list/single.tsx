@@ -16,6 +16,8 @@ import client from "@/lib/client";
 import { AxiosError, AxiosResponse } from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
+import { EVENT_UPDATE_DUPLICATE } from "@/lib/analytics-constansts";
 
 const SingleUpdate = (update: MalakUpdate) => {
 
@@ -23,10 +25,15 @@ const SingleUpdate = (update: MalakUpdate) => {
 
   const router = useRouter()
 
+  const posthog = usePostHog()
+
   const duplicateMutation = useMutation({
     mutationKey: [DUPLICATE_UPDATE],
     retry: false,
     gcTime: Infinity,
+    onMutate: () => {
+      posthog?.capture(EVENT_UPDATE_DUPLICATE)
+    },
     onSettled: () => setLoading(false),
     mutationFn: (reference: string) => client.workspaces.duplicateUpdate(reference),
     onError(err: AxiosError<ServerAPIStatus>) {
