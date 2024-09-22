@@ -78,8 +78,8 @@ func (u *updatesHandler) duplicate(
 	}, StatusSuccess
 }
 
-// @Summary Delete a specific update
 // @Tags updates
+// @Summary Delete a specific update
 // @id deleteUpdate
 // @Accept  json
 // @Produce  json
@@ -126,7 +126,7 @@ func (u *updatesHandler) delete(
 			"could not create updates"), StatusFailed
 	}
 
-	return newAPIStatus(http.StatusCreated,
-			"update has been duplicated"),
+	return newAPIStatus(http.StatusOK,
+			"update has been deleted"),
 		StatusSuccess
 }
