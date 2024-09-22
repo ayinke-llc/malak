@@ -30,7 +30,7 @@ jobs:
         run: go build -o malak ./cmd
 
       - name: Run tests with coverage
-        run: go test -v -skip="tools" -tags integration ./... -coverprofile=coverage.txt
+        run: go test -v -tags integration ./... -coverprofile=coverage.txt
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
