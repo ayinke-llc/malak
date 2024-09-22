@@ -60,7 +60,7 @@ z-Signature=6cc3487799e07e2de2681c024a842f81b189fc5968f1ed79b8e7760ef1c3019e
 
 ```
 
-#### Viewing swagger docs
+### Viewing swagger docs
 
 You need to first enable the dev swagger UI with the following config:
 
