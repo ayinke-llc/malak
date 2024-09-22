@@ -29,7 +29,7 @@ func TestServer_New(t *testing.T) {
 		closeFn()
 
 		go func() {
-			srv.ListenAndServe()
+			_ = srv.ListenAndServe()
 		}()
 
 		time.Sleep(time.Second * 2)
@@ -51,7 +51,7 @@ func TestServer_New(t *testing.T) {
 		closeFn()
 
 		go func() {
-			srv.ListenAndServe()
+			_ = srv.ListenAndServe()
 		}()
 
 		time.Sleep(time.Second * 2)
