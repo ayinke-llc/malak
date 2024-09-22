@@ -29,6 +29,12 @@ jobs:
       - name: Build app to make sure there are zero issues
         run: go build -o malak
 
+      - name: Install swag
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Install mockgen
+        run: go install go.uber.org/mock/mockgen@latest
+
       - name: Run go generate
         run: go generate ./...
 
