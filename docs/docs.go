@@ -484,8 +484,8 @@ const docTemplate = `{
                 "tags": [
                     "updates"
                 ],
-                "summary": "Duplicate a specific update",
-                "operationId": "duplicateUpdate",
+                "summary": "Delete a specific update",
+                "operationId": "deleteUpdate",
                 "parameters": [
                     {
                         "type": "string",
@@ -499,7 +499,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.createdUpdateResponse"
+                            "$ref": "#/definitions/server.APIStatus"
                         }
                     },
                     "400": {

@@ -653,7 +653,7 @@ paths:
     post:
       consumes:
       - application/json
-      operationId: duplicateUpdate
+      operationId: deleteUpdate
       parameters:
       - description: update unique reference.. e.g update_
         in: path
@@ -666,7 +666,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.createdUpdateResponse'
+            $ref: '#/definitions/server.APIStatus'
         "400":
           description: Bad Request
           schema:
@@ -683,7 +683,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/server.APIStatus'
-      summary: Duplicate a specific update
+      summary: Delete a specific update
       tags:
       - updates
 schemes:

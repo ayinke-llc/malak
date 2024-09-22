@@ -158,6 +158,8 @@ func buildRoutes(
 					WrapMalakHTTPHandler(logger, updateHandler.list, cfg, "updates.list"))
 				r.Post("/{reference}",
 					WrapMalakHTTPHandler(logger, updateHandler.update, cfg, "updates.content_update"))
+				r.Delete("/{reference}",
+					WrapMalakHTTPHandler(logger, updateHandler.delete, cfg, "updates.delete"))
 
 				r.Post("/{reference}/duplicate",
 					WrapMalakHTTPHandler(logger, updateHandler.duplicate, cfg, "updates.duplicate"))
