@@ -4,9 +4,8 @@ import { Divider } from "@/components/Divider";
 import { RiDeleteBin2Line, RiFileCopyLine, RiMoreLine, RiPushpinLine } from "@remixicon/react";
 import UpdateBadge from "../../custom/update/badge";
 import {
-  Dialog, DialogTrigger, DialogContent, DialogTitle,
-  DialogHeader, DialogFooter, DialogDescription,
-  DialogClose
+  Dialog, DialogContent, DialogTitle,
+  DialogHeader, DialogFooter, DialogDescription
 } from "@/components/Dialog";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/Popover";
 import { useMutation } from "@tanstack/react-query";
@@ -24,6 +23,7 @@ const SingleUpdate = (update: MalakUpdate) => {
   const [loading, setLoading] = useState<boolean>(false)
   const [deleted, setDeleted] = useState<boolean>(false)
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState<boolean>(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false)
 
   const router = useRouter()
 
@@ -69,8 +69,9 @@ const SingleUpdate = (update: MalakUpdate) => {
       toast.error(msg)
     },
     onSuccess: (resp: AxiosResponse<ServerAPIStatus>) => {
-      toast.success(resp.data.message)
+      setDeleteDialogOpen(false)
       setDeleted(true)
+      toast.success(resp.data.message)
     }
   })
 
@@ -142,16 +143,17 @@ const SingleUpdate = (update: MalakUpdate) => {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start rounded-none px-2 py-1.5 text-sm text-red-600"
-                  >
-                    <RiDeleteBin2Line className="mr-2 h-4 w-4" />
-                    Delete
-                  </Button>
-                </DialogTrigger>
+              <Dialog open={deleteDialogOpen}>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start rounded-none px-2 py-1.5 text-sm text-red-600"
+                  onClick={() => {
+                    setDeleteDialogOpen(true)
+                  }}
+                >
+                  <RiDeleteBin2Line className="mr-2 h-4 w-4" />
+                  Delete
+                </Button>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Confirm Deletion</DialogTitle>
@@ -160,13 +162,15 @@ const SingleUpdate = (update: MalakUpdate) => {
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter className="mt-4">
-                    <DialogClose asChild>
-                      <Button
-                        variant="secondary"
-                        isLoading={loading}>
-                        Cancel
-                      </Button>
-                    </DialogClose>
+                    <Button
+                      variant="secondary"
+                      isLoading={loading}
+                      onClick={() => {
+                        setDeleteDialogOpen(false)
+                      }}
+                    >
+                      Cancel
+                    </Button>
                     <Button variant="destructive"
                       loadingText="Deleting"
                       isLoading={loading}
