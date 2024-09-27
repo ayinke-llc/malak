@@ -11,6 +11,12 @@ import (
 
 const (
 	ErrUpdateNotFound = malakError("update not exists")
+
+	ErrPinnedUpdateNotExists        = malakError("update not pinned")
+	ErrPinnedUpdateCapacityExceeded = malakError(
+		`you have exceeded the maximum number of pinned updates. Please unpin an update and pin this again`)
+
+	MaximumNumberOfPinnedUpdates = 3
 )
 
 // ENUM(draft,sent)
@@ -36,9 +42,12 @@ type Update struct {
 	SentBy      uuid.UUID     `json:"sent_by,omitempty" bun:",nullzero"`
 	Content     UpdateContent `json:"content,omitempty"`
 
+	// If this update is pinned
+	IsPinned bool `json:"is_pinned,omitempty"`
+
 	// Not persisted at all
 	// Only calculated at runtime
-	Title string `json:"title" bun:"-"`
+	Title string `json:"-" bun:"-"`
 
 	Metadata UpdateMetadata `json:"metadata,omitempty"`
 

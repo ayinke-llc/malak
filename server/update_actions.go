@@ -133,11 +133,11 @@ func (u *updatesHandler) delete(
 
 // @Tags updates
 // @Summary Toggle pinned status a specific update
-// @id pinUpdate
+// @id toggleUpdatePin
 // @Accept  json
 // @Produce  json
 // @Param reference path string required "update unique reference.. e.g update_"
-// @Success 200 {object} APIStatus
+// @Success 200 {object} createdUpdateResponse
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
@@ -172,33 +172,24 @@ func (u *updatesHandler) togglePinned(
 			"an error occurred while fetching update"), StatusFailed
 	}
 
-	pinned, err := u.pinnedUpdateRepo.Get(ctx, malak.FetchPinnedUpdate{
-		UpdateID: update.ID,
-	})
-	if err != nil && !errors.Is(err, malak.ErrPinnedUpdateNotExists) {
-		logger.Error("could not fetch pinned updates", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError,
-			"an error occurred while fetching pinned updates"), StatusFailed
-	}
+	// simplistic, we are not really working with realtime data where you want
+	// to offload to db directly with NOT
+	update.IsPinned = !update.IsPinned
 
-	var status = malak.PinStatePin
-	if pinned != nil {
-		status = malak.PinStateUnpin
-	}
+	if err := u.updateRepo.Update(ctx, update); err != nil {
+		logger.Error("could not toggle pinned state of update", zap.Error(err))
 
-	if err := u.pinnedUpdateRepo.Pin(
-		ctx, update, status, getUserFromContext(ctx)); err != nil {
-
-		logger.Error("could not toggle pinned status of update",
-			zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError,
 			"could not toggle pinned status"), StatusFailed
 	}
 
 	var msg = "update has been pinned"
-	if status == malak.PinStateUnpin {
+	if !update.IsPinned {
 		msg = "update has been unpinned"
 	}
 
-	return newAPIStatus(http.StatusOK, msg), StatusSuccess
+	return createdUpdateResponse{
+		Update:    util.DeRef(update),
+		APIStatus: newAPIStatus(http.StatusOK, msg),
+	}, StatusSuccess
 }

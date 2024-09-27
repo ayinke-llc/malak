@@ -76,6 +76,9 @@ components:
           type: string
         id:
           type: string
+        is_pinned:
+          description: If this update is pinned
+          type: boolean
         metadata:
           $ref: '#/components/schemas/malak.UpdateMetadata'
         reference:
@@ -86,11 +89,6 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/malak.UpdateStatus'
-        title:
-          description: |-
-            Not persisted at all
-            Only calculated at runtime
-          type: string
         updated_at:
           type: string
         workspace_id:
@@ -816,7 +814,7 @@ paths:
       - updates
   /workspaces/updates/{reference}/pin:
     post:
-      operationId: pinUpdate
+      operationId: toggleUpdatePin
       parameters:
       - description: update unique reference.. e.g update_
         in: path
@@ -829,7 +827,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/server.APIStatus'
+                $ref: '#/components/schemas/server.createdUpdateResponse'
           description: OK
         "400":
           content:

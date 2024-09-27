@@ -19,7 +19,6 @@ import (
 
 type updatesHandler struct {
 	referenceGenerator malak.ReferenceGeneratorOperation
-	pinnedUpdateRepo   malak.PinnedUpdateRepository
 	updateRepo         malak.UpdateRepository
 	cfg                config.Config
 }

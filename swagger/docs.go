@@ -595,7 +595,7 @@ const docTemplate = `{
                     "updates"
                 ],
                 "summary": "Toggle pinned status a specific update",
-                "operationId": "pinUpdate",
+                "operationId": "toggleUpdatePin",
                 "parameters": [
                     {
                         "type": "string",
@@ -609,7 +609,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.APIStatus"
+                            "$ref": "#/definitions/server.createdUpdateResponse"
                         }
                     },
                     "400": {
@@ -803,6 +803,10 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "is_pinned": {
+                    "description": "If this update is pinned",
+                    "type": "boolean"
+                },
                 "metadata": {
                     "$ref": "#/definitions/malak.UpdateMetadata"
                 },
@@ -817,10 +821,6 @@ const docTemplate = `{
                 },
                 "status": {
                     "$ref": "#/definitions/malak.UpdateStatus"
-                },
-                "title": {
-                    "description": "Not persisted at all\nOnly calculated at runtime",
-                    "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
