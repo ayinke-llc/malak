@@ -76,6 +76,9 @@ components:
           type: string
         id:
           type: string
+        is_pinned:
+          description: If this update is pinned
+          type: boolean
         metadata:
           $ref: '#/components/schemas/malak.UpdateMetadata'
         reference:
@@ -86,11 +89,6 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/malak.UpdateStatus'
-        title:
-          description: |-
-            Not persisted at all
-            Only calculated at runtime
-          type: string
         updated_at:
           type: string
         workspace_id:
@@ -812,6 +810,50 @@ paths:
                 $ref: '#/components/schemas/server.APIStatus'
           description: Internal Server Error
       summary: Duplicate a specific update
+      tags:
+      - updates
+  /workspaces/updates/{reference}/pin:
+    post:
+      operationId: toggleUpdatePin
+      parameters:
+      - description: update unique reference.. e.g update_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.createdUpdateResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: Toggle pinned status a specific update
       tags:
       - updates
 servers:

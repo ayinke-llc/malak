@@ -21,6 +21,42 @@ func NewUpdatesRepository(db *bun.DB) malak.UpdateRepository {
 	}
 }
 
+func (u *updatesRepo) TogglePinned(ctx context.Context,
+	update *malak.Update) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return u.inner.RunInTx(ctx, &sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+
+			_, err := tx.NewUpdate().
+				Where("id = ?", update.ID).
+				Set("is_pinned = CASE WHEN is_pinned = true THEN false ELSE true END").
+				Model(update).
+				Exec(ctx)
+
+			if err != nil {
+				return err
+			}
+
+			count, err := tx.NewSelect().
+				Model(new(malak.Update)).
+				Where("is_pinned = ?", true).
+				Where("workspace_id = ?", update.WorkspaceID).
+				Count(ctx)
+			if err != nil {
+				return err
+			}
+
+			if count > malak.MaximumNumberOfPinnedUpdates {
+				return malak.ErrPinnedUpdateCapacityExceeded
+			}
+
+			return nil
+		})
+}
+
 func (u *updatesRepo) Update(ctx context.Context,
 	update *malak.Update) error {
 
