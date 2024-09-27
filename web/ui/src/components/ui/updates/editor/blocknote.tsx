@@ -1,6 +1,5 @@
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
-import "@blocknote/shadcn/style.css";
 import {
   DefaultReactSuggestionItem,
   getDefaultReactSlashMenuItems,
@@ -11,7 +10,7 @@ import {
   BlockNoteEditor,
   filterSuggestionItems,
 } from "@blocknote/core"
-import { BlockNoteView } from "@blocknote/shadcn";
+import { BlockNoteView } from "@blocknote/mantine";
 import { defaultEditorContent } from "./default-value";
 import fileUploader from "./image-upload";
 
