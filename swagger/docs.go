@@ -374,6 +374,17 @@ const docTemplate = `{
                     "updates"
                 ],
                 "summary": "Create a new update",
+                "parameters": [
+                    {
+                        "description": "update content body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createUpdateContent"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -822,6 +833,9 @@ const docTemplate = `{
                 "status": {
                     "$ref": "#/definitions/malak.UpdateStatus"
                 },
+                "title": {
+                    "type": "string"
+                },
                 "updated_at": {
                     "type": "string"
                 },
@@ -963,9 +977,13 @@ const docTemplate = `{
         "server.contentUpdateRequest": {
             "type": "object",
             "required": [
+                "title",
                 "update"
             ],
             "properties": {
+                "title": {
+                    "type": "string"
+                },
                 "update": {
                     "type": "string"
                 }
@@ -981,6 +999,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "last_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.createUpdateContent": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "title": {
                     "type": "string"
                 }
             }

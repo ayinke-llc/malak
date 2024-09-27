@@ -125,6 +125,9 @@
 					"status": {
 						"$ref": "#/components/schemas/malak.UpdateStatus"
 					},
+					"title": {
+						"type": "string"
+					},
 					"updated_at": {
 						"type": "string"
 					},
@@ -266,11 +269,15 @@
 			},
 			"server.contentUpdateRequest": {
 				"properties": {
+					"title": {
+						"type": "string"
+					},
 					"update": {
 						"type": "string"
 					}
 				},
 				"required": [
+					"title",
 					"update"
 				],
 				"type": "object"
@@ -287,6 +294,17 @@
 						"type": "string"
 					}
 				},
+				"type": "object"
+			},
+			"server.createUpdateContent": {
+				"properties": {
+					"title": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"title"
+				],
 				"type": "object"
 			},
 			"server.createWorkspaceRequest": {
@@ -911,6 +929,18 @@
 				]
 			},
 			"post": {
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.createUpdateContent"
+							}
+						}
+					},
+					"description": "update content body",
+					"required": true,
+					"x-originalParamName": "message"
+				},
 				"responses": {
 					"200": {
 						"content": {

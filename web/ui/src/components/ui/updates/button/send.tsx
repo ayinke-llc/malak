@@ -15,7 +15,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { RiMailSendLine } from "@remixicon/react";
 import * as EmailValidator from 'email-validator';
 import { Option } from "lucide-react";
-import { useEditor } from "novel";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import CreatableSelect from 'react-select/creatable';
@@ -51,7 +50,6 @@ const SendUpdateButton = ({ }: ButtonProps) => {
 
   const [loading, setLoading] = useState<boolean>(false)
 
-  const { editor } = useEditor()
 
   const [options, setOptions] = useState<Option[]>([
     { value: "oops", label: "oops" },

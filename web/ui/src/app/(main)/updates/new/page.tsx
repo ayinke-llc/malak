@@ -4,7 +4,7 @@ import { ServerAPIStatus } from "@/client/Api";
 import Skeleton from "@/components/ui/custom/loader/skeleton";
 import SendUpdateButton from "@/components/ui/updates/button/send";
 import SendTestButton from "@/components/ui/updates/button/send-test";
-import NovelEditor from "@/components/ui/updates/editor/editor";
+import BlockNoteJSEditor from "@/components/ui/updates/editor/blocknote";
 import client from "@/lib/client";
 import { CREATE_UPDATE } from "@/lib/query-constants";
 import { useMutation } from "@tanstack/react-query";
@@ -12,6 +12,7 @@ import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { format } from 'date-fns';
 
 export default function Page() {
 
@@ -22,7 +23,9 @@ export default function Page() {
 
   const mutation = useMutation({
     mutationKey: [CREATE_UPDATE],
-    mutationFn: () => client.workspaces.updatesCreate(),
+    mutationFn: () => client.workspaces.updatesCreate({
+      title: `${format(new Date(), "EEEE, MMMM do, yyyy")} Update`,
+    }),
     onSuccess: ({ data }) => {
       setReference(data.update.reference)
       toast.success("Your update have been created now. As you type, we will sync and save your changes")
@@ -56,7 +59,7 @@ export default function Page() {
                 Create a new update
               </h3>
               <p className="text-sm leading-6 text-gray-500">
-                Sending a new update to your investors
+                Type anywhere to get started
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-1">
@@ -66,7 +69,7 @@ export default function Page() {
           </div>
 
           <div className="mt-5">
-            <NovelEditor reference={reference} />
+            <BlockNoteJSEditor reference={reference} />
           </div>
         </section>
       )}

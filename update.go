@@ -2,7 +2,6 @@ package malak
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -41,13 +40,9 @@ type Update struct {
 	CreatedBy   uuid.UUID     `json:"created_by,omitempty"`
 	SentBy      uuid.UUID     `json:"sent_by,omitempty" bun:",nullzero"`
 	Content     UpdateContent `json:"content,omitempty"`
-
 	// If this update is pinned
-	IsPinned bool `json:"is_pinned,omitempty"`
-
-	// Not persisted at all
-	// Only calculated at runtime
-	Title string `json:"-" bun:"-"`
+	IsPinned bool   `json:"is_pinned,omitempty"`
+	Title    string `json:"title,omitempty"`
 
 	Metadata UpdateMetadata `json:"metadata,omitempty"`
 
@@ -60,23 +55,6 @@ type Update struct {
 }
 
 func (u *Update) IsSent() bool { return u.Status == UpdateStatusSent }
-
-func (u *Update) MarshalJSON() ([]byte, error) {
-	type Alias Update
-
-	title, err := getFirstHeader(u.Content)
-	if err != nil {
-		return nil, err
-	}
-
-	return json.Marshal(&struct {
-		*Alias
-		Title string `json:"title"`
-	}{
-		Alias: (*Alias)(u),
-		Title: title,
-	})
-}
 
 type UpdateLink struct {
 	ID        uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
