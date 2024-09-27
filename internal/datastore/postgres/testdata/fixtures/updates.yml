@@ -5,6 +5,7 @@
   created_by: 1aa6b38e-33d3-499f-bc9d-3090738f29e6
   sent_by: null
   content: ""
+  title: "omo i just got here"
   metadata: "{}"
   sent_at: null
   created_at: "2024-09-16 17:54:05.451647+00"
@@ -14,6 +15,7 @@
   workspace_id: c12da796-9362-4c70-b2cb-fc8a1eba2526
   status: draft
   reference: update_O-54dq6IR
+  title: "another update"
   created_by: 1aa6b38e-33d3-499f-bc9d-3090738f29e6
   sent_by: null
   content: ""
@@ -26,6 +28,7 @@
   workspace_id: c12da796-9362-4c70-b2cb-fc8a1eba2526
   status: draft
   reference: update_NCox_gRNg
+  title: "yet another update"
   created_by: 1aa6b38e-33d3-499f-bc9d-3090738f29e6
   sent_by: null
   content: ""
