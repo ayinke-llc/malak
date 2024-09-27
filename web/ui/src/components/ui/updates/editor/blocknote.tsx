@@ -12,6 +12,8 @@ import {
   filterSuggestionItems,
 } from "@blocknote/core"
 import { BlockNoteView } from "@blocknote/shadcn";
+import { defaultEditorContent } from "./default-value";
+import fileUploader from "./image-upload";
 
 const getCustomSlashMenuItems = (
   editor: BlockNoteEditor
@@ -29,7 +31,10 @@ const BlockNoteJSEditor = ({ reference }: EditorProps) => {
     return null
   }
 
-  const editor = useCreateBlockNote();
+  const editor = useCreateBlockNote({
+    initialContent: defaultEditorContent(reference),
+    uploadFile: fileUploader,
+  });
 
   return (
 
@@ -39,7 +44,6 @@ const BlockNoteJSEditor = ({ reference }: EditorProps) => {
     >
       <SuggestionMenuController
         triggerCharacter={"/"}
-        // Replaces the default Slash Menu items with our custom ones.
         getItems={async (query) =>
           filterSuggestionItems(getCustomSlashMenuItems(editor), query)
         }

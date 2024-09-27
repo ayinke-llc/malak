@@ -1,10 +1,21 @@
+import { ServerAPIStatus } from "@/client/Api";
 import client from "@/lib/client";
-import { createImageUpload } from "novel/plugins";
+import { AxiosError } from "axios";
 import { toast } from "sonner";
 
-const onUpload = (file: File) => {
+const fileUploader = async (file: File) => {
 
-  const promise = client.images.uploadImage(
+  if (!file.type.includes("image/")) {
+    toast.error("File type not supported.");
+    return "";
+  }
+
+  if (file.size / 1024 / 1024 > 10) {
+    toast.error("File size too big (max 10MB).");
+    return "";
+  }
+
+  return client.images.uploadImage(
     {
       image_body: file
     },
@@ -12,48 +23,19 @@ const onUpload = (file: File) => {
       headers: {
         "content-type": file?.type || "application/octet-stream",
       },
+    }).
+    then(async (res) => {
+      return res.data.url
+    }).catch((err: AxiosError<ServerAPIStatus>) => {
+
+      let msg = err.message
+      if (err.response !== undefined) {
+        msg = err.response.data.message
+      }
+      toast.error(msg)
+      return "";
     })
-
-  return new Promise((resolve, reject) => {
-    toast.promise(
-      promise.then(async (res) => {
-        if (res.status === 200) {
-          const { url } = res.data
-
-          const image = new Image();
-          image.src = url;
-          image.onload = () => {
-            resolve(url);
-          };
-
-          return
-        }
-
-        throw new Error("Error uploading image. Please try again.");
-      }),
-      {
-        loading: "Uploading image...",
-        success: "Image uploaded successfully.",
-        error: (e) => {
-          reject(e);
-          return e.message;
-        },
-      },
-    );
-  });
 };
 
-export const uploadFn = createImageUpload({
-  onUpload,
-  validateFn: (file) => {
-    if (!file.type.includes("image/")) {
-      toast.error("File type not supported.");
-      return false;
-    }
-    if (file.size / 1024 / 1024 > 10) {
-      toast.error("File size too big (max 10MB).");
-      return false;
-    }
-    return true;
-  },
-});
+
+export default fileUploader;

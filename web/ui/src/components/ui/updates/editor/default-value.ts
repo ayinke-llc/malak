@@ -1,12 +1,18 @@
+import { BlockSchemaFromSpecs, PartialBlock, } from '@blocknote/core';
 import { format } from 'date-fns';
 
-export const defaultEditorContent = {
-  type: "doc",
-  content: [
+export const defaultEditorContent = (reference: string): PartialBlock[] => {
+  return [
     {
+      id: reference,
       type: "heading",
-      attrs: { level: 2 },
-      content: [{ type: "text", text: `${format(new Date(), "EEEE, MMMM do, yyyy")} Update` }],
+      props: {
+        level: 2
+      },
+      content: `${format(new Date(), "EEEE, MMMM do, yyyy")} Update`
+    },
+    {
+      type: "paragraph",
     }
   ]
 };

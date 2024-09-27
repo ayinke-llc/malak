@@ -5,7 +5,6 @@ import Skeleton from "@/components/ui/custom/loader/skeleton";
 import SendUpdateButton from "@/components/ui/updates/button/send";
 import SendTestButton from "@/components/ui/updates/button/send-test";
 import BlockNoteJSEditor from "@/components/ui/updates/editor/blocknote";
-import NovelEditor from "@/components/ui/updates/editor/editor";
 import client from "@/lib/client";
 import { CREATE_UPDATE } from "@/lib/query-constants";
 import { useMutation } from "@tanstack/react-query";
@@ -57,7 +56,7 @@ export default function Page() {
                 Create a new update
               </h3>
               <p className="text-sm leading-6 text-gray-500">
-                Sending a new update to your investors
+                Type anywhere to get started
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-1">
