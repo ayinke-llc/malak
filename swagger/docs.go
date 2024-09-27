@@ -977,9 +977,13 @@ const docTemplate = `{
         "server.contentUpdateRequest": {
             "type": "object",
             "required": [
+                "title",
                 "update"
             ],
             "properties": {
+                "title": {
+                    "type": "string"
+                },
                 "update": {
                     "type": "string"
                 }

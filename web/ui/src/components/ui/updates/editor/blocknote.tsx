@@ -91,6 +91,7 @@ const BlockNoteJSEditor = ({ reference }: EditorProps) => {
     }
 
     mutation.mutate({
+      title: titleContent.text,
       update: JSON.stringify(blocks),
     })
   }, 1000);

@@ -173,6 +173,7 @@ func (u *updatesHandler) list(
 
 type contentUpdateRequest struct {
 	Update malak.UpdateContent `json:"update,omitempty" validate:"required"`
+	Title  string              `json:"title,omitempty" validate:"required"`
 	GenericRequest
 }
 
@@ -184,23 +185,33 @@ func (c *contentUpdateRequest) Validate() error {
 
 	p.AllowDataAttributes()
 
-	// Youtube iframe check
-	p.AllowElements("iframe")
-	p.AllowAttrs("width").Matching(bluemonday.Number).OnElements("iframe")
-	p.AllowAttrs("height").Matching(bluemonday.Number).OnElements("iframe")
-	p.AllowAttrs("src").OnElements("iframe")
-	p.AllowAttrs("frameborder").Matching(bluemonday.Number).OnElements("iframe")
-	p.AllowAttrs("allow").Matching(compiledAllowRegexp).OnElements("iframe")
-	p.AllowAttrs("allowfullscreen").OnElements("iframe")
-
-	// TWITTER embed
-	p.AllowAttrs("src").OnElements("div")
-	p.AllowStyles("color").OnElements("span")
+	// // Youtube iframe check
+	// p.AllowElements("iframe")
+	// p.AllowAttrs("width").Matching(bluemonday.Number).OnElements("iframe")
+	// p.AllowAttrs("height").Matching(bluemonday.Number).OnElements("iframe")
+	// p.AllowAttrs("src").OnElements("iframe")
+	// p.AllowAttrs("frameborder").Matching(bluemonday.Number).OnElements("iframe")
+	// p.AllowAttrs("allow").Matching(compiledAllowRegexp).OnElements("iframe")
+	// p.AllowAttrs("allowfullscreen").OnElements("iframe")
+	//
+	// // TWITTER embed
+	// p.AllowAttrs("src").OnElements("div")
+	// p.AllowStyles("color").OnElements("span")
 
 	c.Update = malak.UpdateContent(p.Sanitize(string(c.Update)))
 
 	if util.IsStringEmpty(string(c.Update)) {
 		return errors.New("pleae provide the content")
+	}
+
+	c.Title = p.Sanitize(c.Title)
+
+	if util.IsStringEmpty(c.Title) {
+		return errors.New("please provide update title")
+	}
+
+	if len(c.Title) < 5 {
+		return errors.New("title must be more than 5 characters")
 	}
 
 	return nil
@@ -259,6 +270,7 @@ func (u *updatesHandler) update(
 	}
 
 	update.Content = req.Update
+	update.Title = req.Title
 
 	if err := u.updateRepo.Update(ctx, update); err != nil {
 		logger.Error("could not update content", zap.Error(err))
