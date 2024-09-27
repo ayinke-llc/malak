@@ -12,6 +12,7 @@ import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { format } from 'date-fns';
 
 export default function Page() {
 
@@ -22,7 +23,9 @@ export default function Page() {
 
   const mutation = useMutation({
     mutationKey: [CREATE_UPDATE],
-    mutationFn: () => client.workspaces.updatesCreate(),
+    mutationFn: () => client.workspaces.updatesCreate({
+      title: `${format(new Date(), "EEEE, MMMM do, yyyy")} Update`,
+    }),
     onSuccess: ({ data }) => {
       setReference(data.update.reference)
       toast.success("Your update have been created now. As you type, we will sync and save your changes")

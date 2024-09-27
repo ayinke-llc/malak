@@ -23,10 +23,33 @@ type updatesHandler struct {
 	cfg                config.Config
 }
 
+type createUpdateContent struct {
+	Title string `json:"title,omitempty" validate:"required"`
+	GenericRequest
+}
+
+func (c *createUpdateContent) Validate() error {
+
+	p := bluemonday.StrictPolicy()
+
+	c.Title = p.Sanitize(c.Title)
+
+	if util.IsStringEmpty(c.Title) {
+		return errors.New("please provide update title")
+	}
+
+	if len(c.Title) < 5 {
+		return errors.New("title must be more than 5 characters")
+	}
+
+	return nil
+}
+
 // @Summary Create a new update
 // @Tags updates
 // @Accept  json
 // @Produce  json
+// @Param message body createUpdateContent true "update content body"
 // @Success 200 {object} createdUpdateResponse
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
@@ -45,6 +68,16 @@ func (u *updatesHandler) create(
 	user := getUserFromContext(r.Context())
 	workspace := getWorkspaceFromContext(r.Context())
 
+	req := new(createUpdateContent)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
 	update := &malak.Update{
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
@@ -52,6 +85,7 @@ func (u *updatesHandler) create(
 		Status:      malak.UpdateStatusDraft,
 		Content:     malak.UpdateContent(""),
 		Metadata:    malak.UpdateMetadata{},
+		Title:       req.Title,
 	}
 
 	if err := u.updateRepo.Create(ctx, update); err != nil {
