@@ -48,6 +48,17 @@ func generateUpdateContentTable() []struct {
 			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
+			name: "title not up to 5 chars",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+
+			},
+			req: contentUpdateRequest{
+				Update: malak.UpdateContent("omo"),
+				Title:  "abc",
+			},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
 			name: "update not exists",
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.
