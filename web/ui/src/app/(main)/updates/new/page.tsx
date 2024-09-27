@@ -4,6 +4,7 @@ import { ServerAPIStatus } from "@/client/Api";
 import Skeleton from "@/components/ui/custom/loader/skeleton";
 import SendUpdateButton from "@/components/ui/updates/button/send";
 import SendTestButton from "@/components/ui/updates/button/send-test";
+import BlockNoteJSEditor from "@/components/ui/updates/editor/blocknote";
 import NovelEditor from "@/components/ui/updates/editor/editor";
 import client from "@/lib/client";
 import { CREATE_UPDATE } from "@/lib/query-constants";
@@ -66,7 +67,7 @@ export default function Page() {
           </div>
 
           <div className="mt-5">
-            <NovelEditor reference={reference} />
+            <BlockNoteJSEditor reference={reference} />
           </div>
         </section>
       )}

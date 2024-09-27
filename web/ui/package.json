@@ -10,6 +10,10 @@
     "swagger": "bun swagger-typescript-api --axios -p ../../swagger/swagger.yaml -o ./src/client"
   },
   "dependencies": {
+    "@blocknote/core": "^0.15.10",
+    "@blocknote/mantine": "^0.15.10",
+    "@blocknote/react": "^0.15.10",
+    "@blocknote/shadcn": "^0.15.10",
     "@hookform/resolvers": "^3.9.0",
     "@internationalized/date": "^3.5.5",
     "@nanostores/react": "ai/react",
