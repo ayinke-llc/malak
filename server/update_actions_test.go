@@ -269,7 +269,8 @@ func generateUpdatePin() []struct {
 					Times(1).
 					Return(&malak.Update{}, nil)
 
-				update.EXPECT().Update(gomock.Any(), gomock.Any()).
+				update.EXPECT().
+					TogglePinned(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(errors.New("unknown error"))
 			},
@@ -286,7 +287,8 @@ func generateUpdatePin() []struct {
 						IsPinned: true,
 					}, nil)
 
-				update.EXPECT().Update(gomock.Any(), gomock.Any()).
+				update.EXPECT().
+					TogglePinned(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil)
 			},
@@ -303,7 +305,7 @@ func generateUpdatePin() []struct {
 						IsPinned: false,
 					}, nil)
 
-				update.EXPECT().Update(gomock.Any(), gomock.Any()).
+				update.EXPECT().TogglePinned(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil)
 			},
