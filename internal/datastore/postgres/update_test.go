@@ -164,3 +164,58 @@ func TestUpdates_List(t *testing.T) {
 
 	require.Len(t, updates, 1)
 }
+
+func TestUpdates_TogglePinned(t *testing.T) {
+
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	updatesRepo := NewUpdatesRepository(client)
+	userRepo := NewUserRepository(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	// user from the fixtures
+	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+
+	// from workspaces.yml migration
+	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	refGenerator := malak.NewReferenceGenerator()
+
+	// add 3 pinnned updates
+	for i := 0; i < 3; i++ {
+		err = updatesRepo.Create(context.Background(), &malak.Update{
+			WorkspaceID: workspace.ID,
+			Status:      malak.UpdateStatusDraft,
+			CreatedBy:   user.ID,
+			Content:     "",
+			Reference:   refGenerator.Generate(malak.EntityTypeUpdate),
+			IsPinned:    true,
+		})
+		require.NoError(t, err)
+	}
+
+	ref := refGenerator.Generate(malak.EntityTypeUpdate)
+
+	update := &malak.Update{
+		WorkspaceID: workspace.ID,
+		Status:      malak.UpdateStatusDraft,
+		CreatedBy:   user.ID,
+		Content:     "",
+		Reference:   ref,
+	}
+
+	err = updatesRepo.Create(context.Background(), update)
+	require.NoError(t, err)
+
+	// cannot add a 4th pinned item
+	err = updatesRepo.TogglePinned(context.Background(), update)
+	require.Error(t, err)
+	require.Equal(t, malak.ErrPinnedUpdateCapacityExceeded, err)
+}

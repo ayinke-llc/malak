@@ -136,4 +136,5 @@ type UpdateRepository interface {
 	Get(context.Context, FetchUpdateOptions) (*Update, error)
 	List(context.Context, ListUpdateOptions) ([]Update, error)
 	Delete(context.Context, *Update) error
+	TogglePinned(context.Context, *Update) error
 }

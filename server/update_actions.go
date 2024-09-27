@@ -172,24 +172,21 @@ func (u *updatesHandler) togglePinned(
 			"an error occurred while fetching update"), StatusFailed
 	}
 
-	// simplistic, we are not really working with realtime data where you want
-	// to offload to db directly with NOT
-	update.IsPinned = !update.IsPinned
-
-	if err := u.updateRepo.Update(ctx, update); err != nil {
+	if err := u.updateRepo.TogglePinned(ctx, update); err != nil {
 		logger.Error("could not toggle pinned state of update", zap.Error(err))
 
-		return newAPIStatus(http.StatusInternalServerError,
-			"could not toggle pinned status"), StatusFailed
-	}
+		var msg = "could not toggle pinned status"
+		status := http.StatusInternalServerError
+		if errors.Is(err, malak.ErrPinnedUpdateCapacityExceeded) {
+			msg = err.Error()
+			status = http.StatusBadRequest
+		}
 
-	var msg = "update has been pinned"
-	if !update.IsPinned {
-		msg = "update has been unpinned"
+		return newAPIStatus(status, msg), StatusFailed
 	}
 
 	return createdUpdateResponse{
 		Update:    util.DeRef(update),
-		APIStatus: newAPIStatus(http.StatusOK, msg),
+		APIStatus: newAPIStatus(http.StatusOK, "Pinned status updated"),
 	}, StatusSuccess
 }
