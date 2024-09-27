@@ -38,10 +38,17 @@ func generateUpdateContentTable() []struct {
 			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
-			name: "update not exists",
-			req: contentUpdateRequest{
-				Update: malak.UpdateContent("not empty"),
+			name: "empty title",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+
 			},
+			req: contentUpdateRequest{
+				Update: malak.UpdateContent("omo"),
+			},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "update not exists",
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.
 					EXPECT().
@@ -50,11 +57,16 @@ func generateUpdateContentTable() []struct {
 					Return(nil, malak.ErrUpdateNotFound)
 			},
 			expectedStatusCode: http.StatusNotFound,
+			req: contentUpdateRequest{
+				Update: malak.UpdateContent("omo what is going on"),
+				Title:  "let it go brother",
+			},
 		},
 		{
 			name: "could not fetch update from db",
 			req: contentUpdateRequest{
-				Update: malak.UpdateContent("not empty"),
+				Update: malak.UpdateContent("omo what is going on"),
+				Title:  "let it go brother",
 			},
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.
@@ -68,7 +80,8 @@ func generateUpdateContentTable() []struct {
 		{
 			name: "updating content failed",
 			req: contentUpdateRequest{
-				Update: malak.UpdateContent("not empty"),
+				Update: malak.UpdateContent("omo what is going on"),
+				Title:  "let it go brother",
 			},
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.
@@ -86,7 +99,8 @@ func generateUpdateContentTable() []struct {
 		{
 			name: "updating content succeeds",
 			req: contentUpdateRequest{
-				Update: malak.UpdateContent("not empty"),
+				Update: malak.UpdateContent("omo what is going on"),
+				Title:  "let it go brother",
 			},
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.
@@ -165,6 +179,8 @@ func TestUpdatesHandler_Create(t *testing.T) {
 
 			var b = bytes.NewBuffer(nil)
 
+			require.NoError(t, json.NewEncoder(b).Encode(v.req))
+
 			rr := httptest.NewRecorder()
 
 			req := httptest.NewRequest(http.MethodPost, "/", b)
@@ -186,13 +202,32 @@ func generateUpdateCreateTestTable() []struct {
 	name               string
 	mockFn             func(update *malak_mocks.MockUpdateRepository)
 	expectedStatusCode int
+	req                createUpdateContent
 } {
 
 	return []struct {
 		name               string
 		mockFn             func(update *malak_mocks.MockUpdateRepository)
 		expectedStatusCode int
+		req                createUpdateContent
 	}{
+		{
+			name: "title not provided",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+
+			},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "title not up to 5 chars",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: createUpdateContent{
+				Title: "abc",
+			},
+		},
 		{
 			name: "culd not create update",
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
@@ -204,6 +239,9 @@ func generateUpdateCreateTestTable() []struct {
 
 			},
 			expectedStatusCode: http.StatusInternalServerError,
+			req: createUpdateContent{
+				Title: "omo let it go",
+			},
 		},
 		{
 			name: "created update",
@@ -213,6 +251,9 @@ func generateUpdateCreateTestTable() []struct {
 					Create(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil)
+			},
+			req: createUpdateContent{
+				Title: "omo let it go",
 			},
 			expectedStatusCode: http.StatusCreated,
 		},
