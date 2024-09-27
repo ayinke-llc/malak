@@ -7,8 +7,9 @@ import {
   useCreateBlockNote,
 } from "@blocknote/react";
 import {
+  Block,
   BlockNoteEditor,
-  filterSuggestionItems,
+  filterSuggestionItems
 } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import { defaultEditorContent } from "./default-value";
@@ -21,7 +22,7 @@ import { AxiosError } from "axios";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
-import { Converter } from "showdown";
+import { Badge } from "@/components/Badge";
 
 const getCustomSlashMenuItems = (
   editor: BlockNoteEditor
@@ -45,20 +46,11 @@ const BlockNoteJSEditor = ({ reference }: EditorProps) => {
   });
 
   const [saveStatus, setSaveStatus] = useState<"Saved" | "Unsaved" | "Storing">("Saved");
-  const [charsCount, setCharsCount] = useState();
-  const [openNode, setOpenNode] = useState(false);
-  const [openColor, setOpenColor] = useState(false);
-  const [openLink, setOpenLink] = useState(false);
-  const [openAI, setOpenAI] = useState(false);
-
-
-  const showdownConverter = new Converter()
-  showdownConverter.setFlavor("github")
 
   const mutation = useMutation({
     mutationKey: [UPDATE_CONTENT],
     mutationFn: (data: ServerContentUpdateRequest) => client.workspaces.updateContent(reference, data),
-    onSuccess: ({ data }) => {
+    onSuccess: () => {
       setSaveStatus("Saved")
     },
     onError(err: AxiosError<ServerAPIStatus>) {
@@ -73,34 +65,34 @@ const BlockNoteJSEditor = ({ reference }: EditorProps) => {
     gcTime: Infinity,
   })
 
-  const debouncedUpdates = useDebouncedCallback(async () => {
+  const debouncedUpdates = useDebouncedCallback(async (blocks: Block[]) => {
 
-    // const updatedJSON = editor.getJSON();
-    //
-    // const title = updatedJSON.content?.at(0)
-    //
-    // if (!title) {
-    //   toast.error("updates must include a title. Please add a title using a heading")
-    //   return
-    // }
-    //
-    // if (title.type !== "heading") {
-    //   toast.error("Your heading must be the first item in the editor. It serves as the title of your update.")
-    //   return
-    // }
-    //
-    // const content = title.content?.at(0)
-    //
-    // if (content?.type != "text" && content?.text?.trim().length === 0) {
-    //   toast.error("Title can only include text and must not be empty")
-    //   return
-    // }
-    //
-    // mutation.mutate({
-    //   update: showdownConverter.makeMarkdown(editor.getHTML()),
-    // })
-    //
-    // setCharsCount(editor.storage.characterCount.words())
+    const title = blocks[0]
+
+    if (!title) {
+      toast.error("updates must include a title. Please add a title using a heading ( level 2 )")
+      return
+    }
+
+
+    if (title.type !== "heading" || title.props.level !== 2) {
+      toast.error("Your heading must be the first item in the editor. It serves as the title of your update.")
+      return
+    }
+
+    const titleContent = title.content[0] as {
+      type?: string
+      text: string
+    }
+
+    if (titleContent.type !== "text" || !titleContent.text) {
+      toast.error("Your update title can be only text")
+      return
+    }
+
+    mutation.mutate({
+      update: JSON.stringify(blocks),
+    })
   }, 1000);
 
   const getVariant = (): "warning" | "error" | "success" | "neutral" => {
@@ -117,18 +109,26 @@ const BlockNoteJSEditor = ({ reference }: EditorProps) => {
   }
 
   return (
-
-    <BlockNoteView
-      editor={editor}
-      theme={"light"}
-    >
-      <SuggestionMenuController
-        triggerCharacter={"/"}
-        getItems={async (query) =>
-          filterSuggestionItems(getCustomSlashMenuItems(editor), query)
-        }
-      />
-    </BlockNoteView>
+    <div className="relative w-full max-w-screen-lg">
+      <div className="flex absolute right-5 top-5 z-10 mb-5 gap-2">
+        <Badge className="uppercase" variant={getVariant()}>{saveStatus}</Badge>
+      </div>
+      <BlockNoteView
+        editor={editor}
+        theme={"light"}
+        onChange={() => {
+          setSaveStatus("Storing")
+          debouncedUpdates(editor.document);
+          setSaveStatus("Unsaved");
+        }}>
+        <SuggestionMenuController
+          triggerCharacter={"/"}
+          getItems={async (query) =>
+            filterSuggestionItems(getCustomSlashMenuItems(editor), query)
+          }
+        />
+      </BlockNoteView>
+    </div>
   )
 }
 
