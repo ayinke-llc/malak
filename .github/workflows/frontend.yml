@@ -1,7 +1,6 @@
 name: Frontend
 
 on:
-  push:
   pull_request:
 
 jobs:
