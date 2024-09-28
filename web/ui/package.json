@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "swagger": "bun swagger-typescript-api --axios -p ../../swagger/swagger.yaml -o ./src/client"
+    "swagger": "bun swagger-typescript-api --axios -p ../../swagger/swagger.yaml -o ./src/client",
+    "fix": "bunx biome check --write .",
+    "format": "bunx biome format --write ."
   },
   "dependencies": {
     "@blocknote/core": "^0.15.10",
