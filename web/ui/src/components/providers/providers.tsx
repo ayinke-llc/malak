@@ -9,17 +9,17 @@ import { CSPostHogProvider } from "./posthog";
 import UserProvider from "./user";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-	const queryClient = new QueryClient();
+  const queryClient = new QueryClient();
 
-	return (
-		<CSPostHogProvider>
-			<QueryClientProvider client={queryClient}>
-				<ReactQueryDevtools initialIsOpen={false} />
-				<GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-					<Toaster position="top-center" richColors />
-					<UserProvider>{children}</UserProvider>
-				</GoogleOAuthProvider>
-			</QueryClientProvider>
-		</CSPostHogProvider>
-	);
+  return (
+    <CSPostHogProvider>
+      <QueryClientProvider client={queryClient}>
+        <ReactQueryDevtools initialIsOpen={false} />
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+          <Toaster position="top-center" richColors />
+          <UserProvider>{children}</UserProvider>
+        </GoogleOAuthProvider>
+      </QueryClientProvider>
+    </CSPostHogProvider>
+  );
 }

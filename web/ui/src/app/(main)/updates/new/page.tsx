@@ -15,71 +15,71 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function Page() {
-	const [isLoading, setIsLoading] = useState<boolean>(true);
-	const [reference, setReference] = useState<string | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [reference, setReference] = useState<string | undefined>(undefined);
 
-	const router = useRouter();
+  const router = useRouter();
 
-	const mutation = useMutation({
-		mutationKey: [CREATE_UPDATE],
-		mutationFn: () =>
-			client.workspaces.updatesCreate({
-				title: `${format(new Date(), "EEEE, MMMM do, yyyy")} Update`,
-			}),
-		onSuccess: ({ data }) => {
-			setReference(data.update.reference);
-			toast.success(
-				"Your update have been created now. As you type, we will sync and save your changes",
-			);
-		},
-		onError(err: AxiosError<ServerAPIStatus>) {
-			let msg = err.message;
-			if (err.response !== undefined) {
-				msg = err.response.data.message;
-			}
-			toast.error(msg);
-			router.push("/updates");
-		},
-		retry: false,
-		gcTime: Number.POSITIVE_INFINITY,
-		onSettled: () => setIsLoading(false),
-	});
+  const mutation = useMutation({
+    mutationKey: [CREATE_UPDATE],
+    mutationFn: () =>
+      client.workspaces.updatesCreate({
+        title: `${format(new Date(), "EEEE, MMMM do, yyyy")} Update`,
+      }),
+    onSuccess: ({ data }) => {
+      setReference(data.update.reference);
+      toast.success(
+        "Your update have been created now. As you type, we will sync and save your changes",
+      );
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      let msg = err.message;
+      if (err.response !== undefined) {
+        msg = err.response.data.message;
+      }
+      toast.error(msg);
+      router.push("/updates");
+    },
+    retry: false,
+    gcTime: Number.POSITIVE_INFINITY,
+    onSettled: () => setIsLoading(false),
+  });
 
-	useEffect(() => {
-		mutation.mutate();
-	}, []);
+  useEffect(() => {
+    mutation.mutate();
+  }, []);
 
-	return (
-		<div className="pt-6">
-			{isLoading ? (
-				<div className="mt-10">
-					<Skeleton count={40} />
-				</div>
-			) : (
-				<section>
-					<div className="sm:flex sm:items-center sm:justify-between">
-						<div>
-							<h3
-								id="existing-contacts"
-								className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
-							>
-								Create a new update
-							</h3>
-							<p className="text-sm leading-6 text-gray-500">
-								Type anywhere to get started
-							</p>
-						</div>
-						<div className="flex flex-wrap justify-center gap-1">
-							<SendTestButton />
-							<SendUpdateButton />
-						</div>
-					</div>
+  return (
+    <div className="pt-6">
+      {isLoading ? (
+        <div className="mt-10">
+          <Skeleton count={40} />
+        </div>
+      ) : (
+        <section>
+          <div className="sm:flex sm:items-center sm:justify-between">
+            <div>
+              <h3
+                id="existing-contacts"
+                className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+              >
+                Create a new update
+              </h3>
+              <p className="text-sm leading-6 text-gray-500">
+                Type anywhere to get started
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-1">
+              <SendTestButton />
+              <SendUpdateButton />
+            </div>
+          </div>
 
-					<div className="mt-5">
-						<BlockNoteJSEditor reference={reference} />
-					</div>
-				</section>
-			)}
-		</div>
-	);
+          <div className="mt-5">
+            <BlockNoteJSEditor reference={reference} />
+          </div>
+        </section>
+      )}
+    </div>
+  );
 }
