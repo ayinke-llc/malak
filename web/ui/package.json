@@ -34,6 +34,7 @@
     "@react-oauth/google": "^0.12.1",
     "@react-stately/datepicker": "^3.10.1",
     "@remixicon/react": "^4.2.0",
+    "@sentry/nextjs": "^8",
     "@tailwindcss/typography": "^0.5.15",
     "@tanstack/react-query": "^5.55.0",
     "@tanstack/react-query-devtools": "^5.55.0",
