@@ -15,3 +15,4 @@ jobs:
           version: latest
       - name: Run Biome
         run: biome ci .
+        working-directory: ./web/ui
