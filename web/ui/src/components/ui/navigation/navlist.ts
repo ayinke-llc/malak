@@ -1,27 +1,33 @@
-import { RiArchiveStackLine, RiBook3Line, RiContactsLine, RiHome2Line, RiLinkM } from "@remixicon/react";
+import {
+  RiArchiveStackLine,
+  RiBook3Line,
+  RiContactsLine,
+  RiHome2Line,
+  RiLinkM,
+} from "@remixicon/react";
 
 export const links = [
   {
     name: "Home",
     href: "/",
-    icon: RiHome2Line
+    icon: RiHome2Line,
   },
   {
     name: "Updates",
     href: "/updates",
-    icon: RiArchiveStackLine
+    icon: RiArchiveStackLine,
   },
   {
     name: "Decks",
     href: "/decks",
-    icon: RiBook3Line
+    icon: RiBook3Line,
   },
   {
     name: "Contacts",
     href: "/contacts",
-    icon: RiContactsLine
-  }
-] as const
+    icon: RiContactsLine,
+  },
+] as const;
 
 export const shortcuts = [
   {
@@ -44,5 +50,4 @@ export const shortcuts = [
     href: "#",
     icon: RiLinkM,
   },
-] as const
-
+] as const;

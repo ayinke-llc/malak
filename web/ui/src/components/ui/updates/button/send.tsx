@@ -1,3 +1,4 @@
+import type { ServerAPIStatus } from "@/client/Api";
 import { Button } from "@/components/Button";
 import {
   Dialog,
@@ -11,22 +12,21 @@ import {
 } from "@/components/Dialog";
 import { Label } from "@/components/Label";
 import { Switch } from "@/components/Switch";
+import client from "@/lib/client";
+import { CREATE_CONTACT_MUTATION } from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { RiMailSendLine } from "@remixicon/react";
-import * as EmailValidator from 'email-validator';
+import { useMutation } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
+import * as EmailValidator from "email-validator";
 import { Option } from "lucide-react";
 import { useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
-import CreatableSelect from 'react-select/creatable';
+import { type SubmitHandler, useForm } from "react-hook-form";
+import CreatableSelect from "react-select/creatable";
 import { toast } from "sonner";
 import * as yup from "yup";
-import { ButtonProps } from "./props";
 import { Select } from "../../custom/select/select";
-import client from "@/lib/client";
-import { ServerAPIStatus } from "@/client/Api";
-import { CREATE_CONTACT_MUTATION } from "@/lib/query-constants";
-import { useMutation } from "@tanstack/react-query";
-import { AxiosError } from "axios";
+import type { ButtonProps } from "./props";
 
 interface Option {
   readonly label: string;
@@ -34,67 +34,65 @@ interface Option {
 }
 
 type SendUpdateInput = {
-  email: string
-  link?: boolean
-  recipients?: Option[]
-}
+  email: string;
+  link?: boolean;
+  recipients?: Option[];
+};
 
 const schema = yup
   .object({
     email: yup.string().min(5).max(50).required(),
     link: yup.boolean().optional(),
   })
-  .required()
+  .required();
 
-const SendUpdateButton = ({ }: ButtonProps) => {
-
-  const [loading, setLoading] = useState<boolean>(false)
-
+const SendUpdateButton = ({}: ButtonProps) => {
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [options, setOptions] = useState<Option[]>([
     { value: "oops", label: "oops" },
-    { value: "test", label: "test" }
+    { value: "test", label: "test" },
   ]);
 
   const [value, setValue] = useState<Option[]>([]);
 
   const contactMutation = useMutation({
     mutationKey: [CREATE_CONTACT_MUTATION],
-    mutationFn: (data: { email: string }) => client.contacts.contactsCreate(data),
+    mutationFn: (data: { email: string }) =>
+      client.contacts.contactsCreate(data),
     onSuccess: ({ data }) => {
-
-      toast.info(`${data.contact.email} has been added as a contact now`)
+      toast.info(`${data.contact.email} has been added as a contact now`);
 
       const newOption = {
         value: data.contact.id,
-        label: data.contact.email
-      } as Option
+        label: data.contact.email,
+      } as Option;
 
       setOptions((prev) => [...prev, newOption]);
       setValue((prev) => [...prev, newOption]);
     },
     onError(err: AxiosError<ServerAPIStatus>) {
-      let msg = err.message
+      let msg = err.message;
       if (err.response !== undefined) {
-        msg = err.response.data.message
+        msg = err.response.data.message;
       }
-      toast.error(msg)
+      toast.error(msg);
     },
     retry: false,
-    gcTime: Infinity,
+    gcTime: Number.POSITIVE_INFINITY,
     onSettled: () => setLoading(false),
-  })
+  });
 
   const createNewContact = (inputValue: string) => {
     setLoading(true);
 
     if (!EmailValidator.validate(inputValue)) {
-      toast.error("you can only add an email address as a new recipient")
-      setLoading(false)
-      return
+      toast.error("you can only add an email address as a new recipient");
+      setLoading(false);
+      return;
     }
 
-    contactMutation.mutate({ email: inputValue })
+    contactMutation.mutate({ email: inputValue });
   };
 
   const {
@@ -103,22 +101,19 @@ const SendUpdateButton = ({ }: ButtonProps) => {
     handleSubmit,
   } = useForm({
     resolver: yupResolver(schema),
-  })
+  });
 
   const onSubmit: SubmitHandler<SendUpdateInput> = (data) => {
-    setLoading(true)
-    console.log(data)
-  }
+    setLoading(true);
+    console.log(data);
+  };
 
   return (
     <>
       <div className="flex justify-center">
         <Dialog>
           <DialogTrigger asChild>
-            <Button type="submit"
-              size="lg"
-              variant="primary"
-              className="gap-1">
+            <Button type="submit" size="lg" variant="primary" className="gap-1">
               <RiMailSendLine size={18} />
               Send
             </Button>
@@ -126,9 +121,7 @@ const SendUpdateButton = ({ }: ButtonProps) => {
           <DialogContent className="sm:max-w-lg">
             <form onSubmit={handleSubmit(onSubmit)}>
               <DialogHeader>
-                <DialogTitle>
-                  Send this update
-                </DialogTitle>
+                <DialogTitle>Send this update</DialogTitle>
                 <DialogDescription className="mt-1 text-sm leading-6">
                   An email will be sent to all selected contacts immediately.
                   Please re-verify your content is ready and good to go
@@ -141,7 +134,7 @@ const SendUpdateButton = ({ }: ButtonProps) => {
                     isDisabled={loading}
                     isLoading={loading}
                     onChange={(newValue) => {
-                      setValue(newValue)
+                      setValue(newValue);
                     }}
                     onCreateOption={createNewContact}
                     options={options}
@@ -153,16 +146,18 @@ const SendUpdateButton = ({ }: ButtonProps) => {
                   <Label htmlFor="select-author" className="font-medium">
                     Select Author
                   </Label>
-                  <Select data={[
-                    {
-                      label: "Lanre Adelowo",
-                      value: "lanre"
-                    },
-                    {
-                      label: "Ayinke",
-                      value: "ayinke"
-                    }
-                  ]} />
+                  <Select
+                    data={[
+                      {
+                        label: "Lanre Adelowo",
+                        value: "lanre",
+                      },
+                      {
+                        label: "Ayinke",
+                        value: "ayinke",
+                      },
+                    ]}
+                  />
                 </div>
 
                 <div className="mt-4">
@@ -183,9 +178,11 @@ const SendUpdateButton = ({ }: ButtonProps) => {
                     Cancel
                   </Button>
                 </DialogClose>
-                <Button type="submit"
+                <Button
+                  type="submit"
                   className="w-full sm:w-fit"
-                  isLoading={loading}>
+                  isLoading={loading}
+                >
                   Send
                 </Button>
               </DialogFooter>
@@ -194,7 +191,7 @@ const SendUpdateButton = ({ }: ButtonProps) => {
         </Dialog>
       </div>
     </>
-  )
-}
+  );
+};
 
 export default SendUpdateButton;

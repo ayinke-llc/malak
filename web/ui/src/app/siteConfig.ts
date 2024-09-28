@@ -14,6 +14,6 @@ export const siteConfig = {
   externalLink: {
     blocks: "",
   },
-}
+};
 
-export type siteConfig = typeof siteConfig
+export type siteConfig = typeof siteConfig;

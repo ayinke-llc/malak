@@ -1,9 +1,9 @@
 // Tremor Raw Radio Card [v0.0.1]
 
-import * as RadioGroupPrimitives from "@radix-ui/react-radio-group"
-import React from "react"
+import * as RadioGroupPrimitives from "@radix-ui/react-radio-group";
+import React from "react";
 
-import { cx, focusInput, focusRing } from "@/lib/utils"
+import { cx, focusInput, focusRing } from "@/lib/utils";
 
 const RadioCardGroup = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitives.Root>,
@@ -15,10 +15,10 @@ const RadioCardGroup = React.forwardRef<
       className={cx("grid gap-2", className)}
       {...props}
     />
-  )
-})
+  );
+});
 
-RadioCardGroup.displayName = "RadioCardGroup"
+RadioCardGroup.displayName = "RadioCardGroup";
 
 const RadioCardItem = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitives.Item>,
@@ -46,10 +46,10 @@ const RadioCardItem = React.forwardRef<
     >
       {children}
     </RadioGroupPrimitives.Item>
-  )
-})
+  );
+});
 
-RadioCardItem.displayName = "RadioCardItem"
+RadioCardItem.displayName = "RadioCardItem";
 
 const RadioCardIndicator = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitives.Indicator>,
@@ -91,9 +91,9 @@ const RadioCardIndicator = React.forwardRef<
         />
       </RadioGroupPrimitives.Indicator>
     </div>
-  )
-})
+  );
+});
 
-RadioCardIndicator.displayName = "RadioCardIndicator"
+RadioCardIndicator.displayName = "RadioCardIndicator";
 
-export { RadioCardGroup, RadioCardIndicator, RadioCardItem }
+export { RadioCardGroup, RadioCardIndicator, RadioCardItem };

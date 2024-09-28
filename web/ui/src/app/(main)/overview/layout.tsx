@@ -1,7 +1,7 @@
 export default function Layout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <div className="relative">
@@ -9,5 +9,5 @@ export default function Layout({
         {children}
       </main>
     </div>
-  )
+  );
 }

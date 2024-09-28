@@ -1,4 +1,4 @@
-import { cx } from "@/lib/utils"
+import { cx } from "@/lib/utils";
 
 export function ArrowAnimated({
   className,
@@ -24,5 +24,5 @@ export function ArrowAnimated({
         d="M1 1l4 4-4 4"
       />
     </svg>
-  )
+  );
 }

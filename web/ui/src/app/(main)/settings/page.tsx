@@ -1,7 +1,7 @@
-import { siteConfig } from "@/app/siteConfig"
-import { Button } from "@/components/Button"
-import { ArrowAnimated } from "@/components/ui/icons/ArrowAnimated"
-import { TremorPlaceholder } from "@/components/ui/icons/TremorPlaceholder"
+import { siteConfig } from "@/app/siteConfig";
+import { Button } from "@/components/Button";
+import { ArrowAnimated } from "@/components/ui/icons/ArrowAnimated";
+import { TremorPlaceholder } from "@/components/ui/icons/TremorPlaceholder";
 
 export default function Settings() {
   return (
@@ -13,7 +13,8 @@ export default function Settings() {
             This feature is coming soon
           </h2>
           <p className="mt-3 max-w-md text-center text-gray-500">
-            Coming soon. You will be able to configure your workspace settings here
+            Coming soon. You will be able to configure your workspace settings
+            here
           </p>
           <Button className="group mt-6" variant="secondary" asChild>
             <a href={siteConfig.externalLink.blocks}>
@@ -27,5 +28,5 @@ export default function Settings() {
         </div>
       </div>
     </>
-  )
+  );
 }

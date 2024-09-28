@@ -1,10 +1,10 @@
 // Tremor Raw Input [v1.0.3]
 
-import { RiEyeFill, RiEyeOffFill, RiSearchLine } from "@remixicon/react"
-import React from "react"
-import { tv, type VariantProps } from "tailwind-variants"
+import { RiEyeFill, RiEyeOffFill, RiSearchLine } from "@remixicon/react";
+import React from "react";
+import { type VariantProps, tv } from "tailwind-variants";
 
-import { cx, focusInput, focusRing, hasErrorInput } from "@/lib/utils"
+import { cx, focusInput, focusRing, hasErrorInput } from "@/lib/utils";
 
 const inputStyles = tv({
   base: [
@@ -45,12 +45,12 @@ const inputStyles = tv({
         "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
     },
   },
-})
+});
 
 interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement>,
     VariantProps<typeof inputStyles> {
-  inputClassName?: string
+  inputClassName?: string;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -65,10 +65,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     }: InputProps,
     forwardedRef,
   ) => {
-    const [typeState, setTypeState] = React.useState(type)
+    const [typeState, setTypeState] = React.useState(type);
 
-    const isPassword = type === "password"
-    const isSearch = type === "search"
+    const isPassword = type === "password";
+    const isSearch = type === "search";
 
     return (
       <div className={cx("relative w-full", className)}>
@@ -119,7 +119,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               )}
               type="button"
               onClick={() => {
-                setTypeState(typeState === "password" ? "text" : "password")
+                setTypeState(typeState === "password" ? "text" : "password");
               }}
             >
               <span className="sr-only">
@@ -134,10 +134,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </div>
         )}
       </div>
-    )
+    );
   },
-)
+);
 
-Input.displayName = "Input"
+Input.displayName = "Input";
 
-export { Input, inputStyles, type InputProps }
+export { Input, inputStyles, type InputProps };

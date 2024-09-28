@@ -1,4 +1,4 @@
-import { Button } from "@/components/Button"
+import { Button } from "@/components/Button";
 import {
   Drawer,
   DrawerBody,
@@ -7,21 +7,19 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/Drawer"
-import { cx, focusRing } from "@/lib/utils"
-import {
-  RiMenuLine
-} from "@remixicon/react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { links, shortcuts } from "./navlist"
+} from "@/components/Drawer";
+import { cx, focusRing } from "@/lib/utils";
+import { RiMenuLine } from "@remixicon/react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { links, shortcuts } from "./navlist";
 
 export default function MobileSidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   const isActive = (itemHref: string) => {
-    return pathname === itemHref || pathname.startsWith(itemHref)
-  }
+    return pathname === itemHref || pathname.startsWith(itemHref);
+  };
 
   return (
     <>
@@ -47,7 +45,7 @@ export default function MobileSidebar() {
               aria-label="core mobile navigation links"
               className="flex flex-1 flex-col space-y-10"
             >
-              <ul role="list" className="space-y-1.5">
+              <ul className="space-y-1.5">
                 {links.map((item) => (
                   <li key={item.name}>
                     <DrawerClose asChild>
@@ -75,7 +73,7 @@ export default function MobileSidebar() {
                 <span className="text-sm font-medium leading-6 text-gray-500 sm:text-xs">
                   Shortcuts
                 </span>
-                <ul aria-label="shortcuts" role="list" className="space-y-0.5">
+                <ul aria-label="shortcuts" className="space-y-0.5">
                   {shortcuts.map((item) => (
                     <li key={item.name}>
                       <Link
@@ -103,5 +101,5 @@ export default function MobileSidebar() {
         </DrawerContent>
       </Drawer>
     </>
-  )
+  );
 }

@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { cx, focusRing } from "@/lib/utils"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import MobileSidebar from "./MobileSidebar"
+import { cx, focusRing } from "@/lib/utils";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import MobileSidebar from "./MobileSidebar";
 import {
   WorkspacesDropdownDesktop,
   WorkspacesDropdownMobile,
-} from "./SidebarWorkspacesDropdown"
-import { UserProfileDesktop, UserProfileMobile } from "./UserProfile"
-import { shortcuts, links } from "./navlist"
+} from "./SidebarWorkspacesDropdown";
+import { UserProfileDesktop, UserProfileMobile } from "./UserProfile";
+import { links, shortcuts } from "./navlist";
 
 export function Sidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   const isActive = (itemHref: string) => {
-    return pathname === itemHref
-  }
+    return pathname === itemHref;
+  };
 
   return (
     <>
@@ -28,7 +28,7 @@ export function Sidebar() {
             aria-label="core navigation links"
             className="flex flex-1 flex-col space-y-10"
           >
-            <ul role="list" className="space-y-0.5">
+            <ul className="space-y-0.5">
               {links.map((item) => (
                 <li key={item.name}>
                   <Link
@@ -51,7 +51,7 @@ export function Sidebar() {
               <span className="text-xs font-medium leading-6 text-gray-500">
                 Shortcuts
               </span>
-              <ul aria-label="shortcuts" role="list" className="space-y-0.5">
+              <ul aria-label="shortcuts" className="space-y-0.5">
                 {shortcuts.map((item) => (
                   <li key={item.name}>
                     <Link
@@ -89,5 +89,5 @@ export function Sidebar() {
         </div>
       </div>
     </>
-  )
+  );
 }

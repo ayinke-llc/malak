@@ -5,7 +5,7 @@ const UpdateBadge = ({ status }: { status: string }) => {
     <Badge variant={"warning"} className="text-xs">
       {status}
     </Badge>
-  )
-}
+  );
+};
 
 export default UpdateBadge;

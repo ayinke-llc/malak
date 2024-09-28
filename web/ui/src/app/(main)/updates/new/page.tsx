@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { ServerAPIStatus } from "@/client/Api";
+import type { ServerAPIStatus } from "@/client/Api";
 import Skeleton from "@/components/ui/custom/loader/skeleton";
 import SendUpdateButton from "@/components/ui/updates/button/send";
 import SendTestButton from "@/components/ui/updates/button/send-test";
@@ -8,54 +8,61 @@ import BlockNoteJSEditor from "@/components/ui/updates/editor/blocknote";
 import client from "@/lib/client";
 import { CREATE_UPDATE } from "@/lib/query-constants";
 import { useMutation } from "@tanstack/react-query";
-import { AxiosError } from "axios";
+import type { AxiosError } from "axios";
+import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { format } from 'date-fns';
 
 export default function Page() {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [reference, setReference] = useState<string | undefined>(undefined);
 
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [reference, setReference] = useState<string | undefined>(undefined)
-
-  const router = useRouter()
+  const router = useRouter();
 
   const mutation = useMutation({
     mutationKey: [CREATE_UPDATE],
-    mutationFn: () => client.workspaces.updatesCreate({
-      title: `${format(new Date(), "EEEE, MMMM do, yyyy")} Update`,
-    }),
+    mutationFn: () =>
+      client.workspaces.updatesCreate({
+        title: `${format(new Date(), "EEEE, MMMM do, yyyy")} Update`,
+      }),
     onSuccess: ({ data }) => {
-      setReference(data.update.reference)
-      toast.success("Your update have been created now. As you type, we will sync and save your changes")
+      setReference(data.update.reference);
+      toast.success(
+        "Your update have been created now. As you type, we will sync and save your changes",
+      );
     },
     onError(err: AxiosError<ServerAPIStatus>) {
-      let msg = err.message
+      let msg = err.message;
       if (err.response !== undefined) {
-        msg = err.response.data.message
+        msg = err.response.data.message;
       }
-      toast.error(msg)
-      router.push("/updates")
+      toast.error(msg);
+      router.push("/updates");
     },
     retry: false,
-    gcTime: Infinity,
+    gcTime: Number.POSITIVE_INFINITY,
     onSettled: () => setIsLoading(false),
-  })
+  });
 
   useEffect(() => {
-    mutation.mutate()
-  }, [])
+    mutation.mutate();
+  }, []);
 
   return (
     <div className="pt-6">
-      {isLoading ? (<div className="mt-10">
-        <Skeleton count={40} />
-      </div>) : (
+      {isLoading ? (
+        <div className="mt-10">
+          <Skeleton count={40} />
+        </div>
+      ) : (
         <section>
           <div className="sm:flex sm:items-center sm:justify-between">
             <div>
-              <h3 id="existing-contacts" className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50">
+              <h3
+                id="existing-contacts"
+                className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+              >
                 Create a new update
               </h3>
               <p className="text-sm leading-6 text-gray-500">
@@ -74,5 +81,5 @@ export default function Page() {
         </section>
       )}
     </div>
-  )
+  );
 }

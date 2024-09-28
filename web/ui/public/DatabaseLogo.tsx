@@ -1,5 +1,5 @@
-import * as React from "react"
-import type { SVGProps } from "react"
+import * as React from "react";
+import type { SVGProps } from "react";
 export const DatabaseLogo = (props: SVGProps<SVGSVGElement>) => (
   <svg aria-hidden="true" fill="none" viewBox="0 0 200 44" {...props}>
     <mask
@@ -74,4 +74,4 @@ export const DatabaseLogo = (props: SVGProps<SVGSVGElement>) => (
       d="M184.959 32.4108C179.871 32.4108 176.458 28.5552 176.458 23.8148C176.458 19.0743 180.029 15.1555 184.959 15.1555C189.89 15.1555 193.303 19.0743 193.303 23.8148C193.303 24.2888 193.271 24.7944 193.176 25.3317H180.883C181.357 27.2595 182.81 28.6184 184.959 28.6184C186.792 28.6184 188.215 27.6703 188.973 26.4062L192.291 28.9029C190.964 30.9571 188.215 32.4108 184.959 32.4108ZM180.883 22.1398H189.005C188.531 20.3068 186.982 18.8215 184.896 18.8215C182.874 18.8215 181.357 20.1804 180.883 22.1398Z"
     />
   </svg>
-)
+);

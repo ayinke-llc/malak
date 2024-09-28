@@ -1,14 +1,14 @@
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { siteConfig } from "./siteConfig"
-import Providers from "@/components/providers/providers"
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import Providers from "@/components/providers/providers";
+import { siteConfig } from "./siteConfig";
 
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-inter",
-})
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://malak.vc"),
@@ -38,12 +38,12 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
-}
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en">
@@ -52,10 +52,8 @@ export default function RootLayout({
         className={`${inter.className} overflow-y-scroll scroll-auto antialiased 
 selection:bg-indigo-100 selection:text-indigo-700 dark:bg-gray-950`}
       >
-        <Providers>
-          {children}
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
-  )
+  );
 }

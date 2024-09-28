@@ -1,15 +1,14 @@
-"use client"
+"use client";
 
-import { Sidebar } from "@/components/ui/navigation/sidebar"
-import { usePathname } from "next/navigation"
+import { Sidebar } from "@/components/ui/navigation/sidebar";
+import { usePathname } from "next/navigation";
 
 export default function Layout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
-
-  const pathName = usePathname()
+  const pathName = usePathname();
 
   return (
     <div className="mx-auto max-w-screen-2xl">
@@ -23,5 +22,5 @@ export default function Layout({
         </div>
       </main>
     </div>
-  )
+  );
 }

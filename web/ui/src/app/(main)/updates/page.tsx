@@ -1,12 +1,11 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/Button"
-import ListUpdatesTable from "@/components/ui/updates/list/list"
-import { RiAddLine } from "@remixicon/react"
-import Link from "next/link"
+import { Button } from "@/components/Button";
+import ListUpdatesTable from "@/components/ui/updates/list/list";
+import { RiAddLine } from "@remixicon/react";
+import Link from "next/link";
 
 export default function Page() {
-
   return (
     <>
       <div className="pt-6">
@@ -21,11 +20,13 @@ export default function Page() {
               </p>
             </div>
 
-            <div className="w-full text-right" >
-              <Button type="button"
+            <div className="w-full text-right">
+              <Button
+                type="button"
                 asChild
                 variant="primary"
-                className="whitespace-nowrap">
+                className="whitespace-nowrap"
+              >
                 <Link href={"/updates/new"}>
                   <RiAddLine />
                   New update
@@ -39,5 +40,5 @@ export default function Page() {
         </div>
       </div>
     </>
-  )
+  );
 }

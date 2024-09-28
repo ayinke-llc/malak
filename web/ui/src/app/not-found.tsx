@@ -1,13 +1,12 @@
-import { Button } from "@/components/Button"
-import { RiArrowRightLine } from "@remixicon/react"
-import Link from "next/link"
-import { siteConfig } from "./siteConfig"
+import { Button } from "@/components/Button";
+import { RiArrowRightLine } from "@remixicon/react";
+import Link from "next/link";
+import { siteConfig } from "./siteConfig";
 
 export default function NotFound() {
   return (
     <div className="flex h-screen flex-col items-center justify-center">
-      <Link href={siteConfig.baseLinks.home}>
-      </Link>
+      <Link href={siteConfig.baseLinks.home} />
       <p className="mt-6 text-4xl font-semibold text-indigo-600 sm:text-5xl dark:text-indigo-500">
         404
       </p>
@@ -27,5 +26,5 @@ export default function NotFound() {
         </Link>
       </Button>
     </div>
-  )
+  );
 }

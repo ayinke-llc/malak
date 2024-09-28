@@ -1,4 +1,4 @@
-import type { SVGProps } from "react"
+import type { SVGProps } from "react";
 
 export const TremorPlaceholder = (props: SVGProps<SVGSVGElement>) => (
   <svg className={props.className} fill="none" viewBox="0 0 92 92" {...props}>
@@ -59,4 +59,4 @@ export const TremorPlaceholder = (props: SVGProps<SVGSVGElement>) => (
       </clipPath>
     </defs>
   </svg>
-)
+);

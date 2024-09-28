@@ -1,18 +1,18 @@
-import { Badge } from "@/components/Badge"
-import { ProgressBar } from "@/components/ProgressBar"
+import { Badge } from "@/components/Badge";
+import { ProgressBar } from "@/components/ProgressBar";
 
-import { KpiEntry } from "@/app/(main)/overview/page"
+import type { KpiEntry } from "@/app/(main)/overview/page";
 
 export type CardProps = {
-  title: string
-  change: string
-  value: string
-  valueDescription: string
-  ctaDescription: string
-  ctaText: string
-  ctaLink: string
-  data: KpiEntry[]
-}
+  title: string;
+  change: string;
+  value: string;
+  valueDescription: string;
+  ctaDescription: string;
+  ctaText: string;
+  ctaLink: string;
+  data: KpiEntry[];
+};
 
 export function ProgressBarCard({
   title,
@@ -40,7 +40,7 @@ export function ProgressBarCard({
             </span>
             <span className="text-sm text-gray-500">{valueDescription}</span>
           </dd>
-          <ul role="list" className="mt-4 space-y-5">
+          <ul className="mt-4 space-y-5">
             {data.map((item) => (
               <li key={item.title}>
                 <p className="flex justify-between text-sm">
@@ -73,5 +73,5 @@ export function ProgressBarCard({
         </div>
       </div>
     </>
-  )
+  );
 }

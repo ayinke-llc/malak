@@ -1,32 +1,32 @@
-"use client"
+"use client";
 
-import { DateRangePicker } from "@/components/DatePicker"
-import { subYears } from "date-fns"
-import { DateRange } from "react-day-picker"
+import { DateRangePicker } from "@/components/DatePicker";
+import { subYears } from "date-fns";
+import type { DateRange } from "react-day-picker";
 
 export const getPeriod = (
   dateRange: DateRange | undefined,
 ): DateRange | undefined => {
-  if (!dateRange) return undefined
-  const from = dateRange.from
-  const to = dateRange.to
-  let lastYearFrom
-  let lastYearTo
+  if (!dateRange) return undefined;
+  const from = dateRange.from;
+  const to = dateRange.to;
+  let lastYearFrom;
+  let lastYearTo;
   if (from) {
-    lastYearFrom = subYears(from, 1)
+    lastYearFrom = subYears(from, 1);
   }
   if (to) {
-    lastYearTo = subYears(to, 1)
+    lastYearTo = subYears(to, 1);
   }
-  return { from: lastYearFrom, to: lastYearTo }
-}
+  return { from: lastYearFrom, to: lastYearTo };
+};
 
 type FilterbarProps = {
-  maxDate?: Date
-  minDate?: Date
-  selectedDates: DateRange | undefined
-  onDatesChange: (dates: DateRange | undefined) => void
-}
+  maxDate?: Date;
+  minDate?: Date;
+  selectedDates: DateRange | undefined;
+  onDatesChange: (dates: DateRange | undefined) => void;
+};
 
 export function Filterbar({
   maxDate,
@@ -45,5 +45,5 @@ export function Filterbar({
         align="start"
       />
     </div>
-  )
+  );
 }

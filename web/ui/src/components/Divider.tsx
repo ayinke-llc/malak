@@ -1,10 +1,10 @@
 // Tremor Divider [v0.0.2]
 
-import React from "react"
+import React from "react";
 
-import { cx } from "@/lib/utils"
+import { cx } from "@/lib/utils";
 
-type DividerProps = React.ComponentPropsWithoutRef<"div">
+type DividerProps = React.ComponentPropsWithoutRef<"div">;
 
 const Divider = React.forwardRef<HTMLDivElement, DividerProps>(
   ({ className, children, ...props }, forwardedRef) => (
@@ -52,8 +52,8 @@ const Divider = React.forwardRef<HTMLDivElement, DividerProps>(
       )}
     </div>
   ),
-)
+);
 
-Divider.displayName = "Divider"
+Divider.displayName = "Divider";
 
-export { Divider }
+export { Divider };

@@ -1,10 +1,9 @@
-import { ServerAPIStatus } from "@/client/Api";
+import type { ServerAPIStatus } from "@/client/Api";
 import client from "@/lib/client";
-import { AxiosError } from "axios";
+import type { AxiosError } from "axios";
 import { toast } from "sonner";
 
 const fileUploader = async (file: File) => {
-
   if (!file.type.includes("image/")) {
     toast.error("File type not supported.");
     return "";
@@ -15,27 +14,28 @@ const fileUploader = async (file: File) => {
     return "";
   }
 
-  return client.images.uploadImage(
-    {
-      image_body: file
-    },
-    {
-      headers: {
-        "content-type": file?.type || "application/octet-stream",
+  return client.images
+    .uploadImage(
+      {
+        image_body: file,
       },
-    }).
-    then(async (res) => {
-      return res.data.url
-    }).catch((err: AxiosError<ServerAPIStatus>) => {
-
-      let msg = err.message
-      if (err.response !== undefined) {
-        msg = err.response.data.message
-      }
-      toast.error(msg)
-      return "";
+      {
+        headers: {
+          "content-type": file?.type || "application/octet-stream",
+        },
+      },
+    )
+    .then(async (res) => {
+      return res.data.url;
     })
+    .catch((err: AxiosError<ServerAPIStatus>) => {
+      let msg = err.message;
+      if (err.response !== undefined) {
+        msg = err.response.data.message;
+      }
+      toast.error(msg);
+      return "";
+    });
 };
-
 
 export default fileUploader;

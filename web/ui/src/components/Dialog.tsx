@@ -1,28 +1,28 @@
 // Tremor Raw Dialog [v0.0.0]
 
-import * as DialogPrimitives from "@radix-ui/react-dialog"
-import React from "react"
+import * as DialogPrimitives from "@radix-ui/react-dialog";
+import React from "react";
 
-import { cx, focusRing } from "@/lib/utils"
+import { cx, focusRing } from "@/lib/utils";
 
 const Dialog = (
   props: React.ComponentPropsWithoutRef<typeof DialogPrimitives.Root>,
 ) => {
-  return <DialogPrimitives.Root {...props} />
-}
-Dialog.displayName = "Dialog"
+  return <DialogPrimitives.Root {...props} />;
+};
+Dialog.displayName = "Dialog";
 
-const DialogTrigger = DialogPrimitives.Trigger
+const DialogTrigger = DialogPrimitives.Trigger;
 
-DialogTrigger.displayName = "DialogTrigger"
+DialogTrigger.displayName = "DialogTrigger";
 
-const DialogClose = DialogPrimitives.Close
+const DialogClose = DialogPrimitives.Close;
 
-DialogClose.displayName = "DialogClose"
+DialogClose.displayName = "DialogClose";
 
-const DialogPortal = DialogPrimitives.Portal
+const DialogPortal = DialogPrimitives.Portal;
 
-DialogPortal.displayName = "DialogPortal"
+DialogPortal.displayName = "DialogPortal";
 
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitives.Overlay>,
@@ -42,10 +42,10 @@ const DialogOverlay = React.forwardRef<
       )}
       {...props}
     />
-  )
-})
+  );
+});
 
-DialogOverlay.displayName = "DialogOverlay"
+DialogOverlay.displayName = "DialogOverlay";
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitives.Content>,
@@ -72,19 +72,19 @@ const DialogContent = React.forwardRef<
         />
       </DialogOverlay>
     </DialogPortal>
-  )
-})
+  );
+});
 
-DialogContent.displayName = "DialogContent"
+DialogContent.displayName = "DialogContent";
 
 const DialogHeader = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => {
-  return <div className={cx("flex flex-col gap-y-1", className)} {...props} />
-}
+  return <div className={cx("flex flex-col gap-y-1", className)} {...props} />;
+};
 
-DialogHeader.displayName = "DialogHeader"
+DialogHeader.displayName = "DialogHeader";
 
 const DialogTitle = React.forwardRef<
   React.ElementRef<typeof DialogPrimitives.Title>,
@@ -101,9 +101,9 @@ const DialogTitle = React.forwardRef<
     )}
     {...props}
   />
-))
+));
 
-DialogTitle.displayName = "DialogTitle"
+DialogTitle.displayName = "DialogTitle";
 
 const DialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitives.Description>,
@@ -115,10 +115,10 @@ const DialogDescription = React.forwardRef<
       className={cx("text-gray-500 dark:text-gray-500", className)}
       {...props}
     />
-  )
-})
+  );
+});
 
-DialogDescription.displayName = "DialogDescription"
+DialogDescription.displayName = "DialogDescription";
 
 const DialogFooter = ({
   className,
@@ -132,10 +132,10 @@ const DialogFooter = ({
       )}
       {...props}
     />
-  )
-}
+  );
+};
 
-DialogFooter.displayName = "DialogFooter"
+DialogFooter.displayName = "DialogFooter";
 
 export {
   Dialog,
@@ -146,4 +146,4 @@ export {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-}
+};

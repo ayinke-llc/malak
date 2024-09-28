@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/Button"
-import { cx, focusRing } from "@/lib/utils"
-import { RiMore2Fill } from "@remixicon/react"
+import { Button } from "@/components/Button";
+import { cx, focusRing } from "@/lib/utils";
+import { RiMore2Fill } from "@remixicon/react";
 
-import { DropdownUserProfile } from "./DropdownUserProfile"
+import { DropdownUserProfile } from "./DropdownUserProfile";
 
 export const UserProfileDesktop = () => {
   return (
@@ -32,8 +32,8 @@ export const UserProfileDesktop = () => {
         />
       </Button>
     </DropdownUserProfile>
-  )
-}
+  );
+};
 
 export const UserProfileMobile = () => {
   return (
@@ -53,5 +53,5 @@ export const UserProfileMobile = () => {
         </span>
       </Button>
     </DropdownUserProfile>
-  )
-}
+  );
+};
