@@ -13,7 +13,7 @@ jobs:
         uses: biomejs/setup-biome@v2
         with:
           version: latest
-          working-directory: ./web/ui
+          working-dir: ./web/ui
       - name: Run Biome
         run: biome ci .
         working-directory: ./web/ui
