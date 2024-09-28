@@ -7,12 +7,7 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "ignore": [
-      ".next/",
-      "node_modules/",
-      "./src/lib/chartUtils.ts",
-      "./src/components/"
-    ]
+    "ignore": [".next/", "node_modules/", "./src/lib/chartUtils.ts"]
   },
   "formatter": {
     "enabled": true,
