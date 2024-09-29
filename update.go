@@ -33,13 +33,13 @@ type UpdateMetadata struct {
 }
 
 type Update struct {
-	ID          uuid.UUID     `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	WorkspaceID uuid.UUID     `json:"workspace_id,omitempty"`
-	Status      UpdateStatus  `json:"status,omitempty"`
-	Reference   Reference     `json:"reference,omitempty"`
-	CreatedBy   uuid.UUID     `json:"created_by,omitempty"`
-	SentBy      uuid.UUID     `json:"sent_by,omitempty" bun:",nullzero"`
-	Content     UpdateContent `json:"content,omitempty"`
+	ID          uuid.UUID      `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	WorkspaceID uuid.UUID      `json:"workspace_id,omitempty"`
+	Status      UpdateStatus   `json:"status,omitempty"`
+	Reference   Reference      `json:"reference,omitempty"`
+	CreatedBy   uuid.UUID      `json:"created_by,omitempty"`
+	SentBy      uuid.UUID      `json:"sent_by,omitempty" bun:",nullzero"`
+	Content     []BlockContent `json:"content,omitempty"`
 	// If this update is pinned
 	IsPinned bool   `json:"is_pinned,omitempty"`
 	Title    string `json:"title,omitempty"`

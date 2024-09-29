@@ -1,6 +1,7 @@
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 import type {
+  MalakBlockContent,
   MalakUpdate,
   ServerAPIStatus,
   ServerContentUpdateRequest,
@@ -29,9 +30,15 @@ import { defaultEditorContent } from "./default-value";
 import fileUploader from "./image-upload";
 import Skeleton from "../../custom/loader/skeleton";
 
-const getCustomSlashMenuItems = (
-  editor: BlockNoteEditor,
-): DefaultReactSuggestionItem[] => [...getDefaultReactSlashMenuItems(editor)];
+
+const getCustomSlashMenuItems = (editor: BlockNoteEditor):
+  DefaultReactSuggestionItem[] => {
+  return [...getDefaultReactSlashMenuItems(editor).
+    filter((item) => {
+      const exclude = ["Video", "Audio", "File",]
+      return !exclude.includes(item.title)
+    })]
+}
 
 export type EditorProps = {
   reference: string;
@@ -55,8 +62,9 @@ const BlockNoteJSEditor = ({ reference }: EditorProps) => {
 
   const mutation = useMutation({
     mutationKey: [UPDATE_CONTENT],
-    mutationFn: (data: ServerContentUpdateRequest) =>
-      client.workspaces.updateContent(reference, data),
+    mutationFn: async (data: ServerContentUpdateRequest) => {
+      return client.workspaces.updateContent(reference, data)
+    },
     onSuccess: () => {
       setSaveStatus("Saved");
     },
@@ -101,7 +109,7 @@ const BlockNoteJSEditor = ({ reference }: EditorProps) => {
 
     mutation.mutate({
       title: titleContent.text,
-      update: JSON.stringify(blocks),
+      update: blocks as MalakBlockContent[],
     });
   }, 1000);
 

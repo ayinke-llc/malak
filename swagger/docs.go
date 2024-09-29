@@ -762,6 +762,39 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "malak.BlockContent": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.BlockNoteItem"
+                    }
+                },
+                "props": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.BlockNoteItem": {
+            "type": "object",
+            "properties": {
+                "attrs": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "text": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.Contact": {
             "type": "object",
             "properties": {
@@ -857,7 +890,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.BlockContent"
+                    }
                 },
                 "created_at": {
                     "type": "string"
@@ -1039,7 +1075,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "update": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.BlockContent"
+                    }
                 }
             }
         },

@@ -1,5 +1,27 @@
 components:
   schemas:
+    malak.BlockContent:
+      properties:
+        content:
+          items:
+            $ref: '#/components/schemas/malak.BlockNoteItem'
+          type: array
+        props:
+          additionalProperties: {}
+          type: object
+        type:
+          type: string
+      type: object
+    malak.BlockNoteItem:
+      properties:
+        attrs:
+          additionalProperties: {}
+          type: object
+        text:
+          type: string
+        type:
+          type: string
+      type: object
     malak.Contact:
       properties:
         city:
@@ -69,7 +91,9 @@ components:
     malak.Update:
       properties:
         content:
-          type: string
+          items:
+            $ref: '#/components/schemas/malak.BlockContent'
+          type: array
         created_at:
           type: string
         created_by:
@@ -194,7 +218,9 @@ components:
         title:
           type: string
         update:
-          type: string
+          items:
+            $ref: '#/components/schemas/malak.BlockContent'
+          type: array
       required:
       - title
       - update

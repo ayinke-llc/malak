@@ -81,9 +81,9 @@ func (u *updatesHandler) create(
 	update := &malak.Update{
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
+		Content:     []malak.BlockContent{},
 		Reference:   u.referenceGenerator.Generate(malak.EntityTypeUpdate),
 		Status:      malak.UpdateStatusDraft,
-		Content:     malak.UpdateContent(""),
 		Metadata:    malak.UpdateMetadata{},
 		Title:       req.Title,
 	}
@@ -172,8 +172,8 @@ func (u *updatesHandler) list(
 }
 
 type contentUpdateRequest struct {
-	Update malak.UpdateContent `json:"update,omitempty" validate:"required"`
-	Title  string              `json:"title,omitempty" validate:"required"`
+	Update []malak.BlockContent `json:"update,omitempty" validate:"required"`
+	Title  string               `json:"title,omitempty" validate:"required"`
 	GenericRequest
 }
 
@@ -183,9 +183,9 @@ func (c *contentUpdateRequest) Validate() error {
 
 	p := bluemonday.UGCPolicy()
 
-	p.AllowDataAttributes()
+	// p.AllowDataAttributes()
 
-	// // Youtube iframe check
+	// Youtube iframe check
 	// p.AllowElements("iframe")
 	// p.AllowAttrs("width").Matching(bluemonday.Number).OnElements("iframe")
 	// p.AllowAttrs("height").Matching(bluemonday.Number).OnElements("iframe")
@@ -194,17 +194,17 @@ func (c *contentUpdateRequest) Validate() error {
 	// p.AllowAttrs("allow").Matching(compiledAllowRegexp).OnElements("iframe")
 	// p.AllowAttrs("allowfullscreen").OnElements("iframe")
 	//
-	// // TWITTER embed
+	// TWITTER embed
 	// p.AllowAttrs("src").OnElements("div")
 	// p.AllowStyles("color").OnElements("span")
 
-	c.Update = malak.UpdateContent(p.Sanitize(string(c.Update)))
-
-	if util.IsStringEmpty(string(c.Update)) {
-		return errors.New("pleae provide the content")
+	sanitized, err := sanitizeBlockNoteJSON(c.Update)
+	if err != nil {
+		return err
 	}
 
 	c.Title = p.Sanitize(c.Title)
+	c.Update = sanitized
 
 	if util.IsStringEmpty(c.Title) {
 		return errors.New("please provide update title")
@@ -215,6 +215,43 @@ func (c *contentUpdateRequest) Validate() error {
 	}
 
 	return nil
+}
+
+type BlockContent struct {
+	Type    string                 `json:"type"`
+	Content []BlockContentItem     `json:"content"`
+	Props   map[string]interface{} `json:"props,omitempty"`
+}
+
+type BlockContentItem struct {
+	Type  string                 `json:"type"`
+	Text  string                 `json:"text,omitempty"`
+	Attrs map[string]interface{} `json:"attrs,omitempty"`
+}
+
+func sanitizeBlockNoteJSON(blocks []malak.BlockContent) ([]malak.BlockContent, error) {
+
+	policy := bluemonday.UGCPolicy()
+
+	for i := range blocks {
+		for j := range blocks[i].Content {
+			blocks[i].Content[j].Text = policy.Sanitize(blocks[i].Content[j].Text)
+
+			for key, value := range blocks[i].Content[j].Attrs {
+				if strValue, ok := value.(string); ok {
+					blocks[i].Content[j].Attrs[key] = policy.Sanitize(strValue)
+				}
+			}
+		}
+
+		for key, value := range blocks[i].Props {
+			if strValue, ok := value.(string); ok {
+				blocks[i].Props[key] = policy.Sanitize(strValue)
+			}
+		}
+	}
+
+	return blocks, nil
 }
 
 // @Summary Update a specific update
