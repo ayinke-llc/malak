@@ -10,6 +10,7 @@ declare global {
       NEXT_PUBLIC_MALAK_ENABLE_POSTHOG: boolean;
       NEXT_PUBLIC_MALAK_POSTHOG_KEY: string;
       NEXT_PUBLIC_MALAK_POSTHOG_HOST: string;
+      NEXT_PUBLIC_SENTRY_DSN: string;
     }
   }
 }
