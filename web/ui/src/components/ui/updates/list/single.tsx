@@ -42,6 +42,7 @@ import { toast } from "sonner";
 import UpdateBadge from "../../custom/update/badge";
 
 const SingleUpdate = (update: MalakUpdate) => {
+
   const [loading, setLoading] = useState<boolean>(false);
   const [deleted, setDeleted] = useState<boolean>(false);
   const [duplicateDialogOpen, setDuplicateDialogOpen] =
@@ -135,7 +136,7 @@ const SingleUpdate = (update: MalakUpdate) => {
       >
         <div className="flex flex-col space-y-1">
           <div className="flex items-center space-x-2">
-            <h3 className="font-semibold">{update.reference}</h3>
+            <h3 className="font-semibold">{update.title}</h3>
             <UpdateBadge status={update.status as string} />
           </div>
           <p className="text-sm text-muted-foreground">{update.created_at}</p>

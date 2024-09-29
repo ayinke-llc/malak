@@ -158,6 +158,8 @@ func buildRoutes(
 					WrapMalakHTTPHandler(logger, updateHandler.list, cfg, "updates.list"))
 				r.Post("/{reference}",
 					WrapMalakHTTPHandler(logger, updateHandler.update, cfg, "updates.content_update"))
+				r.Get("/{reference}",
+					WrapMalakHTTPHandler(logger, updateHandler.fetchUpdate, cfg, "updates.fetchUpdate"))
 				r.Delete("/{reference}",
 					WrapMalakHTTPHandler(logger, updateHandler.delete, cfg, "updates.delete"))
 				r.Post("/{reference}/pin",

@@ -190,3 +190,50 @@ func (u *updatesHandler) togglePinned(
 		APIStatus: newAPIStatus(http.StatusOK, "Pinned status updated"),
 	}, StatusSuccess
 }
+
+// @Tags updates
+// @Summary Fetch a specific update
+// @id fetchUpdate
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "update unique reference.. e.g update_"
+// @Success 200 {object} fetchUpdateReponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/updates/{reference} [get]
+func (u *updatesHandler) fetchUpdate(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	ref := chi.URLParam(r, "reference")
+
+	span.SetAttributes(attribute.String("reference", ref))
+
+	logger = logger.With(zap.String("reference", ref))
+
+	logger.Debug("Fetching update")
+
+	update, err := u.updateRepo.Get(ctx, malak.FetchUpdateOptions{
+		Reference: malak.Reference(ref),
+	})
+	if errors.Is(err, malak.ErrUpdateNotFound) {
+		return newAPIStatus(http.StatusNotFound,
+			"update does not exists"), StatusFailed
+	}
+
+	if err != nil {
+		logger.Error("could not fetch update", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"an error occurred while fetching update"), StatusFailed
+	}
+
+	return fetchUpdateReponse{
+		APIStatus: newAPIStatus(http.StatusOK, "update fetched"),
+		Update:    util.DeRef(update),
+	}, StatusSuccess
+}

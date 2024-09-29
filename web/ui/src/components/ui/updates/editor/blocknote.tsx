@@ -1,6 +1,6 @@
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
-import type { ServerAPIStatus, ServerContentUpdateRequest } from "@/client/Api";
+import type { MalakUpdate, ServerAPIStatus, ServerContentUpdateRequest } from "@/client/Api";
 import { Badge } from "@/components/Badge";
 import client from "@/lib/client";
 import { UPDATE_CONTENT } from "@/lib/query-constants";
@@ -23,13 +23,16 @@ import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { defaultEditorContent } from "./default-value";
 import fileUploader from "./image-upload";
+import Skeleton from "../../custom/loader/skeleton";
 
 const getCustomSlashMenuItems = (
   editor: BlockNoteEditor,
 ): DefaultReactSuggestionItem[] => [...getDefaultReactSlashMenuItems(editor)];
 
 export type EditorProps = {
-  reference: string | undefined;
+  reference: string
+  loading: boolean
+  update: MalakUpdate | undefined
 };
 
 const BlockNoteJSEditor = ({ reference }: EditorProps) => {
@@ -110,6 +113,7 @@ const BlockNoteJSEditor = ({ reference }: EditorProps) => {
         return "neutral";
     }
   };
+
 
   return (
     <div className="relative w-full max-w-screen-lg">
