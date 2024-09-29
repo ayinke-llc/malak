@@ -6,4 +6,4 @@ export const SWITCH_WORKSPACE = "SWITCH_WORKSPACE" as const;
 export const DUPLICATE_UPDATE = "DUPLICATE_UPDATE" as const;
 export const DELETE_UPDATE = "DELETE_UPDATE" as const;
 export const TOGGLE_PINNED_STATE = "TOGGLE_PINNED_STATE" as const;
-export const FETCH_SINGLE_UPDATE = "FETCH_SINGLE_UPDATE" as const
+export const FETCH_SINGLE_UPDATE = "FETCH_SINGLE_UPDATE" as const;

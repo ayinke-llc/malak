@@ -15,16 +15,15 @@ import { toast } from "sonner";
 import { BooleanSchema } from "yup";
 
 export default function Page() {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-
-  const router = useRouter()
+  const router = useRouter();
 
   const mutation = useMutation({
     mutationFn: () => {
       return client.workspaces.updatesCreate({
-        title: `${format(new Date(), "EEEE, MMMM do, yyyy")} Update`
-      })
+        title: `${format(new Date(), "EEEE, MMMM do, yyyy")} Update`,
+      });
     },
     gcTime: 0,
     onError: (err: AxiosError<ServerAPIStatus>): void => {
@@ -37,10 +36,10 @@ export default function Page() {
     },
     retry: false,
     onSuccess: (resp: AxiosResponse<ServerFetchUpdateReponse>) => {
-      router.push(`/updates/${resp.data.update.reference}`)
+      router.push(`/updates/${resp.data.update.reference}`);
     },
     onSettled: () => setIsLoading(false),
-    onMutate: () => setIsLoading(true)
+    onMutate: () => setIsLoading(true),
   });
 
   return (

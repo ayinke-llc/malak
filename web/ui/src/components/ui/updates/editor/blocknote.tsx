@@ -1,6 +1,10 @@
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
-import type { MalakUpdate, ServerAPIStatus, ServerContentUpdateRequest } from "@/client/Api";
+import type {
+  MalakUpdate,
+  ServerAPIStatus,
+  ServerContentUpdateRequest,
+} from "@/client/Api";
 import { Badge } from "@/components/Badge";
 import client from "@/lib/client";
 import { UPDATE_CONTENT } from "@/lib/query-constants";
@@ -30,9 +34,9 @@ const getCustomSlashMenuItems = (
 ): DefaultReactSuggestionItem[] => [...getDefaultReactSlashMenuItems(editor)];
 
 export type EditorProps = {
-  reference: string
-  loading: boolean
-  update: MalakUpdate | undefined
+  reference: string;
+  loading: boolean;
+  update: MalakUpdate | undefined;
 };
 
 const BlockNoteJSEditor = ({ reference }: EditorProps) => {
@@ -113,7 +117,6 @@ const BlockNoteJSEditor = ({ reference }: EditorProps) => {
         return "neutral";
     }
   };
-
 
   return (
     <div className="relative w-full max-w-screen-lg">

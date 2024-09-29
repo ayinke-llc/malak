@@ -43,7 +43,6 @@ import UpdateBadge from "../../custom/update/badge";
 import Link from "next/link";
 
 const SingleUpdate = (update: MalakUpdate) => {
-
   const [loading, setLoading] = useState<boolean>(false);
   const [deleted, setDeleted] = useState<boolean>(false);
   const [duplicateDialogOpen, setDuplicateDialogOpen] =

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import BlockNoteJSEditor from "@/components/ui/updates/editor/blocknote";
 import SendUpdateButton from "@/components/ui/updates/button/send";
@@ -11,24 +11,23 @@ import { toast } from "sonner";
 import Skeleton from "@/components/ui/custom/loader/skeleton";
 
 export default function Page() {
+  const params = useParams();
 
-  const params = useParams()
+  const router = useRouter();
 
-  const router = useRouter()
-
-  const reference = params.slug as string
+  const reference = params.slug as string;
 
   const { data, error, isLoading } = useQuery({
     queryKey: [FETCH_SINGLE_UPDATE],
     queryFn: () => client.workspaces.fetchUpdate(reference),
     retry: false,
     gcTime: Number.POSITIVE_INFINITY,
-  })
+  });
 
   if (error) {
-    toast.error("an error occurred while fetching this update")
-    router.push("/updates")
-    return
+    toast.error("an error occurred while fetching this update");
+    router.push("/updates");
+    return;
   }
 
   return (
@@ -36,7 +35,10 @@ export default function Page() {
       <section>
         <div className="sm:flex sm:items-center sm:justify-between">
           <div>
-            <h3 id="existing-contacts" className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50">
+            <h3
+              id="existing-contacts"
+              className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
+            >
               Create a new update
             </h3>
             <p className="text-sm leading-6 text-gray-500">
@@ -53,7 +55,8 @@ export default function Page() {
           {isLoading ? (
             <Skeleton count={10} />
           ) : (
-            <BlockNoteJSEditor reference={reference}
+            <BlockNoteJSEditor
+              reference={reference}
               loading={isLoading}
               update={data?.data.update}
             />
@@ -61,5 +64,5 @@ export default function Page() {
         </div>
       </section>
     </div>
-  )
+  );
 }
