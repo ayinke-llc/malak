@@ -374,6 +374,21 @@
 				],
 				"type": "object"
 			},
+			"server.fetchUpdateReponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"update": {
+						"$ref": "#/components/schemas/malak.Update"
+					}
+				},
+				"required": [
+					"message",
+					"update"
+				],
+				"type": "object"
+			},
 			"server.fetchWorkspaceResponse": {
 				"properties": {
 					"message": {
@@ -1066,6 +1081,76 @@
 					}
 				},
 				"summary": "Delete a specific update",
+				"tags": [
+					"updates"
+				]
+			},
+			"get": {
+				"operationId": "fetchUpdate",
+				"parameters": [
+					{
+						"description": "update unique reference.. e.g update_",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.fetchUpdateReponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "Fetch a specific update",
 				"tags": [
 					"updates"
 				]
