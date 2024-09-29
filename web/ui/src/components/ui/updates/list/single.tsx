@@ -40,6 +40,7 @@ import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import UpdateBadge from "../../custom/update/badge";
+import Link from "next/link";
 
 const SingleUpdate = (update: MalakUpdate) => {
 
@@ -136,7 +137,9 @@ const SingleUpdate = (update: MalakUpdate) => {
       >
         <div className="flex flex-col space-y-1">
           <div className="flex items-center space-x-2">
-            <h3 className="font-semibold">{update.title}</h3>
+            <Link href={`/updates/${update.reference}`}>
+              <h3 className="font-semibold">{update.title}</h3>
+            </Link>
             <UpdateBadge status={update.status as string} />
           </div>
           <p className="text-sm text-muted-foreground">{update.created_at}</p>
