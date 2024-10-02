@@ -1,13 +1,15 @@
 package malak
 
 type BlockContent struct {
-	Type    string          `json:"type"`
-	Content []BlockNoteItem `json:"content"`
-	Props   map[string]any  `json:"props,omitempty"`
+	ID       string          `json:"id" validate:"required"`
+	Type     string          `json:"type" validate:"required"`
+	Content  []BlockNoteItem `json:"content" validate:"required"`
+	Children []BlockNoteItem `json:"children" validate:"required"`
+	Props    map[string]any  `json:"props" validate:"required"`
 }
 
 type BlockNoteItem struct {
-	Type  string         `json:"type"`
-	Text  string         `json:"text,omitempty"`
-	Attrs map[string]any `json:"attrs,omitempty"`
+	Type   string         `json:"type,omitempty" validate:"required"`
+	Text   string         `json:"text,omitempty" validate:"required"`
+	Styles map[string]any `json:"styles" validate:"required"`
 }

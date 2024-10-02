@@ -2,15 +2,27 @@ components:
   schemas:
     malak.BlockContent:
       properties:
+        children:
+          items:
+            $ref: '#/components/schemas/malak.BlockNoteItem'
+          type: array
         content:
           items:
             $ref: '#/components/schemas/malak.BlockNoteItem'
           type: array
+        id:
+          type: string
         props:
           additionalProperties: {}
           type: object
         type:
           type: string
+      required:
+      - children
+      - content
+      - id
+      - props
+      - type
       type: object
     malak.BlockNoteItem:
       properties:
@@ -21,6 +33,10 @@ components:
           type: string
         type:
           type: string
+      required:
+      - attrs
+      - text
+      - type
       type: object
     malak.Contact:
       properties:

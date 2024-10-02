@@ -764,12 +764,28 @@ const docTemplate = `{
     "definitions": {
         "malak.BlockContent": {
             "type": "object",
+            "required": [
+                "children",
+                "content",
+                "id",
+                "props",
+                "type"
+            ],
             "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.BlockNoteItem"
+                    }
+                },
                 "content": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/malak.BlockNoteItem"
                     }
+                },
+                "id": {
+                    "type": "string"
                 },
                 "props": {
                     "type": "object",
@@ -782,6 +798,11 @@ const docTemplate = `{
         },
         "malak.BlockNoteItem": {
             "type": "object",
+            "required": [
+                "attrs",
+                "text",
+                "type"
+            ],
             "properties": {
                 "attrs": {
                     "type": "object",

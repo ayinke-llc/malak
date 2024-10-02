@@ -11,34 +11,34 @@ import client from "@/lib/client";
 import { UPDATE_CONTENT } from "@/lib/query-constants";
 import {
   type Block,
-  type BlockNoteEditor,
+  BlockNoteEditor,
   filterSuggestionItems,
+  PartialBlock,
 } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import {
   type DefaultReactSuggestionItem,
   SuggestionMenuController,
   getDefaultReactSlashMenuItems,
-  useCreateBlockNote,
 } from "@blocknote/react";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { defaultEditorContent } from "./default-value";
 import fileUploader from "./image-upload";
-import Skeleton from "../../custom/loader/skeleton";
 
-
-const getCustomSlashMenuItems = (editor: BlockNoteEditor):
-  DefaultReactSuggestionItem[] => {
-  return [...getDefaultReactSlashMenuItems(editor).
-    filter((item) => {
-      const exclude = ["Video", "Audio", "File",]
-      return !exclude.includes(item.title)
-    })]
-}
+const getCustomSlashMenuItems = (
+  editor: BlockNoteEditor,
+): DefaultReactSuggestionItem[] => {
+  return [
+    ...getDefaultReactSlashMenuItems(editor).filter((item) => {
+      const exclude = ["Video", "Audio", "File"];
+      return !exclude.includes(item.title);
+    }),
+  ];
+};
 
 export type EditorProps = {
   reference: string;
@@ -46,24 +46,33 @@ export type EditorProps = {
   update: MalakUpdate | undefined;
 };
 
-const BlockNoteJSEditor = ({ reference }: EditorProps) => {
+const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
   if (reference === undefined || reference === "") {
     return null;
   }
-
-  const editor = useCreateBlockNote({
-    initialContent: defaultEditorContent(reference),
-    uploadFile: fileUploader,
-  });
 
   const [saveStatus, setSaveStatus] = useState<"Saved" | "Unsaved" | "Storing">(
     "Saved",
   );
 
+  let initialContent = defaultEditorContent(reference);
+
+  if (update) {
+    initialContent = update?.content as PartialBlock[];
+    setSaveStatus("Saved");
+  }
+
+  const editor = useMemo(() => {
+    return BlockNoteEditor.create({
+      initialContent,
+      uploadFile: fileUploader,
+    });
+  }, [initialContent]);
+
   const mutation = useMutation({
     mutationKey: [UPDATE_CONTENT],
     mutationFn: async (data: ServerContentUpdateRequest) => {
-      return client.workspaces.updateContent(reference, data)
+      return client.workspaces.updateContent(reference, data);
     },
     onSuccess: () => {
       setSaveStatus("Saved");

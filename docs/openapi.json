@@ -3,11 +3,20 @@
 		"schemas": {
 			"malak.BlockContent": {
 				"properties": {
+					"children": {
+						"items": {
+							"$ref": "#/components/schemas/malak.BlockNoteItem"
+						},
+						"type": "array"
+					},
 					"content": {
 						"items": {
 							"$ref": "#/components/schemas/malak.BlockNoteItem"
 						},
 						"type": "array"
+					},
+					"id": {
+						"type": "string"
 					},
 					"props": {
 						"additionalProperties": {},
@@ -17,6 +26,13 @@
 						"type": "string"
 					}
 				},
+				"required": [
+					"children",
+					"content",
+					"id",
+					"props",
+					"type"
+				],
 				"type": "object"
 			},
 			"malak.BlockNoteItem": {
@@ -32,6 +48,11 @@
 						"type": "string"
 					}
 				},
+				"required": [
+					"attrs",
+					"text",
+					"type"
+				],
 				"type": "object"
 			},
 			"malak.Contact": {

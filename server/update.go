@@ -237,9 +237,9 @@ func sanitizeBlockNoteJSON(blocks []malak.BlockContent) ([]malak.BlockContent, e
 		for j := range blocks[i].Content {
 			blocks[i].Content[j].Text = policy.Sanitize(blocks[i].Content[j].Text)
 
-			for key, value := range blocks[i].Content[j].Attrs {
+			for key, value := range blocks[i].Content[j].Styles {
 				if strValue, ok := value.(string); ok {
-					blocks[i].Content[j].Attrs[key] = policy.Sanitize(strValue)
+					blocks[i].Content[j].Styles[key] = policy.Sanitize(strValue)
 				}
 			}
 		}
