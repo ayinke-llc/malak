@@ -59,7 +59,6 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
 
   if (update) {
     initialContent = update?.content as PartialBlock[];
-    setSaveStatus("Saved");
   }
 
   const editor = useMemo(() => {
