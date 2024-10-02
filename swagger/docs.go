@@ -799,12 +799,12 @@ const docTemplate = `{
         "malak.BlockNoteItem": {
             "type": "object",
             "required": [
-                "attrs",
+                "styles",
                 "text",
                 "type"
             ],
             "properties": {
-                "attrs": {
+                "styles": {
                     "type": "object",
                     "additionalProperties": {}
                 },
