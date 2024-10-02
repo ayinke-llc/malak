@@ -203,6 +203,10 @@ func (c *contentUpdateRequest) Validate() error {
 		return err
 	}
 
+	if len(sanitized) == 0 {
+		return errors.New("please provide the content")
+	}
+
 	c.Title = p.Sanitize(c.Title)
 	c.Update = sanitized
 

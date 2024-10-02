@@ -43,7 +43,18 @@ func generateUpdateContentTable() []struct {
 
 			},
 			req: contentUpdateRequest{
-				Update: malak.UpdateContent("omo"),
+				Update: []malak.BlockContent{
+					{
+						ID:   "here is an id",
+						Type: "heading",
+						Content: []malak.BlockNoteItem{
+							malak.BlockNoteItem{
+								Type: "paragraph",
+								Text: "omo",
+							},
+						},
+					},
+				},
 			},
 			expectedStatusCode: http.StatusBadRequest,
 		},
@@ -53,8 +64,19 @@ func generateUpdateContentTable() []struct {
 
 			},
 			req: contentUpdateRequest{
-				Update: malak.UpdateContent("omo"),
-				Title:  "abc",
+				Title: "tt",
+				Update: []malak.BlockContent{
+					{
+						ID:   "here is an id",
+						Type: "heading",
+						Content: []malak.BlockNoteItem{
+							malak.BlockNoteItem{
+								Type: "paragraph",
+								Text: "omo",
+							},
+						},
+					},
+				},
 			},
 			expectedStatusCode: http.StatusBadRequest,
 		},
@@ -69,15 +91,37 @@ func generateUpdateContentTable() []struct {
 			},
 			expectedStatusCode: http.StatusNotFound,
 			req: contentUpdateRequest{
-				Update: malak.UpdateContent("omo what is going on"),
-				Title:  "let it go brother",
+				Title: "Valid title",
+				Update: []malak.BlockContent{
+					{
+						ID:   "here is an id",
+						Type: "heading",
+						Content: []malak.BlockNoteItem{
+							malak.BlockNoteItem{
+								Type: "paragraph",
+								Text: "omo",
+							},
+						},
+					},
+				},
 			},
 		},
 		{
 			name: "could not fetch update from db",
 			req: contentUpdateRequest{
-				Update: malak.UpdateContent("omo what is going on"),
-				Title:  "let it go brother",
+				Title: "Valid title",
+				Update: []malak.BlockContent{
+					{
+						ID:   "here is an id",
+						Type: "heading",
+						Content: []malak.BlockNoteItem{
+							malak.BlockNoteItem{
+								Type: "paragraph",
+								Text: "omo",
+							},
+						},
+					},
+				},
 			},
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.
@@ -91,8 +135,19 @@ func generateUpdateContentTable() []struct {
 		{
 			name: "updating content failed",
 			req: contentUpdateRequest{
-				Update: malak.UpdateContent("omo what is going on"),
-				Title:  "let it go brother",
+				Title: "Valid title",
+				Update: []malak.BlockContent{
+					{
+						ID:   "here is an id",
+						Type: "heading",
+						Content: []malak.BlockNoteItem{
+							malak.BlockNoteItem{
+								Type: "paragraph",
+								Text: "omo",
+							},
+						},
+					},
+				},
 			},
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.
@@ -110,8 +165,19 @@ func generateUpdateContentTable() []struct {
 		{
 			name: "updating content succeeds",
 			req: contentUpdateRequest{
-				Update: malak.UpdateContent("omo what is going on"),
-				Title:  "let it go brother",
+				Title: "Valid title",
+				Update: []malak.BlockContent{
+					{
+						ID:   "here is an id",
+						Type: "heading",
+						Content: []malak.BlockNoteItem{
+							malak.BlockNoteItem{
+								Type: "paragraph",
+								Text: "omo",
+							},
+						},
+					},
+				},
 			},
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.
