@@ -34,6 +34,10 @@ The Opensource Investors' relationship hub. [Learn more](https://malak.vc)
 
 ### Managing Minio
 
+#### Images are not showing correctly in the editor
+
+Please make sure the buckets are publicly available. This allows images to be read correctly
+
 #### Configure mc client
 
 ```sh
