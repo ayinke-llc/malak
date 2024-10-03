@@ -46,8 +46,8 @@ services:
     volumes:
       - ./docker-data/mailpit:/data
     ports:
-      - 8025:8025
-      - 1025:1025
+      - 9025:8025
+      - 9125:1025
     environment:
       MP_DATABASE: /data/mailpit.db
       MP_SMTP_AUTH_ACCEPT_ANY: 1

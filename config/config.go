@@ -106,6 +106,7 @@ type Config struct {
 			Port     string `mapstructure:"port" yaml:"port"`
 			Username string `mapstructure:"username" yaml:"username"`
 			Password string `mapstructure:"password" yaml:"password"`
+			UseTLS   bool   `yaml:"use_tls" mapstructure:"use_tls"`
 		} `mapstructure:"smtp" yaml:"smtp"`
 	} `mapstructure:"email" yaml:"email"`
 
@@ -167,6 +168,10 @@ func (c *Config) Validate() error {
 
 	if util.IsStringEmpty(c.Auth.JWT.Key) {
 		return errors.New("please provide your JWT key")
+	}
+
+	if !c.Email.Provider.IsValid() {
+		return errors.New("email provider is not currently supported")
 	}
 
 	return nil
