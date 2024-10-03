@@ -420,6 +420,60 @@ const docTemplate = `{
             }
         },
         "/workspaces/updates/{reference}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "updates"
+                ],
+                "summary": "Fetch a specific update",
+                "operationId": "fetchUpdate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "update unique reference.. e.g update_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchUpdateReponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -708,6 +762,60 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "malak.BlockContent": {
+            "type": "object",
+            "required": [
+                "children",
+                "content",
+                "id",
+                "props",
+                "type"
+            ],
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.BlockNoteItem"
+                    }
+                },
+                "content": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.BlockNoteItem"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "props": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.BlockNoteItem": {
+            "type": "object",
+            "required": [
+                "styles",
+                "text",
+                "type"
+            ],
+            "properties": {
+                "styles": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "text": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.Contact": {
             "type": "object",
             "properties": {
@@ -803,7 +911,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.BlockContent"
+                    }
                 },
                 "created_at": {
                     "type": "string"
@@ -985,7 +1096,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "update": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.BlockContent"
+                    }
                 }
             }
         },
@@ -1078,6 +1192,21 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "server.fetchUpdateReponse": {
+            "type": "object",
+            "required": [
+                "message",
+                "update"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "update": {
+                    "$ref": "#/definitions/malak.Update"
                 }
             }
         },

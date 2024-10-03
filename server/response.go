@@ -75,3 +75,8 @@ type uploadImageResponse struct {
 	URL string `json:"url,omitempty" validate:"required"`
 	APIStatus
 }
+
+type fetchUpdateReponse struct {
+	Update malak.Update `json:"update,omitempty" validate:"required"`
+	APIStatus
+}

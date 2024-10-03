@@ -1,24 +1,29 @@
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
-import type { ServerAPIStatus, ServerContentUpdateRequest } from "@/client/Api";
+import type {
+  MalakBlockContent,
+  MalakUpdate,
+  ServerAPIStatus,
+  ServerContentUpdateRequest,
+} from "@/client/Api";
 import { Badge } from "@/components/Badge";
 import client from "@/lib/client";
 import { UPDATE_CONTENT } from "@/lib/query-constants";
 import {
   type Block,
-  type BlockNoteEditor,
+  BlockNoteEditor,
   filterSuggestionItems,
+  PartialBlock,
 } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import {
   type DefaultReactSuggestionItem,
   SuggestionMenuController,
   getDefaultReactSlashMenuItems,
-  useCreateBlockNote,
 } from "@blocknote/react";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { defaultEditorContent } from "./default-value";
@@ -26,30 +31,48 @@ import fileUploader from "./image-upload";
 
 const getCustomSlashMenuItems = (
   editor: BlockNoteEditor,
-): DefaultReactSuggestionItem[] => [...getDefaultReactSlashMenuItems(editor)];
-
-export type EditorProps = {
-  reference: string | undefined;
+): DefaultReactSuggestionItem[] => {
+  return [
+    ...getDefaultReactSlashMenuItems(editor).filter((item) => {
+      const exclude = ["Video", "Audio", "File"];
+      return !exclude.includes(item.title);
+    }),
+  ];
 };
 
-const BlockNoteJSEditor = ({ reference }: EditorProps) => {
+export type EditorProps = {
+  reference: string;
+  loading: boolean;
+  update: MalakUpdate | undefined;
+};
+
+const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
   if (reference === undefined || reference === "") {
     return null;
   }
-
-  const editor = useCreateBlockNote({
-    initialContent: defaultEditorContent(reference),
-    uploadFile: fileUploader,
-  });
 
   const [saveStatus, setSaveStatus] = useState<"Saved" | "Unsaved" | "Storing">(
     "Saved",
   );
 
+  let initialContent = defaultEditorContent(reference);
+
+  if (update) {
+    initialContent = update?.content as PartialBlock[];
+  }
+
+  const editor = useMemo(() => {
+    return BlockNoteEditor.create({
+      initialContent,
+      uploadFile: fileUploader,
+    });
+  }, [initialContent]);
+
   const mutation = useMutation({
     mutationKey: [UPDATE_CONTENT],
-    mutationFn: (data: ServerContentUpdateRequest) =>
-      client.workspaces.updateContent(reference, data),
+    mutationFn: async (data: ServerContentUpdateRequest) => {
+      return client.workspaces.updateContent(reference, data);
+    },
     onSuccess: () => {
       setSaveStatus("Saved");
     },
@@ -94,7 +117,7 @@ const BlockNoteJSEditor = ({ reference }: EditorProps) => {
 
     mutation.mutate({
       title: titleContent.text,
-      update: JSON.stringify(blocks),
+      update: blocks as MalakBlockContent[],
     });
   }, 1000);
 
