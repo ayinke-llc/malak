@@ -2,7 +2,6 @@ package watermillqueue
 
 import (
 	"context"
-	"os"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -12,7 +11,10 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
+	wotelfloss "github.com/dentech-floss/watermill-opentelemetry-go-extra/pkg/opentelemetry"
+	"github.com/garsue/watermillzap"
 	redis "github.com/redis/go-redis/v9"
+	wotel "github.com/voi-oss/watermill-opentelemetry/pkg/opentelemetry"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 )
@@ -32,30 +34,33 @@ type WatermillClient struct {
 func New(redisClient *redis.Client,
 	logger *zap.Logger,
 	userRepo malak.UserRepository,
-	workspaceRepo malak.WorkspaceRepository,
-) (queue.QueueHandler, error) {
-	publisher, err := redisstream.NewPublisher(
+	workspaceRepo malak.WorkspaceRepository) (queue.QueueHandler, error) {
+
+	p, err := redisstream.NewPublisher(
 		redisstream.PublisherConfig{
 			Client:     redisClient,
 			Marshaller: redisstream.DefaultMarshallerUnmarshaller{},
 		},
-		watermill.NewStdLoggerWithOut(os.Stdout, false, false))
+		watermillzap.NewLogger(logger))
 	if err != nil {
 		return nil, err
 	}
+
+	publisher := wotel.NewNamedPublisherDecorator("queue.Publish",
+		wotelfloss.NewTracePropagatingPublisherDecorator(p))
 
 	subscriber, err := redisstream.NewSubscriber(
 		redisstream.SubscriberConfig{
 			Client:       redisClient,
 			Unmarshaller: redisstream.DefaultMarshallerUnmarshaller{},
 		},
-		watermill.NewStdLoggerWithOut(os.Stdout, false, false),
-	)
+		watermillzap.NewLogger(logger))
 	if err != nil {
 		return nil, err
 	}
 
-	router, err := message.NewRouter(message.RouterConfig{}, watermill.NewStdLogger(false, false))
+	router, err := message.NewRouter(message.RouterConfig{},
+		watermillzap.NewLogger(logger))
 	if err != nil {
 		return nil, err
 	}
@@ -79,6 +84,10 @@ func New(redisClient *redis.Client,
 		// Recoverer handles panics from handlers.
 		// In this case, it passes them as errors to the Retry middleware.
 		middleware.Recoverer,
+
+		// OTEL
+		wotelfloss.ExtractRemoteParentSpanContext(),
+		wotel.Trace(),
 	)
 
 	t := &WatermillClient{
@@ -100,8 +109,13 @@ func New(redisClient *redis.Client,
 	return t, nil
 }
 
-func (t *WatermillClient) Add(ctx context.Context, topic string, msg *message.Message) error {
-	return t.messager.Publish(topic, msg)
+func (t *WatermillClient) Add(ctx context.Context,
+	topic string, msg *queue.Message) error {
+
+	newMsg := message.NewMessage(msg.ID, msg.Data)
+
+	newMsg.Metadata = msg.Metadata
+	return t.messager.Publish(topic, newMsg)
 }
 
 func (t *WatermillClient) Start(context.Context) {
@@ -111,6 +125,5 @@ func (t *WatermillClient) Start(context.Context) {
 func (t *WatermillClient) Close() error { return t.publisher.Close() }
 
 func (t *WatermillClient) sendPreviewEmail(msg *message.Message) error {
-
 	return nil
 }

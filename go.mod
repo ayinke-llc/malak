@@ -10,7 +10,9 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.31.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.36
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.34
+	github.com/dentech-floss/watermill-opentelemetry-go-extra v0.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/garsue/watermillzap v1.2.0
 	github.com/getkin/kin-openapi v0.127.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-chi/chi/v5 v5.1.0
@@ -38,6 +40,7 @@ require (
 	github.com/uptrace/bun/dialect/pgdialect v1.2.1
 	github.com/uptrace/bun/driver/pgdriver v1.2.1
 	github.com/uptrace/bun/extra/bunotel v1.2.1
+	github.com/voi-oss/watermill-opentelemetry v0.1.3
 	github.com/wneessen/go-mail v0.4.4
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.53.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.53.0
