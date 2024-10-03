@@ -4,7 +4,31 @@
   reference: update_cRiQsRRHR
   created_by: 1aa6b38e-33d3-499f-bc9d-3090738f29e6
   sent_by: null
-  content: ""
+  content: >-
+    [{"id": "00a5abc6-27a8-47bd-9512-9b6b5abf831e", "type": "heading", "props":
+    {"level": 2, "textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [{"text": "texting title", "type":
+    "text", "styles": {}}], "children": []}, {"id":
+    "c578fcae-0b5a-44c4-b27f-c77d99a684e6", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [], "children": []}, {"id":
+    "9aae7c94-dc0f-41c0-9161-26d8b9141741", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [{"text": "gouhgojj ghopgjpgjoghg p[gjoghjg", "type":
+    "text", "styles": {}}], "children": []}, {"id":
+    "cd6c3e48-a109-49a0-9e60-8f327224a33d", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [], "children": []}, {"id":
+    "4d4fbc0d-c4aa-4e29-a43d-622c5daedebd", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [], "children": []}, {"id":
+    "2547e9d8-bf69-4301-9444-e9ba8871fe9c", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [{"text": "oughioub opfghofghdo ouidfhog hopghiodf
+    ogihjfgo ", "type": "text", "styles": {}}], "children": []}, {"id":
+    "52e7f8fd-cf42-4779-917c-3f9b03f5549d", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [], "children": []}]
   title: "omo i just got here"
   metadata: "{}"
   sent_at: null
@@ -16,9 +40,33 @@
   status: draft
   reference: update_O-54dq6IR
   title: "another update"
+  content: >-
+    [{"id": "00a5abc6-27a8-47bd-9512-9b6b5abf831e", "type": "heading", "props":
+    {"level": 2, "textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [{"text": "texting title", "type":
+    "text", "styles": {}}], "children": []}, {"id":
+    "c578fcae-0b5a-44c4-b27f-c77d99a684e6", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [], "children": []}, {"id":
+    "9aae7c94-dc0f-41c0-9161-26d8b9141741", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [{"text": "gouhgojj ghopgjpgjoghg p[gjoghjg", "type":
+    "text", "styles": {}}], "children": []}, {"id":
+    "cd6c3e48-a109-49a0-9e60-8f327224a33d", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [], "children": []}, {"id":
+    "4d4fbc0d-c4aa-4e29-a43d-622c5daedebd", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [], "children": []}, {"id":
+    "2547e9d8-bf69-4301-9444-e9ba8871fe9c", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [{"text": "oughioub opfghofghdo ouidfhog hopghiodf
+    ogihjfgo ", "type": "text", "styles": {}}], "children": []}, {"id":
+    "52e7f8fd-cf42-4779-917c-3f9b03f5549d", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [], "children": []}]
   created_by: 1aa6b38e-33d3-499f-bc9d-3090738f29e6
   sent_by: null
-  content: ""
   metadata: "{}"
   sent_at: null
   created_at: "2024-09-15 19:18:13.35185+00"
@@ -31,7 +79,31 @@
   title: "yet another update"
   created_by: 1aa6b38e-33d3-499f-bc9d-3090738f29e6
   sent_by: null
-  content: ""
+  content: >-
+    [{"id": "00a5abc6-27a8-47bd-9512-9b6b5abf831e", "type": "heading", "props":
+    {"level": 2, "textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [{"text": "texting title", "type":
+    "text", "styles": {}}], "children": []}, {"id":
+    "c578fcae-0b5a-44c4-b27f-c77d99a684e6", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [], "children": []}, {"id":
+    "9aae7c94-dc0f-41c0-9161-26d8b9141741", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [{"text": "gouhgojj ghopgjpgjoghg p[gjoghjg", "type":
+    "text", "styles": {}}], "children": []}, {"id":
+    "cd6c3e48-a109-49a0-9e60-8f327224a33d", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [], "children": []}, {"id":
+    "4d4fbc0d-c4aa-4e29-a43d-622c5daedebd", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [], "children": []}, {"id":
+    "2547e9d8-bf69-4301-9444-e9ba8871fe9c", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [{"text": "oughioub opfghofghdo ouidfhog hopghiodf
+    ogihjfgo ", "type": "text", "styles": {}}], "children": []}, {"id":
+    "52e7f8fd-cf42-4779-917c-3f9b03f5549d", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor":
+    "default"}, "content": [], "children": []}]
   metadata: "{}"
   sent_at: null
   created_at: "2024-09-16 18:42:56.040247+00"
