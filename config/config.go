@@ -21,6 +21,9 @@ type RateLimiterType string
 // ENUM(s3)
 type UploadDriver string
 
+// ENUM(smtp)
+type EmailProvider string
+
 type Config struct {
 	Logging struct {
 		Mode LogMode `yaml:"mode" mapstructure:"mode"`
@@ -97,7 +100,14 @@ type Config struct {
 	} `yaml:"uploader" mapstructure:"uploader"`
 
 	Email struct {
-	}
+		Provider EmailProvider `mapstructure:"provider" yaml:"provider"`
+		SMTP     struct {
+			Host     string `mapstructure:"host" yaml:"host"`
+			Port     string `mapstructure:"port" yaml:"port"`
+			Username string `mapstructure:"username" yaml:"username"`
+			Password string `mapstructure:"password" yaml:"password"`
+		} `mapstructure:"smtp" yaml:"smtp"`
+	} `mapstructure:"email" yaml:"email"`
 
 	Auth struct {
 		Google struct {
