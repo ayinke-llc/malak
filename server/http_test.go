@@ -7,9 +7,11 @@ import (
 	"github.com/adelowo/gulter"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
+	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
+	"go.uber.org/mock/gomock"
 )
 
 // This does nothing really
@@ -20,11 +22,22 @@ import (
 func TestServer_New(t *testing.T) {
 
 	t.Run("without swagger", func(t *testing.T) {
+
+		controller := gomock.NewController(t)
+		defer controller.Finish()
+
 		cfg := getConfig()
 
 		srv, closeFn := New(getLogger(t), cfg, &bun.DB{},
-			jwttoken.New(cfg), socialauth.NewGoogle(cfg), &httplimit.Middleware{},
-			&gulter.Gulter{})
+			jwttoken.New(cfg), socialauth.NewGoogle(cfg),
+			malak_mocks.NewMockUserRepository(controller),
+			malak_mocks.NewMockWorkspaceRepository(controller),
+			malak_mocks.NewMockPlanRepository(controller),
+			malak_mocks.NewMockContactRepository(controller),
+			malak_mocks.NewMockUpdateRepository(controller),
+			&httplimit.Middleware{},
+			&gulter.Gulter{},
+			malak_mocks.NewMockQueueHandler(controller))
 
 		closeFn()
 
@@ -39,14 +52,24 @@ func TestServer_New(t *testing.T) {
 
 	t.Run("with swagger enabled", func(t *testing.T) {
 
+		controller := gomock.NewController(t)
+		defer controller.Finish()
+
 		cfg := getConfig()
 
 		cfg.HTTP.Swagger.UIEnabled = true
 		cfg.HTTP.Swagger.Port = 9990
 
 		srv, closeFn := New(getLogger(t), cfg, &bun.DB{},
-			jwttoken.New(cfg), socialauth.NewGoogle(cfg), &httplimit.Middleware{},
-			&gulter.Gulter{})
+			jwttoken.New(cfg), socialauth.NewGoogle(cfg),
+			malak_mocks.NewMockUserRepository(controller),
+			malak_mocks.NewMockWorkspaceRepository(controller),
+			malak_mocks.NewMockPlanRepository(controller),
+			malak_mocks.NewMockContactRepository(controller),
+			malak_mocks.NewMockUpdateRepository(controller),
+			&httplimit.Middleware{},
+			&gulter.Gulter{},
+			malak_mocks.NewMockQueueHandler(controller))
 
 		closeFn()
 
