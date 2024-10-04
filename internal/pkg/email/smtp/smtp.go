@@ -3,7 +3,6 @@ package smtp
 import (
 	"context"
 	"errors"
-	"strconv"
 
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
@@ -29,16 +28,21 @@ func New(cfg config.Config) (email.Client, error) {
 		return nil, errors.New("please provide your smtp password")
 	}
 
-	port, err := strconv.Atoi(cfg.Email.SMTP.Port)
-	if err != nil {
-		return nil, errors.Join(errors.New("invalid smtp port provided"), err)
-	}
-
 	client, err := mail.NewClient(cfg.Email.SMTP.Host,
-		mail.WithPort(port),
+		mail.WithPort(cfg.Email.SMTP.Port),
 		mail.WithUsername(cfg.Email.SMTP.Username),
 		mail.WithPassword(cfg.Email.SMTP.Password))
 	if err != nil {
+		return nil, err
+	}
+
+	client.SetTLSPolicy(mail.NoTLS)
+
+	if cfg.Email.SMTP.UseTLS {
+		client.SetTLSPolicy(mail.TLSMandatory)
+	}
+
+	if err := client.DialWithContext(context.Background()); err != nil {
 		return nil, err
 	}
 

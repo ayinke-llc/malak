@@ -103,7 +103,7 @@ type Config struct {
 		Provider EmailProvider `mapstructure:"provider" yaml:"provider"`
 		SMTP     struct {
 			Host     string `mapstructure:"host" yaml:"host"`
-			Port     string `mapstructure:"port" yaml:"port"`
+			Port     int    `mapstructure:"port" yaml:"port"`
 			Username string `mapstructure:"username" yaml:"username"`
 			Password string `mapstructure:"password" yaml:"password"`
 			UseTLS   bool   `yaml:"use_tls" mapstructure:"use_tls"`
