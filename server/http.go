@@ -175,6 +175,9 @@ func buildRoutes(
 
 				r.Post("/{reference}/duplicate",
 					WrapMalakHTTPHandler(logger, updateHandler.duplicate, cfg, "updates.duplicate"))
+
+				r.Post("/{reference}/preview",
+					WrapMalakHTTPHandler(logger, updateHandler.previewUpdate, cfg, "updates.preview"))
 			})
 		})
 

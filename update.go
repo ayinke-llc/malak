@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	ErrUpdateNotFound = malakError("update not exists")
+	ErrUpdateNotFound = MalakError("update not exists")
 
-	ErrPinnedUpdateNotExists        = malakError("update not pinned")
-	ErrPinnedUpdateCapacityExceeded = malakError(
+	ErrPinnedUpdateNotExists        = MalakError("update not pinned")
+	ErrPinnedUpdateCapacityExceeded = MalakError(
 		`you have exceeded the maximum number of pinned updates. Please unpin an update and pin this again`)
 
 	MaximumNumberOfPinnedUpdates = 3

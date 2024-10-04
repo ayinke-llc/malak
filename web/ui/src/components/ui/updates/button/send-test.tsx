@@ -11,7 +11,6 @@ import {
 } from "@/components/Dialog";
 import { Input } from "@/components/Input";
 import { Label } from "@/components/Label";
-import { Switch } from "@/components/Switch";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { RiEyeLine } from "@remixicon/react";
 import { useState } from "react";
@@ -21,17 +20,15 @@ import type { ButtonProps } from "./props";
 
 type PreviewUpdateInput = {
   email: string;
-  link?: boolean;
 };
 
 const schema = yup
   .object({
     email: yup.string().min(5).max(50).required(),
-    link: yup.boolean().optional(),
   })
   .required();
 
-const SendTestButton = ({}: ButtonProps) => {
+const SendTestButton = ({ }: ButtonProps) => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const {
@@ -44,6 +41,7 @@ const SendTestButton = ({}: ButtonProps) => {
 
   const onSubmit: SubmitHandler<PreviewUpdateInput> = (data) => {
     setLoading(true);
+    console.log(data)
   };
 
   return (
@@ -89,13 +87,6 @@ const SendTestButton = ({}: ButtonProps) => {
                     </p>
                   )}
                 </div>
-
-                <div className="mt-4">
-                  <Switch disabled id="r3" {...register("link")} />
-                  <Label disabled htmlFor="r3">
-                    Coming soon. Generate a test preview link you can share
-                  </Label>
-                </div>
               </DialogHeader>
               <DialogFooter className="mt-6">
                 <DialogClose asChild>
@@ -103,12 +94,15 @@ const SendTestButton = ({}: ButtonProps) => {
                     type={"button"}
                     className="mt-2 w-full sm:mt-0 sm:w-fit"
                     variant="secondary"
+                    isLoading={loading}
                   >
                     Cancel
                   </Button>
                 </DialogClose>
-                <Button type="submit" className="w-full sm:w-fit">
-                  Send
+                <Button type="submit"
+                  className="w-full sm:w-fit"
+                  isLoading={loading}>
+                  Preview
                 </Button>
               </DialogFooter>
             </form>
