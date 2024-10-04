@@ -119,7 +119,7 @@ func (t *WatermillClient) Add(ctx context.Context,
 }
 
 func (t *WatermillClient) Start(context.Context) {
-	t.publisher.Run(context.Background())
+	_ = t.publisher.Run(context.Background())
 }
 
 func (t *WatermillClient) Close() error { return t.publisher.Close() }
