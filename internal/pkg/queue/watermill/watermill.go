@@ -19,7 +19,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var tracer = otel.Tracer("watermill")
+var _ = otel.Tracer("watermill")
 
 type WatermillClient struct {
 	publisher  *message.Router
