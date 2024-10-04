@@ -8,8 +8,8 @@ import (
 	"github.com/adelowo/gulter"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
-	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
+	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	_ "github.com/ayinke-llc/malak/swagger"
 	chi "github.com/go-chi/chi/v5"
@@ -27,11 +27,19 @@ func New(logger *zap.Logger,
 	db *bun.DB,
 	jwtTokenManager jwttoken.JWTokenManager,
 	googleAuthProvider socialauth.SocialAuthProvider,
-	mid *httplimit.Middleware, gulterHandler *gulter.Gulter) (*http.Server, func()) {
+	userRepo malak.UserRepository,
+	workspaceRepo malak.WorkspaceRepository,
+	planRepo malak.PlanRepository,
+	contactRepo malak.ContactRepository,
+	updateRepo malak.UpdateRepository,
+	mid *httplimit.Middleware,
+	gulterHandler *gulter.Gulter,
+	queueHandler queue.QueueHandler) (*http.Server, func()) {
 
 	srv := &http.Server{
 		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
-			googleAuthProvider, mid, gulterHandler),
+			userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
+			googleAuthProvider, mid, gulterHandler, queueHandler),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -64,9 +72,15 @@ func buildRoutes(
 	db *bun.DB,
 	cfg config.Config,
 	jwtTokenManager jwttoken.JWTokenManager,
+	userRepo malak.UserRepository,
+	workspaceRepo malak.WorkspaceRepository,
+	planRepo malak.PlanRepository,
+	contactRepo malak.ContactRepository,
+	updateRepo malak.UpdateRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	ratelimiterMiddleware *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
+	queueHandler queue.QueueHandler,
 ) http.Handler {
 
 	if cfg.HTTP.Swagger.UIEnabled {
@@ -82,12 +96,6 @@ func buildRoutes(
 			}
 		}()
 	}
-
-	userRepo := postgres.NewUserRepository(db)
-	workspaceRepo := postgres.NewWorkspaceRepository(db)
-	planRepo := postgres.NewPlanRepository(db)
-	contactRepo := postgres.NewContactRepository(db)
-	updateRepo := postgres.NewUpdatesRepository(db)
 
 	router := chi.NewRouter()
 

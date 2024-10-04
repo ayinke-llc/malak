@@ -21,6 +21,7 @@ import (
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
+	watermillqueue "github.com/ayinke-llc/malak/internal/pkg/queue/watermill"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/ayinke-llc/malak/server"
@@ -94,6 +95,12 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 					zap.Error(err))
 			}
 
+			userRepo := postgres.NewUserRepository(db)
+			workspaceRepo := postgres.NewWorkspaceRepository(db)
+			planRepo := postgres.NewPlanRepository(db)
+			contactRepo := postgres.NewContactRepository(db)
+			updateRepo := postgres.NewUpdatesRepository(db)
+
 			googleAuthProvider := socialauth.NewGoogle(*cfg)
 
 			tokenManager := jwttoken.New(*cfg)
@@ -107,7 +114,6 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			redisClient := redis.NewClient(opts)
 
 			if cfg.Otel.IsEnabled {
-
 				if err := redisotel.InstrumentTracing(redisClient); err != nil {
 					logger.Fatal("could not instrument tracing of redis client",
 						zap.Error(err))
@@ -127,7 +133,10 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 					zap.Error(err))
 			}
 
-			_ = redisClient
+			queueHandler, err := watermillqueue.New(redisClient, logger, userRepo, workspaceRepo)
+			if err != nil {
+				logger.Fatal("could not set up watermill queue", zap.Error(err))
+			}
 
 			rateLimiterStore, err := getRatelimiter(*cfg)
 			if err != nil {
@@ -208,7 +217,8 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			srv, cleanupSrv := server.New(logger,
 				util.DeRef(cfg), db,
 				tokenManager, googleAuthProvider,
-				mid, gulterHandler)
+				userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
+				mid, gulterHandler, queueHandler)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {

@@ -21,6 +21,9 @@ type RateLimiterType string
 // ENUM(s3)
 type UploadDriver string
 
+// ENUM(smtp)
+type EmailProvider string
+
 type Config struct {
 	Logging struct {
 		Mode LogMode `yaml:"mode" mapstructure:"mode"`
@@ -97,7 +100,15 @@ type Config struct {
 	} `yaml:"uploader" mapstructure:"uploader"`
 
 	Email struct {
-	}
+		Provider EmailProvider `mapstructure:"provider" yaml:"provider"`
+		SMTP     struct {
+			Host     string `mapstructure:"host" yaml:"host"`
+			Port     int    `mapstructure:"port" yaml:"port"`
+			Username string `mapstructure:"username" yaml:"username"`
+			Password string `mapstructure:"password" yaml:"password"`
+			UseTLS   bool   `yaml:"use_tls" mapstructure:"use_tls"`
+		} `mapstructure:"smtp" yaml:"smtp"`
+	} `mapstructure:"email" yaml:"email"`
 
 	Auth struct {
 		Google struct {
@@ -157,6 +168,10 @@ func (c *Config) Validate() error {
 
 	if util.IsStringEmpty(c.Auth.JWT.Key) {
 		return errors.New("please provide your JWT key")
+	}
+
+	if !c.Email.Provider.IsValid() {
+		return errors.New("email provider is not currently supported")
 	}
 
 	return nil

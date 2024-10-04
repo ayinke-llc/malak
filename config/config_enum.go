@@ -43,6 +43,37 @@ func ParseDatabaseType(name string) (DatabaseType, error) {
 }
 
 const (
+	// EmailProviderSmtp is a EmailProvider of type smtp.
+	EmailProviderSmtp EmailProvider = "smtp"
+)
+
+var ErrInvalidEmailProvider = errors.New("not a valid EmailProvider")
+
+// String implements the Stringer interface.
+func (x EmailProvider) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x EmailProvider) IsValid() bool {
+	_, err := ParseEmailProvider(string(x))
+	return err == nil
+}
+
+var _EmailProviderValue = map[string]EmailProvider{
+	"smtp": EmailProviderSmtp,
+}
+
+// ParseEmailProvider attempts to convert a string to a EmailProvider.
+func ParseEmailProvider(name string) (EmailProvider, error) {
+	if x, ok := _EmailProviderValue[name]; ok {
+		return x, nil
+	}
+	return EmailProvider(""), fmt.Errorf("%s is %w", name, ErrInvalidEmailProvider)
+}
+
+const (
 	// LogModeProd is a LogMode of type prod.
 	LogModeProd LogMode = "prod"
 	// LogModeDev is a LogMode of type dev.
