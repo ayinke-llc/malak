@@ -54,6 +54,49 @@ func TestSMTP_Send(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestNew_Errors(t *testing.T) {
+
+	t.Run("smtp host is empty", func(t *testing.T) {
+
+		cfg := getConfig(1025)
+		cfg.Email.SMTP.Host = ""
+
+		_, err := New(cfg)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "smtp host")
+	})
+
+	t.Run("smtp usernasme is empty", func(t *testing.T) {
+
+		cfg := getConfig(1025)
+		cfg.Email.SMTP.Username = ""
+
+		_, err := New(cfg)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "smtp username")
+	})
+
+	t.Run("smtp password is empty", func(t *testing.T) {
+
+		cfg := getConfig(1025)
+		cfg.Email.SMTP.Password = ""
+
+		_, err := New(cfg)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "smtp password")
+	})
+
+	t.Run("dialing does not succeed", func(t *testing.T) {
+
+		cfg := getConfig(1025)
+
+		_, err := New(cfg)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "connection refused")
+	})
+
+}
+
 func getConfig(port int) config.Config {
 	return config.Config{
 		Email: struct {
