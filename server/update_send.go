@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/mail"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
@@ -13,6 +14,25 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
+
+type previewUpdateRequest struct {
+	Email malak.Email `json:"email,omitempty" validate:"required"`
+
+	GenericRequest
+}
+
+func (p *previewUpdateRequest) Validate() error {
+	if util.IsStringEmpty(p.Email.String()) {
+		return errors.New("please provide the email to send the preview to")
+	}
+
+	_, err := mail.ParseAddress(p.Email.String())
+	if err != nil {
+		return errors.New("email is invalid")
+	}
+
+	return nil
+}
 
 // @Tags updates
 // @Summary Send preview of an update
@@ -39,7 +59,18 @@ func (u *updatesHandler) previewUpdate(
 
 	logger = logger.With(zap.String("reference", ref))
 
-	logger.Debug("Fetching update")
+	logger.Debug("Sending preview of update")
+
+	req := new(previewUpdateRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"),
+			StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
 
 	update, err := u.updateRepo.Get(ctx, malak.FetchUpdateOptions{
 		Reference: malak.Reference(ref),
@@ -55,8 +86,6 @@ func (u *updatesHandler) previewUpdate(
 			"an error occurred while fetching update"), StatusFailed
 	}
 
-	return fetchUpdateReponse{
-		APIStatus: newAPIStatus(http.StatusOK, "update fetched"),
-		Update:    util.DeRef(update),
-	}, StatusSuccess
+	return newAPIStatus(http.StatusOK, "Preview email sent"),
+		StatusSuccess
 }

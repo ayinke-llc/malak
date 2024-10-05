@@ -71,15 +71,19 @@ type UpdateLink struct {
 	bun.BaseModel `json:"-"`
 }
 
-type UpdateRecipient struct {
-	ID        uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	Reference Reference `json:"reference,omitempty"`
-	UpdateID  uuid.UUID `json:"update_id,omitempty"`
-	Email     Email     `json:"email,omitempty"`
+// ENUM(preview,live)
+type RecipientType string
 
-	CreatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at" `
-	UpdatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at" `
-	bun.BaseModel `json:"-"`
+type UpdateRecipient struct {
+	ID            uuid.UUID     `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference     Reference     `json:"reference,omitempty"`
+	UpdateID      uuid.UUID     `json:"update_id,omitempty"`
+	Email         Email         `json:"email,omitempty"`
+	RecipientType RecipientType `json:"recipient_type,omitempty"`
+
+	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
+	bun.BaseModel
 }
 
 type UpdateSchedule struct {
