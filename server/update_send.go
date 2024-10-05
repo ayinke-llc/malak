@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/mail"
+	"sync"
 	"time"
 
 	"github.com/ayinke-llc/malak"
+	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -59,6 +61,8 @@ func (u *updatesHandler) previewUpdate(
 
 	workspace := getWorkspaceFromContext(ctx)
 
+	user := getUserFromContext(ctx)
+
 	span.SetAttributes(attribute.String("reference", ref))
 
 	logger = logger.With(zap.String("reference", ref))
@@ -105,21 +109,52 @@ func (u *updatesHandler) previewUpdate(
 			"an error occurred while fetching update"), StatusFailed
 	}
 
-	if err := u.updateRepo.CreateSchedule(ctx, update); err != nil {
+	schedule := &malak.UpdateSchedule{
+		Reference:   u.referenceGenerator.Generate(malak.EntityTypeSchedule),
+		SendAt:      time.Now(),
+		UpdateType:  malak.RecipientTypePreview,
+		ScheduledBy: user.ID,
+		Status:      malak.UpdateSendScheduleScheduled,
+		UpdateID:    update.ID,
+		CreatedAt:   time.Now(),
+	}
+
+	if err := u.updateRepo.CreateSchedule(ctx, schedule); err != nil {
 		logger.Error("could not create schedule update", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError,
 			"could not send preview update"), StatusFailed
 	}
 
-	go func() {
+	span.SetAttributes(
+		attribute.String("schedule.type", "preview"),
+		attribute.String("schedule.id", schedule.ID.String()))
 
+	span.AddEvent("update.preview")
+
+	var wg sync.WaitGroup
+
+	go func() {
+		wg.Add(1)
+		defer wg.Done()
 		err := u.cache.Add(ctx, key, []byte("ok"), time.Hour)
 		if err != nil {
 			logger.Error("could not add user throttling to cache",
 				zap.Error(err))
 		}
-
 	}()
+
+	go func() {
+		wg.Add(1)
+		defer wg.Done()
+
+		err := u.queueHandler.Add(ctx, queue.QueueEventSubscriptionMessageUpdatePreview, nil)
+		if err != nil {
+			logger.Error("could not add schedule to queue to be processed",
+				zap.Error(err))
+		}
+	}()
+
+	wg.Wait()
 
 	return newAPIStatus(http.StatusOK, "Preview email sent"),
 		StatusSuccess

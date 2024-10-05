@@ -95,7 +95,7 @@ type UpdateSchedule struct {
 	UpdateType  RecipientType      `json:"update_type,omitempty"`
 
 	// Time to send this update at?
-	SendAt        uuid.UUID `json:"send_at,omitempty"`
+	SendAt        time.Time `json:"send_at,omitempty"`
 	CreatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
 	bun.BaseModel `json:"-"`
@@ -123,5 +123,5 @@ type UpdateRepository interface {
 	// Sending an update is an asynchronous task
 	// Adding it to the db while a job somewhere else will
 	// pick it up and run along with it
-	CreateSchedule(context.Context, *Update) error
+	CreateSchedule(context.Context, *UpdateSchedule) error
 }
