@@ -92,11 +92,12 @@ type UpdateSchedule struct {
 	UpdateID    uuid.UUID          `json:"update_id,omitempty"`
 	ScheduledBy uuid.UUID          `json:"scheduled_by,omitempty"`
 	Status      UpdateSendSchedule `json:"status,omitempty"`
+	UpdateType  RecipientType      `json:"update_type,omitempty"`
 
 	// Time to send this update at?
 	SendAt        uuid.UUID `json:"send_at,omitempty"`
-	CreatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at" `
-	UpdatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at" `
+	CreatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
 	bun.BaseModel `json:"-"`
 }
 
@@ -119,4 +120,8 @@ type UpdateRepository interface {
 	List(context.Context, ListUpdateOptions) ([]Update, error)
 	Delete(context.Context, *Update) error
 	TogglePinned(context.Context, *Update) error
+	// Sending an update is an asynchronous task
+	// Adding it to the db while a job somewhere else will
+	// pick it up and run along with it
+	CreateSchedule(context.Context, *Update) error
 }

@@ -3,8 +3,10 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/mail"
+	"time"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
@@ -55,11 +57,28 @@ func (u *updatesHandler) previewUpdate(
 
 	ref := chi.URLParam(r, "reference")
 
+	workspace := getWorkspaceFromContext(ctx)
+
 	span.SetAttributes(attribute.String("reference", ref))
 
 	logger = logger.With(zap.String("reference", ref))
 
 	logger.Debug("Sending preview of update")
+
+	// workspaceID -> update_ref
+	// This makes sure we can throttle the rate at which
+	// preview emails are sent because they are not charged and
+	// can thus be abused
+	//
+	// This blockage is quite simplistic as it does not account for
+	// silmutaneous requests. It is as simple as can be for now.
+	key := fmt.Sprintf("%s-%s", workspace.ID, ref)
+
+	if _, err := u.cache.Exists(ctx, key); err != nil {
+		return newAPIStatus(http.StatusTooManyRequests,
+				"please wait a few more minutes before sending another preview of this email"),
+			StatusFailed
+	}
 
 	req := new(previewUpdateRequest)
 
@@ -85,6 +104,22 @@ func (u *updatesHandler) previewUpdate(
 		return newAPIStatus(http.StatusInternalServerError,
 			"an error occurred while fetching update"), StatusFailed
 	}
+
+	if err := u.updateRepo.CreateSchedule(ctx, update); err != nil {
+		logger.Error("could not create schedule update", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"could not send preview update"), StatusFailed
+	}
+
+	go func() {
+
+		err := u.cache.Add(ctx, key, []byte("ok"), time.Hour)
+		if err != nil {
+			logger.Error("could not add user throttling to cache",
+				zap.Error(err))
+		}
+
+	}()
 
 	return newAPIStatus(http.StatusOK, "Preview email sent"),
 		StatusSuccess
