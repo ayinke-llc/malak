@@ -1,1 +1,3 @@
-export type ButtonProps = {};
+export type ButtonProps = {
+  reference: string
+};

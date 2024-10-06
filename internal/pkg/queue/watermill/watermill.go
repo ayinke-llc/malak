@@ -112,6 +112,10 @@ func New(redisClient *redis.Client,
 func (t *WatermillClient) Add(ctx context.Context,
 	topic string, msg *queue.Message) error {
 
+	if msg.Metadata == nil {
+		msg.Metadata = map[string]string{}
+	}
+
 	newMsg := message.NewMessage(msg.ID, msg.Data)
 
 	newMsg.Metadata = msg.Metadata
@@ -125,5 +129,6 @@ func (t *WatermillClient) Start(context.Context) {
 func (t *WatermillClient) Close() error { return t.publisher.Close() }
 
 func (t *WatermillClient) sendPreviewEmail(msg *message.Message) error {
+	msg.Ack()
 	return nil
 }

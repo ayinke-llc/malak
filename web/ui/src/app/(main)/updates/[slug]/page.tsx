@@ -46,8 +46,8 @@ export default function Page() {
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-1">
-            <SendTestButton />
-            <SendUpdateButton />
+            <SendTestButton reference={reference} />
+            <SendUpdateButton reference={reference} />
           </div>
         </div>
 

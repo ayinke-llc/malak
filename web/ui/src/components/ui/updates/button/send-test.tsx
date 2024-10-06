@@ -34,7 +34,8 @@ const schema = yup
   })
   .required();
 
-const SendTestButton = ({ }: ButtonProps) => {
+const SendTestButton = ({ reference }: ButtonProps) => {
+
   const [loading, setLoading] = useState<boolean>(false);
 
   const {
@@ -48,7 +49,7 @@ const SendTestButton = ({ }: ButtonProps) => {
 
   const mutation = useMutation({
     mutationKey: [SEND_PREVIEW_UPDATE],
-    mutationFn: (data: PreviewUpdateInput) => client.workspaces.previewUpdate("", data),
+    mutationFn: (data: PreviewUpdateInput) => client.workspaces.previewUpdate(reference, data),
     onSuccess: ({ data }) => {
       toast.success(data.message);
       reset();

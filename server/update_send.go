@@ -61,6 +61,8 @@ func (u *updatesHandler) previewUpdate(
 
 	ref := chi.URLParam(r, "reference")
 
+	fmt.Println(chi.RouteContext(ctx).URLParams)
+
 	workspace := getWorkspaceFromContext(ctx)
 
 	user := getUserFromContext(ctx)
@@ -80,7 +82,7 @@ func (u *updatesHandler) previewUpdate(
 	// silmutaneous requests. It is as simple as can be for now.
 	key := fmt.Sprintf("%s-%s", workspace.ID, ref)
 
-	if _, err := u.cache.Exists(ctx, key); err != nil {
+	if _, err := u.cache.Exists(ctx, key); err == nil {
 		return newAPIStatus(http.StatusTooManyRequests,
 				"please wait a few more minutes before sending another preview of this email"),
 			StatusFailed
@@ -134,9 +136,9 @@ func (u *updatesHandler) previewUpdate(
 	span.AddEvent("update.preview")
 
 	var wg sync.WaitGroup
+	wg.Add(2)
 
 	go func() {
-		wg.Add(1)
 		defer wg.Done()
 		err := u.cache.Add(ctx, key, []byte("ok"), time.Hour)
 		if err != nil {
@@ -146,12 +148,11 @@ func (u *updatesHandler) previewUpdate(
 	}()
 
 	go func() {
-		wg.Add(1)
 		defer wg.Done()
 
 		m := &queue.PreviewUpdateMessage{
-			Update:   update,
-			Schedule: schedule,
+			UpdateID:   update.ID,
+			ScheduleID: schedule.ID,
 		}
 
 		err := u.queueHandler.Add(ctx,

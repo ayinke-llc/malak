@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/ayinke-llc/malak"
+	"github.com/google/uuid"
 )
 
 type Message struct {
@@ -25,8 +25,8 @@ type QueueHandler interface {
 type QueueEventSubscriptionMessage string
 
 type PreviewUpdateMessage struct {
-	Update   *malak.Update
-	Schedule *malak.UpdateSchedule
+	UpdateID   uuid.UUID
+	ScheduleID uuid.UUID
 }
 
 func ToPayload(m any) []byte {

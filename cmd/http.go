@@ -139,6 +139,10 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				logger.Fatal("could not set up watermill queue", zap.Error(err))
 			}
 
+			go func() {
+				queueHandler.Start(context.Background())
+			}()
+
 			redisCache, err := rediscache.New(redisClient)
 			if err != nil {
 				logger.Fatal("could not set up redis cache", zap.Error(err))
@@ -241,6 +245,10 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			if err := db.Close(); err != nil {
 				logger.Error("could not close db",
 					zap.Error(err))
+			}
+
+			if err := queueHandler.Close(); err != nil {
+				logger.Error("could not close the queue handler", zap.Error(err))
 			}
 
 			_ = logger.Sync()
