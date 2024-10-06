@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	ErrUserNotFound = malakError("user not found")
-	ErrUserExists   = malakError("User with email already exists")
+	ErrUserNotFound = MalakError("user not found")
+	ErrUserExists   = MalakError("User with email already exists")
 )
 
 // ENUM(admin,member,billing,investor,guest)

@@ -8,6 +8,8 @@ import (
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/cache"
+	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -21,6 +23,8 @@ type updatesHandler struct {
 	referenceGenerator malak.ReferenceGeneratorOperation
 	updateRepo         malak.UpdateRepository
 	cfg                config.Config
+	cache              cache.Cache
+	queueHandler       queue.QueueHandler
 }
 
 type createUpdateContent struct {

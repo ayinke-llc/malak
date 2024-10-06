@@ -21,6 +21,17 @@ func NewUpdatesRepository(db *bun.DB) malak.UpdateRepository {
 	}
 }
 
+func (u *updatesRepo) CreateSchedule(ctx context.Context,
+	schedule *malak.UpdateSchedule) error {
+
+	return u.inner.RunInTx(ctx, &sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+			_, err := tx.NewInsert().Model(schedule).
+				Exec(ctx)
+			return err
+		})
+}
+
 func (u *updatesRepo) TogglePinned(ctx context.Context,
 	update *malak.Update) error {
 

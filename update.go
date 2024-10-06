@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	ErrUpdateNotFound = malakError("update not exists")
+	ErrUpdateNotFound = MalakError("update not exists")
 
-	ErrPinnedUpdateNotExists        = malakError("update not pinned")
-	ErrPinnedUpdateCapacityExceeded = malakError(
+	ErrPinnedUpdateNotExists        = MalakError("update not pinned")
+	ErrPinnedUpdateCapacityExceeded = MalakError(
 		`you have exceeded the maximum number of pinned updates. Please unpin an update and pin this again`)
 
 	MaximumNumberOfPinnedUpdates = 3
@@ -71,15 +71,19 @@ type UpdateLink struct {
 	bun.BaseModel `json:"-"`
 }
 
-type UpdateRecipient struct {
-	ID        uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	Reference Reference `json:"reference,omitempty"`
-	UpdateID  uuid.UUID `json:"update_id,omitempty"`
-	Email     Email     `json:"email,omitempty"`
+// ENUM(preview,live)
+type RecipientType string
 
-	CreatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at" `
-	UpdatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at" `
-	bun.BaseModel `json:"-"`
+type UpdateRecipient struct {
+	ID            uuid.UUID     `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference     Reference     `json:"reference,omitempty"`
+	UpdateID      uuid.UUID     `json:"update_id,omitempty"`
+	Email         Email         `json:"email,omitempty"`
+	RecipientType RecipientType `json:"recipient_type,omitempty"`
+
+	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
+	bun.BaseModel
 }
 
 type UpdateSchedule struct {
@@ -88,11 +92,12 @@ type UpdateSchedule struct {
 	UpdateID    uuid.UUID          `json:"update_id,omitempty"`
 	ScheduledBy uuid.UUID          `json:"scheduled_by,omitempty"`
 	Status      UpdateSendSchedule `json:"status,omitempty"`
+	UpdateType  RecipientType      `json:"update_type,omitempty"`
 
 	// Time to send this update at?
-	SendAt        uuid.UUID `json:"send_at,omitempty"`
-	CreatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at" `
-	UpdatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at" `
+	SendAt        time.Time `json:"send_at,omitempty"`
+	CreatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
 	bun.BaseModel `json:"-"`
 }
 
@@ -115,4 +120,8 @@ type UpdateRepository interface {
 	List(context.Context, ListUpdateOptions) ([]Update, error)
 	Delete(context.Context, *Update) error
 	TogglePinned(context.Context, *Update) error
+	// Sending an update is an asynchronous task
+	// Adding it to the db while a job somewhere else will
+	// pick it up and run along with it
+	CreateSchedule(context.Context, *UpdateSchedule) error
 }

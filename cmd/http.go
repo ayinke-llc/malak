@@ -20,6 +20,7 @@ import (
 	awsCreds "github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
+	"github.com/ayinke-llc/malak/internal/pkg/cache/rediscache"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	watermillqueue "github.com/ayinke-llc/malak/internal/pkg/queue/watermill"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
@@ -138,6 +139,11 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				logger.Fatal("could not set up watermill queue", zap.Error(err))
 			}
 
+			redisCache, err := rediscache.New(redisClient)
+			if err != nil {
+				logger.Fatal("could not set up redis cache", zap.Error(err))
+			}
+
 			rateLimiterStore, err := getRatelimiter(*cfg)
 			if err != nil {
 				logger.Fatal("could not create rate limiter",
@@ -218,7 +224,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				util.DeRef(cfg), db,
 				tokenManager, googleAuthProvider,
 				userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
-				mid, gulterHandler, queueHandler)
+				mid, gulterHandler, queueHandler, redisCache)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {

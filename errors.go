@@ -1,5 +1,5 @@
 package malak
 
-type malakError string
+type MalakError string
 
-func (m malakError) Error() string { return string(m) }
+func (m MalakError) Error() string { return string(m) }

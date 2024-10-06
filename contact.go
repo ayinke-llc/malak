@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	ErrContactNotFound = malakError("contact not found")
-	ErrContactExists   = malakError("contact with email already exists")
+	ErrContactNotFound = MalakError("contact not found")
+	ErrContactExists   = MalakError("contact with email already exists")
 )
 
 // ENUM(mr,mrs,miss,doctor,chief)

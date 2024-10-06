@@ -49,6 +49,40 @@ func ParseListUpdateFilterStatus(name string) (ListUpdateFilterStatus, error) {
 }
 
 const (
+	// RecipientTypePreview is a RecipientType of type preview.
+	RecipientTypePreview RecipientType = "preview"
+	// RecipientTypeLive is a RecipientType of type live.
+	RecipientTypeLive RecipientType = "live"
+)
+
+var ErrInvalidRecipientType = errors.New("not a valid RecipientType")
+
+// String implements the Stringer interface.
+func (x RecipientType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x RecipientType) IsValid() bool {
+	_, err := ParseRecipientType(string(x))
+	return err == nil
+}
+
+var _RecipientTypeValue = map[string]RecipientType{
+	"preview": RecipientTypePreview,
+	"live":    RecipientTypeLive,
+}
+
+// ParseRecipientType attempts to convert a string to a RecipientType.
+func ParseRecipientType(name string) (RecipientType, error) {
+	if x, ok := _RecipientTypeValue[name]; ok {
+		return x, nil
+	}
+	return RecipientType(""), fmt.Errorf("%s is %w", name, ErrInvalidRecipientType)
+}
+
+const (
 	// UpdateSendScheduleScheduled is a UpdateSendSchedule of type scheduled.
 	UpdateSendScheduleScheduled UpdateSendSchedule = "scheduled"
 	// UpdateSendScheduleCancelled is a UpdateSendSchedule of type cancelled.

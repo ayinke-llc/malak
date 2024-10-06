@@ -1,8 +1,12 @@
 package queue
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"io"
+
+	"github.com/ayinke-llc/malak"
 )
 
 type Message struct {
@@ -19,3 +23,16 @@ type QueueHandler interface {
 
 // ENUM(update_preview)
 type QueueEventSubscriptionMessage string
+
+type PreviewUpdateMessage struct {
+	Update   *malak.Update
+	Schedule *malak.UpdateSchedule
+}
+
+func ToPayload(m any) []byte {
+	var b = new(bytes.Buffer)
+
+	_ = json.NewEncoder(b).Encode(m)
+
+	return b.Bytes()
+}

@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	ErrPlanNotFound     = malakError("plan does not exists")
-	ErrCounterExhausted = malakError("no more units left")
+	ErrPlanNotFound     = MalakError("plan does not exists")
+	ErrCounterExhausted = MalakError("no more units left")
 )
 
 type Counter int64
