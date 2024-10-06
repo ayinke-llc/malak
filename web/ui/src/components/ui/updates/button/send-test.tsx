@@ -17,6 +17,12 @@ import { useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import * as yup from "yup";
 import type { ButtonProps } from "./props";
+import { useMutation } from "@tanstack/react-query";
+import { SEND_PREVIEW_UPDATE } from "@/lib/query-constants";
+import client from "@/lib/client";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
+import { ServerAPIStatus } from "@/client/Api";
 
 type PreviewUpdateInput = {
   email: string;
@@ -35,13 +41,34 @@ const SendTestButton = ({ }: ButtonProps) => {
     register,
     formState: { errors },
     handleSubmit,
+    reset,
   } = useForm({
     resolver: yupResolver(schema),
   });
 
+  const mutation = useMutation({
+    mutationKey: [SEND_PREVIEW_UPDATE],
+    mutationFn: (data: PreviewUpdateInput) => client.workspaces.previewUpdate("", data),
+    onSuccess: ({ data }) => {
+      toast.success(data.message);
+      reset();
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      let msg = err.message;
+      if (err.response !== undefined) {
+        msg = err.response.data.message;
+      }
+      toast.error(msg);
+    },
+    retry: false,
+    gcTime: Number.POSITIVE_INFINITY,
+    onSettled: () => setLoading(false),
+    onMutate: () => setLoading(true),
+  });
+
+
   const onSubmit: SubmitHandler<PreviewUpdateInput> = (data) => {
-    setLoading(true);
-    console.log(data)
+    mutation.mutate(data)
   };
 
   return (

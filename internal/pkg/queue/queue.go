@@ -24,15 +24,15 @@ type QueueHandler interface {
 // ENUM(update_preview)
 type QueueEventSubscriptionMessage string
 
-type GenericMessage struct{}
-
-func (g GenericMessage) Payload() ([]byte, error) {
-	var b = new(bytes.Buffer)
-	return b.Bytes(), json.NewEncoder(b).Encode(g)
-}
-
 type PreviewUpdateMessage struct {
 	Update   *malak.Update
 	Schedule *malak.UpdateSchedule
-	GenericMessage
+}
+
+func ToPayload(m any) []byte {
+	var b = new(bytes.Buffer)
+
+	_ = json.NewEncoder(b).Encode(m)
+
+	return b.Bytes()
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -44,6 +45,7 @@ func (p *previewUpdateRequest) Validate() error {
 // @Accept  json
 // @Produce  json
 // @Param reference path string required "update unique reference.. e.g update_"
+// @Param message body previewUpdateRequest true "request body to create a workspace"
 // @Success 200 {object} APIStatus
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
@@ -147,7 +149,17 @@ func (u *updatesHandler) previewUpdate(
 		wg.Add(1)
 		defer wg.Done()
 
-		err := u.queueHandler.Add(ctx, queue.QueueEventSubscriptionMessageUpdatePreview, nil)
+		m := &queue.PreviewUpdateMessage{
+			Update:   update,
+			Schedule: schedule,
+		}
+
+		err := u.queueHandler.Add(ctx,
+			queue.QueueEventSubscriptionMessageUpdatePreview.String(),
+			&queue.Message{
+				ID:   uuid.NewString(),
+				Data: queue.ToPayload(m),
+			})
 		if err != nil {
 			logger.Error("could not add schedule to queue to be processed",
 				zap.Error(err))

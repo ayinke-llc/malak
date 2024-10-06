@@ -8,6 +8,7 @@ import (
 	"github.com/adelowo/gulter"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/cache"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
@@ -34,12 +35,13 @@ func New(logger *zap.Logger,
 	updateRepo malak.UpdateRepository,
 	mid *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
-	queueHandler queue.QueueHandler) (*http.Server, func()) {
+	queueHandler queue.QueueHandler,
+	redisCache cache.Cache) (*http.Server, func()) {
 
 	srv := &http.Server{
 		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
 			userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
-			googleAuthProvider, mid, gulterHandler, queueHandler),
+			googleAuthProvider, mid, gulterHandler, queueHandler, redisCache),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -81,6 +83,7 @@ func buildRoutes(
 	ratelimiterMiddleware *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
+	redisCache cache.Cache,
 ) http.Handler {
 
 	if cfg.HTTP.Swagger.UIEnabled {
@@ -126,6 +129,8 @@ func buildRoutes(
 		referenceGenerator: referenceGenerator,
 		updateRepo:         updateRepo,
 		cfg:                cfg,
+		queueHandler:       queueHandler,
+		cache:              redisCache,
 	}
 
 	router.Use(middleware.RequestID)
