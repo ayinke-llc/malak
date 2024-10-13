@@ -15,6 +15,8 @@ const (
 	ErrPinnedUpdateCapacityExceeded = MalakError(
 		`you have exceeded the maximum number of pinned updates. Please unpin an update and pin this again`)
 
+	ErrUpdateScheduleNotFound = MalakError("update schedule not found")
+
 	MaximumNumberOfPinnedUpdates = 3
 )
 
@@ -33,13 +35,13 @@ type UpdateMetadata struct {
 }
 
 type Update struct {
-	ID          uuid.UUID      `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	WorkspaceID uuid.UUID      `json:"workspace_id,omitempty"`
-	Status      UpdateStatus   `json:"status,omitempty"`
-	Reference   Reference      `json:"reference,omitempty"`
-	CreatedBy   uuid.UUID      `json:"created_by,omitempty"`
-	SentBy      uuid.UUID      `json:"sent_by,omitempty" bun:",nullzero"`
-	Content     []BlockContent `json:"content,omitempty"`
+	ID          uuid.UUID     `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	WorkspaceID uuid.UUID     `json:"workspace_id,omitempty"`
+	Status      UpdateStatus  `json:"status,omitempty"`
+	Reference   Reference     `json:"reference,omitempty"`
+	CreatedBy   uuid.UUID     `json:"created_by,omitempty"`
+	SentBy      uuid.UUID     `json:"sent_by,omitempty" bun:",nullzero"`
+	Content     BlockContents `json:"content,omitempty"`
 	// If this update is pinned
 	IsPinned bool   `json:"is_pinned,omitempty"`
 	Title    string `json:"title,omitempty"`
@@ -71,7 +73,8 @@ type UpdateLink struct {
 	bun.BaseModel `json:"-"`
 }
 
-// ENUM(preview,live)
+// ENUM(list,email)
+// List is a flattened group that can contain infinite amount of emails
 type RecipientType string
 
 type UpdateRecipient struct {
@@ -86,13 +89,16 @@ type UpdateRecipient struct {
 	bun.BaseModel
 }
 
+// ENUM(preview,live)
+type UpdateType string
+
 type UpdateSchedule struct {
 	ID          uuid.UUID          `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 	Reference   Reference          `json:"reference,omitempty"`
 	UpdateID    uuid.UUID          `json:"update_id,omitempty"`
 	ScheduledBy uuid.UUID          `json:"scheduled_by,omitempty"`
 	Status      UpdateSendSchedule `json:"status,omitempty"`
-	UpdateType  RecipientType      `json:"update_type,omitempty"`
+	UpdateType  UpdateType         `json:"update_type,omitempty"`
 
 	// Time to send this update at?
 	SendAt        time.Time `json:"send_at,omitempty"`
@@ -120,8 +126,6 @@ type UpdateRepository interface {
 	List(context.Context, ListUpdateOptions) ([]Update, error)
 	Delete(context.Context, *Update) error
 	TogglePinned(context.Context, *Update) error
-	// Sending an update is an asynchronous task
-	// Adding it to the db while a job somewhere else will
-	// pick it up and run along with it
-	CreateSchedule(context.Context, *UpdateSchedule) error
+	GetSchedule(context.Context, uuid.UUID) (*UpdateSchedule, error)
+	CreatePreview(context.Context, *UpdateSchedule, *UpdateRecipient) error
 }

@@ -1,7 +1,9 @@
 package watermillqueue
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -10,16 +12,18 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
 	"github.com/ayinke-llc/malak"
+	"github.com/ayinke-llc/malak/internal/pkg/email"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	wotelfloss "github.com/dentech-floss/watermill-opentelemetry-go-extra/pkg/opentelemetry"
 	"github.com/garsue/watermillzap"
 	redis "github.com/redis/go-redis/v9"
 	wotel "github.com/voi-oss/watermill-opentelemetry/pkg/opentelemetry"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/zap"
 )
 
-var _ = otel.Tracer("watermill")
+var tracer = otel.Tracer("watermill")
 
 type WatermillClient struct {
 	publisher  *message.Router
@@ -29,12 +33,14 @@ type WatermillClient struct {
 
 	userRepo      malak.UserRepository
 	workspaceRepo malak.WorkspaceRepository
+	updateRepo    malak.UpdateRepository
 }
 
 func New(redisClient *redis.Client,
 	logger *zap.Logger,
 	userRepo malak.UserRepository,
-	workspaceRepo malak.WorkspaceRepository) (queue.QueueHandler, error) {
+	workspaceRepo malak.WorkspaceRepository,
+	updateRepo malak.UpdateRepository) (queue.QueueHandler, error) {
 
 	p, err := redisstream.NewPublisher(
 		redisstream.PublisherConfig{
@@ -97,6 +103,7 @@ func New(redisClient *redis.Client,
 		susbcriber:    subscriber,
 		userRepo:      userRepo,
 		workspaceRepo: workspaceRepo,
+		updateRepo:    updateRepo,
 	}
 
 	router.AddNoPublisherHandler(
@@ -129,6 +136,52 @@ func (t *WatermillClient) Start(context.Context) {
 func (t *WatermillClient) Close() error { return t.publisher.Close() }
 
 func (t *WatermillClient) sendPreviewEmail(msg *message.Message) error {
-	msg.Ack()
+
+	logger := t.logger.With(zap.String("queue.handler", "sendPreviewEmail"))
+
+	var p queue.PreviewUpdateMessage
+
+	if err := json.NewDecoder(bytes.NewBuffer(msg.Payload)).Decode(&p); err != nil {
+		logger.Error("could not decode message queue request", zap.Error(err))
+		return err
+	}
+
+	ctx, span := tracer.Start(context.Background(), "queue.sendPreviewEmail")
+	defer span.End()
+
+	span.SetAttributes(
+		attribute.Bool("preview", true),
+		attribute.String("update_id", p.UpdateID.String()),
+		attribute.String("schedule_id", p.ScheduleID.String()),
+	)
+
+	update, err := t.updateRepo.Get(ctx, malak.FetchUpdateOptions{
+		ID: p.UpdateID,
+	})
+	if err != nil {
+		span.RecordError(err)
+		logger.Error("could not fetch update from database",
+			zap.Error(err))
+		return err
+	}
+
+	schedule, err := t.updateRepo.GetSchedule(ctx, p.ScheduleID)
+	if err != nil {
+		span.RecordError(err)
+		logger.Error("could not fetch update schedule from database",
+			zap.Error(err))
+		return err
+	}
+
+	span.SetAttributes(
+		attribute.String("triggered_user_id", schedule.ScheduledBy.String()))
+
+	sendOptions := email.SendOptions{
+		HTML: update.Content.HTML(),
+		// Sender: ,
+	}
+
+	_ = sendOptions
+
 	return nil
 }

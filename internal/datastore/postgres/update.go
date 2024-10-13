@@ -21,12 +21,17 @@ func NewUpdatesRepository(db *bun.DB) malak.UpdateRepository {
 	}
 }
 
-func (u *updatesRepo) CreateSchedule(ctx context.Context,
-	schedule *malak.UpdateSchedule) error {
-
+func (u *updatesRepo) CreatePreview(ctx context.Context,
+	schedule *malak.UpdateSchedule, recipient *malak.UpdateRecipient) error {
 	return u.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
 			_, err := tx.NewInsert().Model(schedule).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+
+			_, err = tx.NewInsert().Model(recipient).
 				Exec(ctx)
 			return err
 		})
@@ -155,4 +160,23 @@ func (u *updatesRepo) Delete(ctx context.Context,
 		Exec(ctx)
 
 	return err
+}
+
+func (u *updatesRepo) GetSchedule(ctx context.Context, scheduleID uuid.UUID) (
+	*malak.UpdateSchedule, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	schedule := &malak.UpdateSchedule{}
+
+	err := u.inner.NewSelect().
+		Where("id = ?", scheduleID).
+		Model(schedule).
+		Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = malak.ErrUpdateNotFound
+	}
+
+	return schedule, err
 }

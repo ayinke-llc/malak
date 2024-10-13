@@ -67,7 +67,6 @@ func (s *smtpClient) Send(ctx context.Context,
 	}
 
 	msg.SetBodyString(mail.TypeTextHTML, opts.HTML)
-	msg.SetBodyString(mail.TypeTextPlain, opts.Plain)
 
 	return s.client.Send(msg)
 }

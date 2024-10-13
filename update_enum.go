@@ -49,10 +49,10 @@ func ParseListUpdateFilterStatus(name string) (ListUpdateFilterStatus, error) {
 }
 
 const (
-	// RecipientTypePreview is a RecipientType of type preview.
-	RecipientTypePreview RecipientType = "preview"
-	// RecipientTypeLive is a RecipientType of type live.
-	RecipientTypeLive RecipientType = "live"
+	// RecipientTypeList is a RecipientType of type list.
+	RecipientTypeList RecipientType = "list"
+	// RecipientTypeEmail is a RecipientType of type email.
+	RecipientTypeEmail RecipientType = "email"
 )
 
 var ErrInvalidRecipientType = errors.New("not a valid RecipientType")
@@ -70,8 +70,8 @@ func (x RecipientType) IsValid() bool {
 }
 
 var _RecipientTypeValue = map[string]RecipientType{
-	"preview": RecipientTypePreview,
-	"live":    RecipientTypeLive,
+	"list":  RecipientTypeList,
+	"email": RecipientTypeEmail,
 }
 
 // ParseRecipientType attempts to convert a string to a RecipientType.
@@ -154,4 +154,38 @@ func ParseUpdateStatus(name string) (UpdateStatus, error) {
 		return x, nil
 	}
 	return UpdateStatus(""), fmt.Errorf("%s is %w", name, ErrInvalidUpdateStatus)
+}
+
+const (
+	// UpdateTypePreview is a UpdateType of type preview.
+	UpdateTypePreview UpdateType = "preview"
+	// UpdateTypeLive is a UpdateType of type live.
+	UpdateTypeLive UpdateType = "live"
+)
+
+var ErrInvalidUpdateType = errors.New("not a valid UpdateType")
+
+// String implements the Stringer interface.
+func (x UpdateType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x UpdateType) IsValid() bool {
+	_, err := ParseUpdateType(string(x))
+	return err == nil
+}
+
+var _UpdateTypeValue = map[string]UpdateType{
+	"preview": UpdateTypePreview,
+	"live":    UpdateTypeLive,
+}
+
+// ParseUpdateType attempts to convert a string to a UpdateType.
+func ParseUpdateType(name string) (UpdateType, error) {
+	if x, ok := _UpdateTypeValue[name]; ok {
+		return x, nil
+	}
+	return UpdateType(""), fmt.Errorf("%s is %w", name, ErrInvalidUpdateType)
 }

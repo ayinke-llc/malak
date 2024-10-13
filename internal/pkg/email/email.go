@@ -10,8 +10,7 @@ import (
 )
 
 type SendOptions struct {
-	Plain string
-	HTML  string
+	HTML string
 
 	Sender    malak.Email
 	Recipient malak.Email
@@ -23,9 +22,6 @@ type SendOptions struct {
 }
 
 func (s SendOptions) Validate() error {
-	if util.IsStringEmpty(s.Plain) {
-		return errors.New("plain copy of email must be provided")
-	}
 
 	if util.IsStringEmpty(s.HTML) {
 		return errors.New("html copy of email must be provided")

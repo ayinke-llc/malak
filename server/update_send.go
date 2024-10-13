@@ -116,14 +116,21 @@ func (u *updatesHandler) previewUpdate(
 	schedule := &malak.UpdateSchedule{
 		Reference:   u.referenceGenerator.Generate(malak.EntityTypeSchedule),
 		SendAt:      time.Now(),
-		UpdateType:  malak.RecipientTypePreview,
+		UpdateType:  malak.UpdateTypePreview,
 		ScheduledBy: user.ID,
 		Status:      malak.UpdateSendScheduleScheduled,
 		UpdateID:    update.ID,
 		CreatedAt:   time.Now(),
 	}
 
-	if err := u.updateRepo.CreateSchedule(ctx, schedule); err != nil {
+	recipient := &malak.UpdateRecipient{
+		Email:         req.Email,
+		UpdateID:      update.ID,
+		Reference:     u.referenceGenerator.Generate(malak.EntityTypeRecipient),
+		RecipientType: malak.RecipientTypeEmail,
+	}
+
+	if err := u.updateRepo.CreatePreview(ctx, schedule, recipient); err != nil {
 		logger.Error("could not create schedule update", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError,
 			"could not send preview update"), StatusFailed

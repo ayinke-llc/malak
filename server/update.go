@@ -176,8 +176,8 @@ func (u *updatesHandler) list(
 }
 
 type contentUpdateRequest struct {
-	Update []malak.BlockContent `json:"update,omitempty" validate:"required"`
-	Title  string               `json:"title,omitempty" validate:"required"`
+	Update malak.BlockContents `json:"update,omitempty" validate:"required"`
+	Title  string              `json:"title,omitempty" validate:"required"`
 	GenericRequest
 }
 

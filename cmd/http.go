@@ -134,7 +134,8 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 					zap.Error(err))
 			}
 
-			queueHandler, err := watermillqueue.New(redisClient, logger, userRepo, workspaceRepo)
+			queueHandler, err := watermillqueue.New(redisClient, logger,
+				userRepo, workspaceRepo, updateRepo)
 			if err != nil {
 				logger.Fatal("could not set up watermill queue", zap.Error(err))
 			}
