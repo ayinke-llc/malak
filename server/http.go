@@ -190,6 +190,9 @@ func buildRoutes(
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, contactHandler.Create, cfg, "contacts.create"))
+
+			r.Post("/lists",
+				WrapMalakHTTPHandler(logger, contactHandler.createContactList, cfg, "contacts.lists.new"))
 		})
 
 		r.Route("/images", func(r chi.Router) {

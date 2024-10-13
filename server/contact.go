@@ -10,6 +10,7 @@ import (
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/render"
+	"github.com/microcosm-cc/bluemonday"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -17,6 +18,7 @@ import (
 type contactHandler struct {
 	cfg                config.Config
 	contactRepo        malak.ContactRepository
+	contactListRepo    malak.ContactListRepository
 	referenceGenerator malak.ReferenceGeneratorOperation
 }
 
@@ -117,5 +119,80 @@ func (c *contactHandler) Create(
 	return fetchContactResponse{
 		APIStatus: newAPIStatus(http.StatusCreated, "contact was successfully created"),
 		Contact:   util.DeRef(contact),
+	}, StatusSuccess
+}
+
+type createContactListRequest struct {
+	GenericRequest
+
+	Name string `json:"name,omitempty"`
+}
+
+func (c *createContactListRequest) Validate() error {
+	p := bluemonday.StrictPolicy()
+
+	c.Name = strings.TrimSpace(p.Sanitize(c.Name))
+
+	if util.IsStringEmpty(c.Name) {
+		return errors.New("please provide the name of your list")
+	}
+
+	if len(c.Name) > 50 {
+		return errors.New("your list name cannot be more than 50 characters")
+	}
+
+	return nil
+}
+
+// @Summary Create a new contact list
+// @Tags contacts
+// @id createContactList
+// @Accept  json
+// @Produce  json
+// @Param message body createContactListRequest true "contact list body"
+// @Success 200 {object} fetchContactListResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /contacts/lists [post]
+func (c *contactHandler) createContactList(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	user := getUserFromContext(r.Context())
+
+	logger.Debug("creating a new contact list")
+
+	req := new(createContactListRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	list := &malak.ContactList{
+		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
+		Reference:   c.referenceGenerator.Generate(malak.EntityTypeList),
+		CreatedBy:   user.ID,
+		Title:       req.Name,
+	}
+
+	if err := c.contactListRepo.Create(ctx, list); err != nil {
+		logger.
+			Error("an error occurred while storing contact list to the database", zap.Error(err))
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"an error occurred while creating list"), StatusFailed
+	}
+
+	return fetchContactListResponse{
+		APIStatus: newAPIStatus(http.StatusCreated, "list was successfully created"),
 	}, StatusSuccess
 }
