@@ -1,27 +1,29 @@
 import type { ServerAPIStatus } from "@/client/Api";
 import { Button } from "@/components/Button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
+  Dialog, DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from "@/components/Dialog";
 import { Input } from "@/components/Input";
-import { Label } from "@/components/Label";
 import client from "@/lib/client";
 import { CREATE_CONTACT_MUTATION } from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { RiAddLine, RiEye2Line, RiEyeLine, RiEyeOffLine, RiListView } from "@remixicon/react";
+import { RiDeleteBinLine, RiEyeLine, RiPencilLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as yup from "yup";
+
+type ListItem = {
+  id: number
+  text: string
+}
 
 type CreateContactListInput = {
   title: string;
@@ -34,9 +36,43 @@ const schema = yup
   .required();
 
 export default function CreateNewListModal() {
-  const [loading, setLoading] = useState<boolean>(false);
 
+  const [loading, setLoading] = useState<boolean>(false);
   const [hasOpenDialog, setHasOpenDialog] = useState(false);
+
+  const [items, setItems] = useState<ListItem[]>([
+    { id: 1, text: 'Item 1' },
+    { id: 2, text: 'Item 2' },
+    { id: 3, text: 'Item 3' },
+    { id: 4, text: 'Item 4' },
+    { id: 5, text: 'Item 5' },
+  ])
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editText, setEditText] = useState('')
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+
+  const handleEdit = (id: number, text: string) => {
+    setEditingId(id)
+    setEditText(text)
+  }
+
+  const handleSave = () => {
+    setItems(items.map(item =>
+      item.id === editingId ? { ...item, text: editText } : item
+    ))
+    setEditingId(null)
+  }
+
+  const handleDelete = (id: number) => {
+    setDeleteId(id)
+    setIsDeleteModalOpen(true)
+  }
+
+  const confirmDelete = () => {
+    setItems(items.filter(item => item.id !== deleteId))
+    setIsDeleteModalOpen(false)
+  }
 
   const handleDialogItemOpenChange = (open: boolean) => {
     setHasOpenDialog(open);
@@ -81,67 +117,90 @@ export default function CreateNewListModal() {
   };
 
   return (
-    <Dialog onOpenChange={handleDialogItemOpenChange} open={hasOpenDialog}>
-      <DialogTrigger asChild>
-        <div className="w-full text-right">
-          <Button
-            type="button"
-            variant="secondary"
-            className="whitespace-nowrap gap-1"
-          >
-            <RiEyeLine />
-            Manage lists
-          </Button>
-        </div>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col gap-y-1"
-        >
-          <DialogHeader>
-            <DialogTitle>Add a new contact</DialogTitle>
-            <DialogDescription className="mt-1 text-sm leading-6">
-              Get started with connecting and building relationships with a
-              specific investor
-            </DialogDescription>
-            <div className="mt-4">
-              <Label htmlFor="workspace-name" className="font-medium">
-                Email address
-              </Label>
-              <Input
-                id="email"
-                placeholder="yo@lanre.wtf"
-                className="mt-2"
-                type="email"
-                {...register("title")}
-              />
-              {errors.title && (
-                <p className="mt-4 text-xs text-red-600 dark:text-red-500">
-                  <span className="font-medium">{errors.title.message}</span>
-                </p>
-              )}
-            </div>
-          </DialogHeader>
-          <DialogFooter className="mt-6">
-            <DialogClose asChild>
-              <Button
-                className="mt-2 w-full sm:mt-0 sm:w-fit"
-                variant="secondary"
-              >
-                Go back
-              </Button>
-            </DialogClose>
+    <>
+      <Dialog onOpenChange={handleDialogItemOpenChange} open={hasOpenDialog}>
+        <DialogTrigger asChild>
+          <div className="w-full text-right">
             <Button
-              type="submit"
-              className="w-full sm:w-fit"
+              type="button"
+              variant="secondary"
+              className="whitespace-nowrap gap-1"
+            >
+              <RiEyeLine />
+              Manage lists
+            </Button>
+          </div>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Item List</DialogTitle>
+            <DialogDescription>
+              View, edit, or delete items in the list.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center space-x-2 p-3 rounded-lg border-2 border-gray-200"
+              >
+                {editingId === item.id ? (
+                  <Input
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    className="flex-grow"
+                  />
+                ) : (
+                  <span className="flex-grow">{item.text}</span>
+                )}
+                <div className="flex space-x-2">
+                  {editingId === item.id ? (
+                    <Button onClick={handleSave} size="sm">Save</Button>
+                  ) : (
+                    <Button
+                      onClick={() => handleEdit(item.id, item.text)}
+                      size="icon"
+                      variant="ghost"
+                    >
+                      <RiPencilLine className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button
+                    onClick={() => handleDelete(item.id)}
+                    size="icon"
+                    variant="ghost"
+                  >
+                    <RiDeleteBinLine className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this item?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setIsDeleteModalOpen(false)}
               isLoading={loading}
             >
-              Add Contact
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}
+              isLoading={loading}
+            >
+              Delete
             </Button>
           </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
