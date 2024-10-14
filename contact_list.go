@@ -20,7 +20,7 @@ type ContactList struct {
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
 	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
 
-	bun.BaseModel
+	bun.BaseModel `json:"-"`
 }
 
 type FetchContactListOptions struct {

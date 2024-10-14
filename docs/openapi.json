@@ -107,6 +107,32 @@
 				},
 				"type": "object"
 			},
+			"malak.ContactList": {
+				"properties": {
+					"created_at": {
+						"type": "string"
+					},
+					"created_by": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"reference": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"updated_at": {
+						"type": "string"
+					},
+					"workspace_id": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
 			"malak.CustomContactMetadata": {
 				"additionalProperties": {
 					"type": "string"
@@ -342,6 +368,14 @@
 				],
 				"type": "object"
 			},
+			"server.createContactListRequest": {
+				"properties": {
+					"name": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
 			"server.createContactRequest": {
 				"properties": {
 					"email": {
@@ -416,6 +450,20 @@
 					"token",
 					"user",
 					"workspaces"
+				],
+				"type": "object"
+			},
+			"server.fetchContactListResponse": {
+				"properties": {
+					"list": {
+						"$ref": "#/components/schemas/malak.ContactList"
+					},
+					"message": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"message"
 				],
 				"type": "object"
 			},
@@ -711,6 +759,79 @@
 					}
 				},
 				"summary": "Creates a new contact",
+				"tags": [
+					"contacts"
+				]
+			}
+		},
+		"/contacts/lists": {
+			"post": {
+				"operationId": "createContactList",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.createContactListRequest"
+							}
+						}
+					},
+					"description": "contact list body",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.fetchContactListResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "Create a new contact list",
 				"tags": [
 					"contacts"
 				]

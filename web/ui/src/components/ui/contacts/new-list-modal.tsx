@@ -23,17 +23,17 @@ import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as yup from "yup";
 
-type CreateContactInput = {
-  email: string;
+type CreateContactListInput = {
+  title: string;
 };
 
 const schema = yup
   .object({
-    email: yup.string().required().email(),
+    title: yup.string().required().min(3).max(50),
   })
   .required();
 
-export default function CreateContactModal() {
+export default function CreateNewListModal() {
   const [loading, setLoading] = useState<boolean>(false);
 
   const [hasOpenDialog, setHasOpenDialog] = useState(false);
@@ -44,8 +44,8 @@ export default function CreateContactModal() {
 
   const mutation = useMutation({
     mutationKey: [CREATE_CONTACT_MUTATION],
-    mutationFn: (data: CreateContactInput) =>
-      client.contacts.contactsCreate(data),
+    mutationFn: (data: CreateContactListInput) =>
+      client.contacts.createContactList({ name: data.title }),
     onSuccess: ({ data }) => {
       toast.success(data.message);
       handleDialogItemOpenChange(false);
@@ -71,11 +71,11 @@ export default function CreateContactModal() {
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      email: "",
+      title: "",
     },
   });
 
-  const onSubmit: SubmitHandler<CreateContactInput> = (data) => {
+  const onSubmit: SubmitHandler<CreateContactListInput> = (data) => {
     setLoading(true);
     mutation.mutate(data);
   };
@@ -114,11 +114,11 @@ export default function CreateContactModal() {
                 placeholder="yo@lanre.wtf"
                 className="mt-2"
                 type="email"
-                {...register("email")}
+                {...register("title")}
               />
-              {errors.email && (
+              {errors.title && (
                 <p className="mt-4 text-xs text-red-600 dark:text-red-500">
-                  <span className="font-medium">{errors.email.message}</span>
+                  <span className="font-medium">{errors.title.message}</span>
                 </p>
               )}
             </div>
