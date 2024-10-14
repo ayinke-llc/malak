@@ -87,7 +87,7 @@ export default function CreateContactModal() {
           <Button
             type="button"
             variant="primary"
-            className="whitespace-nowrap"
+            className="whitespace-nowrap gap-1"
           >
             <RiAddLine />
             Add User

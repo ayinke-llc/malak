@@ -15,7 +15,7 @@ import { Label } from "@/components/Label";
 import client from "@/lib/client";
 import { CREATE_CONTACT_MUTATION } from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { RiAddLine } from "@remixicon/react";
+import { RiAddLine, RiEye2Line, RiEyeLine, RiEyeOffLine, RiListView } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useState } from "react";
@@ -86,11 +86,11 @@ export default function CreateNewListModal() {
         <div className="w-full text-right">
           <Button
             type="button"
-            variant="primary"
-            className="whitespace-nowrap"
+            variant="secondary"
+            className="whitespace-nowrap gap-1"
           >
-            <RiAddLine />
-            Add User
+            <RiEyeLine />
+            Manage lists
           </Button>
         </div>
       </DialogTrigger>
