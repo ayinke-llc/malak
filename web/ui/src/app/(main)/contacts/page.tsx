@@ -1,7 +1,7 @@
 "use client";
 
 import CreateContactModal from "@/components/ui/contacts/modal";
-import CreateNewListModal from "@/components/ui/contacts/new-list-modal";
+import ManageListModal from "@/components/ui/contacts/new-list-modal";
 
 export default function Page() {
   return (
@@ -22,7 +22,7 @@ export default function Page() {
             </div>
 
             <div className="flex justify-center gap-2">
-              <CreateNewListModal />
+              <ManageListModal />
               <CreateContactModal />
             </div>
           </div>

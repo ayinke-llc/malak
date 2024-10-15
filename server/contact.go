@@ -350,5 +350,5 @@ func (c *contactHandler) deleteContactList(
 			StatusFailed
 	}
 
-	return newAPIStatus(http.StatusCreated, "list was successfully created"), StatusSuccess
+	return newAPIStatus(http.StatusCreated, "list was successfully deleted"), StatusSuccess
 }
