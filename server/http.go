@@ -200,6 +200,12 @@ func buildRoutes(
 
 			r.Get("/lists",
 				WrapMalakHTTPHandler(logger, contactHandler.fetchContactLists, cfg, "contacts.lists.fetch"))
+
+			r.Delete("/lists/{reference}",
+				WrapMalakHTTPHandler(logger, contactHandler.deleteContactList, cfg, "contacts.lists.delete"))
+
+			r.Put("/lists/{reference}",
+				WrapMalakHTTPHandler(logger, contactHandler.editContactList, cfg, "contacts.lists.update"))
 		})
 
 		r.Route("/images", func(r chi.Router) {
