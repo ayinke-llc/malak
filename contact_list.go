@@ -8,6 +8,10 @@ import (
 	"github.com/uptrace/bun"
 )
 
+var (
+	ErrContactListNotFound = MalakError("contact list not found")
+)
+
 type ContactList struct {
 	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 	Title       string    `json:"title,omitempty"`
@@ -30,8 +34,9 @@ type FetchContactListOptions struct {
 
 type ContactListRepository interface {
 	Create(context.Context, *ContactList) error
-	// Get(context.Context, FetchContactListOptions) (ContactList, error)
-	// Delete(context.Context, *ContactList) error
+	Get(context.Context, FetchContactListOptions) (*ContactList, error)
+	Delete(context.Context, *ContactList) error
+	Update(context.Context, *ContactList) error
 	Add(context.Context, ...*Contact) error
 	List(context.Context, uuid.UUID) ([]ContactList, error)
 }
