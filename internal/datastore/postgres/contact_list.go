@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/google/uuid"
@@ -17,6 +18,48 @@ func NewContactListRepository(db *bun.DB) malak.ContactListRepository {
 	return &contactListRepo{
 		inner: db,
 	}
+}
+
+func (c *contactListRepo) Get(ctx context.Context,
+	opts malak.FetchContactListOptions) (*malak.ContactList, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	list := &malak.ContactList{}
+
+	err := c.inner.NewSelect().Model(list).
+		Where("reference = ?", opts.Reference).
+		Where("workspace_id = ?", opts.WorkspaceID).
+		Scan(ctx)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		err = malak.ErrUserNotFound
+	}
+
+	return list, err
+}
+
+func (c *contactListRepo) Delete(ctx context.Context,
+	list *malak.ContactList) error {
+
+	_, err := c.inner.NewDelete().Model(list).
+		Where("id = ?", list.ID).
+		Exec(ctx)
+	return err
+}
+
+func (c *contactListRepo) Update(ctx context.Context,
+	list *malak.ContactList) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	_, err := c.inner.NewUpdate().
+		Where("id = ?", list.ID).
+		Model(list).
+		Exec(ctx)
+	return err
 }
 
 func (c *contactListRepo) Create(ctx context.Context,
