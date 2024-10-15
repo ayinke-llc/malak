@@ -374,6 +374,9 @@
 						"type": "string"
 					}
 				},
+				"required": [
+					"name"
+				],
 				"type": "object"
 			},
 			"server.createContactRequest": {
@@ -457,6 +460,23 @@
 				"properties": {
 					"list": {
 						"$ref": "#/components/schemas/malak.ContactList"
+					},
+					"message": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"message"
+				],
+				"type": "object"
+			},
+			"server.fetchContactListsResponse": {
+				"properties": {
+					"lists": {
+						"items": {
+							"$ref": "#/components/schemas/malak.ContactList"
+						},
+						"type": "array"
 					},
 					"message": {
 						"type": "string"
@@ -765,6 +785,65 @@
 			}
 		},
 		"/contacts/lists": {
+			"get": {
+				"operationId": "fetchContactLists",
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.fetchContactListsResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "List all created contact lists",
+				"tags": [
+					"contacts"
+				]
+			},
 			"post": {
 				"operationId": "createContactList",
 				"requestBody": {

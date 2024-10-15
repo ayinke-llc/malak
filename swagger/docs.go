@@ -140,6 +140,51 @@ const docTemplate = `{
             }
         },
         "/contacts/lists": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "List all created contact lists",
+                "operationId": "fetchContactLists",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchContactListsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -1254,6 +1299,9 @@ const docTemplate = `{
         },
         "server.createContactListRequest": {
             "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
                 "name": {
                     "type": "string"
@@ -1345,6 +1393,23 @@ const docTemplate = `{
             "properties": {
                 "list": {
                     "$ref": "#/definitions/malak.ContactList"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.fetchContactListsResponse": {
+            "type": "object",
+            "required": [
+                "message"
+            ],
+            "properties": {
+                "lists": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.ContactList"
+                    }
                 },
                 "message": {
                     "type": "string"
