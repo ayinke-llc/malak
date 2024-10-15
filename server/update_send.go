@@ -113,6 +113,8 @@ func (u *updatesHandler) previewUpdate(
 			"an error occurred while fetching update"), StatusFailed
 	}
 
+	// get contact from db
+	// if not exists, create one
 	schedule := &malak.UpdateSchedule{
 		Reference:   u.referenceGenerator.Generate(malak.EntityTypeSchedule),
 		SendAt:      time.Now(),
@@ -124,10 +126,8 @@ func (u *updatesHandler) previewUpdate(
 	}
 
 	recipient := &malak.UpdateRecipient{
-		Email:         req.Email,
-		UpdateID:      update.ID,
-		Reference:     u.referenceGenerator.Generate(malak.EntityTypeRecipient),
-		RecipientType: malak.RecipientTypeEmail,
+		UpdateID:  update.ID,
+		Reference: u.referenceGenerator.Generate(malak.EntityTypeRecipient),
 	}
 
 	if err := u.updateRepo.CreatePreview(ctx, schedule, recipient); err != nil {

@@ -12,6 +12,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
 	"github.com/ayinke-llc/malak"
+	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	wotelfloss "github.com/dentech-floss/watermill-opentelemetry-go-extra/pkg/opentelemetry"
@@ -34,9 +35,11 @@ type WatermillClient struct {
 	userRepo      malak.UserRepository
 	workspaceRepo malak.WorkspaceRepository
 	updateRepo    malak.UpdateRepository
+	cfg           config.Config
 }
 
 func New(redisClient *redis.Client,
+	cfg config.Config,
 	logger *zap.Logger,
 	userRepo malak.UserRepository,
 	workspaceRepo malak.WorkspaceRepository,
@@ -97,6 +100,7 @@ func New(redisClient *redis.Client,
 	)
 
 	t := &WatermillClient{
+		cfg:           cfg,
 		publisher:     router,
 		logger:        logger,
 		messager:      publisher,
@@ -177,8 +181,9 @@ func (t *WatermillClient) sendPreviewEmail(msg *message.Message) error {
 		attribute.String("triggered_user_id", schedule.ScheduledBy.String()))
 
 	sendOptions := email.SendOptions{
-		HTML: update.Content.HTML(),
-		// Sender: ,
+		HTML:   update.Content.HTML(),
+		Sender: t.cfg.Email.Sender,
+		// Recipient: ,
 	}
 
 	_ = sendOptions

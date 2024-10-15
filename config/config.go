@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 )
 
@@ -101,6 +102,7 @@ type Config struct {
 
 	Email struct {
 		Provider EmailProvider `mapstructure:"provider" yaml:"provider"`
+		Sender   malak.Email   `mapstructure:"sender" yaml:"sender"`
 		SMTP     struct {
 			Host     string `mapstructure:"host" yaml:"host"`
 			Port     int    `mapstructure:"port" yaml:"port"`

@@ -78,11 +78,11 @@ type UpdateLink struct {
 type RecipientType string
 
 type UpdateRecipient struct {
-	ID            uuid.UUID     `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	Reference     Reference     `json:"reference,omitempty"`
-	UpdateID      uuid.UUID     `json:"update_id,omitempty"`
-	Email         Email         `json:"email,omitempty"`
-	RecipientType RecipientType `json:"recipient_type,omitempty"`
+	ID         uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference  Reference `json:"reference,omitempty"`
+	UpdateID   uuid.UUID `json:"update_id,omitempty"`
+	ContactID  uuid.UUID `json:"contact_id,omitempty"`
+	ScheduleID uuid.UUID `json:"schedule_id,omitempty"`
 
 	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
@@ -119,6 +119,12 @@ type ListUpdateOptions struct {
 	Status      ListUpdateFilterStatus
 }
 
+type CreatePreviewOptions struct {
+	Reference   func(EntityType) string
+	Email       Email
+	WorkspaceID uuid.UUID
+}
+
 type UpdateRepository interface {
 	Create(context.Context, *Update) error
 	Update(context.Context, *Update) error
@@ -127,5 +133,6 @@ type UpdateRepository interface {
 	Delete(context.Context, *Update) error
 	TogglePinned(context.Context, *Update) error
 	GetSchedule(context.Context, uuid.UUID) (*UpdateSchedule, error)
-	CreatePreview(context.Context, *UpdateSchedule, *UpdateRecipient) error
+	CreatePreview(context.Context, *UpdateSchedule, CreatePreviewOptions) error
+	// GetRecipient(context.Context, FetchRecipientOptions) (*Upd)
 }
