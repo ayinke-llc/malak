@@ -75,12 +75,14 @@ export default function ManageListModal() {
         let listExists = false;
         let updatedLists: MalakContactList[] | undefined;
 
-        if (typeof list === 'string') {
-          updatedLists = old?.data?.lists?.filter((existingList) => existingList.reference !== list);
+        if (typeof list === "string") {
+          updatedLists = old?.data?.lists?.filter(
+            (existingList) => existingList.reference !== list,
+          );
         } else {
           updatedLists = old?.data?.lists?.map((existingList) => {
             if (list == null) {
-              return existingList
+              return existingList;
             }
             if (existingList.id === list.id) {
               listExists = true;
@@ -144,7 +146,7 @@ export default function ManageListModal() {
     onSuccess: ({ data }) => {
       toast.success(data.message);
       setIsDeleteModalOpen(false);
-      onNewListAdded(referenceToDelete)
+      onNewListAdded(referenceToDelete);
       reset();
     },
     onError(err: AxiosError<ServerAPIStatus>) {
