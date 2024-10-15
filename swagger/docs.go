@@ -139,6 +139,109 @@ const docTemplate = `{
                 }
             }
         },
+        "/contacts/lists": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "List all created contact lists",
+                "operationId": "fetchContactLists",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchContactListsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "Create a new contact list",
+                "operationId": "createContactList",
+                "parameters": [
+                    {
+                        "description": "contact list body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createContactListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchContactListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/images/upload": {
             "post": {
                 "consumes": [
@@ -933,6 +1036,32 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.ContactList": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.CustomContactMetadata": {
             "type": "object",
             "additionalProperties": {
@@ -1168,6 +1297,17 @@ const docTemplate = `{
                 }
             }
         },
+        "server.createContactListRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "server.createContactRequest": {
             "type": "object",
             "properties": {
@@ -1242,6 +1382,37 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/malak.Workspace"
                     }
+                }
+            }
+        },
+        "server.fetchContactListResponse": {
+            "type": "object",
+            "required": [
+                "message"
+            ],
+            "properties": {
+                "list": {
+                    "$ref": "#/definitions/malak.ContactList"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.fetchContactListsResponse": {
+            "type": "object",
+            "required": [
+                "message"
+            ],
+            "properties": {
+                "lists": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.ContactList"
+                    }
+                },
+                "message": {
+                    "type": "string"
                 }
             }
         },

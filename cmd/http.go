@@ -101,6 +101,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			planRepo := postgres.NewPlanRepository(db)
 			contactRepo := postgres.NewContactRepository(db)
 			updateRepo := postgres.NewUpdatesRepository(db)
+			contactlistRepo := postgres.NewContactListRepository(db)
 
 			googleAuthProvider := socialauth.NewGoogle(*cfg)
 
@@ -229,6 +230,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				util.DeRef(cfg), db,
 				tokenManager, googleAuthProvider,
 				userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
+				contactlistRepo,
 				mid, gulterHandler, queueHandler, redisCache)
 
 			go func() {

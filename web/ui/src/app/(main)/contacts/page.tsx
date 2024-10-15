@@ -1,6 +1,7 @@
 "use client";
 
 import CreateContactModal from "@/components/ui/contacts/modal";
+import CreateNewListModal from "@/components/ui/contacts/new-list-modal";
 
 export default function Page() {
   return (
@@ -19,7 +20,11 @@ export default function Page() {
                 View and manage all your existing contacts
               </p>
             </div>
-            <CreateContactModal />
+
+            <div className="flex justify-center gap-2">
+              <CreateNewListModal />
+              <CreateContactModal />
+            </div>
           </div>
         </section>
       </div>
