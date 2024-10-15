@@ -10,20 +10,15 @@ import {
 } from "@/components/Dialog";
 import { Input } from "@/components/Input";
 import client from "@/lib/client";
-import { CREATE_CONTACT_LIST, CREATE_CONTACT_MUTATION } from "@/lib/query-constants";
+import { CREATE_CONTACT_LIST, CREATE_CONTACT_MUTATION, LIST_CONTACT_LISTS } from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { RiAddLine, RiCheckboxLine, RiCheckLine, RiCloseLargeLine, RiDeleteBinLine, RiEyeLine, RiPencilLine, RiPencilRuler2Line, RiPencilRulerLine, RiTwitterXLine } from "@remixicon/react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as yup from "yup";
-
-type ListItem = {
-  id: number
-  text: string
-}
 
 type CreateContactListInput = {
   title: string;
@@ -35,43 +30,40 @@ const schema = yup
   })
   .required();
 
-export default function CreateNewListModal() {
+export default function ManageListModal() {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [hasOpenDialog, setHasOpenDialog] = useState(false);
 
-  const [items, setItems] = useState<ListItem[]>([
-    { id: 1, text: 'Item 1' },
-    { id: 2, text: 'Item 2' },
-    { id: 3, text: 'Item 3' },
-    { id: 4, text: 'Item 4' },
-    { id: 5, text: 'Item 5' },
-  ])
-  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [editText, setEditText] = useState('')
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [newItemText, setNewItemText] = useState('')
 
-  const handleEdit = (id: number, text: string) => {
+  const { data, error, isLoading } = useQuery({
+    queryKey: [LIST_CONTACT_LISTS],
+    queryFn: () => client.contacts.fetchContactLists(),
+  });
+
+  if (error) {
+    toast.error("an error occurred while fetching this update");
+  }
+
+  const handleEdit = (id: string, text: string) => {
     setEditingId(id)
     setEditText(text)
   }
 
   const handleSave = () => {
-    setItems(items.map(item =>
-      item.id === editingId ? { ...item, text: editText } : item
-    ))
     setEditingId(null)
   }
 
-  const handleDelete = (id: number) => {
-    setDeleteId(id)
+  const handleDelete = (id: string) => {
     setIsDeleteModalOpen(true)
   }
 
   const confirmDelete = () => {
-    setItems(items.filter(item => item.id !== deleteId))
     setIsDeleteModalOpen(false)
   }
 
@@ -142,7 +134,7 @@ export default function CreateNewListModal() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <CreateNewContactList />
-            {items.map((item) => (
+            {data?.data?.lists?.map((item) => (
               <div
                 key={item.id}
                 className="flex items-center space-x-2 p-3 rounded-lg border-2 border-gray-200"
@@ -154,14 +146,14 @@ export default function CreateNewListModal() {
                     className="flex-grow"
                   />
                 ) : (
-                  <span className="flex-grow">{item.text}</span>
+                  <span className="flex-grow">{item.title}</span>
                 )}
                 <div className="flex space-x-2">
                   {editingId === item.id ? (
                     <Button onClick={handleSave} size="sm">Save</Button>
                   ) : (
                     <Button
-                      onClick={() => handleEdit(item.id, item.text)}
+                      onClick={() => handleEdit(item?.id as string, item?.title as string)}
                       size="icon"
                       variant="ghost"
                     >
@@ -169,7 +161,7 @@ export default function CreateNewListModal() {
                     </Button>
                   )}
                   <Button
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => handleDelete(item?.id as string)}
                     size="icon"
                     variant="ghost"
                   >
