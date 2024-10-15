@@ -135,9 +135,9 @@ export default function CreateNewListModal() {
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Item List</DialogTitle>
+            <DialogTitle>Contacts List</DialogTitle>
             <DialogDescription>
-              View, edit, or delete items in the list.
+              View, edit, delete or manage your lists
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -292,7 +292,7 @@ const CreateNewContactList = () => {
           isLoading={loading}
         >
           <RiAddLine className="h-4 w-4 mr-2" />
-          Add New Item
+          Add New List
         </Button>
       )}
     </div>
