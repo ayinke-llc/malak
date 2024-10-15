@@ -58,13 +58,13 @@ export default function ManageListModal() {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [hasOpenDialog, setHasOpenDialog] = useState(false);
-
+  const [referenceToDelete, setReferenceToDelete] = useState("");
   const [editingID, setEditingId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
-  const onNewListAdded = (list: MalakContactList) => {
+  const onNewListAdded = (list: MalakContactList | string) => {
     queryClient.setQueryData(
       [LIST_CONTACT_LISTS],
       (old: AxiosResponse<ServerFetchContactListsResponse | undefined>) => {
@@ -73,16 +73,25 @@ export default function ManageListModal() {
         }
 
         let listExists = false;
-        const updatedLists = old?.data?.lists?.map((existingList) => {
-          if (existingList.id === list.id) {
-            listExists = true;
-            return list;
-          }
-          return existingList;
-        });
+        let updatedLists: MalakContactList[] | undefined;
 
-        if (!listExists) {
-          updatedLists?.unshift(list);
+        if (typeof list === 'string') {
+          updatedLists = old?.data?.lists?.filter((existingList) => existingList.reference !== list);
+        } else {
+          updatedLists = old?.data?.lists?.map((existingList) => {
+            if (list == null) {
+              return existingList
+            }
+            if (existingList.id === list.id) {
+              listExists = true;
+              return list;
+            }
+            return existingList;
+          });
+
+          if (!listExists) {
+            updatedLists?.unshift(list);
+          }
         }
 
         return {
@@ -108,11 +117,12 @@ export default function ManageListModal() {
   };
 
   const handleDelete = (reference: string) => {
-    mutation.mutate(reference);
+    setReferenceToDelete(reference);
+    setIsDeleteModalOpen(true);
   };
 
   const confirmDelete = () => {
-    setIsDeleteModalOpen(false);
+    mutation.mutate(referenceToDelete);
   };
 
   const handleDialogItemOpenChange = (open: boolean) => {
@@ -133,8 +143,8 @@ export default function ManageListModal() {
       client.contacts.deleteContactList(reference),
     onSuccess: ({ data }) => {
       toast.success(data.message);
-      // handleDialogItemOpenChange(false);
-      setIsDeleteModalOpen(true);
+      setIsDeleteModalOpen(false);
+      onNewListAdded(referenceToDelete)
       reset();
     },
     onError(err: AxiosError<ServerAPIStatus>) {
@@ -201,7 +211,9 @@ export default function ManageListModal() {
                         </Button>
                         <Button
                           type="button"
-                          onClick={() => handleDelete(item?.id as string)}
+                          onClick={() =>
+                            handleDelete(item?.reference as string)
+                          }
                           size="icon"
                           variant="ghost"
                         >
