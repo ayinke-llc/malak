@@ -313,7 +313,7 @@ func (c *contactHandler) editContactList(
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /contacts/lists/{reference} [put]
+// @Router /contacts/lists/{reference} [delete]
 func (c *contactHandler) deleteContactList(
 	ctx context.Context,
 	span trace.Span,
