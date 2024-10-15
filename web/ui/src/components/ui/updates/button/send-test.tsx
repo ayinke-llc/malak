@@ -35,7 +35,6 @@ const schema = yup
   .required();
 
 const SendTestButton = ({ reference }: ButtonProps) => {
-
   const [loading, setLoading] = useState<boolean>(false);
 
   const {
@@ -49,7 +48,8 @@ const SendTestButton = ({ reference }: ButtonProps) => {
 
   const mutation = useMutation({
     mutationKey: [SEND_PREVIEW_UPDATE],
-    mutationFn: (data: PreviewUpdateInput) => client.workspaces.previewUpdate(reference, data),
+    mutationFn: (data: PreviewUpdateInput) =>
+      client.workspaces.previewUpdate(reference, data),
     onSuccess: ({ data }) => {
       toast.success(data.message);
       reset();
@@ -67,9 +67,8 @@ const SendTestButton = ({ reference }: ButtonProps) => {
     onMutate: () => setLoading(true),
   });
 
-
   const onSubmit: SubmitHandler<PreviewUpdateInput> = (data) => {
-    mutation.mutate(data)
+    mutation.mutate(data);
   };
 
   return (
@@ -127,9 +126,11 @@ const SendTestButton = ({ reference }: ButtonProps) => {
                     Cancel
                   </Button>
                 </DialogClose>
-                <Button type="submit"
+                <Button
+                  type="submit"
                   className="w-full sm:w-fit"
-                  isLoading={loading}>
+                  isLoading={loading}
+                >
                   Preview
                 </Button>
               </DialogFooter>

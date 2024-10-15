@@ -1,20 +1,37 @@
-import type { ServerAPIStatus } from "@/client/Api";
+import type { MalakContactList, ServerAPIStatus, ServerCreateContactListRequest, ServerFetchContactListResponse, ServerFetchContactListsResponse } from "@/client/Api";
 import { Button } from "@/components/Button";
 import {
-  Dialog, DialogContent,
+  Dialog,
+  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from "@/components/Dialog";
 import { Input } from "@/components/Input";
 import client from "@/lib/client";
-import { CREATE_CONTACT_LIST, CREATE_CONTACT_MUTATION, LIST_CONTACT_LISTS } from "@/lib/query-constants";
+import {
+  CREATE_CONTACT_LIST,
+  CREATE_CONTACT_MUTATION,
+  LIST_CONTACT_LISTS,
+  UPDATE_CONTACT_LIST,
+} from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { RiAddLine, RiCheckboxLine, RiCheckLine, RiCloseLargeLine, RiDeleteBinLine, RiEyeLine, RiPencilLine, RiPencilRuler2Line, RiPencilRulerLine, RiTwitterXLine } from "@remixicon/react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import type { AxiosError } from "axios";
+import {
+  RiAddLine,
+  RiCheckboxLine,
+  RiCheckLine,
+  RiCloseLargeLine,
+  RiDeleteBinLine,
+  RiEyeLine,
+  RiPencilLine,
+  RiPencilRuler2Line,
+  RiPencilRulerLine,
+  RiTwitterXLine,
+} from "@remixicon/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { AxiosError, AxiosResponse } from "axios";
 import { useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -31,50 +48,71 @@ const schema = yup
   .required();
 
 export default function ManageListModal() {
-
-  const [loading, setLoading] = useState<boolean>(false);
-  const [hasOpenDialog, setHasOpenDialog] = useState(false);
-
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editText, setEditText] = useState('')
-  const [deleteId, setDeleteId] = useState<number | null>(null)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [newItemText, setNewItemText] = useState('')
-
-  const { data, error, isLoading } = useQuery({
+  const { data, error } = useQuery({
     queryKey: [LIST_CONTACT_LISTS],
     queryFn: () => client.contacts.fetchContactLists(),
   });
 
   if (error) {
-    toast.error("an error occurred while fetching this update");
+    toast.error("an error occurred while fetching your contact lists");
   }
+
+  const [loading, setLoading] = useState<boolean>(false);
+  const [hasOpenDialog, setHasOpenDialog] = useState(false);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [newItemText, setNewItemText] = useState("");
+
+  const queryClient = useQueryClient();
+
+  const onNewListAdded = (list: MalakContactList) => {
+    queryClient.setQueryData(
+      [LIST_CONTACT_LISTS],
+      (old: AxiosResponse<ServerFetchContactListsResponse | undefined>) => {
+
+        if (!old) {
+          return { data: { lists: [list] } };
+        }
+
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            lists: [list, ...old?.data?.lists as MalakContactList[]]
+          }
+        };
+      },
+    );
+  };
 
   const handleEdit = (id: string, text: string) => {
-    setEditingId(id)
-    setEditText(text)
-  }
+    setEditingId(id);
+    setEditText(text);
+  };
 
   const handleSave = () => {
-    setEditingId(null)
-  }
+    setEditingId(null);
+  };
 
   const handleDelete = (id: string) => {
-    setIsDeleteModalOpen(true)
-  }
+    setIsDeleteModalOpen(true);
+  };
 
   const confirmDelete = () => {
-    setIsDeleteModalOpen(false)
-  }
+    setIsDeleteModalOpen(false);
+  };
 
   const handleDialogItemOpenChange = (open: boolean) => {
     setHasOpenDialog(open);
   };
 
   const mutation = useMutation({
-    mutationKey: [CREATE_CONTACT_MUTATION],
+    mutationKey: [UPDATE_CONTACT_LIST],
     mutationFn: (data: CreateContactListInput) =>
-      client.contacts.createContactList({ name: data.title }),
+      client.contacts.editContactList("", { name: data.title }),
     onSuccess: ({ data }) => {
       toast.success(data.message);
       handleDialogItemOpenChange(false);
@@ -109,7 +147,6 @@ export default function ManageListModal() {
     mutation.mutate(data);
   };
 
-
   return (
     <>
       <Dialog onOpenChange={handleDialogItemOpenChange} open={hasOpenDialog}>
@@ -133,7 +170,7 @@ export default function ManageListModal() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <CreateNewContactList />
+            <CreateNewContactList onCreate={onNewListAdded} />
             {data?.data?.lists?.map((item) => (
               <div
                 key={item.id}
@@ -150,10 +187,14 @@ export default function ManageListModal() {
                 )}
                 <div className="flex space-x-2">
                   {editingId === item.id ? (
-                    <Button onClick={handleSave} size="sm">Save</Button>
+                    <Button onClick={handleSave} size="sm">
+                      Save
+                    </Button>
                   ) : (
                     <Button
-                      onClick={() => handleEdit(item?.id as string, item?.title as string)}
+                      onClick={() =>
+                        handleEdit(item?.id as string, item?.title as string)
+                      }
                       size="icon"
                       variant="ghost"
                     >
@@ -183,12 +224,16 @@ export default function ManageListModal() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setIsDeleteModalOpen(false)}
+            <Button
+              variant="secondary"
+              onClick={() => setIsDeleteModalOpen(false)}
               isLoading={loading}
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
               isLoading={loading}
             >
               Delete
@@ -200,17 +245,20 @@ export default function ManageListModal() {
   );
 }
 
-const CreateNewContactList = () => {
-
-  const [isAddingItem, setIsAddingItem] = useState(false)
+const CreateNewContactList = ({
+  onCreate,
+}: { onCreate: (value: MalakContactList) => void }) => {
+  const [isAddingItem, setIsAddingItem] = useState(false);
 
   const [loading, setLoading] = useState<boolean>(false);
 
   const mutation = useMutation({
     mutationKey: [CREATE_CONTACT_LIST],
+    onMutate: () => setLoading(true),
     mutationFn: (data: CreateContactListInput) =>
       client.contacts.createContactList({ name: data.title }),
     onSuccess: ({ data }) => {
+      onCreate(data?.list as MalakContactList)
       toast.success(data.message);
       reset();
     },
@@ -239,7 +287,6 @@ const CreateNewContactList = () => {
   });
 
   const onSubmit: SubmitHandler<CreateContactListInput> = (data) => {
-    setLoading(true);
     mutation.mutate(data);
   };
 
@@ -248,13 +295,21 @@ const CreateNewContactList = () => {
       {isAddingItem ? (
         <div>
           <div className="flex items-center space-x-2 w-full">
-            <form onSubmit={handleSubmit(onSubmit)} className="flex items-center space-x-2 w-full">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="flex items-center space-x-2 w-full"
+            >
               <Input
                 placeholder="Name of your list"
                 className="flex-grow"
                 {...register("title")}
               />
-              <Button type="submit" size="icon" variant="ghost" isLoading={loading}>
+              <Button
+                type="submit"
+                size="icon"
+                variant="ghost"
+                isLoading={loading}
+              >
                 <RiCheckLine className="h-4 w-4" color="green" />
                 <span className="sr-only">Add item</span>
               </Button>
@@ -262,7 +317,8 @@ const CreateNewContactList = () => {
                 onClick={() => setIsAddingItem(false)}
                 size="icon"
                 variant="ghost"
-                isLoading={loading}>
+                isLoading={loading}
+              >
                 <RiCloseLargeLine className="h-4 w-4" color="red" />
                 <span className="sr-only">Cancel</span>
               </Button>
@@ -288,5 +344,5 @@ const CreateNewContactList = () => {
         </Button>
       )}
     </div>
-  )
-}
+  );
+};
