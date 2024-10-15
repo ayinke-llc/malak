@@ -33,6 +33,7 @@ func New(logger *zap.Logger,
 	planRepo malak.PlanRepository,
 	contactRepo malak.ContactRepository,
 	updateRepo malak.UpdateRepository,
+	contactListRepo malak.ContactListRepository,
 	mid *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
@@ -41,6 +42,7 @@ func New(logger *zap.Logger,
 	srv := &http.Server{
 		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
 			userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
+			contactListRepo,
 			googleAuthProvider, mid, gulterHandler, queueHandler, redisCache),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
@@ -79,6 +81,7 @@ func buildRoutes(
 	planRepo malak.PlanRepository,
 	contactRepo malak.ContactRepository,
 	updateRepo malak.UpdateRepository,
+	contactListRepo malak.ContactListRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	ratelimiterMiddleware *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
@@ -123,6 +126,7 @@ func buildRoutes(
 		cfg:                cfg,
 		contactRepo:        contactRepo,
 		referenceGenerator: referenceGenerator,
+		contactListRepo:    contactListRepo,
 	}
 
 	updateHandler := &updatesHandler{
@@ -193,6 +197,9 @@ func buildRoutes(
 
 			r.Post("/lists",
 				WrapMalakHTTPHandler(logger, contactHandler.createContactList, cfg, "contacts.lists.new"))
+
+			r.Get("/lists",
+				WrapMalakHTTPHandler(logger, contactHandler.fetchContactLists, cfg, "contacts.lists.fetch"))
 		})
 
 		r.Route("/images", func(r chi.Router) {

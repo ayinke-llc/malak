@@ -8,3 +8,4 @@ export const DELETE_UPDATE = "DELETE_UPDATE" as const;
 export const TOGGLE_PINNED_STATE = "TOGGLE_PINNED_STATE" as const;
 export const FETCH_SINGLE_UPDATE = "FETCH_SINGLE_UPDATE" as const;
 export const SEND_PREVIEW_UPDATE = "SEND_PREVIEW_UPDATE" as const;
+export const CREATE_CONTACT_LIST = "CREATE_CONTACT_LIST" as const;

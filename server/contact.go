@@ -125,7 +125,7 @@ func (c *contactHandler) Create(
 type createContactListRequest struct {
 	GenericRequest
 
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" validate:"required"`
 }
 
 func (c *createContactListRequest) Validate() error {
@@ -194,5 +194,41 @@ func (c *contactHandler) createContactList(
 
 	return fetchContactListResponse{
 		APIStatus: newAPIStatus(http.StatusCreated, "list was successfully created"),
+		List:      util.DeRef(list),
+	}, StatusSuccess
+}
+
+// @Summary List all created contact lists
+// @Tags contacts
+// @id fetchContactLists
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} fetchContactListsResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /contacts/lists [get]
+func (c *contactHandler) fetchContactLists(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("listing all contact lists in this workspace")
+
+	list, err := c.contactListRepo.List(ctx, getWorkspaceFromContext(ctx).ID)
+	if err != nil {
+		logger.
+			Error("an error occurred while listing contact lists", zap.Error(err))
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"an error occurred while fetching contact lists"), StatusFailed
+	}
+
+	return fetchContactListsResponse{
+		APIStatus: newAPIStatus(http.StatusCreated, "list was successfully created"),
+		Lists:     list,
 	}, StatusSuccess
 }

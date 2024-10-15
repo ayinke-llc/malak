@@ -10,9 +10,9 @@ import {
 } from "@/components/Dialog";
 import { Input } from "@/components/Input";
 import client from "@/lib/client";
-import { CREATE_CONTACT_MUTATION } from "@/lib/query-constants";
+import { CREATE_CONTACT_LIST, CREATE_CONTACT_MUTATION } from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { RiDeleteBinLine, RiEyeLine, RiPencilLine } from "@remixicon/react";
+import { RiAddLine, RiCheckboxLine, RiCheckLine, RiCloseLargeLine, RiDeleteBinLine, RiEyeLine, RiPencilLine, RiPencilRuler2Line, RiPencilRulerLine, RiTwitterXLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useState } from "react";
@@ -51,6 +51,7 @@ export default function CreateNewListModal() {
   const [editText, setEditText] = useState('')
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [newItemText, setNewItemText] = useState('')
 
   const handleEdit = (id: number, text: string) => {
     setEditingId(id)
@@ -116,6 +117,7 @@ export default function CreateNewListModal() {
     mutation.mutate(data);
   };
 
+
   return (
     <>
       <Dialog onOpenChange={handleDialogItemOpenChange} open={hasOpenDialog}>
@@ -139,6 +141,7 @@ export default function CreateNewListModal() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            <CreateNewContactList />
             {items.map((item) => (
               <div
                 key={item.id}
@@ -170,7 +173,7 @@ export default function CreateNewListModal() {
                     size="icon"
                     variant="ghost"
                   >
-                    <RiDeleteBinLine className="h-4 w-4" />
+                    <RiDeleteBinLine className="h-4 w-4" color="red" />
                   </Button>
                 </div>
               </div>
@@ -203,4 +206,95 @@ export default function CreateNewListModal() {
       </Dialog>
     </>
   );
+}
+
+const CreateNewContactList = () => {
+
+  const [isAddingItem, setIsAddingItem] = useState(false)
+
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const mutation = useMutation({
+    mutationKey: [CREATE_CONTACT_LIST],
+    mutationFn: (data: CreateContactListInput) =>
+      client.contacts.createContactList({ name: data.title }),
+    onSuccess: ({ data }) => {
+      toast.success(data.message);
+      reset();
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      let msg = err.message;
+      if (err.response !== undefined) {
+        msg = err.response.data.message;
+      }
+      toast.error(msg);
+    },
+    retry: false,
+    gcTime: Number.POSITIVE_INFINITY,
+    onSettled: () => setLoading(false),
+  });
+
+  const {
+    register,
+    formState: { errors },
+    handleSubmit,
+    reset,
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      title: "",
+    },
+  });
+
+  const onSubmit: SubmitHandler<CreateContactListInput> = (data) => {
+    setLoading(true);
+    mutation.mutate(data);
+  };
+
+  return (
+    <div className="w-full">
+      {isAddingItem ? (
+        <div>
+          <div className="flex items-center space-x-2 w-full">
+            <form onSubmit={handleSubmit(onSubmit)} className="flex items-center space-x-2 w-full">
+              <Input
+                placeholder="Name of your list"
+                className="flex-grow"
+                {...register("title")}
+              />
+              <Button type="submit" size="icon" variant="ghost" isLoading={loading}>
+                <RiCheckLine className="h-4 w-4" color="green" />
+                <span className="sr-only">Add item</span>
+              </Button>
+              <Button
+                onClick={() => setIsAddingItem(false)}
+                size="icon"
+                variant="ghost"
+                isLoading={loading}>
+                <RiCloseLargeLine className="h-4 w-4" color="red" />
+                <span className="sr-only">Cancel</span>
+              </Button>
+            </form>
+          </div>
+          <div className="flex items-center space-x-2 w-full">
+            {errors.title && (
+              <p className="mt-4 text-xs text-red-600 dark:text-red-500">
+                <span className="font-medium">{errors.title.message}</span>
+              </p>
+            )}
+          </div>
+        </div>
+      ) : (
+        <Button
+          onClick={() => setIsAddingItem(true)}
+          variant="secondary"
+          className="w-full"
+          isLoading={loading}
+        >
+          <RiAddLine className="h-4 w-4 mr-2" />
+          Add New Item
+        </Button>
+      )}
+    </div>
+  )
 }

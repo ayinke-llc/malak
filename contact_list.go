@@ -30,7 +30,8 @@ type FetchContactListOptions struct {
 
 type ContactListRepository interface {
 	Create(context.Context, *ContactList) error
-	Get(context.Context, FetchContactListOptions) (ContactList, error)
-	Delete(context.Context, *ContactList) error
+	// Get(context.Context, FetchContactListOptions) (ContactList, error)
+	// Delete(context.Context, *ContactList) error
 	Add(context.Context, ...*Contact) error
+	List(context.Context, uuid.UUID) ([]ContactList, error)
 }
