@@ -60,10 +60,7 @@ export default function ManageListModal() {
   const [hasOpenDialog, setHasOpenDialog] = useState(false);
 
   const [editingID, setEditingId] = useState<string | null>(null);
-  const [editText, setEditText] = useState("");
-  const [deleteId, setDeleteId] = useState<number | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [newItemText, setNewItemText] = useState("");
 
   const queryClient = useQueryClient();
 
@@ -75,11 +72,24 @@ export default function ManageListModal() {
           return { data: { lists: [list] } };
         }
 
+        let listExists = false;
+        const updatedLists = old?.data?.lists?.map((existingList) => {
+          if (existingList.id === list.id) {
+            listExists = true;
+            return list;
+          }
+          return existingList;
+        });
+
+        if (!listExists) {
+          updatedLists?.unshift(list);
+        }
+
         return {
           ...old,
           data: {
             ...old.data,
-            lists: [list, ...(old?.data?.lists as MalakContactList[])],
+            lists: updatedLists,
           },
         };
       },
@@ -89,8 +99,7 @@ export default function ManageListModal() {
   const isItemBeingEdited = (item: MalakContactList): boolean =>
     item.id == editingID;
 
-  const handleEdit = (id: string, text: string) => {
-    onTextChange(text);
+  const handleEdit = (id: string) => {
     setEditingId(id);
   };
 
@@ -174,8 +183,8 @@ export default function ManageListModal() {
                     <EditList
                       list={item}
                       onEdited={(item) => {
-                        onNewListAdded(item);
                         handleSave();
+                        onNewListAdded(item);
                       }}
                     />
                   ) : (
@@ -184,12 +193,7 @@ export default function ManageListModal() {
                       <div className="flex space-x-2">
                         <Button
                           type="button"
-                          onClick={() =>
-                            handleEdit(
-                              item?.id as string,
-                              item?.title as string,
-                            )
-                          }
+                          onClick={() => handleEdit(item?.id as string)}
                           size="icon"
                           variant="ghost"
                         >
