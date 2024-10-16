@@ -61,8 +61,6 @@ func (u *updatesHandler) previewUpdate(
 
 	ref := chi.URLParam(r, "reference")
 
-	fmt.Println(chi.RouteContext(ctx).URLParams)
-
 	workspace := getWorkspaceFromContext(ctx)
 
 	user := getUserFromContext(ctx)
@@ -163,6 +161,7 @@ func (u *updatesHandler) previewUpdate(
 		m := &queue.PreviewUpdateMessage{
 			UpdateID:   update.ID,
 			ScheduleID: schedule.ID,
+			Email:      req.Email,
 		}
 
 		err := u.queueHandler.Add(ctx,

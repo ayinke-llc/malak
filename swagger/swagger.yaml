@@ -4,11 +4,11 @@ components:
       properties:
         children:
           items:
-            $ref: '#/components/schemas/malak.BlockNoteItem'
+            $ref: '#/components/schemas/malak.BlockContent'
           type: array
         content:
           items:
-            $ref: '#/components/schemas/malak.BlockNoteItem'
+            $ref: '#/components/schemas/malak.InlineBlockContent'
           type: array
         id:
           type: string
@@ -24,19 +24,8 @@ components:
       - props
       - type
       type: object
-    malak.BlockNoteItem:
-      properties:
-        styles:
-          additionalProperties: {}
-          type: object
-        text:
-          type: string
-        type:
-          type: string
-      required:
-      - styles
-      - text
-      - type
+    malak.BlockNoteStyles:
+      additionalProperties: {}
       type: object
     malak.Contact:
       properties:
@@ -96,6 +85,17 @@ components:
     malak.CustomContactMetadata:
       additionalProperties:
         type: string
+      type: object
+    malak.InlineBlockContent:
+      properties:
+        href:
+          type: string
+        styles:
+          $ref: '#/components/schemas/malak.BlockNoteStyles'
+        text:
+          type: string
+        type:
+          type: string
       type: object
     malak.PlanMetadata:
       properties:

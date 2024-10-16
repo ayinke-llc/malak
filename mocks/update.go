@@ -56,7 +56,7 @@ func (mr *MockUpdateRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.Call 
 }
 
 // CreatePreview mocks base method.
-func (m *MockUpdateRepository) CreatePreview(arg0 context.Context, arg1 *malak.UpdateSchedule, arg2 *malak.UpdateRecipient) error {
+func (m *MockUpdateRepository) CreatePreview(arg0 context.Context, arg1 *malak.UpdateSchedule, arg2 *malak.CreatePreviewOptions) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePreview", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)

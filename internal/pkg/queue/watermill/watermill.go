@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"text/template"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -201,8 +202,29 @@ func (t *WatermillClient) sendPreviewEmail(msg *message.Message) error {
 	span.SetAttributes(
 		attribute.String("triggered_user_id", schedule.ScheduledBy.String()))
 
+	templatedFile, err := template.New("template").
+		Parse(email.UpdateHTMLEmailTemplate)
+	if err != nil {
+		span.RecordError(err)
+		logger.Error("could not create html template",
+			zap.Error(err))
+		return err
+	}
+
+	var b = new(bytes.Buffer)
+	err = templatedFile.Execute(b, map[string]string{
+		"Content": update.Content.HTML(),
+	})
+
+	if err != nil {
+		span.RecordError(err)
+		logger.Error("could not parse html template",
+			zap.Error(err))
+		return err
+	}
+
 	sendOptions := email.SendOptions{
-		HTML:      update.Content.HTML(),
+		HTML:      b.String(),
 		Sender:    t.cfg.Email.Sender,
 		Recipient: contact.Email,
 		Subject:   fmt.Sprintf("[TEST] %s", update.Title),
@@ -222,5 +244,6 @@ func (t *WatermillClient) sendPreviewEmail(msg *message.Message) error {
 		return err
 	}
 
+	msg.Ack()
 	return nil
 }

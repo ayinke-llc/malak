@@ -1062,13 +1062,13 @@ const docTemplate = `{
                 "children": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/malak.BlockNoteItem"
+                        "$ref": "#/definitions/malak.BlockContent"
                     }
                 },
                 "content": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/malak.BlockNoteItem"
+                        "$ref": "#/definitions/malak.InlineBlockContent"
                     }
                 },
                 "id": {
@@ -1083,25 +1083,9 @@ const docTemplate = `{
                 }
             }
         },
-        "malak.BlockNoteItem": {
+        "malak.BlockNoteStyles": {
             "type": "object",
-            "required": [
-                "styles",
-                "text",
-                "type"
-            ],
-            "properties": {
-                "styles": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
-                "text": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
+            "additionalProperties": {}
         },
         "malak.Contact": {
             "type": "object",
@@ -1185,6 +1169,23 @@ const docTemplate = `{
             "type": "object",
             "additionalProperties": {
                 "type": "string"
+            }
+        },
+        "malak.InlineBlockContent": {
+            "type": "object",
+            "properties": {
+                "href": {
+                    "type": "string"
+                },
+                "styles": {
+                    "$ref": "#/definitions/malak.BlockNoteStyles"
+                },
+                "text": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
             }
         },
         "malak.PlanMetadata": {
