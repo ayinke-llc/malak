@@ -163,6 +163,7 @@ func (u *updatesHandler) previewUpdate(
 		m := &queue.PreviewUpdateMessage{
 			UpdateID:   update.ID,
 			ScheduleID: schedule.ID,
+			Email:      req.Email,
 		}
 
 		err := u.queueHandler.Add(ctx,

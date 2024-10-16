@@ -64,7 +64,11 @@ func convertBlockToHTML(block BlockContent) string {
 	case "image":
 		url, _ := block.Props["url"].(string)
 		name, _ := block.Props["name"].(string)
-		html.WriteString(fmt.Sprintf("<img src='%s' alt='%s' style='%s max-width:100px;'>", url, name, style))
+
+		html.WriteString(fmt.Sprintf("<a href='%s' target='_blank' style='display:block; text-align:center;'>", url))
+		html.WriteString(fmt.Sprintf("<img src='%s' alt='%s' style='%s max-width:100px; height:auto; margin:0 auto;'>", url, name, style))
+		html.WriteString("</a>")
+
 		if caption, ok := block.Props["caption"].(string); ok && caption != "" {
 			html.WriteString(fmt.Sprintf("<figcaption>%s</figcaption>", template.HTMLEscapeString(caption)))
 		}

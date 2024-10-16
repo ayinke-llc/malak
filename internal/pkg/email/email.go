@@ -2,11 +2,17 @@ package email
 
 import (
 	"context"
+	_ "embed"
 	"errors"
 	"io"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
+)
+
+var (
+	//go:embed templates/updates/view.html
+	UpdateHTMLEmailTemplate string
 )
 
 type SendOptions struct {
