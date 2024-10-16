@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 
+	"github.com/ayinke-llc/malak"
 	"github.com/google/uuid"
 )
 
@@ -27,7 +28,7 @@ type QueueEventSubscriptionMessage string
 type PreviewUpdateMessage struct {
 	UpdateID   uuid.UUID
 	ScheduleID uuid.UUID
-	ContactID  uuid.UUID
+	Email      malak.Email
 }
 
 func ToPayload(m any) []byte {

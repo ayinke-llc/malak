@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -158,7 +159,6 @@ func (t *WatermillClient) sendPreviewEmail(msg *message.Message) error {
 		zap.String("queue.handler", "sendPreviewEmail"),
 		zap.String("update_id", p.UpdateID.String()),
 		zap.String("schedule_id", p.ScheduleID.String()),
-		zap.String("contact_id", p.ContactID.String()),
 	)
 
 	ctx, span := tracer.Start(context.Background(), "queue.sendPreviewEmail")
@@ -168,7 +168,6 @@ func (t *WatermillClient) sendPreviewEmail(msg *message.Message) error {
 		attribute.Bool("preview", true),
 		attribute.String("update_id", p.UpdateID.String()),
 		attribute.String("schedule_id", p.ScheduleID.String()),
-		attribute.String("contact_id", p.ContactID.String()),
 	)
 
 	update, err := t.updateRepo.Get(ctx, malak.FetchUpdateOptions{
@@ -190,7 +189,7 @@ func (t *WatermillClient) sendPreviewEmail(msg *message.Message) error {
 	}
 
 	contact, err := t.contactRepo.Get(ctx, malak.FetchContactOptions{
-		ID: p.ContactID,
+		Email: p.Email,
 	})
 	if err != nil {
 		span.RecordError(err)
@@ -206,6 +205,7 @@ func (t *WatermillClient) sendPreviewEmail(msg *message.Message) error {
 		HTML:      update.Content.HTML(),
 		Sender:    t.cfg.Email.Sender,
 		Recipient: contact.Email,
+		Subject:   fmt.Sprintf("[TEST] %s", update.Title),
 		DKIM: struct {
 			Sign       bool
 			PrivateKey []byte

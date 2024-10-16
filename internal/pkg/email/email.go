@@ -10,12 +10,11 @@ import (
 )
 
 type SendOptions struct {
-	HTML string
-
+	HTML      string
 	Sender    malak.Email
 	Recipient malak.Email
-
-	DKIM struct {
+	Subject   string
+	DKIM      struct {
 		Sign       bool
 		PrivateKey []byte
 	}
@@ -25,6 +24,10 @@ func (s SendOptions) Validate() error {
 
 	if util.IsStringEmpty(s.HTML) {
 		return errors.New("html copy of email must be provided")
+	}
+
+	if util.IsStringEmpty(s.Subject) {
+		return errors.New("please provide subject")
 	}
 
 	if util.IsStringEmpty(s.Recipient.String()) {
