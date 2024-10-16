@@ -21,6 +21,7 @@ import (
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/cache/rediscache"
+	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	watermillqueue "github.com/ayinke-llc/malak/internal/pkg/queue/watermill"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
@@ -135,8 +136,14 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 					zap.Error(err))
 			}
 
-			queueHandler, err := watermillqueue.New(redisClient, logger,
-				userRepo, workspaceRepo, updateRepo)
+			emailClient, err := smtp.New(*cfg)
+			if err != nil {
+				logger.Fatal("could not set up smtp client",
+					zap.Error(err))
+			}
+
+			queueHandler, err := watermillqueue.New(redisClient, *cfg, logger,
+				emailClient, userRepo, workspaceRepo, updateRepo, contactRepo)
 			if err != nil {
 				logger.Fatal("could not set up watermill queue", zap.Error(err))
 			}

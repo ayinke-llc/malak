@@ -27,6 +27,7 @@ type QueueEventSubscriptionMessage string
 type PreviewUpdateMessage struct {
 	UpdateID   uuid.UUID
 	ScheduleID uuid.UUID
+	ContactID  uuid.UUID
 }
 
 func ToPayload(m any) []byte {

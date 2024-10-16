@@ -133,6 +133,6 @@ type UpdateRepository interface {
 	Delete(context.Context, *Update) error
 	TogglePinned(context.Context, *Update) error
 	GetSchedule(context.Context, uuid.UUID) (*UpdateSchedule, error)
-	CreatePreview(context.Context, *UpdateSchedule, CreatePreviewOptions) error
+	CreatePreview(context.Context, *UpdateSchedule, *CreatePreviewOptions) error
 	// GetRecipient(context.Context, FetchRecipientOptions) (*Upd)
 }

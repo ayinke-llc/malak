@@ -35,15 +35,19 @@ type WatermillClient struct {
 	userRepo      malak.UserRepository
 	workspaceRepo malak.WorkspaceRepository
 	updateRepo    malak.UpdateRepository
+	contactRepo   malak.ContactRepository
 	cfg           config.Config
+	emailClient   email.Client
 }
 
 func New(redisClient *redis.Client,
 	cfg config.Config,
 	logger *zap.Logger,
+	emailClient email.Client,
 	userRepo malak.UserRepository,
 	workspaceRepo malak.WorkspaceRepository,
-	updateRepo malak.UpdateRepository) (queue.QueueHandler, error) {
+	updateRepo malak.UpdateRepository,
+	contactRepo malak.ContactRepository) (queue.QueueHandler, error) {
 
 	p, err := redisstream.NewPublisher(
 		redisstream.PublisherConfig{
@@ -108,6 +112,8 @@ func New(redisClient *redis.Client,
 		userRepo:      userRepo,
 		workspaceRepo: workspaceRepo,
 		updateRepo:    updateRepo,
+		contactRepo:   contactRepo,
+		emailClient:   emailClient,
 	}
 
 	router.AddNoPublisherHandler(
@@ -141,14 +147,19 @@ func (t *WatermillClient) Close() error { return t.publisher.Close() }
 
 func (t *WatermillClient) sendPreviewEmail(msg *message.Message) error {
 
-	logger := t.logger.With(zap.String("queue.handler", "sendPreviewEmail"))
-
 	var p queue.PreviewUpdateMessage
 
 	if err := json.NewDecoder(bytes.NewBuffer(msg.Payload)).Decode(&p); err != nil {
-		logger.Error("could not decode message queue request", zap.Error(err))
+		t.logger.Error("could not decode message queue request", zap.Error(err))
 		return err
 	}
+
+	logger := t.logger.With(
+		zap.String("queue.handler", "sendPreviewEmail"),
+		zap.String("update_id", p.UpdateID.String()),
+		zap.String("schedule_id", p.ScheduleID.String()),
+		zap.String("contact_id", p.ContactID.String()),
+	)
 
 	ctx, span := tracer.Start(context.Background(), "queue.sendPreviewEmail")
 	defer span.End()
@@ -157,6 +168,7 @@ func (t *WatermillClient) sendPreviewEmail(msg *message.Message) error {
 		attribute.Bool("preview", true),
 		attribute.String("update_id", p.UpdateID.String()),
 		attribute.String("schedule_id", p.ScheduleID.String()),
+		attribute.String("contact_id", p.ContactID.String()),
 	)
 
 	update, err := t.updateRepo.Get(ctx, malak.FetchUpdateOptions{
@@ -177,16 +189,38 @@ func (t *WatermillClient) sendPreviewEmail(msg *message.Message) error {
 		return err
 	}
 
+	contact, err := t.contactRepo.Get(ctx, malak.FetchContactOptions{
+		ID: p.ContactID,
+	})
+	if err != nil {
+		span.RecordError(err)
+		logger.Error("could not fetch contact from database",
+			zap.Error(err))
+		return err
+	}
+
 	span.SetAttributes(
 		attribute.String("triggered_user_id", schedule.ScheduledBy.String()))
 
 	sendOptions := email.SendOptions{
-		HTML:   update.Content.HTML(),
-		Sender: t.cfg.Email.Sender,
-		// Recipient: ,
+		HTML:      update.Content.HTML(),
+		Sender:    t.cfg.Email.Sender,
+		Recipient: contact.Email,
+		DKIM: struct {
+			Sign       bool
+			PrivateKey []byte
+		}{
+			Sign:       false,
+			PrivateKey: []byte(""),
+		},
 	}
 
-	_ = sendOptions
+	if err := t.emailClient.Send(ctx, sendOptions); err != nil {
+		span.RecordError(err)
+		logger.Error("could not send preview email",
+			zap.Error(err))
+		return err
+	}
 
 	return nil
 }
