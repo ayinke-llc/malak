@@ -49,6 +49,40 @@ func ParseListUpdateFilterStatus(name string) (ListUpdateFilterStatus, error) {
 }
 
 const (
+	// RecipientTypeList is a RecipientType of type list.
+	RecipientTypeList RecipientType = "list"
+	// RecipientTypeEmail is a RecipientType of type email.
+	RecipientTypeEmail RecipientType = "email"
+)
+
+var ErrInvalidRecipientType = errors.New("not a valid RecipientType")
+
+// String implements the Stringer interface.
+func (x RecipientType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x RecipientType) IsValid() bool {
+	_, err := ParseRecipientType(string(x))
+	return err == nil
+}
+
+var _RecipientTypeValue = map[string]RecipientType{
+	"list":  RecipientTypeList,
+	"email": RecipientTypeEmail,
+}
+
+// ParseRecipientType attempts to convert a string to a RecipientType.
+func ParseRecipientType(name string) (RecipientType, error) {
+	if x, ok := _RecipientTypeValue[name]; ok {
+		return x, nil
+	}
+	return RecipientType(""), fmt.Errorf("%s is %w", name, ErrInvalidRecipientType)
+}
+
+const (
 	// UpdateSendScheduleScheduled is a UpdateSendSchedule of type scheduled.
 	UpdateSendScheduleScheduled UpdateSendSchedule = "scheduled"
 	// UpdateSendScheduleCancelled is a UpdateSendSchedule of type cancelled.
@@ -120,4 +154,38 @@ func ParseUpdateStatus(name string) (UpdateStatus, error) {
 		return x, nil
 	}
 	return UpdateStatus(""), fmt.Errorf("%s is %w", name, ErrInvalidUpdateStatus)
+}
+
+const (
+	// UpdateTypePreview is a UpdateType of type preview.
+	UpdateTypePreview UpdateType = "preview"
+	// UpdateTypeLive is a UpdateType of type live.
+	UpdateTypeLive UpdateType = "live"
+)
+
+var ErrInvalidUpdateType = errors.New("not a valid UpdateType")
+
+// String implements the Stringer interface.
+func (x UpdateType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x UpdateType) IsValid() bool {
+	_, err := ParseUpdateType(string(x))
+	return err == nil
+}
+
+var _UpdateTypeValue = map[string]UpdateType{
+	"preview": UpdateTypePreview,
+	"live":    UpdateTypeLive,
+}
+
+// ParseUpdateType attempts to convert a string to a UpdateType.
+func ParseUpdateType(name string) (UpdateType, error) {
+	if x, ok := _UpdateTypeValue[name]; ok {
+		return x, nil
+	}
+	return UpdateType(""), fmt.Errorf("%s is %w", name, ErrInvalidUpdateType)
 }

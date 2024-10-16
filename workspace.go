@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrWorkspaceNotFound = malakError("workspace not found")
+var ErrWorkspaceNotFound = MalakError("workspace not found")
 
 type Workspace struct {
 	ID uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`

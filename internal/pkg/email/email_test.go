@@ -8,7 +8,7 @@ import (
 
 func getOptions() SendOptions {
 	return SendOptions{
-		Plain:     "This is my email in plain text ",
+		Subject:   "Here is my Subject",
 		HTML:      "This is my email in html format",
 		Sender:    "yo@lanre.wtf",
 		Recipient: "lanre@ayinke.ventures",
@@ -23,15 +23,15 @@ func getOptions() SendOptions {
 
 func TestSendOptions_Validate(t *testing.T) {
 
-	t.Run("plain email is empty", func(t *testing.T) {
+	t.Run("subject of email is empty", func(t *testing.T) {
 		opts := getOptions()
 
-		opts.Plain = ""
+		opts.Subject = ""
 
 		err := opts.Validate()
 		require.Error(t, err)
 
-		require.Contains(t, err.Error(), "plain copy of email")
+		require.Contains(t, err.Error(), "please provide subject")
 	})
 
 	t.Run("html email is empty", func(t *testing.T) {

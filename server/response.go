@@ -80,3 +80,13 @@ type fetchUpdateReponse struct {
 	Update malak.Update `json:"update,omitempty" validate:"required"`
 	APIStatus
 }
+
+type fetchContactListResponse struct {
+	APIStatus
+	List malak.ContactList `json:"list,omitempty"`
+}
+
+type fetchContactListsResponse struct {
+	APIStatus
+	Lists []malak.ContactList `json:"lists,omitempty"`
+}

@@ -9,11 +9,13 @@ import (
 )
 
 const (
-	ErrUpdateNotFound = malakError("update not exists")
+	ErrUpdateNotFound = MalakError("update not exists")
 
-	ErrPinnedUpdateNotExists        = malakError("update not pinned")
-	ErrPinnedUpdateCapacityExceeded = malakError(
+	ErrPinnedUpdateNotExists        = MalakError("update not pinned")
+	ErrPinnedUpdateCapacityExceeded = MalakError(
 		`you have exceeded the maximum number of pinned updates. Please unpin an update and pin this again`)
+
+	ErrUpdateScheduleNotFound = MalakError("update schedule not found")
 
 	MaximumNumberOfPinnedUpdates = 3
 )
@@ -33,13 +35,13 @@ type UpdateMetadata struct {
 }
 
 type Update struct {
-	ID          uuid.UUID      `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	WorkspaceID uuid.UUID      `json:"workspace_id,omitempty"`
-	Status      UpdateStatus   `json:"status,omitempty"`
-	Reference   Reference      `json:"reference,omitempty"`
-	CreatedBy   uuid.UUID      `json:"created_by,omitempty"`
-	SentBy      uuid.UUID      `json:"sent_by,omitempty" bun:",nullzero"`
-	Content     []BlockContent `json:"content,omitempty"`
+	ID          uuid.UUID     `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	WorkspaceID uuid.UUID     `json:"workspace_id,omitempty"`
+	Status      UpdateStatus  `json:"status,omitempty"`
+	Reference   Reference     `json:"reference,omitempty"`
+	CreatedBy   uuid.UUID     `json:"created_by,omitempty"`
+	SentBy      uuid.UUID     `json:"sent_by,omitempty" bun:",nullzero"`
+	Content     BlockContents `json:"content,omitempty"`
 	// If this update is pinned
 	IsPinned bool   `json:"is_pinned,omitempty"`
 	Title    string `json:"title,omitempty"`
@@ -71,16 +73,24 @@ type UpdateLink struct {
 	bun.BaseModel `json:"-"`
 }
 
-type UpdateRecipient struct {
-	ID        uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	Reference Reference `json:"reference,omitempty"`
-	UpdateID  uuid.UUID `json:"update_id,omitempty"`
-	Email     Email     `json:"email,omitempty"`
+// ENUM(list,email)
+// List is a flattened group that can contain infinite amount of emails
+type RecipientType string
 
-	CreatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at" `
-	UpdatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at" `
-	bun.BaseModel `json:"-"`
+type UpdateRecipient struct {
+	ID         uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference  Reference `json:"reference,omitempty"`
+	UpdateID   uuid.UUID `json:"update_id,omitempty"`
+	ContactID  uuid.UUID `json:"contact_id,omitempty"`
+	ScheduleID uuid.UUID `json:"schedule_id,omitempty"`
+
+	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
+	bun.BaseModel
 }
+
+// ENUM(preview,live)
+type UpdateType string
 
 type UpdateSchedule struct {
 	ID          uuid.UUID          `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
@@ -88,11 +98,12 @@ type UpdateSchedule struct {
 	UpdateID    uuid.UUID          `json:"update_id,omitempty"`
 	ScheduledBy uuid.UUID          `json:"scheduled_by,omitempty"`
 	Status      UpdateSendSchedule `json:"status,omitempty"`
+	UpdateType  UpdateType         `json:"update_type,omitempty"`
 
 	// Time to send this update at?
-	SendAt        uuid.UUID `json:"send_at,omitempty"`
-	CreatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at" `
-	UpdatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at" `
+	SendAt        time.Time `json:"send_at,omitempty"`
+	CreatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
 	bun.BaseModel `json:"-"`
 }
 
@@ -108,6 +119,12 @@ type ListUpdateOptions struct {
 	Status      ListUpdateFilterStatus
 }
 
+type CreatePreviewOptions struct {
+	Reference   func(EntityType) string
+	Email       Email
+	WorkspaceID uuid.UUID
+}
+
 type UpdateRepository interface {
 	Create(context.Context, *Update) error
 	Update(context.Context, *Update) error
@@ -115,4 +132,7 @@ type UpdateRepository interface {
 	List(context.Context, ListUpdateOptions) ([]Update, error)
 	Delete(context.Context, *Update) error
 	TogglePinned(context.Context, *Update) error
+	GetSchedule(context.Context, uuid.UUID) (*UpdateSchedule, error)
+	CreatePreview(context.Context, *UpdateSchedule, *CreatePreviewOptions) error
+	// GetRecipient(context.Context, FetchRecipientOptions) (*Upd)
 }

@@ -2,6 +2,7 @@ package email
 
 import (
 	"context"
+	_ "embed"
 	"errors"
 	"io"
 
@@ -9,26 +10,30 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 )
 
-type SendOptions struct {
-	Plain string
-	HTML  string
+var (
+	//go:embed templates/updates/view.html
+	UpdateHTMLEmailTemplate string
+)
 
+type SendOptions struct {
+	HTML      string
 	Sender    malak.Email
 	Recipient malak.Email
-
-	DKIM struct {
+	Subject   string
+	DKIM      struct {
 		Sign       bool
 		PrivateKey []byte
 	}
 }
 
 func (s SendOptions) Validate() error {
-	if util.IsStringEmpty(s.Plain) {
-		return errors.New("plain copy of email must be provided")
-	}
 
 	if util.IsStringEmpty(s.HTML) {
 		return errors.New("html copy of email must be provided")
+	}
+
+	if util.IsStringEmpty(s.Subject) {
+		return errors.New("please provide subject")
 	}
 
 	if util.IsStringEmpty(s.Recipient.String()) {

@@ -20,6 +20,8 @@ import (
 	awsCreds "github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
+	"github.com/ayinke-llc/malak/internal/pkg/cache/rediscache"
+	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	watermillqueue "github.com/ayinke-llc/malak/internal/pkg/queue/watermill"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
@@ -100,6 +102,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			planRepo := postgres.NewPlanRepository(db)
 			contactRepo := postgres.NewContactRepository(db)
 			updateRepo := postgres.NewUpdatesRepository(db)
+			contactlistRepo := postgres.NewContactListRepository(db)
 
 			googleAuthProvider := socialauth.NewGoogle(*cfg)
 
@@ -133,9 +136,25 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 					zap.Error(err))
 			}
 
-			queueHandler, err := watermillqueue.New(redisClient, logger, userRepo, workspaceRepo)
+			emailClient, err := smtp.New(*cfg)
+			if err != nil {
+				logger.Fatal("could not set up smtp client",
+					zap.Error(err))
+			}
+
+			queueHandler, err := watermillqueue.New(redisClient, *cfg, logger,
+				emailClient, userRepo, workspaceRepo, updateRepo, contactRepo)
 			if err != nil {
 				logger.Fatal("could not set up watermill queue", zap.Error(err))
+			}
+
+			go func() {
+				queueHandler.Start(context.Background())
+			}()
+
+			redisCache, err := rediscache.New(redisClient)
+			if err != nil {
+				logger.Fatal("could not set up redis cache", zap.Error(err))
 			}
 
 			rateLimiterStore, err := getRatelimiter(*cfg)
@@ -218,7 +237,8 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				util.DeRef(cfg), db,
 				tokenManager, googleAuthProvider,
 				userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
-				mid, gulterHandler, queueHandler)
+				contactlistRepo,
+				mid, gulterHandler, queueHandler, redisCache)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {
@@ -235,6 +255,10 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			if err := db.Close(); err != nil {
 				logger.Error("could not close db",
 					zap.Error(err))
+			}
+
+			if err := queueHandler.Close(); err != nil {
+				logger.Error("could not close the queue handler", zap.Error(err))
 			}
 
 			_ = logger.Sync()

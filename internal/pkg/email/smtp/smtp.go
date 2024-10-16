@@ -3,6 +3,7 @@ package smtp
 import (
 	"context"
 	"errors"
+	pkgmail "net/mail"
 
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
@@ -26,6 +27,15 @@ func New(cfg config.Config) (email.Client, error) {
 
 	if util.IsStringEmpty(cfg.Email.SMTP.Password) {
 		return nil, errors.New("please provide your smtp password")
+	}
+
+	if util.IsStringEmpty(cfg.Email.Sender.String()) {
+		return nil, errors.New("please provide a valid sender")
+	}
+
+	_, err := pkgmail.ParseAddress(string(cfg.Email.Sender))
+	if err != nil {
+		return nil, errors.Join(err, errors.New("invalid email sender"))
 	}
 
 	client, err := mail.NewClient(cfg.Email.SMTP.Host,
@@ -66,8 +76,9 @@ func (s *smtpClient) Send(ctx context.Context,
 		return err
 	}
 
+	msg.Subject(opts.Subject)
+
 	msg.SetBodyString(mail.TypeTextHTML, opts.HTML)
-	msg.SetBodyString(mail.TypeTextPlain, opts.Plain)
 
 	return s.client.Send(msg)
 }

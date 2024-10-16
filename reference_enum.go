@@ -34,6 +34,8 @@ const (
 	EntityTypeRecipient EntityType = "recipient"
 	// EntityTypeSchedule is a EntityType of type schedule.
 	EntityTypeSchedule EntityType = "schedule"
+	// EntityTypeList is a EntityType of type list.
+	EntityTypeList EntityType = "list"
 )
 
 var ErrInvalidEntityType = errors.New("not a valid EntityType")
@@ -62,6 +64,7 @@ var _EntityTypeValue = map[string]EntityType{
 	"room":      EntityTypeRoom,
 	"recipient": EntityTypeRecipient,
 	"schedule":  EntityTypeSchedule,
+	"list":      EntityTypeList,
 }
 
 // ParseEntityType attempts to convert a string to a EntityType.

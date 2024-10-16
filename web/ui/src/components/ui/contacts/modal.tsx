@@ -81,69 +81,67 @@ export default function CreateContactModal() {
   };
 
   return (
-    <div className="flex justify-center">
-      <Dialog onOpenChange={handleDialogItemOpenChange} open={hasOpenDialog}>
-        <DialogTrigger asChild>
-          <div className="w-full text-right">
-            <Button
-              type="button"
-              variant="primary"
-              className="whitespace-nowrap"
-            >
-              <RiAddLine />
-              Add User
-            </Button>
-          </div>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-lg">
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col gap-y-1"
+    <Dialog onOpenChange={handleDialogItemOpenChange} open={hasOpenDialog}>
+      <DialogTrigger asChild>
+        <div className="w-full text-right">
+          <Button
+            type="button"
+            variant="primary"
+            className="whitespace-nowrap gap-1"
           >
-            <DialogHeader>
-              <DialogTitle>Add a new contact</DialogTitle>
-              <DialogDescription className="mt-1 text-sm leading-6">
-                Get started with connecting and building relationships with a
-                specific investor
-              </DialogDescription>
-              <div className="mt-4">
-                <Label htmlFor="workspace-name" className="font-medium">
-                  Email address
-                </Label>
-                <Input
-                  id="email"
-                  placeholder="yo@lanre.wtf"
-                  className="mt-2"
-                  type="email"
-                  {...register("email")}
-                />
-                {errors.email && (
-                  <p className="mt-4 text-xs text-red-600 dark:text-red-500">
-                    <span className="font-medium">{errors.email.message}</span>
-                  </p>
-                )}
-              </div>
-            </DialogHeader>
-            <DialogFooter className="mt-6">
-              <DialogClose asChild>
-                <Button
-                  className="mt-2 w-full sm:mt-0 sm:w-fit"
-                  variant="secondary"
-                >
-                  Go back
-                </Button>
-              </DialogClose>
+            <RiAddLine />
+            Add User
+          </Button>
+        </div>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-y-1"
+        >
+          <DialogHeader>
+            <DialogTitle>Add a new contact</DialogTitle>
+            <DialogDescription className="mt-1 text-sm leading-6">
+              Get started with connecting and building relationships with a
+              specific investor
+            </DialogDescription>
+            <div className="mt-4">
+              <Label htmlFor="workspace-name" className="font-medium">
+                Email address
+              </Label>
+              <Input
+                id="email"
+                placeholder="yo@lanre.wtf"
+                className="mt-2"
+                type="email"
+                {...register("email")}
+              />
+              {errors.email && (
+                <p className="mt-4 text-xs text-red-600 dark:text-red-500">
+                  <span className="font-medium">{errors.email.message}</span>
+                </p>
+              )}
+            </div>
+          </DialogHeader>
+          <DialogFooter className="mt-6">
+            <DialogClose asChild>
               <Button
-                type="submit"
-                className="w-full sm:w-fit"
-                isLoading={loading}
+                className="mt-2 w-full sm:mt-0 sm:w-fit"
+                variant="secondary"
               >
-                Add Contact
+                Go back
               </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </div>
+            </DialogClose>
+            <Button
+              type="submit"
+              className="w-full sm:w-fit"
+              isLoading={loading}
+            >
+              Add Contact
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
