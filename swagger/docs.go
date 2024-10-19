@@ -1049,43 +1049,27 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "malak.BlockContent": {
+        "malak.Block": {
             "type": "object",
-            "required": [
-                "children",
-                "content",
-                "id",
-                "props",
-                "type"
-            ],
             "properties": {
                 "children": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/malak.BlockContent"
+                        "$ref": "#/definitions/malak.Block"
                     }
                 },
-                "content": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/malak.InlineBlockContent"
-                    }
-                },
+                "content": {},
                 "id": {
                     "type": "string"
                 },
                 "props": {
                     "type": "object",
-                    "additionalProperties": {}
+                    "additionalProperties": true
                 },
                 "type": {
                     "type": "string"
                 }
             }
-        },
-        "malak.BlockNoteStyles": {
-            "type": "object",
-            "additionalProperties": {}
         },
         "malak.Contact": {
             "type": "object",
@@ -1171,23 +1155,6 @@ const docTemplate = `{
                 "type": "string"
             }
         },
-        "malak.InlineBlockContent": {
-            "type": "object",
-            "properties": {
-                "href": {
-                    "type": "string"
-                },
-                "styles": {
-                    "$ref": "#/definitions/malak.BlockNoteStyles"
-                },
-                "text": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
         "malak.PlanMetadata": {
             "type": "object",
             "properties": {
@@ -1227,7 +1194,7 @@ const docTemplate = `{
                 "content": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/malak.BlockContent"
+                        "$ref": "#/definitions/malak.Block"
                     }
                 },
                 "created_at": {
@@ -1412,7 +1379,7 @@ const docTemplate = `{
                 "update": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/malak.BlockContent"
+                        "$ref": "#/definitions/malak.Block"
                     }
                 }
             }

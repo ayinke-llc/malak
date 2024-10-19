@@ -34,7 +34,7 @@ func (c *contactListRepo) Get(ctx context.Context,
 		Scan(ctx)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		err = malak.ErrUserNotFound
+		err = malak.ErrContactListNotFound
 	}
 
 	return list, err
@@ -78,19 +78,6 @@ func (c *contactListRepo) Create(ctx context.Context,
 			return err
 		})
 
-}
-
-func (c *contactListRepo) Add(ctx context.Context, contacts ...*malak.Contact) error {
-	ctx, cancelFn := withContext(ctx)
-	defer cancelFn()
-
-	return c.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
-
-		_, err := tx.NewInsert().
-			Model(contacts).
-			Exec(ctx)
-		return err
-	})
 }
 
 func (c *contactListRepo) List(ctx context.Context, id uuid.UUID) ([]malak.ContactList, error) {

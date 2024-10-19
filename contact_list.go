@@ -37,6 +37,6 @@ type ContactListRepository interface {
 	Get(context.Context, FetchContactListOptions) (*ContactList, error)
 	Delete(context.Context, *ContactList) error
 	Update(context.Context, *ContactList) error
-	Add(context.Context, ...*Contact) error
+	// Add(context.Context, ...*Contact) error
 	List(context.Context, uuid.UUID) ([]ContactList, error)
 }

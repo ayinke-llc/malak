@@ -1,42 +1,26 @@
 {
 	"components": {
 		"schemas": {
-			"malak.BlockContent": {
+			"malak.Block": {
 				"properties": {
 					"children": {
 						"items": {
-							"$ref": "#/components/schemas/malak.BlockContent"
+							"$ref": "#/components/schemas/malak.Block"
 						},
 						"type": "array"
 					},
-					"content": {
-						"items": {
-							"$ref": "#/components/schemas/malak.InlineBlockContent"
-						},
-						"type": "array"
-					},
+					"content": {},
 					"id": {
 						"type": "string"
 					},
 					"props": {
-						"additionalProperties": {},
+						"additionalProperties": true,
 						"type": "object"
 					},
 					"type": {
 						"type": "string"
 					}
 				},
-				"required": [
-					"children",
-					"content",
-					"id",
-					"props",
-					"type"
-				],
-				"type": "object"
-			},
-			"malak.BlockNoteStyles": {
-				"additionalProperties": {},
 				"type": "object"
 			},
 			"malak.Contact": {
@@ -123,23 +107,6 @@
 				},
 				"type": "object"
 			},
-			"malak.InlineBlockContent": {
-				"properties": {
-					"href": {
-						"type": "string"
-					},
-					"styles": {
-						"$ref": "#/components/schemas/malak.BlockNoteStyles"
-					},
-					"text": {
-						"type": "string"
-					},
-					"type": {
-						"type": "string"
-					}
-				},
-				"type": "object"
-			},
 			"malak.PlanMetadata": {
 				"properties": {
 					"team": {
@@ -177,7 +144,7 @@
 				"properties": {
 					"content": {
 						"items": {
-							"$ref": "#/components/schemas/malak.BlockContent"
+							"$ref": "#/components/schemas/malak.Block"
 						},
 						"type": "array"
 					},
@@ -358,7 +325,7 @@
 					},
 					"update": {
 						"items": {
-							"$ref": "#/components/schemas/malak.BlockContent"
+							"$ref": "#/components/schemas/malak.Block"
 						},
 						"type": "array"
 					}
