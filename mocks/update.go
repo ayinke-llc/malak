@@ -14,6 +14,7 @@ import (
 	reflect "reflect"
 
 	malak "github.com/ayinke-llc/malak"
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -54,6 +55,20 @@ func (mr *MockUpdateRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUpdateRepository)(nil).Create), arg0, arg1)
 }
 
+// CreatePreview mocks base method.
+func (m *MockUpdateRepository) CreatePreview(arg0 context.Context, arg1 *malak.UpdateSchedule, arg2 *malak.CreatePreviewOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreatePreview", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreatePreview indicates an expected call of CreatePreview.
+func (mr *MockUpdateRepositoryMockRecorder) CreatePreview(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePreview", reflect.TypeOf((*MockUpdateRepository)(nil).CreatePreview), arg0, arg1, arg2)
+}
+
 // Delete mocks base method.
 func (m *MockUpdateRepository) Delete(arg0 context.Context, arg1 *malak.Update) error {
 	m.ctrl.T.Helper()
@@ -81,6 +96,21 @@ func (m *MockUpdateRepository) Get(arg0 context.Context, arg1 malak.FetchUpdateO
 func (mr *MockUpdateRepositoryMockRecorder) Get(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUpdateRepository)(nil).Get), arg0, arg1)
+}
+
+// GetSchedule mocks base method.
+func (m *MockUpdateRepository) GetSchedule(arg0 context.Context, arg1 uuid.UUID) (*malak.UpdateSchedule, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSchedule", arg0, arg1)
+	ret0, _ := ret[0].(*malak.UpdateSchedule)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSchedule indicates an expected call of GetSchedule.
+func (mr *MockUpdateRepositoryMockRecorder) GetSchedule(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSchedule", reflect.TypeOf((*MockUpdateRepository)(nil).GetSchedule), arg0, arg1)
 }
 
 // List mocks base method.

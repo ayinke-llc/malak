@@ -1,42 +1,19 @@
 components:
   schemas:
-    malak.BlockContent:
+    malak.Block:
       properties:
         children:
           items:
-            $ref: '#/components/schemas/malak.BlockNoteItem'
+            $ref: '#/components/schemas/malak.Block'
           type: array
-        content:
-          items:
-            $ref: '#/components/schemas/malak.BlockNoteItem'
-          type: array
+        content: {}
         id:
           type: string
         props:
-          additionalProperties: {}
+          additionalProperties: true
           type: object
         type:
           type: string
-      required:
-      - children
-      - content
-      - id
-      - props
-      - type
-      type: object
-    malak.BlockNoteItem:
-      properties:
-        styles:
-          additionalProperties: {}
-          type: object
-        text:
-          type: string
-        type:
-          type: string
-      required:
-      - styles
-      - text
-      - type
       type: object
     malak.Contact:
       properties:
@@ -76,6 +53,23 @@ components:
         workspace_id:
           type: string
       type: object
+    malak.ContactList:
+      properties:
+        created_at:
+          type: string
+        created_by:
+          type: string
+        id:
+          type: string
+        reference:
+          type: string
+        title:
+          type: string
+        updated_at:
+          type: string
+        workspace_id:
+          type: string
+      type: object
     malak.CustomContactMetadata:
       additionalProperties:
         type: string
@@ -108,7 +102,7 @@ components:
       properties:
         content:
           items:
-            $ref: '#/components/schemas/malak.BlockContent'
+            $ref: '#/components/schemas/malak.Block'
           type: array
         created_at:
           type: string
@@ -235,11 +229,18 @@ components:
           type: string
         update:
           items:
-            $ref: '#/components/schemas/malak.BlockContent'
+            $ref: '#/components/schemas/malak.Block'
           type: array
       required:
       - title
       - update
+      type: object
+    server.createContactListRequest:
+      properties:
+        name:
+          type: string
+      required:
+      - name
       type: object
     server.createContactRequest:
       properties:
@@ -291,6 +292,26 @@ components:
       - token
       - user
       - workspaces
+      type: object
+    server.fetchContactListResponse:
+      properties:
+        list:
+          $ref: '#/components/schemas/malak.ContactList'
+        message:
+          type: string
+      required:
+      - message
+      type: object
+    server.fetchContactListsResponse:
+      properties:
+        lists:
+          items:
+            $ref: '#/components/schemas/malak.ContactList'
+          type: array
+        message:
+          type: string
+      required:
+      - message
       type: object
     server.fetchContactResponse:
       properties:
@@ -356,6 +377,13 @@ components:
       - page
       - per_page
       - total
+      type: object
+    server.previewUpdateRequest:
+      properties:
+        email:
+          type: string
+      required:
+      - email
       type: object
     server.uploadImageResponse:
       properties:
@@ -473,6 +501,182 @@ paths:
                 $ref: '#/components/schemas/server.APIStatus'
           description: Internal Server Error
       summary: Creates a new contact
+      tags:
+      - contacts
+  /contacts/lists:
+    get:
+      operationId: fetchContactLists
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchContactListsResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: List all created contact lists
+      tags:
+      - contacts
+    post:
+      operationId: createContactList
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.createContactListRequest'
+        description: contact list body
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchContactListResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: Create a new contact list
+      tags:
+      - contacts
+  /contacts/lists/{reference}:
+    delete:
+      operationId: deleteContactList
+      parameters:
+      - description: list unique reference.. e.g link_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: delete a contact list
+      tags:
+      - contacts
+    put:
+      operationId: editContactList
+      parameters:
+      - description: list unique reference.. e.g link_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.createContactListRequest'
+        description: contact list body
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchContactListResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: Edit a contact list
       tags:
       - contacts
   /images/upload:
@@ -969,6 +1173,58 @@ paths:
                 $ref: '#/components/schemas/server.APIStatus'
           description: Internal Server Error
       summary: Toggle pinned status a specific update
+      tags:
+      - updates
+  /workspaces/updates/{reference}/preview:
+    post:
+      operationId: previewUpdate
+      parameters:
+      - description: update unique reference.. e.g update_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.previewUpdateRequest'
+        description: request body to create a workspace
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: Send preview of an update
       tags:
       - updates
 servers:

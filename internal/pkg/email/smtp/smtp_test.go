@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
 	"github.com/stretchr/testify/require"
@@ -39,7 +40,6 @@ func TestSMTP_Send(t *testing.T) {
 	require.NoError(t, err)
 
 	err = client.Send(context.Background(), email.SendOptions{
-		Plain:     "This is my email in plain text ",
 		HTML:      "This is my email in html format",
 		Sender:    "yo@lanre.wtf",
 		Recipient: "lanre@ayinke.ventures",
@@ -101,6 +101,7 @@ func getConfig(port int) config.Config {
 	return config.Config{
 		Email: struct {
 			Provider config.EmailProvider "mapstructure:\"provider\" yaml:\"provider\""
+			Sender   malak.Email          "mapstructure:\"sender\" yaml:\"sender\""
 			SMTP     struct {
 				Host     string "mapstructure:\"host\" yaml:\"host\""
 				Port     int    "mapstructure:\"port\" yaml:\"port\""
@@ -110,6 +111,7 @@ func getConfig(port int) config.Config {
 			} "mapstructure:\"smtp\" yaml:\"smtp\""
 		}{
 			Provider: config.EmailProviderSmtp,
+			Sender:   malak.Email("yo@oops.com"),
 			SMTP: struct {
 				Host     string "mapstructure:\"host\" yaml:\"host\""
 				Port     int    "mapstructure:\"port\" yaml:\"port\""

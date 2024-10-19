@@ -8,6 +8,8 @@ import (
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/cache"
+	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -21,6 +23,8 @@ type updatesHandler struct {
 	referenceGenerator malak.ReferenceGeneratorOperation
 	updateRepo         malak.UpdateRepository
 	cfg                config.Config
+	cache              cache.Cache
+	queueHandler       queue.QueueHandler
 }
 
 type createUpdateContent struct {
@@ -81,7 +85,7 @@ func (u *updatesHandler) create(
 	update := &malak.Update{
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
-		Content:     []malak.BlockContent{},
+		Content:     malak.BlockContents{},
 		Reference:   u.referenceGenerator.Generate(malak.EntityTypeUpdate),
 		Status:      malak.UpdateStatusDraft,
 		Metadata:    malak.UpdateMetadata{},
@@ -172,8 +176,8 @@ func (u *updatesHandler) list(
 }
 
 type contentUpdateRequest struct {
-	Update []malak.BlockContent `json:"update,omitempty" validate:"required"`
-	Title  string               `json:"title,omitempty" validate:"required"`
+	Update malak.BlockContents `json:"update,omitempty" validate:"required"`
+	Title  string              `json:"title,omitempty" validate:"required"`
 	GenericRequest
 }
 
@@ -198,7 +202,7 @@ func (c *contentUpdateRequest) Validate() error {
 	// p.AllowAttrs("src").OnElements("div")
 	// p.AllowStyles("color").OnElements("span")
 
-	sanitized, err := sanitizeBlockNoteJSON(c.Update)
+	sanitized, err := malak.SanitizeBlocks(c.Update)
 	if err != nil {
 		return err
 	}
@@ -231,31 +235,6 @@ type BlockContentItem struct {
 	Type  string                 `json:"type"`
 	Text  string                 `json:"text,omitempty"`
 	Attrs map[string]interface{} `json:"attrs,omitempty"`
-}
-
-func sanitizeBlockNoteJSON(blocks []malak.BlockContent) ([]malak.BlockContent, error) {
-
-	policy := bluemonday.UGCPolicy()
-
-	for i := range blocks {
-		for j := range blocks[i].Content {
-			blocks[i].Content[j].Text = policy.Sanitize(blocks[i].Content[j].Text)
-
-			for key, value := range blocks[i].Content[j].Styles {
-				if strValue, ok := value.(string); ok {
-					blocks[i].Content[j].Styles[key] = policy.Sanitize(strValue)
-				}
-			}
-		}
-
-		for key, value := range blocks[i].Props {
-			if strValue, ok := value.(string); ok {
-				blocks[i].Props[key] = policy.Sanitize(strValue)
-			}
-		}
-	}
-
-	return blocks, nil
 }
 
 // @Summary Update a specific update

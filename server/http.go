@@ -8,6 +8,7 @@ import (
 	"github.com/adelowo/gulter"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/cache"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
@@ -32,14 +33,17 @@ func New(logger *zap.Logger,
 	planRepo malak.PlanRepository,
 	contactRepo malak.ContactRepository,
 	updateRepo malak.UpdateRepository,
+	contactListRepo malak.ContactListRepository,
 	mid *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
-	queueHandler queue.QueueHandler) (*http.Server, func()) {
+	queueHandler queue.QueueHandler,
+	redisCache cache.Cache) (*http.Server, func()) {
 
 	srv := &http.Server{
 		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
 			userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
-			googleAuthProvider, mid, gulterHandler, queueHandler),
+			contactListRepo,
+			googleAuthProvider, mid, gulterHandler, queueHandler, redisCache),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -77,10 +81,12 @@ func buildRoutes(
 	planRepo malak.PlanRepository,
 	contactRepo malak.ContactRepository,
 	updateRepo malak.UpdateRepository,
+	contactListRepo malak.ContactListRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	ratelimiterMiddleware *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
+	redisCache cache.Cache,
 ) http.Handler {
 
 	if cfg.HTTP.Swagger.UIEnabled {
@@ -120,12 +126,15 @@ func buildRoutes(
 		cfg:                cfg,
 		contactRepo:        contactRepo,
 		referenceGenerator: referenceGenerator,
+		contactListRepo:    contactListRepo,
 	}
 
 	updateHandler := &updatesHandler{
 		referenceGenerator: referenceGenerator,
 		updateRepo:         updateRepo,
 		cfg:                cfg,
+		queueHandler:       queueHandler,
+		cache:              redisCache,
 	}
 
 	router.Use(middleware.RequestID)
@@ -175,6 +184,9 @@ func buildRoutes(
 
 				r.Post("/{reference}/duplicate",
 					WrapMalakHTTPHandler(logger, updateHandler.duplicate, cfg, "updates.duplicate"))
+
+				r.Post("/{reference}/preview",
+					WrapMalakHTTPHandler(logger, updateHandler.previewUpdate, cfg, "updates.preview"))
 			})
 		})
 
@@ -182,6 +194,18 @@ func buildRoutes(
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, contactHandler.Create, cfg, "contacts.create"))
+
+			r.Post("/lists",
+				WrapMalakHTTPHandler(logger, contactHandler.createContactList, cfg, "contacts.lists.new"))
+
+			r.Get("/lists",
+				WrapMalakHTTPHandler(logger, contactHandler.fetchContactLists, cfg, "contacts.lists.fetch"))
+
+			r.Delete("/lists/{reference}",
+				WrapMalakHTTPHandler(logger, contactHandler.deleteContactList, cfg, "contacts.lists.delete"))
+
+			r.Put("/lists/{reference}",
+				WrapMalakHTTPHandler(logger, contactHandler.editContactList, cfg, "contacts.lists.update"))
 		})
 
 		r.Route("/images", func(r chi.Router) {

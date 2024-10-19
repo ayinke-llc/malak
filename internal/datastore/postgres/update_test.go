@@ -44,16 +44,10 @@ func TestUpdates_Update(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	updatedContent := []malak.BlockContent{
+	updatedContent := malak.BlockContents{
 		{
 			ID:   "oops",
 			Type: "heading",
-			Content: []malak.BlockNoteItem{
-				{
-					Type: "paragraph",
-					Text: "here is an updated content",
-				},
-			},
 		},
 	}
 
@@ -122,7 +116,7 @@ func TestUpdates_Create(t *testing.T) {
 		WorkspaceID: workspace.ID,
 		Status:      malak.UpdateStatusDraft,
 		CreatedBy:   user.ID,
-		Content:     make([]malak.BlockContent, 0),
+		Content:     make([]malak.Block, 0),
 		Reference:   "update_ifjfkjfo",
 	})
 	require.NoError(t, err)
@@ -162,7 +156,7 @@ func TestUpdates_List(t *testing.T) {
 		WorkspaceID: workspace.ID,
 		Status:      malak.UpdateStatusDraft,
 		CreatedBy:   user.ID,
-		Content:     []malak.BlockContent{},
+		Content:     []malak.Block{},
 		Reference:   "update_ifjfkjfo",
 	})
 	require.NoError(t, err)
@@ -205,7 +199,7 @@ func TestUpdates_TogglePinned(t *testing.T) {
 			WorkspaceID: workspace.ID,
 			Status:      malak.UpdateStatusDraft,
 			CreatedBy:   user.ID,
-			Content:     make([]malak.BlockContent, 0),
+			Content:     make([]malak.Block, 0),
 			Reference:   refGenerator.Generate(malak.EntityTypeUpdate),
 			IsPinned:    true,
 		})
@@ -218,7 +212,7 @@ func TestUpdates_TogglePinned(t *testing.T) {
 		WorkspaceID: workspace.ID,
 		Status:      malak.UpdateStatusDraft,
 		CreatedBy:   user.ID,
-		Content:     []malak.BlockContent{},
+		Content:     []malak.Block{},
 		Reference:   ref,
 	}
 
