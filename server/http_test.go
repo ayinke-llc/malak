@@ -35,9 +35,11 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockPlanRepository(controller),
 			malak_mocks.NewMockContactRepository(controller),
 			malak_mocks.NewMockUpdateRepository(controller),
+			malak_mocks.NewMockContactListRepository(controller),
 			&httplimit.Middleware{},
 			&gulter.Gulter{},
-			malak_mocks.NewMockQueueHandler(controller))
+			malak_mocks.NewMockQueueHandler(controller),
+			malak_mocks.NewMockCache(controller))
 
 		closeFn()
 
@@ -67,9 +69,11 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockPlanRepository(controller),
 			malak_mocks.NewMockContactRepository(controller),
 			malak_mocks.NewMockUpdateRepository(controller),
+			malak_mocks.NewMockContactListRepository(controller),
 			&httplimit.Middleware{},
 			&gulter.Gulter{},
-			malak_mocks.NewMockQueueHandler(controller))
+			malak_mocks.NewMockQueueHandler(controller),
+			malak_mocks.NewMockCache(controller))
 
 		closeFn()
 

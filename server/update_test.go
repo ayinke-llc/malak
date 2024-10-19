@@ -43,16 +43,10 @@ func generateUpdateContentTable() []struct {
 
 			},
 			req: contentUpdateRequest{
-				Update: []malak.BlockContent{
+				Update: []malak.Block{
 					{
 						ID:   "here is an id",
 						Type: "heading",
-						Content: []malak.BlockNoteItem{
-							malak.BlockNoteItem{
-								Type: "paragraph",
-								Text: "omo",
-							},
-						},
 					},
 				},
 			},
@@ -65,16 +59,10 @@ func generateUpdateContentTable() []struct {
 			},
 			req: contentUpdateRequest{
 				Title: "tt",
-				Update: []malak.BlockContent{
+				Update: []malak.Block{
 					{
 						ID:   "here is an id",
 						Type: "heading",
-						Content: []malak.BlockNoteItem{
-							malak.BlockNoteItem{
-								Type: "paragraph",
-								Text: "omo",
-							},
-						},
 					},
 				},
 			},
@@ -92,16 +80,10 @@ func generateUpdateContentTable() []struct {
 			expectedStatusCode: http.StatusNotFound,
 			req: contentUpdateRequest{
 				Title: "Valid title",
-				Update: []malak.BlockContent{
+				Update: []malak.Block{
 					{
 						ID:   "here is an id",
 						Type: "heading",
-						Content: []malak.BlockNoteItem{
-							malak.BlockNoteItem{
-								Type: "paragraph",
-								Text: "omo",
-							},
-						},
 					},
 				},
 			},
@@ -110,16 +92,10 @@ func generateUpdateContentTable() []struct {
 			name: "could not fetch update from db",
 			req: contentUpdateRequest{
 				Title: "Valid title",
-				Update: []malak.BlockContent{
+				Update: []malak.Block{
 					{
 						ID:   "here is an id",
 						Type: "heading",
-						Content: []malak.BlockNoteItem{
-							malak.BlockNoteItem{
-								Type: "paragraph",
-								Text: "omo",
-							},
-						},
 					},
 				},
 			},
@@ -136,16 +112,10 @@ func generateUpdateContentTable() []struct {
 			name: "updating content failed",
 			req: contentUpdateRequest{
 				Title: "Valid title",
-				Update: []malak.BlockContent{
+				Update: []malak.Block{
 					{
 						ID:   "here is an id",
 						Type: "heading",
-						Content: []malak.BlockNoteItem{
-							malak.BlockNoteItem{
-								Type: "paragraph",
-								Text: "omo",
-							},
-						},
 					},
 				},
 			},
@@ -166,16 +136,10 @@ func generateUpdateContentTable() []struct {
 			name: "updating content succeeds",
 			req: contentUpdateRequest{
 				Title: "Valid title",
-				Update: []malak.BlockContent{
+				Update: []malak.Block{
 					{
 						ID:   "here is an id",
 						Type: "heading",
-						Content: []malak.BlockNoteItem{
-							malak.BlockNoteItem{
-								Type: "paragraph",
-								Text: "omo",
-							},
-						},
 					},
 				},
 			},

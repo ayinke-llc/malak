@@ -60,7 +60,7 @@ func TestContactList_Create(t *testing.T) {
 	require.ErrorIs(t, err, malak.ErrContactListNotFound)
 }
 
-func TestContactList_Add(t *testing.T) {
+func TestContactList(t *testing.T) {
 
 	client, teardownFunc := setupDatabase(t)
 	defer teardownFunc()
@@ -75,15 +75,22 @@ func TestContactList_Add(t *testing.T) {
 
 	contactRepo := NewContactListRepository(client)
 
-	list := &malak.ContactList{
-		WorkspaceID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
-		Title:       "My contact list",
-		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeList),
-		CreatedBy:   user.ID,
+	for range []string{"", ""} {
+
+		list := &malak.ContactList{
+			WorkspaceID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+			Title:       "My contact list",
+			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeList),
+			CreatedBy:   user.ID,
+		}
+
+		err = contactRepo.Create(context.Background(), list)
+		require.NoError(t, err)
+
 	}
 
-	err = contactRepo.Create(context.Background(), list)
+	lists, err := contactRepo.List(context.Background(), uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"))
 	require.NoError(t, err)
 
-	// err = contactRepo.Add(con)
+	require.Len(t, lists, 2)
 }
