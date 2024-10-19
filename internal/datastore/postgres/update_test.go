@@ -44,7 +44,7 @@ func TestUpdates_Update(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	updatedContent := []malak.Block{
+	updatedContent := malak.BlockContents{
 		{
 			ID:   "oops",
 			Type: "heading",
