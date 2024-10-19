@@ -205,20 +205,26 @@ func applyInlineStyles(text string, styles map[string]interface{}) string {
 	if len(styleStrings) > 0 {
 		return fmt.Sprintf("<span style='%s'>%s</span>", strings.Join(styleStrings, " "), html.EscapeString(text))
 	}
+
 	return html.EscapeString(text)
 }
 
 func getStyleString(props map[string]interface{}) string {
+
 	var styles []string
+
 	if textColor, ok := props["textColor"].(string); ok && textColor != "default" {
 		styles = append(styles, fmt.Sprintf("color:%s;", textColor))
 	}
+
 	if bgColor, ok := props["backgroundColor"].(string); ok && bgColor != "default" {
 		styles = append(styles, fmt.Sprintf("background-color:%s;", bgColor))
 	}
+
 	if textAlign, ok := props["textAlignment"].(string); ok && textAlign != "left" {
 		styles = append(styles, fmt.Sprintf("text-align:%s;", textAlign))
 	}
+
 	return strings.Join(styles, " ")
 }
 
