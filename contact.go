@@ -29,6 +29,7 @@ type Contact struct {
 	City        string    `json:"city,omitempty"`
 	Phone       string    `json:"phone,omitempty"`
 	Notes       string    `json:"notes,omitempty"`
+	Lists       []ContactListMapping
 
 	// User who owns the contact.
 	// Does not mean who added the contact but who chases

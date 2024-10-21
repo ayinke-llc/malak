@@ -59,9 +59,6 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
 
   if (update) {
     initialContent = update?.content as PartialBlock[];
-    console.log("server")
-    console.log(JSON.stringify(initialContent))
-    console.log("server done")
   }
 
   const editor = useMemo(() => {
@@ -118,9 +115,6 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
       return;
     }
 
-    console.log("here")
-    console.log(JSON.stringify(blocks))
-    console.log("there")
     mutation.mutate({
       title: titleContent.text,
       update: blocks as MalakBlockContent[],

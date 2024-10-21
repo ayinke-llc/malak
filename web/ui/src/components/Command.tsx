@@ -6,7 +6,7 @@ import * as React from "react";
 
 import { cx } from "@/lib/utils";
 import { Dialog, DialogContent } from "./Dialog";
-import Magic from "./ui/updates/editor/ui/icons/magic";
+import { RiMagicLine } from "@remixicon/react";
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
@@ -23,7 +23,7 @@ const Command = React.forwardRef<
 ));
 Command.displayName = CommandPrimitive.displayName;
 
-interface CommandDialogProps extends DialogProps {}
+interface CommandDialogProps extends DialogProps { }
 
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
   return (
@@ -42,7 +42,7 @@ const CommandInput = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
   <div className="flex items-center border-b px-4" cmdk-input-wrapper="">
-    <Magic className="mr-2 h-4 w-4 shrink-0 text-purple-500 " />
+    <RiMagicLine className="mr-2 h-4 w-4 shrink-0 text-purple-500 " />
     <CommandPrimitive.Input
       ref={ref}
       className={cx(
