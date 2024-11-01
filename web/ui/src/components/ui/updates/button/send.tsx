@@ -13,9 +13,18 @@ import {
 import { Label } from "@/components/Label";
 import { Switch } from "@/components/Switch";
 import client from "@/lib/client";
-import { CREATE_CONTACT_MUTATION, LIST_CONTACT_LISTS } from "@/lib/query-constants";
+import {
+  CREATE_CONTACT_MUTATION,
+  LIST_CONTACT_LISTS,
+} from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { RiCloseLargeLine, RiCloseLine, RiMailSendLine, RiMarkupLine, RiTwitterXLine } from "@remixicon/react";
+import {
+  RiCloseLargeLine,
+  RiCloseLine,
+  RiMailSendLine,
+  RiMarkupLine,
+  RiTwitterXLine,
+} from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import * as EmailValidator from "email-validator";
@@ -51,9 +60,9 @@ type ListOption = Option & {
   emails?: string[];
 };
 
-const SendUpdateButton = ({ }: ButtonProps) => {
+const SendUpdateButton = ({}: ButtonProps) => {
   const [loading, setLoading] = useState<boolean>(false);
-  const [showAllRecipients, setShowAllRecipients] = useState<boolean>(false)
+  const [showAllRecipients, setShowAllRecipients] = useState<boolean>(false);
 
   const [options, setOptions] = useState<ListOption[]>([
     { value: "oops", label: "oops" },
@@ -94,7 +103,7 @@ const SendUpdateButton = ({ }: ButtonProps) => {
   });
 
   const createNewContact = (inputValue: string) => {
-    inputValue = inputValue.toLowerCase()
+    inputValue = inputValue.toLowerCase();
 
     setLoading(true);
 
@@ -111,18 +120,20 @@ const SendUpdateButton = ({ }: ButtonProps) => {
 
     // probably just use a set here
     if (values.some((item) => item.value === inputValue)) {
-      return
+      setLoading(false);
+      return;
     }
 
     setValues((prev) => [...prev, newOption]);
-    setLoading(false)
+    setLoading(false);
   };
 
   const removeContact = (index: number) => {
-    setValues(values.filter((_, i) => i !== index))
-  }
+    setValues(values.filter((_, i) => i !== index));
+  };
 
-  const toggleShowAllRecipientState = () => setShowAllRecipients(!showAllRecipients)
+  const toggleShowAllRecipientState = () =>
+    setShowAllRecipients(!showAllRecipients);
 
   const {
     register,
@@ -161,56 +172,63 @@ const SendUpdateButton = ({ }: ButtonProps) => {
                     isLoading={loading}
                     onCreateOption={createNewContact}
                     onChange={(value) => {
-                      createNewContact("oopsoops@gmail.com")
+                      createNewContact("oopsoops@gmail.com");
                     }}
                     options={options}
+                    autoFocus={true}
                   />
                 </div>
 
-                {values.length > 0 && <div className="flex-1 mt-5">
-                  <div
-                    className={cx(
-                      showAllRecipients ? "h-[100px]" : "h-full",
-                      "w-full rounded-md border p-2 overflow-y-auto",
-                    )}>
-                    <div className="flex flex-wrap justify-start gap-3">
-                      {values.
-                        slice(0, showAllRecipients ? values.length : 5).
-                        map((recipient, index) => (
-                          <Badge key={index} color="gray"
-                            className="flex items-center space-x-1 gap-3 mt-1"
-                            variant="neutral">
-                            <span>{recipient.label}</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-4 w-4 p-0"
-                              onClick={() => removeContact(index)}
-                            >
-                              <RiCloseLargeLine className="h-3 w-3" color="red" />
-                              <span className="sr-only">Remove recipient</span>
-                            </Button>
-                          </Badge>
-                        ))}
-                      {values.length > 5 && (
-                        <Button
-                          size="sm"
-                          variant="light"
-                          onClick={toggleShowAllRecipientState}
-                        >
-                          {showAllRecipients ? "hide recipients" : `+${values.length - 5} more`}
-                        </Button>
+                {values.length > 0 && (
+                  <div className="flex-1 mt-5">
+                    <div
+                      className={cx(
+                        showAllRecipients ? "h-[100px]" : "h-full",
+                        "w-full rounded-md border p-2 overflow-y-auto",
                       )}
+                    >
+                      <div className="flex flex-wrap justify-start gap-3">
+                        {values
+                          .slice(0, showAllRecipients ? values.length : 5)
+                          .map((recipient, index) => (
+                            <Badge
+                              key={index}
+                              color="gray"
+                              className="flex items-center space-x-1 gap-3 mt-1"
+                              variant="neutral"
+                            >
+                              <span>{recipient.label}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-4 w-4 p-0"
+                                onClick={() => removeContact(index)}
+                              >
+                                <RiCloseLargeLine
+                                  className="h-3 w-3"
+                                  color="red"
+                                />
+                                <span className="sr-only">
+                                  Remove recipient
+                                </span>
+                              </Button>
+                            </Badge>
+                          ))}
+                        {values.length > 5 && (
+                          <Button
+                            size="sm"
+                            variant="light"
+                            onClick={toggleShowAllRecipientState}
+                          >
+                            {showAllRecipients
+                              ? "hide recipients"
+                              : `+${values.length - 5} more`}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>}
-
-                <div className="mt-4 gap-10">
-                  <Switch disabled id="r3" {...register("link")} />
-                  <Label disabled htmlFor="r3">
-                    Coming soon. Generate a public viewable link for this update
-                  </Label>
-                </div>
+                )}
               </DialogHeader>
               <DialogFooter className="mt-6">
                 <DialogClose asChild>

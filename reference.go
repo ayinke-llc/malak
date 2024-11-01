@@ -15,7 +15,7 @@ func GenerateReference(e EntityType) string {
 // workspace,invoice,
 // team,invite,contact,
 // deck,update,link,room,
-// recipient,schedule,list)
+// recipient,schedule,list,list_email)
 type EntityType string
 
 type Reference string

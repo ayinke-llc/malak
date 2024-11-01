@@ -1,9 +1,9 @@
 // Tremor Tabs [v0.1.0]
 
-import React from "react"
-import * as TabsPrimitives from "@radix-ui/react-tabs"
+import React from "react";
+import * as TabsPrimitives from "@radix-ui/react-tabs";
 
-import { cx, focusRing } from "@/lib/utils"
+import { cx, focusRing } from "@/lib/utils";
 
 const Tabs = (
   props: Omit<
@@ -11,18 +11,18 @@ const Tabs = (
     "orientation"
   >,
 ) => {
-  return <TabsPrimitives.Root tremor-id="tremor-raw" {...props} />
-}
+  return <TabsPrimitives.Root tremor-id="tremor-raw" {...props} />;
+};
 
-Tabs.displayName = "Tabs"
+Tabs.displayName = "Tabs";
 
-type TabsListVariant = "line" | "solid"
+type TabsListVariant = "line" | "solid";
 
-const TabsListVariantContext = React.createContext<TabsListVariant>("line")
+const TabsListVariantContext = React.createContext<TabsListVariant>("line");
 
 interface TabsListProps
   extends React.ComponentPropsWithoutRef<typeof TabsPrimitives.List> {
-  variant?: TabsListVariant
+  variant?: TabsListVariant;
 }
 
 const variantStyles: Record<TabsListVariant, string> = {
@@ -38,7 +38,7 @@ const variantStyles: Record<TabsListVariant, string> = {
     // background color
     "bg-gray-100 dark:bg-gray-900",
   ),
-}
+};
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitives.List>,
@@ -53,9 +53,9 @@ const TabsList = React.forwardRef<
       {children}
     </TabsListVariantContext.Provider>
   </TabsPrimitives.List>
-))
+));
 
-TabsList.displayName = "TabsList"
+TabsList.displayName = "TabsList";
 
 function getVariantStyles(tabVariant: TabsListVariant) {
   switch (tabVariant) {
@@ -75,7 +75,7 @@ function getVariantStyles(tabVariant: TabsListVariant) {
         // disabled
         "data-[disabled]:pointer-events-none",
         "data-[disabled]:text-gray-300 data-[disabled]:dark:text-gray-700",
-      )
+      );
     case "solid":
       return cx(
         // base
@@ -91,7 +91,7 @@ function getVariantStyles(tabVariant: TabsListVariant) {
         "data-[state=active]:dark:bg-gray-950 data-[state=active]:dark:text-gray-50",
         // disabled
         "data-[disabled]:pointer-events-none data-[disabled]:text-gray-400 data-[disabled]:opacity-50 data-[disabled]:dark:text-gray-600",
-      )
+      );
   }
 }
 
@@ -99,7 +99,7 @@ const TabsTrigger = React.forwardRef<
   React.ElementRef<typeof TabsPrimitives.Trigger>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitives.Trigger>
 >(({ className, children, ...props }, forwardedRef) => {
-  const variant = React.useContext(TabsListVariantContext)
+  const variant = React.useContext(TabsListVariantContext);
   return (
     <TabsPrimitives.Trigger
       ref={forwardedRef}
@@ -108,10 +108,10 @@ const TabsTrigger = React.forwardRef<
     >
       {children}
     </TabsPrimitives.Trigger>
-  )
-})
+  );
+});
 
-TabsTrigger.displayName = "TabsTrigger"
+TabsTrigger.displayName = "TabsTrigger";
 
 const TabsContent = React.forwardRef<
   React.ElementRef<typeof TabsPrimitives.Content>,
@@ -122,8 +122,8 @@ const TabsContent = React.forwardRef<
     className={cx("outline-none", focusRing, className)}
     {...props}
   />
-))
+));
 
-TabsContent.displayName = "TabsContent"
+TabsContent.displayName = "TabsContent";
 
-export { Tabs, TabsContent, TabsList, TabsTrigger }
+export { Tabs, TabsContent, TabsList, TabsTrigger };
