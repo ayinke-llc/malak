@@ -7,7 +7,7 @@ const MALAK_PRIVACY_POLICY_LINK =
   "https://ayinke.ventures/malak/privacy";
 
 const MALAK_SENTRY_ENABLED =
-  process.env.NEXT_PUBLIC_SENTRY_DSN.length > 0 ? true : false;
+  process.env.NEXT_PUBLIC_SENTRY_DSN ? true : false;
 const MALAK_SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
 
 export {

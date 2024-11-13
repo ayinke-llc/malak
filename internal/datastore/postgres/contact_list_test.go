@@ -94,3 +94,57 @@ func TestContactList(t *testing.T) {
 
 	require.Len(t, lists, 2)
 }
+
+func TestContactList_Add(t *testing.T) {
+
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	userRepo := NewUserRepository(client)
+
+	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, user)
+
+	contactListRepo := NewContactListRepository(client)
+
+	contactRepo := NewContactRepository(client)
+
+	contact := &malak.Contact{
+		Email:       malak.Email("oops@oops.com"),
+		WorkspaceID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
+		CreatedBy:   uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
+		OwnerID:     uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeContact),
+	}
+
+	err = contactRepo.Create(context.Background(), contact)
+	require.NoError(t, err)
+
+	list := &malak.ContactList{
+		WorkspaceID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+		Title:       "My contact list",
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeList),
+		CreatedBy:   user.ID,
+	}
+
+	err = contactListRepo.Create(context.Background(), list)
+	require.NoError(t, err)
+
+	newList, err := contactListRepo.Get(context.Background(), malak.FetchContactListOptions{
+		Reference:   list.Reference,
+		WorkspaceID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+	require.Equal(t, list.Title, newList.Title)
+
+	err = contactListRepo.Add(context.Background(), &malak.ContactListMapping{
+		ListID:    newList.ID,
+		ContactID: contact.ID,
+		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeListEmail),
+		CreatedBy: user.ID,
+	})
+	require.NoError(t, err)
+}

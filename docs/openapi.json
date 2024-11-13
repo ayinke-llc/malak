@@ -50,6 +50,12 @@
 					"last_name": {
 						"type": "string"
 					},
+					"lists": {
+						"items": {
+							"$ref": "#/components/schemas/malak.ContactListMapping"
+						},
+						"type": "array"
+					},
 					"metadata": {
 						"$ref": "#/components/schemas/malak.CustomContactMetadata"
 					},
@@ -96,6 +102,32 @@
 						"type": "string"
 					},
 					"workspace_id": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"malak.ContactListMapping": {
+				"properties": {
+					"contact_id": {
+						"type": "string"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"created_by": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"list_id": {
+						"type": "string"
+					},
+					"reference": {
+						"type": "string"
+					},
+					"updated_at": {
 						"type": "string"
 					}
 				},
@@ -305,6 +337,17 @@
 				"required": [
 					"message"
 				],
+				"type": "object"
+			},
+			"server.addContactToListRequest": {
+				"properties": {
+					"contactList": {
+						"type": "string"
+					},
+					"reference": {
+						"type": "string"
+					}
+				},
 				"type": "object"
 			},
 			"server.authenticateUserRequest": {
@@ -886,10 +929,10 @@
 		},
 		"/contacts/lists/{reference}": {
 			"delete": {
-				"operationId": "deleteContactList",
+				"operationId": "addEmailToContactList",
 				"parameters": [
 					{
-						"description": "list unique reference.. e.g link_",
+						"description": "list unique reference.. e.g list_",
 						"in": "path",
 						"name": "reference",
 						"required": true,
@@ -898,6 +941,18 @@
 						}
 					}
 				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.addContactToListRequest"
+							}
+						}
+					},
+					"description": "contact body",
+					"required": true,
+					"x-originalParamName": "message"
+				},
 				"responses": {
 					"200": {
 						"content": {
@@ -950,7 +1005,7 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "delete a contact list",
+				"summary": "add a new contact to a list",
 				"tags": [
 					"contacts"
 				]
@@ -959,7 +1014,7 @@
 				"operationId": "editContactList",
 				"parameters": [
 					{
-						"description": "list unique reference.. e.g link_",
+						"description": "list unique reference.. e.g list_",
 						"in": "path",
 						"name": "reference",
 						"required": true,

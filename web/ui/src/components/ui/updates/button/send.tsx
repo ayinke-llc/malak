@@ -13,10 +13,19 @@ import {
 import { Label } from "@/components/Label";
 import { Switch } from "@/components/Switch";
 import client from "@/lib/client";
-import { CREATE_CONTACT_MUTATION } from "@/lib/query-constants";
+import {
+  CREATE_CONTACT_MUTATION,
+  LIST_CONTACT_LISTS,
+} from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { RiMailSendLine } from "@remixicon/react";
-import { useMutation } from "@tanstack/react-query";
+import {
+  RiCloseLargeLine,
+  RiCloseLine,
+  RiMailSendLine,
+  RiMarkupLine,
+  RiTwitterXLine,
+} from "@remixicon/react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import * as EmailValidator from "email-validator";
 import { Option } from "lucide-react";
@@ -25,8 +34,9 @@ import { type SubmitHandler, useForm } from "react-hook-form";
 import CreatableSelect from "react-select/creatable";
 import { toast } from "sonner";
 import * as yup from "yup";
-import { Select } from "../../custom/select/select";
 import type { ButtonProps } from "./props";
+import { Badge } from "@/components/Badge";
+import { cx } from "@/lib/utils";
 
 interface Option {
   readonly label: string;
@@ -46,15 +56,25 @@ const schema = yup
   })
   .required();
 
+type ListOption = Option & {
+  emails?: string[];
+};
+
 const SendUpdateButton = ({}: ButtonProps) => {
   const [loading, setLoading] = useState<boolean>(false);
+  const [showAllRecipients, setShowAllRecipients] = useState<boolean>(false);
 
-  const [options, setOptions] = useState<Option[]>([
+  const [options, setOptions] = useState<ListOption[]>([
     { value: "oops", label: "oops" },
     { value: "test", label: "test" },
   ]);
 
-  const [value, setValue] = useState<Option[]>([]);
+  const { data, error } = useQuery({
+    queryKey: [LIST_CONTACT_LISTS],
+    queryFn: () => client.contacts.fetchContactLists(),
+  });
+
+  const [values, setValues] = useState<Option[]>([]);
 
   const contactMutation = useMutation({
     mutationKey: [CREATE_CONTACT_MUTATION],
@@ -68,8 +88,7 @@ const SendUpdateButton = ({}: ButtonProps) => {
         label: data.contact.email,
       } as Option;
 
-      setOptions((prev) => [...prev, newOption]);
-      setValue((prev) => [...prev, newOption]);
+      setValues((prev) => [...prev, newOption]);
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message;
@@ -84,6 +103,8 @@ const SendUpdateButton = ({}: ButtonProps) => {
   });
 
   const createNewContact = (inputValue: string) => {
+    inputValue = inputValue.toLowerCase();
+
     setLoading(true);
 
     if (!EmailValidator.validate(inputValue)) {
@@ -92,8 +113,27 @@ const SendUpdateButton = ({}: ButtonProps) => {
       return;
     }
 
-    contactMutation.mutate({ email: inputValue });
+    const newOption = {
+      value: inputValue,
+      label: inputValue,
+    } as Option;
+
+    // probably just use a set here
+    if (values.some((item) => item.value === inputValue)) {
+      setLoading(false);
+      return;
+    }
+
+    setValues((prev) => [...prev, newOption]);
+    setLoading(false);
   };
+
+  const removeContact = (index: number) => {
+    setValues(values.filter((_, i) => i !== index));
+  };
+
+  const toggleShowAllRecipientState = () =>
+    setShowAllRecipients(!showAllRecipients);
 
   const {
     register,
@@ -105,7 +145,6 @@ const SendUpdateButton = ({}: ButtonProps) => {
 
   const onSubmit: SubmitHandler<SendUpdateInput> = (data) => {
     setLoading(true);
-    console.log(data);
   };
 
   return (
@@ -129,43 +168,67 @@ const SendUpdateButton = ({}: ButtonProps) => {
 
                 <div className="mt-4">
                   <CreatableSelect
-                    isMulti
-                    isClearable
                     isDisabled={loading}
                     isLoading={loading}
-                    onChange={(newValue) => {
-                      setValue(newValue);
-                    }}
                     onCreateOption={createNewContact}
+                    onChange={(value) => {
+                      createNewContact("oopsoops@gmail.com");
+                    }}
                     options={options}
-                    value={value}
+                    autoFocus={true}
                   />
                 </div>
 
-                <div className="mt-4">
-                  <Label htmlFor="select-author" className="font-medium">
-                    Select Author
-                  </Label>
-                  <Select
-                    data={[
-                      {
-                        label: "Lanre Adelowo",
-                        value: "lanre",
-                      },
-                      {
-                        label: "Ayinke",
-                        value: "ayinke",
-                      },
-                    ]}
-                  />
-                </div>
-
-                <div className="mt-4">
-                  <Switch disabled id="r3" {...register("link")} />
-                  <Label disabled htmlFor="r3">
-                    Coming soon. Generate a public viewable link for this update
-                  </Label>
-                </div>
+                {values.length > 0 && (
+                  <div className="flex-1 mt-5">
+                    <div
+                      className={cx(
+                        showAllRecipients ? "h-[100px]" : "h-full",
+                        "w-full rounded-md border p-2 overflow-y-auto",
+                      )}
+                    >
+                      <div className="flex flex-wrap justify-start gap-3">
+                        {values
+                          .slice(0, showAllRecipients ? values.length : 5)
+                          .map((recipient, index) => (
+                            <Badge
+                              key={index}
+                              color="gray"
+                              className="flex items-center space-x-1 gap-3 mt-1"
+                              variant="neutral"
+                            >
+                              <span>{recipient.label}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-4 w-4 p-0"
+                                onClick={() => removeContact(index)}
+                              >
+                                <RiCloseLargeLine
+                                  className="h-3 w-3"
+                                  color="red"
+                                />
+                                <span className="sr-only">
+                                  Remove recipient
+                                </span>
+                              </Button>
+                            </Badge>
+                          ))}
+                        {values.length > 5 && (
+                          <Button
+                            size="sm"
+                            variant="light"
+                            onClick={toggleShowAllRecipientState}
+                          >
+                            {showAllRecipients
+                              ? "hide recipients"
+                              : `+${values.length - 5} more`}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </DialogHeader>
               <DialogFooter className="mt-6">
                 <DialogClose asChild>

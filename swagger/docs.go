@@ -267,7 +267,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "list unique reference.. e.g link_",
+                        "description": "list unique reference.. e.g list_",
                         "name": "reference",
                         "in": "path",
                         "required": true
@@ -316,12 +316,21 @@ const docTemplate = `{
                 "tags": [
                     "contacts"
                 ],
-                "summary": "delete a contact list",
-                "operationId": "deleteContactList",
+                "summary": "add a new contact to a list",
+                "operationId": "addEmailToContactList",
                 "parameters": [
                     {
+                        "description": "contact body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.addContactToListRequest"
+                        }
+                    },
+                    {
                         "type": "string",
-                        "description": "list unique reference.. e.g link_",
+                        "description": "list unique reference.. e.g list_",
                         "name": "reference",
                         "in": "path",
                         "required": true
@@ -1099,6 +1108,12 @@ const docTemplate = `{
                 "last_name": {
                     "type": "string"
                 },
+                "lists": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.ContactListMapping"
+                    }
+                },
                 "metadata": {
                     "$ref": "#/definitions/malak.CustomContactMetadata"
                 },
@@ -1145,6 +1160,32 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.ContactListMapping": {
+            "type": "object",
+            "properties": {
+                "contact_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "list_id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
@@ -1351,6 +1392,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.addContactToListRequest": {
+            "type": "object",
+            "properties": {
+                "contactList": {
+                    "type": "string"
+                },
+                "reference": {
                     "type": "string"
                 }
             }

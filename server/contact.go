@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -240,7 +242,7 @@ func (c *contactHandler) fetchContactLists(
 // @Accept  json
 // @Produce  json
 // @Param message body createContactListRequest true "contact list body"
-// @Param reference path string required "list unique reference.. e.g link_"
+// @Param reference path string required "list unique reference.. e.g list_"
 // @Success 200 {object} fetchContactListResponse
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
@@ -307,7 +309,7 @@ func (c *contactHandler) editContactList(
 // @id deleteContactList
 // @Accept  json
 // @Produce  json
-// @Param reference path string required "list unique reference.. e.g link_"
+// @Param reference path string required "list unique reference.. e.g list_"
 // @Success 200 {object} APIStatus
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
@@ -347,6 +349,108 @@ func (c *contactHandler) deleteContactList(
 	if err := c.contactListRepo.Delete(ctx, list); err != nil {
 		logger.Error("could not delete contact list", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "could not delete list"),
+			StatusFailed
+	}
+
+	return newAPIStatus(http.StatusCreated, "list was successfully deleted"), StatusSuccess
+}
+
+type addContactToListRequest struct {
+	Reference   malak.Reference
+	ContactList uuid.UUID
+
+	GenericRequest
+}
+
+func (c *addContactToListRequest) Validate() error {
+	if hermes.IsStringEmpty(c.Reference.String()) {
+		return errors.New("please provide the reference of the contact")
+	}
+
+	if c.ContactList == uuid.Nil {
+		return errors.New("please provide the list to add the user to")
+	}
+
+	return nil
+}
+
+// @Summary add a new contact to a list
+// @Tags contacts
+// @id addEmailToContactList
+// @Accept  json
+// @Produce  json
+// @Param message body addContactToListRequest true "contact body"
+// @Param reference path string required "list unique reference.. e.g list_"
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /contacts/lists/{reference} [delete]
+func (c *contactHandler) addUserToContactList(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	reference := chi.URLParam(r, "reference")
+
+	logger = logger.With(zap.String("reference", reference))
+
+	logger.Debug("adding a user to a contact list")
+
+	req := new(addContactToListRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	logger = logger.With(zap.String("reference", req.Reference.String()),
+		zap.String("contact_list_id", req.ContactList.String()))
+
+	contact, err := c.contactRepo.Get(ctx, malak.FetchContactOptions{
+		Reference: req.Reference,
+	})
+	if errors.Is(err, malak.ErrContactNotFound) {
+		return newAPIStatus(http.StatusNotFound, err.Error()), StatusFailed
+	}
+
+	if err != nil {
+		logger.Error("could not fetch contact from the database",
+			zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch contact"), StatusFailed
+	}
+
+	list, err := c.contactListRepo.Get(ctx, malak.FetchContactListOptions{
+		Reference:   malak.Reference(reference),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
+	})
+	if errors.Is(err, malak.ErrContactListNotFound) {
+		return newAPIStatus(
+			http.StatusNotFound, err.Error()), StatusFailed
+	}
+
+	if err != nil {
+		logger.Error("an error occurred while fetching contact list", zap.Error(err))
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"an error occurred while fetching the contact list"), StatusFailed
+	}
+
+	mapping := &malak.ContactListMapping{
+		Reference: c.referenceGenerator.Generate(malak.EntityTypeListEmail),
+		ListID:    list.ID,
+		ContactID: contact.ID,
+	}
+
+	if err := c.contactListRepo.Add(ctx, mapping); err != nil {
+		logger.Error("could not add contact list mapping", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not add contact list mapping"),
 			StatusFailed
 	}
 

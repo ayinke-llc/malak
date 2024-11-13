@@ -20,6 +20,7 @@ import (
 type MockJWTokenManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockJWTokenManagerMockRecorder
+	isgomock struct{}
 }
 
 // MockJWTokenManagerMockRecorder is the mock recorder for MockJWTokenManager.

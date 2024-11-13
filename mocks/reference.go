@@ -20,6 +20,7 @@ import (
 type MockReferenceGeneratorOperation struct {
 	ctrl     *gomock.Controller
 	recorder *MockReferenceGeneratorOperationMockRecorder
+	isgomock struct{}
 }
 
 // MockReferenceGeneratorOperationMockRecorder is the mock recorder for MockReferenceGeneratorOperation.

@@ -198,6 +198,7 @@ func buildRoutes(
 			r.Post("/lists",
 				WrapMalakHTTPHandler(logger, contactHandler.createContactList, cfg, "contacts.lists.new"))
 
+			// fetch emails too
 			r.Get("/lists",
 				WrapMalakHTTPHandler(logger, contactHandler.fetchContactLists, cfg, "contacts.lists.fetch"))
 
@@ -206,6 +207,9 @@ func buildRoutes(
 
 			r.Put("/lists/{reference}",
 				WrapMalakHTTPHandler(logger, contactHandler.editContactList, cfg, "contacts.lists.update"))
+
+			r.Post("/lists/{reference}",
+				WrapMalakHTTPHandler(logger, contactHandler.addUserToContactList, cfg, "contacts.lists.add"))
 		})
 
 		r.Route("/images", func(r chi.Router) {

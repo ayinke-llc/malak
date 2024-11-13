@@ -3,8 +3,17 @@
 import ListContacts from "@/components/ui/contacts/list/list";
 import CreateContactModal from "@/components/ui/contacts/modal";
 import ManageListModal from "@/components/ui/contacts/new-list-modal";
+import ContactDetails from "@/components/ui/contacts/single/view";
+import { useParams, useRouter } from "next/navigation";
 
 export default function Page() {
+
+  const params = useParams();
+
+  const router = useRouter();
+
+  const reference = params.slug as string;
+
   return (
     <>
       <div className="pt-6">
@@ -15,11 +24,8 @@ export default function Page() {
                 id="existing-contacts"
                 className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
               >
-                Stored Contacts
+                Viewing details of contact
               </h3>
-              <p className="text-sm leading-6 text-gray-500">
-                View and manage all your existing contacts
-              </p>
             </div>
 
             <div className="flex justify-center gap-2">
@@ -30,7 +36,7 @@ export default function Page() {
         </section>
 
         <section>
-          <ListContacts />
+          <ContactDetails />
         </section>
       </div>
     </>
