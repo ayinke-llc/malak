@@ -49,11 +49,16 @@ type FetchContactListOptions struct {
 	WorkspaceID uuid.UUID
 }
 
+type ContactListOptions struct {
+	WorkspaceID   uuid.UUID
+	IncludeEmails bool
+}
+
 type ContactListRepository interface {
 	Create(context.Context, *ContactList) error
 	Get(context.Context, FetchContactListOptions) (*ContactList, error)
 	Delete(context.Context, *ContactList) error
 	Update(context.Context, *ContactList) error
 	Add(context.Context, *ContactListMapping) error
-	List(context.Context, uuid.UUID) ([]ContactList, error)
+	List(context.Context, *ContactListOptions) ([]ContactList, []ContactListMapping, error)
 }

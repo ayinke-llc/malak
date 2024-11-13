@@ -334,11 +334,22 @@ components:
       properties:
         lists:
           items:
-            $ref: '#/components/schemas/malak.ContactList'
+            properties:
+              list:
+                $ref: '#/components/schemas/malak.ContactList'
+              mappings:
+                items:
+                  $ref: '#/components/schemas/malak.ContactListMapping'
+                type: array
+            required:
+            - list
+            - mappings
+            type: object
           type: array
         message:
           type: string
       required:
+      - lists
       - message
       type: object
     server.fetchContactResponse:
@@ -534,6 +545,12 @@ paths:
   /contacts/lists:
     get:
       operationId: fetchContactLists
+      parameters:
+      - description: show emails inside the list
+        in: query
+        name: include_emails
+        schema:
+          type: boolean
       responses:
         "200":
           content:

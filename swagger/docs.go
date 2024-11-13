@@ -152,6 +152,14 @@ const docTemplate = `{
                 ],
                 "summary": "List all created contact lists",
                 "operationId": "fetchContactLists",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "show emails inside the list",
+                        "name": "include_emails",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1541,13 +1549,29 @@ const docTemplate = `{
         "server.fetchContactListsResponse": {
             "type": "object",
             "required": [
+                "lists",
                 "message"
             ],
             "properties": {
                 "lists": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/malak.ContactList"
+                        "type": "object",
+                        "required": [
+                            "list",
+                            "mappings"
+                        ],
+                        "properties": {
+                            "list": {
+                                "$ref": "#/definitions/malak.ContactList"
+                            },
+                            "mappings": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/malak.ContactListMapping"
+                                }
+                            }
+                        }
                     }
                 },
                 "message": {

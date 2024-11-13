@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/ayinke-llc/malak"
-	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
@@ -80,16 +80,44 @@ func (c *contactListRepo) Create(ctx context.Context,
 
 }
 
-func (c *contactListRepo) List(ctx context.Context, id uuid.UUID) ([]malak.ContactList, error) {
-	list := make([]malak.ContactList, 0)
+func (c *contactListRepo) List(ctx context.Context,
+	opts *malak.ContactListOptions) ([]malak.ContactList, []malak.ContactListMapping, error) {
 
-	err := c.inner.NewSelect().
-		Order("created_at DESC").
-		Where("workspace_id = ?", id).
-		Model(&list).
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	var lists []malak.ContactList
+	err := c.inner.NewSelect().Model(&lists).
+		Where("workspace_id = ?", opts.WorkspaceID).
+		Where("deleted_at IS NULL").
 		Scan(ctx)
 
-	return list, err
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if !opts.IncludeEmails {
+		return lists, []malak.ContactListMapping{}, nil
+	}
+
+	var listIDs []string
+	for _, v := range lists {
+		listIDs = append(listIDs, v.ID.String())
+	}
+
+	var mappings []malak.ContactListMapping
+	err = c.inner.NewSelect().Model(&mappings).
+		Where("list_id IN (?)", bun.In(listIDs)).
+		Where("deleted_at IS NULL").
+		Scan(ctx)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	fmt.Println(mappings)
+
+	return lists, mappings, nil
 }
 
 func (c *contactListRepo) Add(ctx context.Context,

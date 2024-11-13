@@ -485,7 +485,22 @@
 				"properties": {
 					"lists": {
 						"items": {
-							"$ref": "#/components/schemas/malak.ContactList"
+							"properties": {
+								"list": {
+									"$ref": "#/components/schemas/malak.ContactList"
+								},
+								"mappings": {
+									"items": {
+										"$ref": "#/components/schemas/malak.ContactListMapping"
+									},
+									"type": "array"
+								}
+							},
+							"required": [
+								"list",
+								"mappings"
+							],
+							"type": "object"
 						},
 						"type": "array"
 					},
@@ -494,6 +509,7 @@
 					}
 				},
 				"required": [
+					"lists",
 					"message"
 				],
 				"type": "object"
@@ -798,6 +814,16 @@
 		"/contacts/lists": {
 			"get": {
 				"operationId": "fetchContactLists",
+				"parameters": [
+					{
+						"description": "show emails inside the list",
+						"in": "query",
+						"name": "include_emails",
+						"schema": {
+							"type": "boolean"
+						}
+					}
+				],
 				"responses": {
 					"200": {
 						"content": {

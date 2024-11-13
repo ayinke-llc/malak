@@ -14,7 +14,6 @@ import (
 	reflect "reflect"
 
 	malak "github.com/ayinke-llc/malak"
-	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -100,12 +99,13 @@ func (mr *MockContactListRepositoryMockRecorder) Get(arg0, arg1 any) *gomock.Cal
 }
 
 // List mocks base method.
-func (m *MockContactListRepository) List(arg0 context.Context, arg1 uuid.UUID) ([]malak.ContactList, error) {
+func (m *MockContactListRepository) List(arg0 context.Context, arg1 *malak.ContactListOptions) ([]malak.ContactList, []malak.ContactListMapping, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List", arg0, arg1)
 	ret0, _ := ret[0].([]malak.ContactList)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].([]malak.ContactListMapping)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // List indicates an expected call of List.

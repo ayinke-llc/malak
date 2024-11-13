@@ -88,5 +88,8 @@ type fetchContactListResponse struct {
 
 type fetchContactListsResponse struct {
 	APIStatus
-	Lists []malak.ContactList `json:"lists,omitempty"`
+	Lists []struct {
+		List     malak.ContactList          `json:"list,omitempty" validate:"required"`
+		Mappings []malak.ContactListMapping `json:"mappings,omitempty" validate:"required"`
+	} `json:"lists,omitempty" validate:"required"`
 }
