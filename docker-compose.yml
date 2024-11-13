@@ -53,6 +53,16 @@ services:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
 
+  collector:
+    image: otel/opentelemetry-collector-contrib
+    volumes:
+      - ./dev/otel-collector.yml:/etc/otelcol-contrib/config.yaml
+    command: ["--config", "/etc/otelcol-contrib/config.yaml"]
+    ports:
+      - "8888:8888"
+    depends_on:
+      - otel
+
 volumes:
   minio_data:
   postgres_data:
