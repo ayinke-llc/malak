@@ -19,7 +19,7 @@ type ContactList struct {
 	Reference   Reference `json:"reference,omitempty"`
 	// the number of items in the list. This is postgresql triggered
 	// not manually updated
-	NumberInList int `json:"number_in_list,omitempty"`
+	// NumberInList int `json:"number_in_list,omitempty"`
 
 	CreatedBy uuid.UUID `json:"created_by,omitempty"`
 
