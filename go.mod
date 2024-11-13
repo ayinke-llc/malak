@@ -1,6 +1,6 @@
 module github.com/ayinke-llc/malak
 
-go 1.23.0
+go 1.23.1
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.3.7
@@ -10,6 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.31.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.36
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.34
+	github.com/ayinke-llc/hermes v0.0.0-20241111220852-f19376e25099
 	github.com/dentech-floss/watermill-opentelemetry-go-extra v0.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/garsue/watermillzap v1.2.0

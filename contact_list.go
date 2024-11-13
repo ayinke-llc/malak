@@ -34,6 +34,8 @@ type ContactListMapping struct {
 	ID        uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 	ContactID uuid.UUID `json:"contact_id,omitempty"`
 	ListID    uuid.UUID `json:"list_id,omitempty"`
+	Reference Reference `json:"reference,omitempty"`
+	CreatedBy uuid.UUID `json:"created_by,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
@@ -52,6 +54,6 @@ type ContactListRepository interface {
 	Get(context.Context, FetchContactListOptions) (*ContactList, error)
 	Delete(context.Context, *ContactList) error
 	Update(context.Context, *ContactList) error
-	// Add(context.Context, ...*Contact) error
+	Add(context.Context, *ContactListMapping) error
 	List(context.Context, uuid.UUID) ([]ContactList, error)
 }

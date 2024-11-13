@@ -91,3 +91,20 @@ func (c *contactListRepo) List(ctx context.Context, id uuid.UUID) ([]malak.Conta
 
 	return list, err
 }
+
+func (c *contactListRepo) Add(ctx context.Context,
+	mapping *malak.ContactListMapping) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return c.inner.RunInTx(ctx, &sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+
+			_, err := tx.NewInsert().
+				Model(mapping).
+				Exec(ctx)
+
+			return err
+		})
+}

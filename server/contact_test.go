@@ -13,6 +13,7 @@ import (
 	"github.com/ayinke-llc/malak"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -45,6 +46,45 @@ func TestContactHandler_Create(t *testing.T) {
 			WrapMalakHTTPHandler(getLogger(t), a.Create, getConfig(), "contacts.new").
 				ServeHTTP(rr, req)
 			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func TestContactHandler_AddUserToContactList(t *testing.T) {
+	for _, v := range generateAddUserToContactListTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			contactListRepo := malak_mocks.NewMockContactListRepository(controller)
+			contactRepo := malak_mocks.NewMockContactRepository(controller)
+
+			v.mockFn(contactListRepo, contactRepo)
+
+			a := &contactHandler{
+				cfg:                getConfig(),
+				contactListRepo:    contactListRepo,
+				referenceGenerator: &mockReferenceGenerator{},
+				contactRepo:        contactRepo,
+			}
+
+			var b = bytes.NewBuffer(nil)
+			require.NoError(t, json.NewEncoder(b).Encode(&v.req))
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/contacts/lists", b)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			WrapMalakHTTPHandler(getLogger(t), a.addUserToContactList, getConfig(), "contacts.list.add").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+
 			verifyMatch(t, rr)
 		})
 	}
@@ -202,6 +242,148 @@ func generateCreateContactTestTable() []struct {
 			expectedStatusCode: http.StatusCreated,
 			req: createContactRequest{
 				Email: malak.Email("test@example.com"),
+			},
+		},
+	}
+}
+
+func generateAddUserToContactListTestTable() []struct {
+	name   string
+	mockFn func(contactListRepo *malak_mocks.MockContactListRepository,
+		contactRepo *malak_mocks.MockContactRepository)
+	expectedStatusCode int
+	req                addContactToListRequest
+} {
+	return []struct {
+		name               string
+		mockFn             func(contactListRepo *malak_mocks.MockContactListRepository, contactRepo *malak_mocks.MockContactRepository)
+		expectedStatusCode int
+		req                addContactToListRequest
+	}{
+		{
+			name: "no reference provided",
+			mockFn: func(contactListRepo *malak_mocks.MockContactListRepository, contactRepo *malak_mocks.MockContactRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req:                addContactToListRequest{},
+		},
+		{
+			name: "reference provided but no list id",
+			mockFn: func(contactListRepo *malak_mocks.MockContactListRepository, contactRepo *malak_mocks.MockContactRepository) {
+
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: addContactToListRequest{
+				Reference: "oops",
+			},
+		},
+		{
+			name: "contact not found",
+			mockFn: func(contactListRepo *malak_mocks.MockContactListRepository, contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, malak.ErrContactNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+			req: addContactToListRequest{
+				Reference:   "oops",
+				ContactList: uuid.New(),
+			},
+		},
+		{
+			name: "error fetching contact",
+			mockFn: func(contactListRepo *malak_mocks.MockContactListRepository, contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("unknown error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: addContactToListRequest{
+				Reference:   "oops",
+				ContactList: uuid.New(),
+			},
+		},
+		{
+			name: "list not found",
+			mockFn: func(contactListRepo *malak_mocks.MockContactListRepository, contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Contact{}, nil)
+
+				contactListRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).Return(nil, malak.ErrContactListNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+			req: addContactToListRequest{
+				Reference:   "oops",
+				ContactList: uuid.New(),
+			},
+		},
+		{
+			name: "Error while fetching list",
+			mockFn: func(contactListRepo *malak_mocks.MockContactListRepository, contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Contact{}, nil)
+
+				contactListRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).Return(nil, errors.New("oops"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: addContactToListRequest{
+				Reference:   "oops",
+				ContactList: uuid.New(),
+			},
+		},
+		{
+			name: "could not create contact list mappings",
+			mockFn: func(contactListRepo *malak_mocks.MockContactListRepository, contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Contact{}, nil)
+
+				contactListRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).Return(&malak.ContactList{}, nil)
+
+				contactListRepo.EXPECT().Add(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(errors.New("unkwown error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: addContactToListRequest{
+				Reference:   "oops",
+				ContactList: uuid.New(),
+			},
+		},
+		{
+			name: "added contact to list",
+			mockFn: func(contactListRepo *malak_mocks.MockContactListRepository, contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Contact{}, nil)
+
+				contactListRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).Return(&malak.ContactList{}, nil)
+
+				contactListRepo.EXPECT().
+					Add(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusCreated,
+			req: addContactToListRequest{
+				Reference:   "oops",
+				ContactList: uuid.New(),
 			},
 		},
 	}

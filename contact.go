@@ -19,17 +19,17 @@ type ContactTitle string
 type CustomContactMetadata map[string]string
 
 type Contact struct {
-	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	Email       Email     `json:"email,omitempty"`
-	WorkspaceID uuid.UUID `json:"workspace_id,omitempty"`
-	Reference   Reference `json:"reference,omitempty"`
-	FirstName   string    `json:"first_name,omitempty"`
-	LastName    string    `json:"last_name,omitempty"`
-	Company     string    `json:"company,omitempty"`
-	City        string    `json:"city,omitempty"`
-	Phone       string    `json:"phone,omitempty"`
-	Notes       string    `json:"notes,omitempty"`
-	Lists       []ContactListMapping
+	ID          uuid.UUID            `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Email       Email                `json:"email,omitempty"`
+	WorkspaceID uuid.UUID            `json:"workspace_id,omitempty"`
+	Reference   Reference            `json:"reference,omitempty"`
+	FirstName   string               `json:"first_name,omitempty"`
+	LastName    string               `json:"last_name,omitempty"`
+	Company     string               `json:"company,omitempty"`
+	City        string               `json:"city,omitempty"`
+	Phone       string               `json:"phone,omitempty"`
+	Notes       string               `json:"notes,omitempty"`
+	Lists       []ContactListMapping `json:"lists" bun:"rel:has-many,join:id=contact_id"`
 
 	// User who owns the contact.
 	// Does not mean who added the contact but who chases

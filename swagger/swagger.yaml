@@ -34,6 +34,10 @@ components:
           type: string
         last_name:
           type: string
+        lists:
+          items:
+            $ref: '#/components/schemas/malak.ContactListMapping'
+          type: array
         metadata:
           $ref: '#/components/schemas/malak.CustomContactMetadata'
         notes:
@@ -68,6 +72,23 @@ components:
         updated_at:
           type: string
         workspace_id:
+          type: string
+      type: object
+    malak.ContactListMapping:
+      properties:
+        contact_id:
+          type: string
+        created_at:
+          type: string
+        created_by:
+          type: string
+        id:
+          type: string
+        list_id:
+          type: string
+        reference:
+          type: string
+        updated_at:
           type: string
       type: object
     malak.CustomContactMetadata:
@@ -215,6 +236,13 @@ components:
           type: string
       required:
       - message
+      type: object
+    server.addContactToListRequest:
+      properties:
+        contactList:
+          type: string
+        reference:
+          type: string
       type: object
     server.authenticateUserRequest:
       properties:
@@ -586,14 +614,22 @@ paths:
       - contacts
   /contacts/lists/{reference}:
     delete:
-      operationId: deleteContactList
+      operationId: addEmailToContactList
       parameters:
-      - description: list unique reference.. e.g link_
+      - description: list unique reference.. e.g list_
         in: path
         name: reference
         required: true
         schema:
           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.addContactToListRequest'
+        description: contact body
+        required: true
+        x-originalParamName: message
       responses:
         "200":
           content:
@@ -625,13 +661,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/server.APIStatus'
           description: Internal Server Error
-      summary: delete a contact list
+      summary: add a new contact to a list
       tags:
       - contacts
     put:
       operationId: editContactList
       parameters:
-      - description: list unique reference.. e.g link_
+      - description: list unique reference.. e.g list_
         in: path
         name: reference
         required: true
