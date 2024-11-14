@@ -433,7 +433,8 @@ func (c *contactHandler) addUserToContactList(
 		zap.String("list_reference", reference))
 
 	contact, err := c.contactRepo.Get(ctx, malak.FetchContactOptions{
-		Reference: req.Reference,
+		Reference:   req.Reference,
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if errors.Is(err, malak.ErrContactNotFound) {
 		return newAPIStatus(http.StatusNotFound, err.Error()), StatusFailed

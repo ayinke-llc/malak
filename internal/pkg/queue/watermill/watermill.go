@@ -190,7 +190,8 @@ func (t *WatermillClient) sendPreviewEmail(msg *message.Message) error {
 	}
 
 	contact, err := t.contactRepo.Get(ctx, malak.FetchContactOptions{
-		Email: p.Email,
+		Email:       p.Email,
+		WorkspaceID: update.WorkspaceID,
 	})
 	if err != nil {
 		span.RecordError(err)

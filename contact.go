@@ -49,9 +49,10 @@ type Contact struct {
 }
 
 type FetchContactOptions struct {
-	ID        uuid.UUID
-	Email     Email
-	Reference Reference
+	ID          uuid.UUID
+	Email       Email
+	Reference   Reference
+	WorkspaceID uuid.UUID
 }
 
 type ContactRepository interface {
