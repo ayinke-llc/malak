@@ -26,12 +26,13 @@ import * as EmailValidator from "email-validator";
 import { Option } from "lucide-react";
 import { useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
-import CreatableSelect from "react-select/creatable";
+// import CreatableSelect from "react-select/creatable";
 import { toast } from "sonner";
 import * as yup from "yup";
 import type { ButtonProps } from "./props";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import CreatableSelect from "@/components/ui/multi-select"
 
 interface Option {
   readonly label: string;
@@ -56,6 +57,7 @@ type ListOption = Option & {
 };
 
 const SendUpdateButton = ({ }: ButtonProps) => {
+
   const [loading, setLoading] = useState<boolean>(false);
   const [showAllRecipients, setShowAllRecipients] = useState<boolean>(false);
 
@@ -147,7 +149,9 @@ const SendUpdateButton = ({ }: ButtonProps) => {
       <div className="flex justify-center">
         <Dialog>
           <DialogTrigger asChild>
-            <Button type="submit" size="lg" variant="primary" className="gap-1">
+            <Button type="submit" size="lg"
+              variant="default"
+              className="gap-1">
               <RiMailSendLine size={18} />
               Send
             </Button>
@@ -162,61 +166,51 @@ const SendUpdateButton = ({ }: ButtonProps) => {
                 </DialogDescription>
 
                 <div className="mt-4">
-                  <CreatableSelect
-                    isDisabled={loading}
-                    isLoading={loading}
-                    onCreateOption={createNewContact}
-                    onChange={(value) => {
-                      createNewContact("oopsoops@gmail.com");
-                    }}
+                  <CreatableSelect placeholder="Select a list or add an email"
+                    isMulti
                     options={options}
-                    autoFocus={true}
+                    allowCustomInput={true}
+                    onCustomInputEnter={createNewContact}
                   />
                 </div>
 
                 {values.length > 0 && (
-                  <div className="flex-1 mt-5">
+                  <div className="flex-1 pt-5">
                     <div
                       className={cn(
+                        "w-full rounded-md border bg-background p-2",
                         showAllRecipients ? "h-[100px]" : "h-full",
-                        "w-full rounded-md border p-2 overflow-y-auto",
+                        "overflow-y-auto"
                       )}
                     >
-                      <div className="flex flex-wrap justify-start gap-3">
+                      <div className="flex flex-wrap gap-2">
                         {values
                           .slice(0, showAllRecipients ? values.length : 5)
                           .map((recipient, index) => (
                             <Badge
                               key={index}
-                              color="gray"
-                              className="flex items-center space-x-1 gap-3 mt-1"
-                              variant="default"
+                              variant="secondary"
+                              className="flex items-center gap-1 pr-1"
                             >
-                              <span>{recipient.label}</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-4 w-4 p-0"
+                              <span className="text-sm">{recipient.label}</span>
+                              <button
                                 onClick={() => removeContact(index)}
+                                className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                               >
-                                <RiCloseLargeLine
-                                  className="h-3 w-3"
-                                  color="red"
-                                />
-                                <span className="sr-only">
-                                  Remove recipient
-                                </span>
-                              </Button>
+                                <RiCloseLargeLine className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                                <span className="sr-only">Remove recipient</span>
+                              </button>
                             </Badge>
                           ))}
                         {values.length > 5 && (
                           <Button
-                            size="sm"
                             variant="outline"
+                            size="sm"
                             onClick={toggleShowAllRecipientState}
+                            className="h-8"
                           >
                             {showAllRecipients
-                              ? "hide recipients"
+                              ? "Show less"
                               : `+${values.length - 5} more`}
                           </Button>
                         )}

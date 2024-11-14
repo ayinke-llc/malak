@@ -121,7 +121,7 @@ const SendTestButton = ({ reference }: ButtonProps) => {
                     type={"button"}
                     className="mt-2 w-full sm:mt-0 sm:w-fit"
                     variant="secondary"
-                    isLoading={loading}
+                    loading={loading}
                   >
                     Cancel
                   </Button>
@@ -129,7 +129,7 @@ const SendTestButton = ({ reference }: ButtonProps) => {
                 <Button
                   type="submit"
                   className="w-full sm:w-fit"
-                  isLoading={loading}
+                  loading={loading}
                 >
                   Preview
                 </Button>

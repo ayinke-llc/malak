@@ -31,27 +31,14 @@ export default function Page() {
   }
 
   return (
-    <div className="pt-6">
+    <div>
       <section>
-        <div className="sm:flex sm:items-center sm:justify-between">
-          <div>
-            <h3
-              id="existing-contacts"
-              className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
-            >
-              Create a new update
-            </h3>
-            <p className="text-sm leading-6 text-gray-500">
-              Sending a new update to your investors
-            </p>
-          </div>
-          <div className="flex flex-wrap justify-center gap-1">
-            <SendTestButton reference={reference} />
-            <SendUpdateButton reference={reference} />
-          </div>
+        <div className="flex flex-col sm:flex-row justify-end gap-1">
+          <SendTestButton reference={reference} />
+          <SendUpdateButton reference={reference} />
         </div>
 
-        <div className="mt-5">
+        <div className="mt-2">
           {isLoading ? (
             <Skeleton count={10} />
           ) : (
