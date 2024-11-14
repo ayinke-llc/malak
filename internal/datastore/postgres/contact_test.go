@@ -9,6 +9,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	workspaceID = uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526")
+)
+
 func TestContact_Get(t *testing.T) {
 
 	client, teardownFunc := setupDatabase(t)
@@ -17,12 +21,14 @@ func TestContact_Get(t *testing.T) {
 	contactRepo := NewContactRepository(client)
 
 	_, err := contactRepo.Get(context.Background(), malak.FetchContactOptions{
-		Reference: "contact_kCoC286IR", // contacts.yml
+		Reference:   "contact_kCoC286IR", // contacts.yml
+		WorkspaceID: workspaceID,
 	})
 	require.NoError(t, err)
 
 	_, err = contactRepo.Get(context.Background(), malak.FetchContactOptions{
-		Reference: "contact_kCo",
+		Reference:   "contact_kCo",
+		WorkspaceID: workspaceID,
 	})
 	require.Error(t, err)
 	require.Equal(t, err, malak.ErrContactNotFound)
