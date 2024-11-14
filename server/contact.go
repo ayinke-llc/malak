@@ -206,6 +206,7 @@ func (c *contactHandler) createContactList(
 // @id fetchContactLists
 // @Accept  json
 // @Produce  json
+// @Param include_emails query boolean false "show emails inside the list"
 // @Success 200 {object} fetchContactListsResponse
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
@@ -221,7 +222,10 @@ func (c *contactHandler) fetchContactLists(
 
 	logger.Debug("listing all contact lists in this workspace")
 
-	list, err := c.contactListRepo.List(ctx, getWorkspaceFromContext(ctx).ID)
+	list, mappings, err := c.contactListRepo.List(ctx, &malak.ContactListOptions{
+		WorkspaceID:   getWorkspaceFromContext(ctx).ID,
+		IncludeEmails: r.URL.Query().Has("include_emails"),
+	})
 	if err != nil {
 		logger.
 			Error("an error occurred while listing contact lists", zap.Error(err))
@@ -230,9 +234,29 @@ func (c *contactHandler) fetchContactLists(
 			"an error occurred while fetching contact lists"), StatusFailed
 	}
 
+	mappingsByListID := make(map[uuid.UUID][]malak.ContactListMappingWithContact)
+	for _, mapping := range mappings {
+		mappingsByListID[mapping.ListID] = append(mappingsByListID[mapping.ListID], mapping)
+	}
+
+	responseLists := []struct {
+		List     malak.ContactList                     "json:\"list,omitempty\" validate:\"required\""
+		Mappings []malak.ContactListMappingWithContact "json:\"mappings,omitempty\" validate:\"required\""
+	}{}
+
+	for _, v := range list {
+		responseLists = append(responseLists, struct {
+			List     malak.ContactList                     "json:\"list,omitempty\" validate:\"required\""
+			Mappings []malak.ContactListMappingWithContact "json:\"mappings,omitempty\" validate:\"required\""
+		}{
+			List:     v,
+			Mappings: mappingsByListID[v.ID],
+		})
+	}
+
 	return fetchContactListsResponse{
-		APIStatus: newAPIStatus(http.StatusCreated, "list was successfully created"),
-		Lists:     list,
+		APIStatus: newAPIStatus(http.StatusOK, "list was successfully retrieved"),
+		Lists:     responseLists,
 	}, StatusSuccess
 }
 
@@ -356,8 +380,7 @@ func (c *contactHandler) deleteContactList(
 }
 
 type addContactToListRequest struct {
-	Reference   malak.Reference
-	ContactList uuid.UUID
+	Reference malak.Reference
 
 	GenericRequest
 }
@@ -365,10 +388,6 @@ type addContactToListRequest struct {
 func (c *addContactToListRequest) Validate() error {
 	if hermes.IsStringEmpty(c.Reference.String()) {
 		return errors.New("please provide the reference of the contact")
-	}
-
-	if c.ContactList == uuid.Nil {
-		return errors.New("please provide the list to add the user to")
 	}
 
 	return nil
@@ -410,11 +429,12 @@ func (c *contactHandler) addUserToContactList(
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	logger = logger.With(zap.String("reference", req.Reference.String()),
-		zap.String("contact_list_id", req.ContactList.String()))
+	logger = logger.With(zap.String("contact_id", req.Reference.String()),
+		zap.String("list_reference", reference))
 
 	contact, err := c.contactRepo.Get(ctx, malak.FetchContactOptions{
-		Reference: req.Reference,
+		Reference:   req.Reference,
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if errors.Is(err, malak.ErrContactNotFound) {
 		return newAPIStatus(http.StatusNotFound, err.Error()), StatusFailed
@@ -446,6 +466,7 @@ func (c *contactHandler) addUserToContactList(
 		Reference: c.referenceGenerator.Generate(malak.EntityTypeListEmail),
 		ListID:    list.ID,
 		ContactID: contact.ID,
+		CreatedBy: getUserFromContext(ctx).ID,
 	}
 
 	if err := c.contactListRepo.Add(ctx, mapping); err != nil {
@@ -454,5 +475,5 @@ func (c *contactHandler) addUserToContactList(
 			StatusFailed
 	}
 
-	return newAPIStatus(http.StatusCreated, "list was successfully deleted"), StatusSuccess
+	return newAPIStatus(http.StatusCreated, "list was successfully updated with contact"), StatusSuccess
 }

@@ -1,0 +1,1 @@
+ALTER TABLE contact_list_mappings DROP CONSTRAINT unique_contact_list;

@@ -3,10 +3,11 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/ayinke-llc/malak"
-	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
@@ -80,16 +81,61 @@ func (c *contactListRepo) Create(ctx context.Context,
 
 }
 
-func (c *contactListRepo) List(ctx context.Context, id uuid.UUID) ([]malak.ContactList, error) {
-	list := make([]malak.ContactList, 0)
+func (c *contactListRepo) List(ctx context.Context,
+	opts *malak.ContactListOptions) ([]malak.ContactList, []malak.ContactListMappingWithContact, error) {
 
-	err := c.inner.NewSelect().
-		Order("created_at DESC").
-		Where("workspace_id = ?", id).
-		Model(&list).
-		Scan(ctx)
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
 
-	return list, err
+	query := `
+        WITH list_data AS (
+            SELECT 
+                id, workspace_id, title, reference, 
+                created_by, created_at, updated_at, deleted_at
+            FROM contact_lists 
+            WHERE workspace_id = ? AND deleted_at IS NULL ORDER BY created_at DESC
+        )
+        SELECT 
+            json_agg(
+                list_data
+            )::text as lists,
+            COALESCE(
+                json_agg(
+                    DISTINCT jsonb_build_object(
+                        'id', clm.id,
+                        'list_id', clm.list_id,
+                        'contact_id', clm.contact_id,
+                        'reference', clm.reference,
+                        'email', c.email
+                    )
+                ) FILTER (WHERE clm.id IS NOT NULL),
+                '[]'
+            )::text as mappings
+        FROM list_data
+        LEFT JOIN contact_list_mappings clm ON clm.list_id = list_data.id 
+            AND clm.deleted_at IS NULL
+        LEFT JOIN contacts c ON c.id = clm.contact_id 
+            AND c.deleted_at IS NULL;
+    `
+
+	var listsStr, mappingsStr string
+	err := c.inner.QueryRowContext(ctx, query, opts.WorkspaceID).Scan(&listsStr, &mappingsStr)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var lists []malak.ContactList
+	var mappings []malak.ContactListMappingWithContact
+
+	if err := json.Unmarshal([]byte(listsStr), &lists); err != nil {
+		return nil, nil, fmt.Errorf("unmarshal lists: %w", err)
+	}
+
+	if err := json.Unmarshal([]byte(mappingsStr), &mappings); err != nil {
+		return nil, nil, fmt.Errorf("unmarshal mappings: %w", err)
+	}
+
+	return lists, mappings, nil
 }
 
 func (c *contactListRepo) Add(ctx context.Context,
@@ -104,6 +150,10 @@ func (c *contactListRepo) Add(ctx context.Context,
 			_, err := tx.NewInsert().
 				Model(mapping).
 				Exec(ctx)
+
+			if malak.IsDuplicateUniqueError(err) {
+				return nil
+			}
 
 			return err
 		})

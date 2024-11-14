@@ -152,6 +152,14 @@ const docTemplate = `{
                 ],
                 "summary": "List all created contact lists",
                 "operationId": "fetchContactLists",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "show emails inside the list",
+                        "name": "include_emails",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1190,6 +1198,27 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.ContactListMappingWithContact": {
+            "type": "object",
+            "properties": {
+                "contact_id": {
+                    "type": "string"
+                },
+                "email": {
+                    "description": "Contact fields",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "list_id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.CustomContactMetadata": {
             "type": "object",
             "additionalProperties": {
@@ -1399,9 +1428,6 @@ const docTemplate = `{
         "server.addContactToListRequest": {
             "type": "object",
             "properties": {
-                "contactList": {
-                    "type": "string"
-                },
                 "reference": {
                     "type": "string"
                 }
@@ -1541,13 +1567,29 @@ const docTemplate = `{
         "server.fetchContactListsResponse": {
             "type": "object",
             "required": [
+                "lists",
                 "message"
             ],
             "properties": {
                 "lists": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/malak.ContactList"
+                        "type": "object",
+                        "required": [
+                            "list",
+                            "mappings"
+                        ],
+                        "properties": {
+                            "list": {
+                                "$ref": "#/definitions/malak.ContactList"
+                            },
+                            "mappings": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/malak.ContactListMappingWithContact"
+                                }
+                            }
+                        }
                     }
                 },
                 "message": {

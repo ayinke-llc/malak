@@ -69,7 +69,8 @@ func (o *contactRepo) Get(ctx context.Context,
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
 
-	q := o.inner.NewSelect()
+	q := o.inner.NewSelect().
+		Where("workspace_id = ?", opts.WorkspaceID)
 
 	if !util.IsStringEmpty(opts.Reference.String()) {
 		q = q.Where("reference = ?", opts.Reference.String())

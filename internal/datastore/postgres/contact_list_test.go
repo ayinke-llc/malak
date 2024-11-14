@@ -89,7 +89,10 @@ func TestContactList(t *testing.T) {
 
 	}
 
-	lists, err := contactRepo.List(context.Background(), uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"))
+	lists, _, err := contactRepo.List(context.Background(),
+		&malak.ContactListOptions{
+			WorkspaceID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+		})
 	require.NoError(t, err)
 
 	require.Len(t, lists, 2)
@@ -140,6 +143,14 @@ func TestContactList_Add(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, list.Title, newList.Title)
 
+	_, mappings, err := contactListRepo.List(context.Background(),
+		&malak.ContactListOptions{
+			WorkspaceID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+		})
+	require.NoError(t, err)
+
+	require.Len(t, mappings, 0)
+
 	err = contactListRepo.Add(context.Background(), &malak.ContactListMapping{
 		ListID:    newList.ID,
 		ContactID: contact.ID,
@@ -147,4 +158,12 @@ func TestContactList_Add(t *testing.T) {
 		CreatedBy: user.ID,
 	})
 	require.NoError(t, err)
+
+	_, mappings, err = contactListRepo.List(context.Background(),
+		&malak.ContactListOptions{
+			WorkspaceID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+		})
+	require.NoError(t, err)
+
+	require.Len(t, mappings, 1)
 }

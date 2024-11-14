@@ -49,11 +49,26 @@ type FetchContactListOptions struct {
 	WorkspaceID uuid.UUID
 }
 
+type ContactListOptions struct {
+	WorkspaceID   uuid.UUID
+	IncludeEmails bool
+}
+
 type ContactListRepository interface {
 	Create(context.Context, *ContactList) error
 	Get(context.Context, FetchContactListOptions) (*ContactList, error)
 	Delete(context.Context, *ContactList) error
 	Update(context.Context, *ContactList) error
 	Add(context.Context, *ContactListMapping) error
-	List(context.Context, uuid.UUID) ([]ContactList, error)
+	List(context.Context, *ContactListOptions) ([]ContactList, []ContactListMappingWithContact, error)
+}
+
+type ContactListMappingWithContact struct {
+	ID        uuid.UUID `json:"id,omitempty"`
+	ListID    uuid.UUID `json:"list_id,omitempty"`
+	ContactID uuid.UUID `json:"contact_id,omitempty"`
+	Reference string    `json:"reference,omitempty"`
+
+	// Contact fields
+	Email string `json:"email,omitempty"`
 }
