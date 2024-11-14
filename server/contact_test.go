@@ -13,7 +13,6 @@ import (
 	"github.com/ayinke-llc/malak"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -268,16 +267,6 @@ func generateAddUserToContactListTestTable() []struct {
 			req:                addContactToListRequest{},
 		},
 		{
-			name: "reference provided but no list id",
-			mockFn: func(contactListRepo *malak_mocks.MockContactListRepository, contactRepo *malak_mocks.MockContactRepository) {
-
-			},
-			expectedStatusCode: http.StatusBadRequest,
-			req: addContactToListRequest{
-				Reference: "oops",
-			},
-		},
-		{
 			name: "contact not found",
 			mockFn: func(contactListRepo *malak_mocks.MockContactListRepository, contactRepo *malak_mocks.MockContactRepository) {
 				contactRepo.EXPECT().
@@ -287,8 +276,7 @@ func generateAddUserToContactListTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusNotFound,
 			req: addContactToListRequest{
-				Reference:   "oops",
-				ContactList: uuid.New(),
+				Reference: "oops",
 			},
 		},
 		{
@@ -301,8 +289,7 @@ func generateAddUserToContactListTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 			req: addContactToListRequest{
-				Reference:   "oops",
-				ContactList: uuid.New(),
+				Reference: "oops",
 			},
 		},
 		{
@@ -319,8 +306,7 @@ func generateAddUserToContactListTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusNotFound,
 			req: addContactToListRequest{
-				Reference:   "oops",
-				ContactList: uuid.New(),
+				Reference: "oops",
 			},
 		},
 		{
@@ -337,8 +323,7 @@ func generateAddUserToContactListTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 			req: addContactToListRequest{
-				Reference:   "oops",
-				ContactList: uuid.New(),
+				Reference: "oops",
 			},
 		},
 		{
@@ -359,8 +344,7 @@ func generateAddUserToContactListTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 			req: addContactToListRequest{
-				Reference:   "oops",
-				ContactList: uuid.New(),
+				Reference: "oops",
 			},
 		},
 		{
@@ -382,8 +366,7 @@ func generateAddUserToContactListTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusCreated,
 			req: addContactToListRequest{
-				Reference:   "oops",
-				ContactList: uuid.New(),
+				Reference: "oops",
 			},
 		},
 	}
