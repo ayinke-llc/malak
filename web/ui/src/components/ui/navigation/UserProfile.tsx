@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/Button";
-import { cx, focusRing } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { RiMore2Fill } from "@remixicon/react";
 
 import { DropdownUserProfile } from "./DropdownUserProfile";
@@ -12,8 +12,7 @@ export const UserProfileDesktop = () => {
       <Button
         aria-label="User settings"
         variant="ghost"
-        className={cx(
-          focusRing,
+        className={cn(
           "group flex w-full items-center justify-between rounded-md p-2 text-sm font-medium text-gray-900 hover:bg-gray-100 data-[state=open]:bg-gray-100 data-[state=open]:bg-gray-400/10 hover:dark:bg-gray-400/10",
         )}
       >
@@ -41,7 +40,7 @@ export const UserProfileMobile = () => {
       <Button
         aria-label="User settings"
         variant="ghost"
-        className={cx(
+        className={cn(
           "group flex items-center rounded-md p-1 text-sm font-medium text-gray-900 hover:bg-gray-100 data-[state=open]:bg-gray-100 data-[state=open]:bg-gray-400/10 hover:dark:bg-gray-400/10",
         )}
       >

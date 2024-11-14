@@ -1,5 +1,5 @@
 import type { ServerAPIStatus } from "@/client/Api";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -9,10 +9,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/Dialog";
-import { DropdownMenuItem } from "@/components/Dropdown";
-import { Input } from "@/components/Input";
-import { Label } from "@/components/Label";
+} from "@/components/ui/dialog";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import client from "@/lib/client";
 import useWorkspacesStore from "@/store/workspace";
 import { yupResolver } from "@hookform/resolvers/yup";

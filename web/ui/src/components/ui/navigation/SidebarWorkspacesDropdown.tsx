@@ -9,10 +9,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/Dropdown";
+} from "@/components/ui/dropdown-menu";
 import client from "@/lib/client";
 import { SWITCH_WORKSPACE } from "@/lib/query-constants";
-import { cx, focusInput } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import useWorkspacesStore from "@/store/workspace";
 import { RiArrowRightSLine, RiExpandUpDownLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
@@ -78,9 +78,8 @@ export const WorkspacesDropdownDesktop = () => {
       >
         <DropdownMenuTrigger asChild>
           <button
-            className={cx(
+            className={cn(
               "flex w-full items-center gap-x-2.5 rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm transition-all hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 hover:dark:bg-gray-900",
-              focusInput,
             )}
           >
             <span
@@ -138,7 +137,7 @@ export const WorkspacesDropdownDesktop = () => {
                 >
                   <div className="flex w-full items-center gap-x-2.5">
                     <span
-                      className={cx(
+                      className={cn(
                         "bg-indigo-600 dark:bg-indigo-500",
                         "uppercase flex aspect-square size-8 items-center justify-center rounded p-2 text-xs font-medium text-white",
                       )}
@@ -151,9 +150,9 @@ export const WorkspacesDropdownDesktop = () => {
                         .join("")}
                     </span>
                     <div
-                      className={cx(
+                      className={cn(
                         workspace.reference === current?.reference &&
-                          "text-indigo-600 dark:text-indigo-400",
+                        "text-indigo-600 dark:text-indigo-400",
                       )}
                     >
                       <p className="text-sm font-medium">
@@ -231,7 +230,7 @@ export const WorkspacesDropdownMobile = () => {
         <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-x-1.5 rounded-md p-2 hover:bg-gray-100 focus:outline-none hover:dark:bg-gray-900">
             <span
-              className={cx(
+              className={cn(
                 "uppercase",
                 "flex aspect-square size-7 items-center justify-center rounded bg-indigo-600 p-2 text-xs font-medium text-white dark:bg-indigo-500",
               )}
@@ -288,7 +287,7 @@ export const WorkspacesDropdownMobile = () => {
                 >
                   <div className="flex w-full items-center gap-x-2.5">
                     <span
-                      className={cx(
+                      className={cn(
                         "bg-indigo-600 dark:bg-indigo-500",
                         "uppercase flex size-8 items-center justify-center rounded p-2 text-xs font-medium text-white",
                       )}
@@ -301,9 +300,9 @@ export const WorkspacesDropdownMobile = () => {
                         .join("")}
                     </span>
                     <div
-                      className={cx(
+                      className={cn(
                         workspace.reference === current?.reference &&
-                          "text-indigo-600 dark:text-indigo-400",
+                        "text-indigo-600 dark:text-indigo-400",
                       )}
                     >
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-50">

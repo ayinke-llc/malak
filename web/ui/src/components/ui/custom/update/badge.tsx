@@ -1,8 +1,8 @@
-import { Badge } from "@/components/Badge";
+import { Badge } from "@/components/ui/badge";
 
 const UpdateBadge = ({ status }: { status: string }) => {
   return (
-    <Badge variant={"warning"} className="text-xs">
+    <Badge variant={"secondary"} className="text-xs">
       {status}
     </Badge>
   );

@@ -1,5 +1,5 @@
 import type { ServerAPIStatus } from "@/client/Api";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -9,9 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/Dialog";
-import { Label } from "@/components/Label";
-import { Switch } from "@/components/Switch";
+} from "@/components/ui/dialog";
 import client from "@/lib/client";
 import {
   CREATE_CONTACT_MUTATION,
@@ -20,10 +18,7 @@ import {
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   RiCloseLargeLine,
-  RiCloseLine,
   RiMailSendLine,
-  RiMarkupLine,
-  RiTwitterXLine,
 } from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
@@ -35,8 +30,8 @@ import CreatableSelect from "react-select/creatable";
 import { toast } from "sonner";
 import * as yup from "yup";
 import type { ButtonProps } from "./props";
-import { Badge } from "@/components/Badge";
-import { cx } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface Option {
   readonly label: string;
@@ -60,7 +55,7 @@ type ListOption = Option & {
   emails?: string[];
 };
 
-const SendUpdateButton = ({}: ButtonProps) => {
+const SendUpdateButton = ({ }: ButtonProps) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAllRecipients, setShowAllRecipients] = useState<boolean>(false);
 
@@ -182,7 +177,7 @@ const SendUpdateButton = ({}: ButtonProps) => {
                 {values.length > 0 && (
                   <div className="flex-1 mt-5">
                     <div
-                      className={cx(
+                      className={cn(
                         showAllRecipients ? "h-[100px]" : "h-full",
                         "w-full rounded-md border p-2 overflow-y-auto",
                       )}
@@ -195,7 +190,7 @@ const SendUpdateButton = ({}: ButtonProps) => {
                               key={index}
                               color="gray"
                               className="flex items-center space-x-1 gap-3 mt-1"
-                              variant="neutral"
+                              variant="default"
                             >
                               <span>{recipient.label}</span>
                               <Button
@@ -217,7 +212,7 @@ const SendUpdateButton = ({}: ButtonProps) => {
                         {values.length > 5 && (
                           <Button
                             size="sm"
-                            variant="light"
+                            variant="outline"
                             onClick={toggleShowAllRecipientState}
                           >
                             {showAllRecipients
@@ -236,7 +231,7 @@ const SendUpdateButton = ({}: ButtonProps) => {
                     type={"button"}
                     className="mt-2 w-full sm:mt-0 sm:w-fit"
                     variant="secondary"
-                    isLoading={loading}
+                    loading={loading}
                   >
                     Cancel
                   </Button>
@@ -244,7 +239,7 @@ const SendUpdateButton = ({}: ButtonProps) => {
                 <Button
                   type="submit"
                   className="w-full sm:w-fit"
-                  isLoading={loading}
+                  loading={loading}
                 >
                   Send
                 </Button>

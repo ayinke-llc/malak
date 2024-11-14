@@ -1,18 +1,16 @@
 "use client";
 
 import { ServerAPIStatus, ServerFetchUpdateReponse } from "@/client/Api";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/button";
 import ListUpdatesTable from "@/components/ui/updates/list/list";
 import client from "@/lib/client";
 import { RiAddLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
 import { format } from "date-fns";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { BooleanSchema } from "yup";
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -59,10 +57,9 @@ export default function Page() {
             <div className="w-full text-right">
               <Button
                 type="button"
-                variant="primary"
+                variant="default"
                 className="whitespace-nowrap"
-                isLoading={isLoading}
-                loadingText="Creating"
+                loading={isLoading}
                 onClick={() => mutation.mutate()}
               >
                 <RiAddLine />

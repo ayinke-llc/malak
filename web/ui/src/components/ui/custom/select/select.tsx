@@ -4,7 +4,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/Select";
+} from "@/components/ui/select";
 import type { RemixiconComponentType } from "@remixicon/react";
 import { Avatar, AvatarFallback, AvatarImage } from "../avatar/avatar";
 

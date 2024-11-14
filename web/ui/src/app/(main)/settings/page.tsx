@@ -1,5 +1,5 @@
 import { siteConfig } from "@/app/siteConfig";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/button";
 import { ArrowAnimated } from "@/components/ui/icons/ArrowAnimated";
 import { TremorPlaceholder } from "@/components/ui/icons/TremorPlaceholder";
 
