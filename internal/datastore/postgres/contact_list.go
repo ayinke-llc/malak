@@ -151,6 +151,10 @@ func (c *contactListRepo) Add(ctx context.Context,
 				Model(mapping).
 				Exec(ctx)
 
+			if malak.IsDuplicateUniqueError(err) {
+				return nil
+			}
+
 			return err
 		})
 }
