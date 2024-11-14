@@ -439,7 +439,7 @@ func generateFetchContactListsTestTable() []struct {
 			name: "unknown error",
 			mockFn: func(contactListRepo *malak_mocks.MockContactListRepository) {
 				contactListRepo.EXPECT().List(gomock.Any(), gomock.Any()).
-					Return(nil, errors.New("unknown error"))
+					Return(nil, nil, errors.New("unknown error"))
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
@@ -447,9 +447,9 @@ func generateFetchContactListsTestTable() []struct {
 			name: "success",
 			mockFn: func(contactListRepo *malak_mocks.MockContactListRepository) {
 				contactListRepo.EXPECT().List(gomock.Any(), gomock.Any()).
-					Return([]malak.ContactList{}, nil)
+					Return([]malak.ContactList{}, []malak.ContactListMappingWithContact{}, nil)
 			},
-			expectedStatusCode: http.StatusCreated,
+			expectedStatusCode: http.StatusOK,
 		},
 	}
 }

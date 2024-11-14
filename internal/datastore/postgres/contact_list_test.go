@@ -89,7 +89,10 @@ func TestContactList(t *testing.T) {
 
 	}
 
-	lists, err := contactRepo.List(context.Background(), uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"))
+	lists, _, err := contactRepo.List(context.Background(),
+		&malak.ContactListOptions{
+			WorkspaceID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+		})
 	require.NoError(t, err)
 
 	require.Len(t, lists, 2)
