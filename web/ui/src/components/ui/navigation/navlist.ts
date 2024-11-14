@@ -38,6 +38,17 @@ export const links = [
     title: "Contacts",
     url: "/contacts",
     icon: RiContactsLine,
+    items: [
+      {
+        title: "View contacts",
+        url: "/contacts",
+        icon: RiChatNewLine,
+      },
+      {
+        title: "View contact lists",
+        url: "/contacts"
+      }
+    ],
   },
   {
     title: "Fundraising",
