@@ -234,21 +234,20 @@ func (c *contactHandler) fetchContactLists(
 			"an error occurred while fetching contact lists"), StatusFailed
 	}
 
-	// keep this relatively simple for now
-	mappingsByListID := make(map[uuid.UUID][]malak.ContactListMapping)
+	mappingsByListID := make(map[uuid.UUID][]malak.ContactListMappingWithContact)
 	for _, mapping := range mappings {
 		mappingsByListID[mapping.ListID] = append(mappingsByListID[mapping.ListID], mapping)
 	}
 
 	responseLists := []struct {
-		List     malak.ContactList          "json:\"list,omitempty\" validate:\"required\""
-		Mappings []malak.ContactListMapping "json:\"mappings,omitempty\" validate:\"required\""
+		List     malak.ContactList                     "json:\"list,omitempty\" validate:\"required\""
+		Mappings []malak.ContactListMappingWithContact "json:\"mappings,omitempty\" validate:\"required\""
 	}{}
 
 	for _, v := range list {
 		responseLists = append(responseLists, struct {
-			List     malak.ContactList          "json:\"list,omitempty\" validate:\"required\""
-			Mappings []malak.ContactListMapping "json:\"mappings,omitempty\" validate:\"required\""
+			List     malak.ContactList                     "json:\"list,omitempty\" validate:\"required\""
+			Mappings []malak.ContactListMappingWithContact "json:\"mappings,omitempty\" validate:\"required\""
 		}{
 			List:     v,
 			Mappings: mappingsByListID[v.ID],

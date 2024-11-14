@@ -91,6 +91,20 @@ components:
         updated_at:
           type: string
       type: object
+    malak.ContactListMappingWithContact:
+      properties:
+        contact_id:
+          type: string
+        email:
+          description: Contact fields
+          type: string
+        id:
+          type: string
+        list_id:
+          type: string
+        reference:
+          type: string
+      type: object
     malak.CustomContactMetadata:
       additionalProperties:
         type: string
@@ -239,8 +253,6 @@ components:
       type: object
     server.addContactToListRequest:
       properties:
-        contactList:
-          type: string
         reference:
           type: string
       type: object
@@ -339,7 +351,7 @@ components:
                 $ref: '#/components/schemas/malak.ContactList'
               mappings:
                 items:
-                  $ref: '#/components/schemas/malak.ContactListMapping'
+                  $ref: '#/components/schemas/malak.ContactListMappingWithContact'
                 type: array
             required:
             - list

@@ -1198,6 +1198,27 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.ContactListMappingWithContact": {
+            "type": "object",
+            "properties": {
+                "contact_id": {
+                    "type": "string"
+                },
+                "email": {
+                    "description": "Contact fields",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "list_id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.CustomContactMetadata": {
             "type": "object",
             "additionalProperties": {
@@ -1407,9 +1428,6 @@ const docTemplate = `{
         "server.addContactToListRequest": {
             "type": "object",
             "properties": {
-                "contactList": {
-                    "type": "string"
-                },
                 "reference": {
                     "type": "string"
                 }
@@ -1568,7 +1586,7 @@ const docTemplate = `{
                             "mappings": {
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/malak.ContactListMapping"
+                                    "$ref": "#/definitions/malak.ContactListMappingWithContact"
                                 }
                             }
                         }
