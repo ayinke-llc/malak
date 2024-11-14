@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/providers/providers";
 import { siteConfig } from "./siteConfig";
+import { ThemeProvider } from "@/components/providers/theme";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -52,7 +53,14 @@ export default function RootLayout({
         className={`${inter.className} overflow-y-scroll scroll-auto antialiased 
 selection:bg-indigo-100 selection:text-indigo-700 dark:bg-gray-950`}
       >
-        <Providers>{children}</Providers>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Providers>{children}</Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

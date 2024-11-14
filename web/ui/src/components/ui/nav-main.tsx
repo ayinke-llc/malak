@@ -2,7 +2,8 @@
 "use client"
 
 import { ChevronRight, type LucideIcon } from "lucide-react"
-
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Collapsible,
   CollapsibleContent,
@@ -18,6 +19,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
+import { RemixiconComponentType } from "@remixicon/react"
 
 export function NavMain({
   items,
@@ -25,14 +27,21 @@ export function NavMain({
   items: {
     title: string
     url: string
-    icon?: LucideIcon
-    isActive?: boolean
+    icon?: RemixiconComponentType
+    radisActive?: boolean
     items?: {
       title: string
       url: string
     }[]
   }[]
 }) {
+
+  const pathname = usePathname();
+
+  const isActive = (itemHref: string) => {
+    return pathname.startsWith(itemHref);
+  };
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
@@ -41,7 +50,7 @@ export function NavMain({
           <Collapsible
             key={item.title}
             asChild
-            defaultOpen={item.isActive}
+            defaultOpen={isActive(item.url)}
             className="group/collapsible"
           >
             <SidebarMenuItem>

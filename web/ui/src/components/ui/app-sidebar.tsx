@@ -26,6 +26,10 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import useWorkspacesStore from "@/store/workspace"
+import { links } from "./navigation/navlist"
+import useAuthStore from "@/store/auth"
+import { MalakUser } from "@/client/Api"
 
 // This is sample data.
 const data = {
@@ -158,17 +162,24 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+
+  const { current, workspaces } = useWorkspacesStore()
+  const { user } = useAuthStore()
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={workspaces} current={current} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavMain items={links} />
+        <NavProjects projects={[]} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={{
+          email: user?.email as string,
+          full_name: user?.full_name as string
+        }} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
