@@ -1,10 +1,10 @@
-// https://ui.shadcx.com/docs/components/avatar
+// https://ui.shadcn.com/docs/components/avatar
 //
 //
 
 "use client";
 
-import { cx } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import * as React from "react";
 
@@ -14,7 +14,7 @@ const Avatar = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AvatarPrimitive.Root
     ref={ref}
-    className={cx(
+    className={cn(
       "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
       className,
     )}
@@ -29,7 +29,7 @@ const AvatarImage = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AvatarPrimitive.Image
     ref={ref}
-    className={cx("aspect-square h-full w-full", className)}
+    className={cn("aspect-square h-full w-full", className)}
     {...props}
   />
 ));
@@ -41,7 +41,7 @@ const AvatarFallback = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AvatarPrimitive.Fallback
     ref={ref}
-    className={cx(
+    className={cn(
       "flex h-full w-full items-center justify-center rounded-full bg-muted",
       className,
     )}

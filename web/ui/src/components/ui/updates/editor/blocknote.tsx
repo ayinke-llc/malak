@@ -6,7 +6,7 @@ import type {
   ServerAPIStatus,
   ServerContentUpdateRequest,
 } from "@/client/Api";
-import { Badge } from "@/components/Badge";
+import { Badge } from "@/components/ui/badge";
 import client from "@/lib/client";
 import { UPDATE_CONTENT } from "@/lib/query-constants";
 import {
@@ -121,17 +121,18 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
     });
   }, 1000);
 
-  const getVariant = (): "warning" | "error" | "success" | "neutral" => {
-    switch (saveStatus) {
-      case "Saved":
-        return "success";
-      case "Unsaved":
-        return "warning";
-      case "Storing":
-        return "warning";
-      default:
-        return "neutral";
-    }
+  const getVariant = (): "default" => {
+    return "default"
+    // switch (saveStatus) {
+    //   case "Saved":
+    //     return "success";
+    //   case "Unsaved":
+    //     return "warning";
+    //   case "Storing":
+    //     return "warning";
+    //   default:
+    //     return "default";
+    // }
   };
 
   return (

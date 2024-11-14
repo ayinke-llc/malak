@@ -1,7 +1,7 @@
 "use client";
 
 import type { ServerCreatedUserResponse } from "@/client/Api";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/button";
 import { EVENT_LOGIN_BUTTON_CLICKED } from "@/lib/analytics-constansts";
 import client from "@/lib/client";
 import {

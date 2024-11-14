@@ -1,5 +1,5 @@
 import type { ServerAPIStatus } from "@/client/Api";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -9,9 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/Dialog";
-import { Input } from "@/components/Input";
-import { Label } from "@/components/Label";
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import client from "@/lib/client";
 import { CREATE_CONTACT_MUTATION } from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";

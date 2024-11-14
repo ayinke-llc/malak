@@ -1,6 +1,7 @@
 import {
   RiArchiveStackLine,
   RiBook3Line,
+  RiChatNewLine,
   RiContactsLine,
   RiHome2Line,
   RiLinkM,
@@ -8,46 +9,74 @@ import {
 
 export const links = [
   {
-    name: "Home",
-    href: "/",
+    title: "Overview",
+    url: "/overview",
     icon: RiHome2Line,
   },
   {
-    name: "Updates",
-    href: "/updates",
+    title: "Updates",
+    url: "/updates",
     icon: RiArchiveStackLine,
+    items: [
+      {
+        title: "Send a new update",
+        url: "/updates/new",
+        icon: RiChatNewLine,
+      },
+      {
+        title: "All updates",
+        url: "/updates"
+      }
+    ],
   },
   {
-    name: "Decks",
-    href: "/decks",
+    title: "Decks",
+    url: "/decks",
     icon: RiBook3Line,
   },
   {
-    name: "Contacts",
-    href: "/contacts",
+    title: "Contacts",
+    url: "/contacts",
+    icon: RiContactsLine,
+    items: [
+      {
+        title: "View contacts",
+        url: "/contacts",
+        icon: RiChatNewLine,
+      },
+      {
+        title: "View contact lists",
+        url: "/contacts"
+      }
+    ],
+  },
+  {
+    title: "Fundraising",
+    url: "#",
     icon: RiContactsLine,
   },
-] as const;
+  {
+    title: "Captable",
+    url: "#",
+    icon: RiContactsLine,
+  },
+];
 
 export const shortcuts = [
   {
-    name: "Send a new update",
-    href: "/updates/new",
+    title: "Analytics of your last update",
+    url: "#",
     icon: RiLinkM,
   },
   {
-    name: "Analytics of your last update",
-    href: "#",
+    title: "Fundraising",
+    url: "#",
     icon: RiLinkM,
   },
   {
-    name: "Fundraising",
-    href: "#",
-    icon: RiLinkM,
-  },
-  {
-    name: "Captable",
-    href: "#",
+    title: "Captable",
+    url: "#",
     icon: RiLinkM,
   },
 ] as const;
+

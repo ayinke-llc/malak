@@ -1,4 +1,4 @@
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -8,9 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/Dialog";
-import { Input } from "@/components/Input";
-import { Label } from "@/components/Label";
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { RiEyeLine } from "@remixicon/react";
 import { useState } from "react";

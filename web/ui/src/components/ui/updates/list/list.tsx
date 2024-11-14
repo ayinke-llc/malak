@@ -1,5 +1,5 @@
 import type { MalakUpdate } from "@/client/Api";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/button";
 import client from "@/lib/client";
 import { LIST_UPDATES } from "@/lib/query-constants";
 import { useInfiniteQuery } from "@tanstack/react-query";

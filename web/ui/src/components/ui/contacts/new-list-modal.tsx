@@ -3,7 +3,7 @@ import type {
   ServerAPIStatus,
   ServerFetchContactListsResponse,
 } from "@/client/Api";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/Dialog";
-import { Input } from "@/components/Input";
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import client from "@/lib/client";
 import {
   CREATE_CONTACT_LIST,

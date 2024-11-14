@@ -5,7 +5,7 @@ import type {
   ServerAPIStatus,
   ServerCreatedUpdateResponse,
 } from "@/client/Api";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,9 +13,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/Dialog";
-import { Divider } from "@/components/Divider";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover";
+} from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   EVENT_TOGGLE_PINNED_STATE,
   EVENT_UPDATE_DELETE,
@@ -41,6 +40,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import UpdateBadge from "../../custom/update/badge";
 import Link from "next/link";
+import { Separator } from "../../separator";
 
 const SingleUpdate = (update: MalakUpdate) => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -148,7 +148,7 @@ const SingleUpdate = (update: MalakUpdate) => {
             variant="ghost"
             size="icon"
             aria-label="Pin update"
-            isLoading={loading}
+            loading={loading}
             onClick={() => {
               togglePinnedStatus.mutate(update.reference as string);
             }}
@@ -185,7 +185,7 @@ const SingleUpdate = (update: MalakUpdate) => {
                   <DialogFooter className="mt-4">
                     <Button
                       variant="secondary"
-                      isLoading={loading}
+                      loading={loading}
                       onClick={() => {
                         setDuplicateDialogOpen(false);
                       }}
@@ -193,8 +193,7 @@ const SingleUpdate = (update: MalakUpdate) => {
                       Cancel
                     </Button>
                     <Button
-                      loadingText="Duplicating"
-                      isLoading={loading}
+                      loading={loading}
                       onClick={() => {
                         setLoading(true);
                         duplicateMutation.mutate(update.reference as string);
@@ -227,7 +226,7 @@ const SingleUpdate = (update: MalakUpdate) => {
                   <DialogFooter className="mt-4">
                     <Button
                       variant="secondary"
-                      isLoading={loading}
+                      loading={loading}
                       onClick={() => {
                         setDeleteDialogOpen(false);
                       }}
@@ -236,8 +235,7 @@ const SingleUpdate = (update: MalakUpdate) => {
                     </Button>
                     <Button
                       variant="destructive"
-                      loadingText="Deleting"
-                      isLoading={loading}
+                      loading={loading}
                       onClick={() => {
                         setLoading(true);
                         deletionMutation.mutate(update.reference as string);
@@ -252,7 +250,7 @@ const SingleUpdate = (update: MalakUpdate) => {
           </Popover>
         </div>
       </div>
-      <Divider />
+      <Separator />
     </>
   );
 };
