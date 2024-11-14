@@ -1,4 +1,4 @@
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/button";
 import { RiArrowRightLine } from "@remixicon/react";
 import Link from "next/link";
 import { siteConfig } from "./siteConfig";
@@ -16,7 +16,7 @@ export default function NotFound() {
       <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
         Sorry, we couldn’t find the page you’re looking for.
       </p>
-      <Button asChild className="group mt-8" variant="light">
+      <Button asChild className="group mt-8" variant="outline">
         <Link href={siteConfig.baseLinks.home}>
           Go to the home page
           <RiArrowRightLine
