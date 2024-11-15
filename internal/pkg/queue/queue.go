@@ -5,9 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-
-	"github.com/ayinke-llc/malak"
-	"github.com/google/uuid"
 )
 
 type Message struct {
@@ -20,15 +17,6 @@ type QueueHandler interface {
 	io.Closer
 	Add(context.Context, string, *Message) error
 	Start(context.Context)
-}
-
-// ENUM(update_preview)
-type QueueEventSubscriptionMessage string
-
-type PreviewUpdateMessage struct {
-	UpdateID   uuid.UUID
-	ScheduleID uuid.UUID
-	Email      malak.Email
 }
 
 func ToPayload(m any) []byte {

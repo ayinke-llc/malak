@@ -6,16 +6,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/mail"
-	"sync"
 	"time"
 
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -128,58 +125,26 @@ func (u *updatesHandler) previewUpdate(
 		Reference: func(et malak.EntityType) string {
 			return u.referenceGenerator.Generate(et).String()
 		},
-		Email:       req.Email,
+		Emails:      []malak.Email{req.Email},
 		WorkspaceID: workspace.ID,
+		Schedule:    schedule,
+		Generator:   u.referenceGenerator,
+		UserID:      user.ID,
 	}
 
-	if err := u.updateRepo.CreatePreview(ctx, schedule, opts); err != nil {
+	if err := u.updateRepo.SendUpdate(ctx, opts); err != nil {
 		logger.Error("could not create schedule update", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError,
-			"could not send preview update"), StatusFailed
+			"could not send update"), StatusFailed
 	}
 
 	span.SetAttributes(
-		attribute.String("schedule.type", "preview"),
+		attribute.String("schedule.type", "live"),
 		attribute.String("schedule.id", schedule.ID.String()))
 
 	span.AddEvent("update.preview")
 
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	go func() {
-		defer wg.Done()
-		err := u.cache.Add(ctx, key, []byte("ok"), time.Hour)
-		if err != nil {
-			logger.Error("could not add user throttling to cache",
-				zap.Error(err))
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-
-		m := &queue.PreviewUpdateMessage{
-			UpdateID:   update.ID,
-			ScheduleID: schedule.ID,
-			Email:      req.Email,
-		}
-
-		err := u.queueHandler.Add(ctx,
-			queue.QueueEventSubscriptionMessageUpdatePreview.String(),
-			&queue.Message{
-				ID:   uuid.NewString(),
-				Data: queue.ToPayload(m),
-			})
-		if err != nil {
-			logger.Error("could not add schedule to queue to be processed",
-				zap.Error(err))
-		}
-	}()
-
-	wg.Wait()
-
-	return newAPIStatus(http.StatusOK, "Preview email sent"),
+	return newAPIStatus(http.StatusOK, "Your preview is now scheduled and will be sent out immediately"),
 		StatusSuccess
 }
 
@@ -275,7 +240,7 @@ func (u *updatesHandler) sendUpdate(
 	schedule := &malak.UpdateSchedule{
 		Reference:   u.referenceGenerator.Generate(malak.EntityTypeSchedule),
 		SendAt:      sendAt,
-		UpdateType:  malak.UpdateTypePreview,
+		UpdateType:  malak.UpdateTypeLive,
 		ScheduledBy: user.ID,
 		Status:      malak.UpdateSendScheduleScheduled,
 		UpdateID:    update.ID,
@@ -304,41 +269,6 @@ func (u *updatesHandler) sendUpdate(
 		attribute.String("schedule.id", schedule.ID.String()))
 
 	span.AddEvent("update.sending.live")
-
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	go func() {
-		defer wg.Done()
-		// err := u.cache.Add(ctx, key, []byte("ok"), time.Hour)
-		// if err != nil {
-		// 	logger.Error("could not add user throttling to cache",
-		// 		zap.Error(err))
-		// }
-	}()
-
-	go func() {
-		defer wg.Done()
-
-		// m := &queue.PreviewUpdateMessage{
-		// 	UpdateID:   update.ID,
-		// 	ScheduleID: schedule.ID,
-		// 	Email:      req.Email,
-		// }
-		//
-		// err := u.queueHandler.Add(ctx,
-		// 	queue.QueueEventSubscriptionMessageUpdatePreview.String(),
-		// 	&queue.Message{
-		// 		ID:   uuid.NewString(),
-		// 		Data: queue.ToPayload(m),
-		// 	})
-		// if err != nil {
-		// 	logger.Error("could not add schedule to queue to be processed",
-		// 		zap.Error(err))
-		// }
-	}()
-
-	wg.Wait()
 
 	return newAPIStatus(http.StatusOK, "Your update is now scheduled and will be sent out"),
 		StatusSuccess
