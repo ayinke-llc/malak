@@ -11,14 +11,15 @@ import {
 } from "@/components/ui/dialog";
 import client from "@/lib/client";
 import {
-  LIST_CONTACT_LISTS
+  LIST_CONTACT_LISTS,
+  SEND_UPDATE
 } from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   RiCloseLargeLine,
   RiMailSendLine,
 } from "@remixicon/react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import * as EmailValidator from "email-validator";
 import { Option } from "lucide-react";
 import { useState } from "react";
@@ -29,6 +30,8 @@ import type { ButtonProps } from "./props";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import CreatableSelect, { OptionType } from "@/components/ui/multi-select";
+import { ServerAPIStatus, ServerSendUpdateRequest } from "@/client/Api";
+import { AxiosError } from "axios";
 
 interface Option {
   readonly label: string;
@@ -48,7 +51,7 @@ const schema = yup
   })
   .required();
 
-const SendUpdateButton = ({ }: ButtonProps) => {
+const SendUpdateButton = ({ reference }: ButtonProps) => {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [showAllRecipients, setShowAllRecipients] = useState<boolean>(false);
@@ -128,14 +131,35 @@ const SendUpdateButton = ({ }: ButtonProps) => {
     })
   }
 
+  const mutation = useMutation({
+    mutationKey: [SEND_UPDATE],
+    mutationFn: (data: ServerSendUpdateRequest) => {
+      return client.workspaces.sendUpdate(reference, data)
+    },
+    onSuccess: ({ data }) => {
+      toast.success(data.message);
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      let msg = err.message;
+      if (err.response !== undefined) {
+        msg = err.response.data.message;
+      }
+      toast.error(msg);
+    },
+    retry: false,
+    gcTime: Number.POSITIVE_INFINITY,
+    onSettled: () => setLoading(false),
+    onMutate: () => setLoading(true),
+  });
+
+
   const {
     handleSubmit,
   } = useForm({
     resolver: yupResolver(schema),
   });
 
-  const onSubmit: SubmitHandler<SendUpdateInput> = () => {
-    setLoading(true);
+  const onSubmit: SubmitHandler<{}> = () => {
   };
 
 

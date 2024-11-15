@@ -249,7 +249,7 @@ type BlockContentItem struct {
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /workspaces/updates/{reference} [post]
+// @Router /workspaces/updates/{reference} [put]
 func (u *updatesHandler) update(
 	ctx context.Context,
 	span trace.Span,

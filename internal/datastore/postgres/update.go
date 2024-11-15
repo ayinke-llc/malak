@@ -6,7 +6,6 @@ import (
 	"errors"
 
 	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
@@ -78,11 +77,8 @@ func (u *updatesRepo) Get(ctx context.Context,
 
 	update := &malak.Update{}
 
-	sel := u.inner.NewSelect().Model(update)
-
-	if !util.IsStringEmpty(opts.Reference.String()) {
-		sel = sel.Where("reference = ?", opts.Reference)
-	}
+	sel := u.inner.NewSelect().Model(update).
+		Where("reference = ?", opts.Reference)
 
 	if opts.ID != uuid.Nil {
 		sel = sel.Where("id = ?", opts.ID)
@@ -163,6 +159,57 @@ func (u *updatesRepo) GetSchedule(ctx context.Context, scheduleID uuid.UUID) (
 	}
 
 	return schedule, err
+}
+
+func (u *updatesRepo) SendUpdate(ctx context.Context,
+	opts *malak.CreatePreviewOptions) error {
+
+	return u.inner.RunInTx(ctx, &sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+
+			contacts := make([]malak.Contact, 0, len(opts.Emails))
+			var insertedContactIDs = make([]uuid.UUID, 0, len(opts.Emails))
+
+			for _, email := range opts.Emails {
+				contacts = append(contacts, malak.Contact{
+					WorkspaceID: opts.WorkspaceID,
+					Reference:   malak.Reference(opts.Reference(malak.EntityTypeContact)),
+					Email:       email,
+					FirstName:   "Investor",
+				})
+			}
+
+			_, err := u.inner.NewInsert().
+				Model(&contacts).
+				// if we already have this email in this workspace
+				On("CONFLICT (email,workspace_id) DO NOTHING").
+				Returning("id").
+				Exec(ctx, &insertedContactIDs)
+			if err != nil {
+				return err
+			}
+
+			_, err = tx.NewInsert().Model(opts.Schedule).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+
+			var recipients = make([]malak.UpdateRecipient, 0, len(opts.Emails))
+
+			for _, contact := range contacts {
+				recipients = append(recipients, malak.UpdateRecipient{
+					ContactID:  contact.ID,
+					UpdateID:   opts.Schedule.UpdateID,
+					ScheduleID: opts.Schedule.ID,
+					Reference:  opts.Generator.Generate(malak.EntityTypeRecipient),
+				})
+			}
+
+			_, err = tx.NewInsert().Model(recipients).
+				Exec(ctx)
+			return err
+		})
 }
 
 func (u *updatesRepo) CreatePreview(ctx context.Context,
