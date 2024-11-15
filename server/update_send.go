@@ -160,6 +160,13 @@ func (s *sendUpdateRequest) Validate() error {
 		return errors.New("please provide atleast one email")
 	}
 
+	for _, v := range s.Emails {
+		_, err := mail.ParseAddress(v.String())
+		if err != nil {
+			return err
+		}
+	}
+
 	if s.SendAt == nil {
 		return nil
 	}

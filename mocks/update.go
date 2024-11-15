@@ -56,20 +56,6 @@ func (mr *MockUpdateRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUpdateRepository)(nil).Create), arg0, arg1)
 }
 
-// CreatePreview mocks base method.
-func (m *MockUpdateRepository) CreatePreview(arg0 context.Context, arg1 *malak.UpdateSchedule, arg2 *malak.CreatePreviewOptions) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreatePreview", arg0, arg1, arg2)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreatePreview indicates an expected call of CreatePreview.
-func (mr *MockUpdateRepositoryMockRecorder) CreatePreview(arg0, arg1, arg2 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePreview", reflect.TypeOf((*MockUpdateRepository)(nil).CreatePreview), arg0, arg1, arg2)
-}
-
 // Delete mocks base method.
 func (m *MockUpdateRepository) Delete(arg0 context.Context, arg1 *malak.Update) error {
 	m.ctrl.T.Helper()
@@ -130,7 +116,7 @@ func (mr *MockUpdateRepositoryMockRecorder) List(arg0, arg1 any) *gomock.Call {
 }
 
 // SendUpdate mocks base method.
-func (m *MockUpdateRepository) SendUpdate(arg0 context.Context, arg1 *malak.CreatePreviewOptions) error {
+func (m *MockUpdateRepository) SendUpdate(arg0 context.Context, arg1 *malak.CreateUpdateOptions) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendUpdate", arg0, arg1)
 	ret0, _ := ret[0].(error)

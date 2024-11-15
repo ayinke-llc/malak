@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
@@ -490,7 +489,7 @@ func generatePreviewUpdateTestTable() []struct {
 			mockFn: func(update *malak_mocks.MockUpdateRepository, cache *malak_mocks.MockCache, queueHandler *malak_mocks.MockQueueHandler) {
 				cache.EXPECT().Exists(gomock.Any(), gomock.Any()).Return(false, errors.New("not found"))
 				update.EXPECT().Get(gomock.Any(), gomock.Any()).Return(&malak.Update{}, nil)
-				update.EXPECT().CreatePreview(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("preview creation error"))
+				update.EXPECT().SendUpdate(gomock.Any(), gomock.Any()).Return(nil)
 			},
 			req: previewUpdateRequest{
 				Email: "valid@example.com",
@@ -502,9 +501,8 @@ func generatePreviewUpdateTestTable() []struct {
 			mockFn: func(update *malak_mocks.MockUpdateRepository, cache *malak_mocks.MockCache, queueHandler *malak_mocks.MockQueueHandler) {
 				cache.EXPECT().Exists(gomock.Any(), gomock.Any()).Return(false, errors.New("not found"))
 				update.EXPECT().Get(gomock.Any(), gomock.Any()).Return(&malak.Update{}, nil)
-				update.EXPECT().CreatePreview(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				update.EXPECT().SendUpdate(gomock.Any(), gomock.Any()).Return(nil)
 				cache.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any(), time.Hour).Return(nil)
-				queueHandler.EXPECT().Add(gomock.Any(), queue.QueueEventSubscriptionMessageUpdatePreview.String(), gomock.Any()).Return(nil)
 			},
 			req: previewUpdateRequest{
 				Email: "valid@example.com",
@@ -516,9 +514,8 @@ func generatePreviewUpdateTestTable() []struct {
 			mockFn: func(update *malak_mocks.MockUpdateRepository, cache *malak_mocks.MockCache, queueHandler *malak_mocks.MockQueueHandler) {
 				cache.EXPECT().Exists(gomock.Any(), gomock.Any()).Return(false, errors.New("not found"))
 				update.EXPECT().Get(gomock.Any(), gomock.Any()).Return(&malak.Update{}, nil)
-				update.EXPECT().CreatePreview(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				update.EXPECT().SendUpdate(gomock.Any(), gomock.Any()).Return(nil)
 				cache.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any(), time.Hour).Return(errors.New("cache error"))
-				queueHandler.EXPECT().Add(gomock.Any(), queue.QueueEventSubscriptionMessageUpdatePreview.String(), gomock.Any()).Return(nil)
 			},
 			req: previewUpdateRequest{
 				Email: "valid@example.com",
@@ -530,12 +527,132 @@ func generatePreviewUpdateTestTable() []struct {
 			mockFn: func(update *malak_mocks.MockUpdateRepository, cache *malak_mocks.MockCache, queueHandler *malak_mocks.MockQueueHandler) {
 				cache.EXPECT().Exists(gomock.Any(), gomock.Any()).Return(false, errors.New("not found"))
 				update.EXPECT().Get(gomock.Any(), gomock.Any()).Return(&malak.Update{}, nil)
-				update.EXPECT().CreatePreview(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				update.EXPECT().SendUpdate(gomock.Any(), gomock.Any()).Return(nil)
 				cache.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any(), time.Hour).Return(nil)
-				queueHandler.EXPECT().Add(gomock.Any(), queue.QueueEventSubscriptionMessageUpdatePreview.String(), gomock.Any()).Return(errors.New("queue error"))
 			},
 			req: previewUpdateRequest{
 				Email: "valid@example.com",
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
+func TestUpdatesHandler_SendUpdate(t *testing.T) {
+	for _, v := range generateUpdateTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			updateRepo := malak_mocks.NewMockUpdateRepository(controller)
+
+			v.mockFn(updateRepo)
+
+			u := &updatesHandler{
+				referenceGenerator: &mockReferenceGenerator{},
+				updateRepo:         updateRepo,
+			}
+
+			var b = bytes.NewBuffer(nil)
+			require.NoError(t, json.NewEncoder(b).Encode(v.req))
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/workspaces/updates/update_123/preview", b)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			ctx := chi.NewRouteContext()
+			ctx.URLParams.Add("reference", "update_123")
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
+
+			WrapMalakHTTPHandler(getLogger(t), u.sendUpdate, getConfig(), "updates.send").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateUpdateTestTable() []struct {
+	name               string
+	mockFn             func(update *malak_mocks.MockUpdateRepository)
+	req                sendUpdateRequest
+	expectedStatusCode int
+} {
+	return []struct {
+		name               string
+		mockFn             func(update *malak_mocks.MockUpdateRepository)
+		req                sendUpdateRequest
+		expectedStatusCode int
+	}{
+		{
+			name: "email not provided",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+			},
+			req:                sendUpdateRequest{},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name:   "invalid email",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {},
+			req: sendUpdateRequest{
+				Emails: []malak.Email{
+					"oops@",
+				},
+			},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "update not found",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+				update.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, malak.ErrUpdateNotFound)
+			},
+			req: sendUpdateRequest{
+				Emails: []malak.Email{
+					"oops@oops.com",
+				},
+			},
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "error fetching update",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+				update.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, errors.New("database error"))
+			},
+			req: sendUpdateRequest{
+				Emails: []malak.Email{
+					"oops@oops.com",
+				},
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "error during update creation",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+				update.EXPECT().Get(gomock.Any(), gomock.Any()).Return(&malak.Update{}, nil)
+				update.EXPECT().SendUpdate(gomock.Any(), gomock.Any()).Return(errors.New("oops"))
+			},
+			req: sendUpdateRequest{
+				Emails: []malak.Email{
+					"oops@oops.com",
+				},
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "successful update creation",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+				update.EXPECT().Get(gomock.Any(), gomock.Any()).Return(&malak.Update{}, nil)
+				update.EXPECT().SendUpdate(gomock.Any(), gomock.Any()).Return(nil)
+			},
+			req: sendUpdateRequest{
+				Emails: []malak.Email{
+					"oops@oops.com",
+				},
 			},
 			expectedStatusCode: http.StatusOK,
 		},
