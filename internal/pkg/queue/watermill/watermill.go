@@ -113,13 +113,6 @@ func New(redisClient *redis.Client,
 		emailClient:   emailClient,
 	}
 
-	router.AddNoPublisherHandler(
-		"a",
-		queue.QueueEventSubscriptionMessageUpdatePreview.String(),
-		subscriber,
-		t.sendPreviewEmail,
-	)
-
 	return t, nil
 }
 
