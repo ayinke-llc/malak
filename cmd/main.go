@@ -68,6 +68,7 @@ func Execute() error {
 	rootCmd.PersistentFlags().StringP("config", "c", defaultConfigFilePath, "Config file. This is in YAML")
 
 	addHTTPCommand(rootCmd, cfg)
+	addCronCommand(rootCmd, cfg)
 
 	cmd, _, err := rootCmd.Find(os.Args[1:])
 	// default cmd if no cmd is given

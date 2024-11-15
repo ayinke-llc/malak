@@ -33,20 +33,22 @@ export default function Page() {
   return (
     <div>
       <section>
-        <div className="flex flex-col sm:flex-row justify-end gap-1">
-          <SendTestButton reference={reference} />
-          <SendUpdateButton reference={reference} />
-        </div>
 
         <div className="mt-2">
           {isLoading ? (
             <Skeleton count={10} />
           ) : (
-            <BlockNoteJSEditor
-              reference={reference}
-              loading={isLoading}
-              update={data?.data.update}
-            />
+            <>
+              <div className="flex flex-col sm:flex-row justify-end gap-1">
+                <SendTestButton reference={reference} />
+                <SendUpdateButton reference={reference} />
+              </div>
+              <BlockNoteJSEditor
+                reference={reference}
+                loading={isLoading}
+                update={data?.data.update}
+              />
+            </>
           )}
         </div>
       </section>
