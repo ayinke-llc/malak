@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/google/uuid"
@@ -223,4 +224,59 @@ func TestUpdates_TogglePinned(t *testing.T) {
 	err = updatesRepo.TogglePinned(context.Background(), update)
 	require.Error(t, err)
 	require.Equal(t, malak.ErrPinnedUpdateCapacityExceeded, err)
+}
+
+func TestUpdates_SendUpdate(t *testing.T) {
+
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	updatesRepo := NewUpdatesRepository(client)
+	userRepo := NewUserRepository(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	// user from the fixtures
+	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+
+	// from workspaces.yml migration
+	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	refGenerator := malak.NewReferenceGenerator()
+
+	update := &malak.Update{
+		WorkspaceID: workspace.ID,
+		Status:      malak.UpdateStatusDraft,
+		CreatedBy:   user.ID,
+		Content:     make([]malak.Block, 0),
+		Reference:   refGenerator.Generate(malak.EntityTypeUpdate),
+		IsPinned:    true,
+	}
+
+	err = updatesRepo.Create(context.Background(), update)
+	require.NoError(t, err)
+
+	err = updatesRepo.SendUpdate(context.Background(), &malak.CreateUpdateOptions{
+		Reference: func(et malak.EntityType) string {
+			return string(refGenerator.Generate(et))
+		},
+		Generator: refGenerator,
+		Emails:    []malak.Email{malak.Email("oops@oops.com"), malak.Email("oops@gmail.comf")}, // add an existing email
+		UserID:    user.ID,
+		Schedule: &malak.UpdateSchedule{
+			Reference:   refGenerator.Generate(malak.EntityTypeSchedule),
+			SendAt:      time.Now(),
+			UpdateType:  malak.UpdateTypeLive,
+			ScheduledBy: user.ID,
+			Status:      malak.UpdateSendScheduleScheduled,
+			UpdateID:    update.ID,
+		},
+		WorkspaceID: workspace.ID,
+	})
+	require.NoError(t, err)
 }

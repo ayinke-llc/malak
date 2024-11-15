@@ -121,7 +121,7 @@ func (u *updatesHandler) previewUpdate(
 		CreatedAt:   time.Now(),
 	}
 
-	opts := &malak.CreatePreviewOptions{
+	opts := &malak.CreateUpdateOptions{
 		Reference: func(et malak.EntityType) string {
 			return u.referenceGenerator.Generate(et).String()
 		},
@@ -247,7 +247,7 @@ func (u *updatesHandler) sendUpdate(
 		CreatedAt:   time.Now(),
 	}
 
-	opts := &malak.CreatePreviewOptions{
+	opts := &malak.CreateUpdateOptions{
 		Reference: func(et malak.EntityType) string {
 			return u.referenceGenerator.Generate(et).String()
 		},
