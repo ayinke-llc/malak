@@ -9,14 +9,12 @@ export default function Layout({
 }>) {
 
   return (
-    <>
-      <Sidebar>
-        <main className="lg:pl-20">
-          <div className="p-4 sm:px-6 sm:pb-10 sm:pt-10 lg:px-10 lg:pt-7">
-            {children}
-          </div>
-        </main>
-      </Sidebar>
-    </>
+    <Sidebar>
+      <main className="lg:pl-20 theme-custom">
+        <div className="p-4 sm:px-6 sm:pb-10 sm:pt-10 lg:px-10 lg:pt-7">
+          {children}
+        </div>
+      </main>
+    </Sidebar>
   );
 }

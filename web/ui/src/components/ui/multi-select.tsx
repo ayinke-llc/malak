@@ -26,6 +26,10 @@ export type OptionType = {
   label: string;
   value: string | number;
   data?: any;
+  emails: {
+    email: string
+    reference: string
+  }[];
 };
 
 // Extended props interface

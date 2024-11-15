@@ -1,4 +1,3 @@
-import type { ServerAPIStatus } from "@/client/Api";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,27 +11,24 @@ import {
 } from "@/components/ui/dialog";
 import client from "@/lib/client";
 import {
-  CREATE_CONTACT_MUTATION,
-  LIST_CONTACT_LISTS,
+  LIST_CONTACT_LISTS
 } from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   RiCloseLargeLine,
   RiMailSendLine,
 } from "@remixicon/react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import type { AxiosError } from "axios";
+import { useQuery } from "@tanstack/react-query";
 import * as EmailValidator from "email-validator";
 import { Option } from "lucide-react";
 import { useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
-// import CreatableSelect from "react-select/creatable";
 import { toast } from "sonner";
 import * as yup from "yup";
 import type { ButtonProps } from "./props";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import CreatableSelect from "@/components/ui/multi-select"
+import CreatableSelect, { OptionType } from "@/components/ui/multi-select";
 
 interface Option {
   readonly label: string;
@@ -52,76 +48,71 @@ const schema = yup
   })
   .required();
 
-type ListOption = Option & {
-  emails?: string[];
-};
-
 const SendUpdateButton = ({ }: ButtonProps) => {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [showAllRecipients, setShowAllRecipients] = useState<boolean>(false);
 
-  const [options, setOptions] = useState<ListOption[]>([
-    { value: "oops", label: "oops" },
-    { value: "test", label: "test" },
-  ]);
-
-  const { data, error } = useQuery({
+  const { data } = useQuery({
     queryKey: [LIST_CONTACT_LISTS],
-    queryFn: () => client.contacts.fetchContactLists(),
+    queryFn: () => {
+      return client.contacts.fetchContactLists({
+        include_emails: true,
+      })
+    },
   });
+
+  const options: OptionType[] = data?.data?.lists?.map(({ list, mappings }) => {
+    return {
+      emails: mappings?.map((mapping) => {
+        return {
+          email: mapping?.email as string,
+          reference: mapping?.reference as string
+        }
+      }) ?? [],
+      label: list?.title as string,
+      value: list?.reference as string
+    }
+  }) ?? []
 
   const [values, setValues] = useState<Option[]>([]);
 
-  const contactMutation = useMutation({
-    mutationKey: [CREATE_CONTACT_MUTATION],
-    mutationFn: (data: { email: string }) =>
-      client.contacts.contactsCreate(data),
-    onSuccess: ({ data }) => {
-      toast.info(`${data.contact.email} has been added as a contact now`);
-
-      const newOption = {
-        value: data.contact.id,
-        label: data.contact.email,
-      } as Option;
-
-      setValues((prev) => [...prev, newOption]);
-    },
-    onError(err: AxiosError<ServerAPIStatus>) {
-      let msg = err.message;
-      if (err.response !== undefined) {
-        msg = err.response.data.message;
-      }
-      toast.error(msg);
-    },
-    retry: false,
-    gcTime: Number.POSITIVE_INFINITY,
-    onSettled: () => setLoading(false),
-  });
-
-  const createNewContact = (inputValue: string) => {
-    inputValue = inputValue.toLowerCase();
+  const addNewContacts = (...inputValues: string[]) => {
+    // Normalize all inputs to lowercase
+    const normalizedInputs = inputValues.map((input) => input.toLowerCase());
 
     setLoading(true);
 
-    if (!EmailValidator.validate(inputValue)) {
-      toast.error("you can only add an email address as a new recipient");
-      setLoading(false);
-      return;
+    // Track invalid emails for error reporting
+    const invalidEmails: string[] = [];
+
+    const newOptions: Option[] = [];
+
+    normalizedInputs.forEach((inputValue) => {
+      if (!EmailValidator.validate(inputValue)) {
+        invalidEmails.push(inputValue);
+        return; // Skip invalid emails
+      }
+
+      if (!values.some((item) => item.value === inputValue)) {
+        // Only add if it's not already present
+        newOptions.push({
+          value: inputValue,
+          label: inputValue,
+        });
+      }
+    });
+
+    if (invalidEmails.length > 0) {
+      toast.error(
+        `The following are not valid email addresses: ${invalidEmails.join(", ")}`
+      );
     }
 
-    const newOption = {
-      value: inputValue,
-      label: inputValue,
-    } as Option;
-
-    // probably just use a set here
-    if (values.some((item) => item.value === inputValue)) {
-      setLoading(false);
-      return;
+    if (newOptions.length > 0) {
+      setValues((prev) => [...prev, ...newOptions]);
     }
 
-    setValues((prev) => [...prev, newOption]);
     setLoading(false);
   };
 
@@ -129,20 +120,24 @@ const SendUpdateButton = ({ }: ButtonProps) => {
     setValues(values.filter((_, i) => i !== index));
   };
 
-  const toggleShowAllRecipientState = () =>
-    setShowAllRecipients(!showAllRecipients);
+  const toggleShowAllRecipientState = () => setShowAllRecipients(!showAllRecipients);
+
+  const handleOnChange = (opts: OptionType[]) => {
+    opts.map((opt) => {
+      addNewContacts(...opt.emails.map((value) => value.email))
+    })
+  }
 
   const {
-    register,
-    formState: { errors },
     handleSubmit,
   } = useForm({
     resolver: yupResolver(schema),
   });
 
-  const onSubmit: SubmitHandler<SendUpdateInput> = (data) => {
+  const onSubmit: SubmitHandler<SendUpdateInput> = () => {
     setLoading(true);
   };
+
 
   return (
     <>
@@ -170,7 +165,8 @@ const SendUpdateButton = ({ }: ButtonProps) => {
                     isMulti
                     options={options}
                     allowCustomInput={true}
-                    onCustomInputEnter={createNewContact}
+                    onCustomInputEnter={addNewContacts}
+                    onChange={handleOnChange}
                   />
                 </div>
 
