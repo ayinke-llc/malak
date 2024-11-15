@@ -20,14 +20,16 @@ func TestUpdates_Delete(t *testing.T) {
 
 	// workspaces.yml testdata
 	updateByID, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
-		ID: id,
+		ID:        id,
+		Reference: "update_NCox_gRNg",
 	})
 	require.NoError(t, err)
 
 	require.NoError(t, updatesRepo.Delete(context.Background(), updateByID))
 
 	_, err = updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
-		ID: id,
+		ID:        id,
+		Reference: "update_NCox_gRNg",
 	})
 	require.Error(t, err)
 	require.Equal(t, malak.ErrUpdateNotFound, err)
@@ -79,13 +81,15 @@ func TestUpdates_Get(t *testing.T) {
 	require.NoError(t, err)
 
 	updateByID, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
-		ID: uuid.MustParse("0902ef67-903e-47b8-8f9d-111a9e0ca0c7"),
+		ID:        uuid.MustParse("07b0c648-12fd-44fc-a280-946de2700e65"),
+		Reference: "update_O-54dq6IR",
 	})
 	require.NoError(t, err)
 
 	update, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
-		ID:     uuid.MustParse("0902ef67-903e-47b8-8f9d-111a9e0ca0c7"),
-		Status: malak.UpdateStatusDraft,
+		Status:    malak.UpdateStatusDraft,
+		ID:        uuid.MustParse("07b0c648-12fd-44fc-a280-946de2700e65"),
+		Reference: "update_O-54dq6IR",
 	})
 	require.NoError(t, err)
 
