@@ -135,7 +135,7 @@ export default function CreateContactModal() {
             <Button
               type="submit"
               className="w-full sm:w-fit"
-              isLoading={loading}
+              loading={loading}
             >
               Add Contact
             </Button>

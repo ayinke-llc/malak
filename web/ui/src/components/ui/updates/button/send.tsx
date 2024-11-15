@@ -38,17 +38,9 @@ interface Option {
   readonly value: string;
 }
 
-type SendUpdateInput = {
-  email: string;
-  link?: boolean;
-  recipients?: Option[];
-};
 
 const schema = yup
-  .object({
-    email: yup.string().min(5).max(50).required(),
-    link: yup.boolean().optional(),
-  })
+  .object({})
   .required();
 
 const SendUpdateButton = ({ reference }: ButtonProps) => {
@@ -114,6 +106,7 @@ const SendUpdateButton = ({ reference }: ButtonProps) => {
 
     if (newOptions.length > 0) {
       setValues((prev) => [...prev, ...newOptions]);
+      toast.success("added email")
     }
 
     setLoading(false);
@@ -152,16 +145,17 @@ const SendUpdateButton = ({ reference }: ButtonProps) => {
     onMutate: () => setLoading(true),
   });
 
+  const onSubmit: SubmitHandler<{}> = () => {
+    mutation.mutate({
+      emails: values.map((value) => value.value)
+    })
+  };
 
   const {
     handleSubmit,
   } = useForm({
     resolver: yupResolver(schema),
   });
-
-  const onSubmit: SubmitHandler<{}> = () => {
-  };
-
 
   return (
     <>

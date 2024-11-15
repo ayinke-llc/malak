@@ -126,6 +126,7 @@ type CreatePreviewOptions struct {
 	WorkspaceID uuid.UUID
 	Emails      []Email
 	Schedule    *UpdateSchedule
+	UserID      uuid.UUID
 }
 
 type UpdateRepository interface {

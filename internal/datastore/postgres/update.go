@@ -176,6 +176,9 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 					Reference:   malak.Reference(opts.Reference(malak.EntityTypeContact)),
 					Email:       email,
 					FirstName:   "Investor",
+					Metadata:    make(malak.CustomContactMetadata),
+					OwnerID:     opts.UserID,
+					CreatedBy:   opts.UserID,
 				})
 			}
 
@@ -189,6 +192,18 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 				return err
 			}
 
+			// Retrieve IDs of all contacts (both newly inserted and existing ones)
+			// Refetching since on CONFLICT skips the existing ids and do not return them
+			err = u.inner.NewSelect().
+				Model(&contacts).
+				Column("id").
+				Where("email IN (?)", bun.In(opts.Emails)).
+				Where("workspace_id = ?", opts.WorkspaceID).
+				Scan(ctx, &insertedContactIDs)
+			if err != nil {
+				return err
+			}
+
 			_, err = tx.NewInsert().Model(opts.Schedule).
 				Exec(ctx)
 			if err != nil {
@@ -197,16 +212,16 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 
 			var recipients = make([]malak.UpdateRecipient, 0, len(opts.Emails))
 
-			for _, contact := range contacts {
+			for _, contact := range insertedContactIDs {
 				recipients = append(recipients, malak.UpdateRecipient{
-					ContactID:  contact.ID,
+					ContactID:  contact,
 					UpdateID:   opts.Schedule.UpdateID,
 					ScheduleID: opts.Schedule.ID,
 					Reference:  opts.Generator.Generate(malak.EntityTypeRecipient),
 				})
 			}
 
-			_, err = tx.NewInsert().Model(recipients).
+			_, err = tx.NewInsert().Model(&recipients).
 				Exec(ctx)
 			return err
 		})

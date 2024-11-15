@@ -290,19 +290,20 @@ func (u *updatesHandler) sendUpdate(
 		WorkspaceID: workspace.ID,
 		Schedule:    schedule,
 		Generator:   u.referenceGenerator,
+		UserID:      user.ID,
 	}
 
 	if err := u.updateRepo.SendUpdate(ctx, opts); err != nil {
 		logger.Error("could not create schedule update", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError,
-			"could not send preview update"), StatusFailed
+			"could not send update"), StatusFailed
 	}
 
 	span.SetAttributes(
-		attribute.String("schedule.type", "preview"),
+		attribute.String("schedule.type", "live"),
 		attribute.String("schedule.id", schedule.ID.String()))
 
-	span.AddEvent("update.preview")
+	span.AddEvent("update.sending.live")
 
 	var wg sync.WaitGroup
 	wg.Add(2)

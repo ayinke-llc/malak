@@ -82,7 +82,7 @@ func (c *contactHandler) Create(
 
 	user := getUserFromContext(r.Context())
 
-	logger.Debug("creating workspace")
+	logger.Debug("creating contact")
 
 	req := new(createContactRequest)
 
