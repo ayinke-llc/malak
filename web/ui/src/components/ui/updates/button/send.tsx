@@ -1,4 +1,3 @@
-import type { ServerAPIStatus } from "@/client/Api";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,8 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import client from "@/lib/client";
 import {
-  CREATE_CONTACT_MUTATION,
   LIST_CONTACT_LISTS,
+  SEND_UPDATE
 } from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
@@ -21,69 +20,117 @@ import {
   RiMailSendLine,
 } from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import type { AxiosError } from "axios";
 import * as EmailValidator from "email-validator";
 import { Option } from "lucide-react";
 import { useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
-import CreatableSelect from "react-select/creatable";
 import { toast } from "sonner";
 import * as yup from "yup";
 import type { ButtonProps } from "./props";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import CreatableSelect, { OptionType } from "@/components/ui/multi-select";
+import { ServerAPIStatus, ServerSendUpdateRequest } from "@/client/Api";
+import { AxiosError } from "axios";
 
 interface Option {
   readonly label: string;
   readonly value: string;
 }
 
-type SendUpdateInput = {
-  email: string;
-  link?: boolean;
-  recipients?: Option[];
-};
 
 const schema = yup
-  .object({
-    email: yup.string().min(5).max(50).required(),
-    link: yup.boolean().optional(),
-  })
+  .object({})
   .required();
 
-type ListOption = Option & {
-  emails?: string[];
-};
+const SendUpdateButton = ({ reference }: ButtonProps) => {
 
-const SendUpdateButton = ({ }: ButtonProps) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAllRecipients, setShowAllRecipients] = useState<boolean>(false);
 
-  const [options, setOptions] = useState<ListOption[]>([
-    { value: "oops", label: "oops" },
-    { value: "test", label: "test" },
-  ]);
-
-  const { data, error } = useQuery({
+  const { data } = useQuery({
     queryKey: [LIST_CONTACT_LISTS],
-    queryFn: () => client.contacts.fetchContactLists(),
+    queryFn: () => {
+      return client.contacts.fetchContactLists({
+        include_emails: true,
+      })
+    },
   });
+
+  const options: OptionType[] = data?.data?.lists?.map(({ list, mappings }) => {
+    return {
+      emails: mappings?.map((mapping) => {
+        return {
+          email: mapping?.email as string,
+          reference: mapping?.reference as string
+        }
+      }) ?? [],
+      label: list?.title as string,
+      value: list?.reference as string
+    }
+  }) ?? []
 
   const [values, setValues] = useState<Option[]>([]);
 
-  const contactMutation = useMutation({
-    mutationKey: [CREATE_CONTACT_MUTATION],
-    mutationFn: (data: { email: string }) =>
-      client.contacts.contactsCreate(data),
+  const addNewContacts = (...inputValues: string[]) => {
+    // Normalize all inputs to lowercase
+    const normalizedInputs = inputValues.map((input) => input.toLowerCase());
+
+    setLoading(true);
+
+    // Track invalid emails for error reporting
+    const invalidEmails: string[] = [];
+
+    const newOptions: Option[] = [];
+
+    normalizedInputs.forEach((inputValue) => {
+      if (!EmailValidator.validate(inputValue)) {
+        invalidEmails.push(inputValue);
+        return; // Skip invalid emails
+      }
+
+      if (!values.some((item) => item.value === inputValue)) {
+        // Only add if it's not already present
+        newOptions.push({
+          value: inputValue,
+          label: inputValue,
+        });
+      }
+    });
+
+    if (invalidEmails.length > 0) {
+      toast.error(
+        `The following are not valid email addresses: ${invalidEmails.join(", ")}`
+      );
+    }
+
+    if (newOptions.length > 0) {
+      setValues((prev) => [...prev, ...newOptions]);
+      toast.success("added email")
+    }
+
+    setLoading(false);
+  };
+
+  const removeContact = (index: number) => {
+    setValues(values.filter((_, i) => i !== index));
+  };
+
+  const toggleShowAllRecipientState = () => setShowAllRecipients(!showAllRecipients);
+
+  const handleOnChange = (opts: OptionType[]) => {
+    opts.map((opt) => {
+      addNewContacts(...opt.emails.map((value) => value.email))
+    })
+  }
+
+  const mutation = useMutation({
+    mutationKey: [SEND_UPDATE],
+    mutationFn: (data: ServerSendUpdateRequest) => {
+      return client.workspaces.sendUpdate(reference, data)
+    },
     onSuccess: ({ data }) => {
-      toast.info(`${data.contact.email} has been added as a contact now`);
-
-      const newOption = {
-        value: data.contact.id,
-        label: data.contact.email,
-      } as Option;
-
-      setValues((prev) => [...prev, newOption]);
+      toast.success(data.message);
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message;
@@ -95,59 +142,29 @@ const SendUpdateButton = ({ }: ButtonProps) => {
     retry: false,
     gcTime: Number.POSITIVE_INFINITY,
     onSettled: () => setLoading(false),
+    onMutate: () => setLoading(true),
   });
 
-  const createNewContact = (inputValue: string) => {
-    inputValue = inputValue.toLowerCase();
-
-    setLoading(true);
-
-    if (!EmailValidator.validate(inputValue)) {
-      toast.error("you can only add an email address as a new recipient");
-      setLoading(false);
-      return;
-    }
-
-    const newOption = {
-      value: inputValue,
-      label: inputValue,
-    } as Option;
-
-    // probably just use a set here
-    if (values.some((item) => item.value === inputValue)) {
-      setLoading(false);
-      return;
-    }
-
-    setValues((prev) => [...prev, newOption]);
-    setLoading(false);
+  const onSubmit: SubmitHandler<{}> = () => {
+    mutation.mutate({
+      emails: values.map((value) => value.value)
+    })
   };
-
-  const removeContact = (index: number) => {
-    setValues(values.filter((_, i) => i !== index));
-  };
-
-  const toggleShowAllRecipientState = () =>
-    setShowAllRecipients(!showAllRecipients);
 
   const {
-    register,
-    formState: { errors },
     handleSubmit,
   } = useForm({
     resolver: yupResolver(schema),
   });
-
-  const onSubmit: SubmitHandler<SendUpdateInput> = (data) => {
-    setLoading(true);
-  };
 
   return (
     <>
       <div className="flex justify-center">
         <Dialog>
           <DialogTrigger asChild>
-            <Button type="submit" size="lg" variant="primary" className="gap-1">
+            <Button type="submit" size="lg"
+              variant="default"
+              className="gap-1">
               <RiMailSendLine size={18} />
               Send
             </Button>
@@ -162,61 +179,52 @@ const SendUpdateButton = ({ }: ButtonProps) => {
                 </DialogDescription>
 
                 <div className="mt-4">
-                  <CreatableSelect
-                    isDisabled={loading}
-                    isLoading={loading}
-                    onCreateOption={createNewContact}
-                    onChange={(value) => {
-                      createNewContact("oopsoops@gmail.com");
-                    }}
+                  <CreatableSelect placeholder="Select a list or add an email"
+                    isMulti
                     options={options}
-                    autoFocus={true}
+                    allowCustomInput={true}
+                    onCustomInputEnter={addNewContacts}
+                    onChange={handleOnChange}
                   />
                 </div>
 
                 {values.length > 0 && (
-                  <div className="flex-1 mt-5">
+                  <div className="flex-1 pt-5">
                     <div
                       className={cn(
+                        "w-full rounded-md border bg-background p-2",
                         showAllRecipients ? "h-[100px]" : "h-full",
-                        "w-full rounded-md border p-2 overflow-y-auto",
+                        "overflow-y-auto"
                       )}
                     >
-                      <div className="flex flex-wrap justify-start gap-3">
+                      <div className="flex flex-wrap gap-2">
                         {values
                           .slice(0, showAllRecipients ? values.length : 5)
                           .map((recipient, index) => (
                             <Badge
                               key={index}
-                              color="gray"
-                              className="flex items-center space-x-1 gap-3 mt-1"
-                              variant="default"
+                              variant="secondary"
+                              className="flex items-center gap-1 pr-1"
                             >
-                              <span>{recipient.label}</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-4 w-4 p-0"
+                              <span className="text-sm">{recipient.label}</span>
+                              <button
                                 onClick={() => removeContact(index)}
+                                className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                               >
-                                <RiCloseLargeLine
-                                  className="h-3 w-3"
-                                  color="red"
-                                />
-                                <span className="sr-only">
-                                  Remove recipient
-                                </span>
-                              </Button>
+                                <RiCloseLargeLine className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                                <span className="sr-only">Remove recipient</span>
+                              </button>
                             </Badge>
                           ))}
                         {values.length > 5 && (
                           <Button
-                            size="sm"
                             variant="outline"
+                            size="sm"
                             onClick={toggleShowAllRecipientState}
+                            className="h-8"
                           >
                             {showAllRecipients
-                              ? "hide recipients"
+                              ? "Show less"
                               : `+${values.length - 5} more`}
                           </Button>
                         )}

@@ -119,10 +119,14 @@ type ListUpdateOptions struct {
 	Status      ListUpdateFilterStatus
 }
 
-type CreatePreviewOptions struct {
+type CreateUpdateOptions struct {
 	Reference   func(EntityType) string
+	Generator   ReferenceGeneratorOperation
 	Email       Email
 	WorkspaceID uuid.UUID
+	Emails      []Email
+	Schedule    *UpdateSchedule
+	UserID      uuid.UUID
 }
 
 type UpdateRepository interface {
@@ -133,6 +137,5 @@ type UpdateRepository interface {
 	Delete(context.Context, *Update) error
 	TogglePinned(context.Context, *Update) error
 	GetSchedule(context.Context, uuid.UUID) (*UpdateSchedule, error)
-	CreatePreview(context.Context, *UpdateSchedule, *CreatePreviewOptions) error
-	// GetRecipient(context.Context, FetchRecipientOptions) (*Upd)
+	SendUpdate(context.Context, *CreateUpdateOptions) error
 }

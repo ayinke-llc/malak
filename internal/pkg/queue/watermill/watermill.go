@@ -1,11 +1,7 @@
 package watermillqueue
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
-	"text/template"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -22,7 +18,6 @@ import (
 	redis "github.com/redis/go-redis/v9"
 	wotel "github.com/voi-oss/watermill-opentelemetry/pkg/opentelemetry"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/zap"
 )
 
@@ -118,13 +113,6 @@ func New(redisClient *redis.Client,
 		emailClient:   emailClient,
 	}
 
-	router.AddNoPublisherHandler(
-		"a",
-		queue.QueueEventSubscriptionMessageUpdatePreview.String(),
-		subscriber,
-		t.sendPreviewEmail,
-	)
-
 	return t, nil
 }
 
@@ -149,102 +137,103 @@ func (t *WatermillClient) Close() error { return t.publisher.Close() }
 
 func (t *WatermillClient) sendPreviewEmail(msg *message.Message) error {
 
-	var p queue.PreviewUpdateMessage
-
-	if err := json.NewDecoder(bytes.NewBuffer(msg.Payload)).Decode(&p); err != nil {
-		t.logger.Error("could not decode message queue request", zap.Error(err))
-		return err
-	}
-
-	logger := t.logger.With(
-		zap.String("queue.handler", "sendPreviewEmail"),
-		zap.String("update_id", p.UpdateID.String()),
-		zap.String("schedule_id", p.ScheduleID.String()),
-	)
-
-	ctx, span := tracer.Start(context.Background(), "queue.sendPreviewEmail")
-	defer span.End()
-
-	span.SetAttributes(
-		attribute.Bool("preview", true),
-		attribute.String("update_id", p.UpdateID.String()),
-		attribute.String("schedule_id", p.ScheduleID.String()),
-	)
-
-	update, err := t.updateRepo.Get(ctx, malak.FetchUpdateOptions{
-		ID: p.UpdateID,
-	})
-	if err != nil {
-		span.RecordError(err)
-		logger.Error("could not fetch update from database",
-			zap.Error(err))
-		return err
-	}
-
-	schedule, err := t.updateRepo.GetSchedule(ctx, p.ScheduleID)
-	if err != nil {
-		span.RecordError(err)
-		logger.Error("could not fetch update schedule from database",
-			zap.Error(err))
-		return err
-	}
-
-	contact, err := t.contactRepo.Get(ctx, malak.FetchContactOptions{
-		Email:       p.Email,
-		WorkspaceID: update.WorkspaceID,
-	})
-	if err != nil {
-		span.RecordError(err)
-		logger.Error("could not fetch contact from database",
-			zap.Error(err))
-		return err
-	}
-
-	span.SetAttributes(
-		attribute.String("triggered_user_id", schedule.ScheduledBy.String()))
-
-	templatedFile, err := template.New("template").
-		Parse(email.UpdateHTMLEmailTemplate)
-	if err != nil {
-		span.RecordError(err)
-		logger.Error("could not create html template",
-			zap.Error(err))
-		return err
-	}
-
-	var b = new(bytes.Buffer)
-	err = templatedFile.Execute(b, map[string]string{
-		"Content": update.Content.HTML(),
-	})
-
-	if err != nil {
-		span.RecordError(err)
-		logger.Error("could not parse html template",
-			zap.Error(err))
-		return err
-	}
-
-	sendOptions := email.SendOptions{
-		HTML:      b.String(),
-		Sender:    t.cfg.Email.Sender,
-		Recipient: contact.Email,
-		Subject:   fmt.Sprintf("[TEST] %s", update.Title),
-		DKIM: struct {
-			Sign       bool
-			PrivateKey []byte
-		}{
-			Sign:       false,
-			PrivateKey: []byte(""),
-		},
-	}
-
-	if err := t.emailClient.Send(ctx, sendOptions); err != nil {
-		span.RecordError(err)
-		logger.Error("could not send preview email",
-			zap.Error(err))
-		return err
-	}
-
-	msg.Ack()
 	return nil
+	// var p queue.PreviewUpdateMessage
+	//
+	// if err := json.NewDecoder(bytes.NewBuffer(msg.Payload)).Decode(&p); err != nil {
+	// 	t.logger.Error("could not decode message queue request", zap.Error(err))
+	// 	return err
+	// }
+	//
+	// logger := t.logger.With(
+	// 	zap.String("queue.handler", "sendPreviewEmail"),
+	// 	zap.String("update_id", p.UpdateID.String()),
+	// 	zap.String("schedule_id", p.ScheduleID.String()),
+	// )
+	//
+	// ctx, span := tracer.Start(context.Background(), "queue.sendPreviewEmail")
+	// defer span.End()
+	//
+	// span.SetAttributes(
+	// 	attribute.Bool("preview", true),
+	// 	attribute.String("update_id", p.UpdateID.String()),
+	// 	attribute.String("schedule_id", p.ScheduleID.String()),
+	// )
+	//
+	// update, err := t.updateRepo.Get(ctx, malak.FetchUpdateOptions{
+	// 	ID: p.UpdateID,
+	// })
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	logger.Error("could not fetch update from database",
+	// 		zap.Error(err))
+	// 	return err
+	// }
+	//
+	// schedule, err := t.updateRepo.GetSchedule(ctx, p.ScheduleID)
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	logger.Error("could not fetch update schedule from database",
+	// 		zap.Error(err))
+	// 	return err
+	// }
+	//
+	// contact, err := t.contactRepo.Get(ctx, malak.FetchContactOptions{
+	// 	Email:       p.Email,
+	// 	WorkspaceID: update.WorkspaceID,
+	// })
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	logger.Error("could not fetch contact from database",
+	// 		zap.Error(err))
+	// 	return err
+	// }
+	//
+	// span.SetAttributes(
+	// 	attribute.String("triggered_user_id", schedule.ScheduledBy.String()))
+	//
+	// templatedFile, err := template.New("template").
+	// 	Parse(email.UpdateHTMLEmailTemplate)
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	logger.Error("could not create html template",
+	// 		zap.Error(err))
+	// 	return err
+	// }
+	//
+	// var b = new(bytes.Buffer)
+	// err = templatedFile.Execute(b, map[string]string{
+	// 	"Content": update.Content.HTML(),
+	// })
+	//
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	logger.Error("could not parse html template",
+	// 		zap.Error(err))
+	// 	return err
+	// }
+	//
+	// sendOptions := email.SendOptions{
+	// 	HTML:      b.String(),
+	// 	Sender:    t.cfg.Email.Sender,
+	// 	Recipient: contact.Email,
+	// 	Subject:   fmt.Sprintf("[TEST] %s", update.Title),
+	// 	DKIM: struct {
+	// 		Sign       bool
+	// 		PrivateKey []byte
+	// 	}{
+	// 		Sign:       false,
+	// 		PrivateKey: []byte(""),
+	// 	},
+	// }
+	//
+	// if err := t.emailClient.Send(ctx, sendOptions); err != nil {
+	// 	span.RecordError(err)
+	// 	logger.Error("could not send preview email",
+	// 		zap.Error(err))
+	// 	return err
+	// }
+	//
+	// msg.Ack()
+	// return nil
 }

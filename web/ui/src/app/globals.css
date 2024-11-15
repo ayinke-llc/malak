@@ -284,7 +284,7 @@ iframe {
   outline: 0px solid transparent;
 }
 
-div[data-youtube-video] > iframe {
+div[data-youtube-video]>iframe {
   cursor: move;
   aspect-ratio: 16 / 9;
   width: 100%;
@@ -296,23 +296,23 @@ div[data-youtube-video] > iframe {
 }
 
 @media only screen and (max-width: 480px) {
-  div[data-youtube-video] > iframe {
+  div[data-youtube-video]>iframe {
     max-height: 50px;
   }
 }
 
 @media only screen and (max-width: 720px) {
-  div[data-youtube-video] > iframe {
+  div[data-youtube-video]>iframe {
     max-height: 100px;
   }
 }
 
 /* CSS for bold coloring and highlighting issue*/
-span[style] > strong {
+span[style]>strong {
   color: inherit;
 }
 
-mark[style] > strong {
+mark[style]>strong {
   color: inherit;
 }
 
@@ -320,6 +320,7 @@ mark[style] > strong {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }

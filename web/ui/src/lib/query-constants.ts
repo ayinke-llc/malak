@@ -11,3 +11,4 @@ export const SEND_PREVIEW_UPDATE = "SEND_PREVIEW_UPDATE" as const;
 export const CREATE_CONTACT_LIST = "CREATE_CONTACT_LIST" as const;
 export const UPDATE_CONTACT_LIST = "UPDATE_CONTACT_LIST" as const;
 export const LIST_CONTACT_LISTS = "LIST_CONTACT_LISTS" as const;
+export const SEND_UPDATE = "SEND_UPDATE" as const;

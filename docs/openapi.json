@@ -640,6 +640,20 @@
 				],
 				"type": "object"
 			},
+			"server.sendUpdateRequest": {
+				"properties": {
+					"emails": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"send_at": {
+						"type": "integer"
+					}
+				},
+				"type": "object"
+			},
 			"server.uploadImageResponse": {
 				"properties": {
 					"message": {
@@ -1648,6 +1662,88 @@
 				]
 			},
 			"post": {
+				"operationId": "sendUpdate",
+				"parameters": [
+					{
+						"description": "update unique reference.. e.g update_",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.sendUpdateRequest"
+							}
+						}
+					},
+					"description": "request body to send an update",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "Send an update to real users",
+				"tags": [
+					"updates"
+				]
+			},
+			"put": {
 				"operationId": "updateContent",
 				"parameters": [
 					{

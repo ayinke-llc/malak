@@ -6,7 +6,7 @@ import type {
   ServerAPIStatus,
   ServerContentUpdateRequest,
 } from "@/client/Api";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type badgeVariants } from "@/components/ui/badge";
 import client from "@/lib/client";
 import { UPDATE_CONTENT } from "@/lib/query-constants";
 import {
@@ -121,22 +121,21 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
     });
   }, 1000);
 
-  const getVariant = (): "default" => {
-    return "default"
-    // switch (saveStatus) {
-    //   case "Saved":
-    //     return "success";
-    //   case "Unsaved":
-    //     return "warning";
-    //   case "Storing":
-    //     return "warning";
-    //   default:
-    //     return "default";
-    // }
+  const getVariant = (): "default" | "secondary" | "destructive" | "outline" => {
+    switch (saveStatus) {
+      case "Saved":
+        return "default";
+      case "Unsaved":
+        return "destructive";
+      case "Storing":
+        return "secondary";
+      default:
+        return "default";
+    }
   };
 
   return (
-    <div className="relative w-full max-w-screen-lg">
+    <div className="relative w-full max-w-screen">
       <div className="flex absolute right-5 top-5 z-10 mb-5 gap-2">
         <Badge className="uppercase" variant={getVariant()}>
           {saveStatus}

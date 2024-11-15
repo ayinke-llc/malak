@@ -6,7 +6,6 @@ import (
 	"errors"
 
 	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
@@ -78,11 +77,8 @@ func (u *updatesRepo) Get(ctx context.Context,
 
 	update := &malak.Update{}
 
-	sel := u.inner.NewSelect().Model(update)
-
-	if !util.IsStringEmpty(opts.Reference.String()) {
-		sel = sel.Where("reference = ?", opts.Reference)
-	}
+	sel := u.inner.NewSelect().Model(update).
+		Where("reference = ?", opts.Reference)
 
 	if opts.ID != uuid.Nil {
 		sel = sel.Where("id = ?", opts.ID)
@@ -165,48 +161,67 @@ func (u *updatesRepo) GetSchedule(ctx context.Context, scheduleID uuid.UUID) (
 	return schedule, err
 }
 
-func (u *updatesRepo) CreatePreview(ctx context.Context,
-	schedule *malak.UpdateSchedule, opts *malak.CreatePreviewOptions) error {
+func (u *updatesRepo) SendUpdate(ctx context.Context,
+	opts *malak.CreateUpdateOptions) error {
+
 	return u.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
-			_, err := tx.NewInsert().Model(schedule).
+
+			contacts := make([]malak.Contact, 0, len(opts.Emails))
+			var insertedContactIDs = make([]uuid.UUID, 0, len(opts.Emails))
+
+			for _, email := range opts.Emails {
+				contacts = append(contacts, malak.Contact{
+					WorkspaceID: opts.WorkspaceID,
+					Reference:   malak.Reference(opts.Reference(malak.EntityTypeContact)),
+					Email:       email,
+					FirstName:   "Investor",
+					Metadata:    make(malak.CustomContactMetadata),
+					OwnerID:     opts.UserID,
+					CreatedBy:   opts.UserID,
+				})
+			}
+
+			_, err := u.inner.NewInsert().
+				Model(&contacts).
+				// if we already have this email in this workspace
+				On("CONFLICT (email,workspace_id) DO NOTHING").
+				Returning("id").
+				Exec(ctx, &insertedContactIDs)
+			if err != nil {
+				return err
+			}
+
+			// Retrieve IDs of all contacts (both newly inserted and existing ones)
+			// Refetching since on CONFLICT skips the existing ids and do not return them
+			err = u.inner.NewSelect().
+				Model(&contacts).
+				Column("id").
+				Where("email IN (?)", bun.In(opts.Emails)).
+				Where("workspace_id = ?", opts.WorkspaceID).
+				Scan(ctx, &insertedContactIDs)
+			if err != nil {
+				return err
+			}
+
+			_, err = tx.NewInsert().Model(opts.Schedule).
 				Exec(ctx)
 			if err != nil {
 				return err
 			}
 
-			var contact = &malak.Contact{}
+			var recipients = make([]malak.UpdateRecipient, 0, len(opts.Emails))
 
-			err = tx.NewSelect().Model(contact).
-				Where("email = ?", opts.Email).
-				Scan(ctx)
-			if errors.Is(err, sql.ErrNoRows) {
-				contact = &malak.Contact{
-					WorkspaceID: opts.WorkspaceID,
-					Reference:   malak.Reference(opts.Reference(malak.EntityTypeContact)),
-					Email:       opts.Email,
-					LastName:    "User",
-					FirstName:   "Preview",
-				}
-				_, err = tx.NewInsert().Model(contact).
-					Exec(ctx)
-				if err != nil {
-					return err
-				}
+			for _, contact := range insertedContactIDs {
+				recipients = append(recipients, malak.UpdateRecipient{
+					ContactID:  contact,
+					UpdateID:   opts.Schedule.UpdateID,
+					ScheduleID: opts.Schedule.ID,
+					Reference:  opts.Generator.Generate(malak.EntityTypeRecipient),
+				})
 			}
 
-			if err != nil {
-				return err
-			}
-
-			recipient := &malak.UpdateRecipient{
-				ContactID:  contact.ID,
-				UpdateID:   schedule.UpdateID,
-				ScheduleID: schedule.ID,
-				Reference:  malak.NewReferenceGenerator().Generate(malak.EntityTypeRecipient),
-			}
-
-			_, err = tx.NewInsert().Model(recipient).
+			_, err = tx.NewInsert().Model(&recipients).
 				Exec(ctx)
 			return err
 		})

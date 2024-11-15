@@ -6,15 +6,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/mail"
-	"sync"
 	"time"
 
+	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -123,61 +121,162 @@ func (u *updatesHandler) previewUpdate(
 		CreatedAt:   time.Now(),
 	}
 
-	opts := &malak.CreatePreviewOptions{
+	opts := &malak.CreateUpdateOptions{
 		Reference: func(et malak.EntityType) string {
 			return u.referenceGenerator.Generate(et).String()
 		},
-		Email:       req.Email,
+		Emails:      []malak.Email{req.Email},
 		WorkspaceID: workspace.ID,
+		Schedule:    schedule,
+		Generator:   u.referenceGenerator,
+		UserID:      user.ID,
 	}
 
-	if err := u.updateRepo.CreatePreview(ctx, schedule, opts); err != nil {
+	if err := u.updateRepo.SendUpdate(ctx, opts); err != nil {
 		logger.Error("could not create schedule update", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError,
-			"could not send preview update"), StatusFailed
+			"could not send update"), StatusFailed
 	}
 
 	span.SetAttributes(
-		attribute.String("schedule.type", "preview"),
+		attribute.String("schedule.type", "live"),
 		attribute.String("schedule.id", schedule.ID.String()))
 
 	span.AddEvent("update.preview")
 
-	var wg sync.WaitGroup
-	wg.Add(2)
+	return newAPIStatus(http.StatusOK, "Your preview is now scheduled and will be sent out immediately"),
+		StatusSuccess
+}
 
-	go func() {
-		defer wg.Done()
-		err := u.cache.Add(ctx, key, []byte("ok"), time.Hour)
+type sendUpdateRequest struct {
+	Emails []malak.Email `json:"emails,omitempty"`
+	SendAt *int64        `json:"send_at,omitempty"`
+
+	GenericRequest
+}
+
+func (s *sendUpdateRequest) Validate() error {
+	if len(s.Emails) == 0 {
+		return errors.New("please provide atleast one email")
+	}
+
+	for _, v := range s.Emails {
+		_, err := mail.ParseAddress(v.String())
 		if err != nil {
-			logger.Error("could not add user throttling to cache",
-				zap.Error(err))
+			return err
 		}
-	}()
+	}
 
-	go func() {
-		defer wg.Done()
+	if s.SendAt == nil {
+		return nil
+	}
 
-		m := &queue.PreviewUpdateMessage{
-			UpdateID:   update.ID,
-			ScheduleID: schedule.ID,
-			Email:      req.Email,
-		}
+	scheduledTime := hermes.DeRef(s.SendAt)
 
-		err := u.queueHandler.Add(ctx,
-			queue.QueueEventSubscriptionMessageUpdatePreview.String(),
-			&queue.Message{
-				ID:   uuid.NewString(),
-				Data: queue.ToPayload(m),
-			})
-		if err != nil {
-			logger.Error("could not add schedule to queue to be processed",
-				zap.Error(err))
-		}
-	}()
+	if time.Now().Before(time.Unix(scheduledTime, 0)) {
+		return errors.New("you can only schedule to the future not past")
+	}
 
-	wg.Wait()
+	return nil
+}
 
-	return newAPIStatus(http.StatusOK, "Preview email sent"),
+// @Tags updates
+// @Summary Send an update to real users
+// @id sendUpdate
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "update unique reference.. e.g update_"
+// @Param message body sendUpdateRequest true "request body to send an update"
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/updates/{reference} [post]
+func (u *updatesHandler) sendUpdate(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	ref := chi.URLParam(r, "reference")
+
+	workspace := getWorkspaceFromContext(ctx)
+
+	user := getUserFromContext(ctx)
+
+	span.SetAttributes(attribute.String("reference", ref))
+
+	logger = logger.With(zap.String("reference", ref))
+
+	logger.Debug("Sending update")
+
+	req := new(sendUpdateRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"),
+			StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	update, err := u.updateRepo.Get(ctx, malak.FetchUpdateOptions{
+		Reference: malak.Reference(ref),
+	})
+	if errors.Is(err, malak.ErrUpdateNotFound) {
+		return newAPIStatus(http.StatusNotFound,
+			"update does not exists"), StatusFailed
+	}
+
+	if err != nil {
+		logger.Error("could not fetch update", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"an error occurred while fetching update"), StatusFailed
+	}
+
+	var sendAt = time.Now()
+	if req.SendAt != nil {
+		sendAt = time.Unix(hermes.DeRef(req.SendAt), 0)
+	}
+
+	// get contact from db
+	// if not exists, create one
+	schedule := &malak.UpdateSchedule{
+		Reference:   u.referenceGenerator.Generate(malak.EntityTypeSchedule),
+		SendAt:      sendAt,
+		UpdateType:  malak.UpdateTypeLive,
+		ScheduledBy: user.ID,
+		Status:      malak.UpdateSendScheduleScheduled,
+		UpdateID:    update.ID,
+		CreatedAt:   time.Now(),
+	}
+
+	opts := &malak.CreateUpdateOptions{
+		Reference: func(et malak.EntityType) string {
+			return u.referenceGenerator.Generate(et).String()
+		},
+		Emails:      req.Emails,
+		WorkspaceID: workspace.ID,
+		Schedule:    schedule,
+		Generator:   u.referenceGenerator,
+		UserID:      user.ID,
+	}
+
+	if err := u.updateRepo.SendUpdate(ctx, opts); err != nil {
+		logger.Error("could not create schedule update", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"could not send update"), StatusFailed
+	}
+
+	span.SetAttributes(
+		attribute.String("schedule.type", "live"),
+		attribute.String("schedule.id", schedule.ID.String()))
+
+	span.AddEvent("update.sending.live")
+
+	return newAPIStatus(http.StatusOK, "Your update is now scheduled and will be sent out"),
 		StatusSuccess
 }

@@ -46,10 +46,10 @@ export default function Page() {
         <section>
           <div className="sm:flex sm:items-center sm:justify-between">
             <div>
-              <h3 className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50">
+              <h3 className="scroll-mt-10 font-semibold">
                 Investor updates
               </h3>
-              <p className="text-sm leading-6 text-gray-500">
+              <p className="text-sm leading-6">
                 View and manage your previously sent updates. Or send a new one
               </p>
             </div>
