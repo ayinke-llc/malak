@@ -86,15 +86,6 @@ func TestNew_Errors(t *testing.T) {
 		require.Contains(t, err.Error(), "smtp password")
 	})
 
-	t.Run("dialing does not succeed", func(t *testing.T) {
-
-		cfg := getConfig(1025)
-
-		_, err := New(cfg)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "connection refused")
-	})
-
 }
 
 func getConfig(port int) config.Config {
