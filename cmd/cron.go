@@ -36,6 +36,8 @@ func addCronCommand(c *cobra.Command, cfg *config.Config) {
 }
 
 // TODO(adelowo): test at scale before beta mvp release. Email rate scale and errors syncing
+//
+// TODO(adelowo): future version should include batching
 func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "updates-send",
@@ -84,6 +86,12 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 			// if for some reason, we have to send updates from
 			// another place.
 			// Just encapsulate this so we don't duplicate code
+			//
+			// LOGIC
+			//
+			// 1. Fetch pending scheduled updates
+			// 2. Fetch the recipients of each updates
+			// 3. Send to each recipient
 
 			var tracer = otel.Tracer("malak.cron")
 

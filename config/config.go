@@ -101,9 +101,10 @@ type Config struct {
 	} `yaml:"uploader" mapstructure:"uploader"`
 
 	Email struct {
-		Provider EmailProvider `mapstructure:"provider" yaml:"provider"`
-		Sender   malak.Email   `mapstructure:"sender" yaml:"sender"`
-		SMTP     struct {
+		Provider   EmailProvider `mapstructure:"provider" yaml:"provider"`
+		Sender     malak.Email   `mapstructure:"sender" yaml:"sender"`
+		SenderName string        `mapstructure:"sender_name" yaml:"sender_name"`
+		SMTP       struct {
 			Host     string `mapstructure:"host" yaml:"host"`
 			Port     int    `mapstructure:"port" yaml:"port"`
 			Username string `mapstructure:"username" yaml:"username"`

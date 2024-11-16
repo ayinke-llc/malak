@@ -33,6 +33,10 @@ func New(cfg config.Config) (email.Client, error) {
 		return nil, errors.New("please provide a valid sender")
 	}
 
+	if util.IsStringEmpty(cfg.Email.SenderName) {
+		return nil, errors.New("please provide your sender name")
+	}
+
 	_, err := pkgmail.ParseAddress(string(cfg.Email.Sender))
 	if err != nil {
 		return nil, errors.Join(err, errors.New("invalid email sender"))
