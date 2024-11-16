@@ -323,42 +323,18 @@ func (u *updatesHandler) listPinnedUpdates(
 
 	workspace := getWorkspaceFromContext(r.Context())
 
-	filterStatus := malak.ListUpdateFilterStatus(r.URL.Query().Get("view"))
-
-	if !filterStatus.IsValid() {
-		filterStatus = malak.ListUpdateFilterStatusAll
-	}
-
-	opts := malak.ListUpdateOptions{
-		Status:      filterStatus,
-		Paginator:   malak.PaginatorFromRequest(r),
-		WorkspaceID: workspace.ID,
-	}
-
-	span.SetAttributes(
-		append(opts.Paginator.OTELAttributes(),
-			attribute.String("view",
-				filterStatus.String()))...)
-
-	updates, err := u.updateRepo.List(ctx, opts)
+	updates, err := u.updateRepo.ListPinned(ctx, workspace.ID)
 	if err != nil {
-
-		logger.Error("could not list updates",
+		logger.Error("could not list pinned updates",
 			zap.Error(err))
 
 		return newAPIStatus(
 			http.StatusInternalServerError,
-			"could not list updates"), StatusFailed
+			"could not list pinned updates"), StatusFailed
 	}
 
 	return listUpdateResponse{
-		APIStatus: newAPIStatus(http.StatusCreated, "updates fetched"),
+		APIStatus: newAPIStatus(http.StatusCreated, "pinned updates fetched"),
 		Updates:   updates,
-		Meta: meta{
-			Paging: pagingInfo{
-				PerPage: opts.Paginator.PerPage,
-				Page:    opts.Paginator.Page,
-			},
-		},
 	}, StatusSuccess
 }
