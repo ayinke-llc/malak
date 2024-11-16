@@ -371,6 +371,8 @@ func TestUpdates_ListPinned(t *testing.T) {
 		}
 
 		err = updatesRepo.Create(context.Background(), update)
+		require.Error(t, err)
+
 		// max 5 have been added as pinned items
 		require.Error(t, updatesRepo.TogglePinned(context.Background(), update))
 
