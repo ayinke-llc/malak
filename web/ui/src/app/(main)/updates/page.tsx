@@ -7,6 +7,7 @@ import client from "@/lib/client";
 import { RiAddLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
+import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -19,8 +20,7 @@ export default function Page() {
   const mutation = useMutation({
     mutationFn: () => {
       return client.workspaces.updatesCreate({
-        // title: `${format(new Date(), "EEEE, MMMM do, yyyy")} Update`,
-        title: ""
+        title: `${format(new Date(), "EEEE, MMMM do, yyyy")} Update`,
       });
     },
     gcTime: 0,
@@ -35,8 +35,8 @@ export default function Page() {
     retry: false,
     onSuccess: (resp: AxiosResponse<ServerFetchUpdateReponse>) => {
       router.push(`/updates/${resp.data.update.reference}`);
+      setIsLoading(false)
     },
-    onSettled: () => setIsLoading(false),
     onMutate: () => setIsLoading(true),
   });
 
