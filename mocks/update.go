@@ -115,6 +115,21 @@ func (mr *MockUpdateRepositoryMockRecorder) List(arg0, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockUpdateRepository)(nil).List), arg0, arg1)
 }
 
+// ListPinned mocks base method.
+func (m *MockUpdateRepository) ListPinned(arg0 context.Context, arg1 uuid.UUID) ([]malak.Update, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListPinned", arg0, arg1)
+	ret0, _ := ret[0].([]malak.Update)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPinned indicates an expected call of ListPinned.
+func (mr *MockUpdateRepositoryMockRecorder) ListPinned(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPinned", reflect.TypeOf((*MockUpdateRepository)(nil).ListPinned), arg0, arg1)
+}
+
 // SendUpdate mocks base method.
 func (m *MockUpdateRepository) SendUpdate(arg0 context.Context, arg1 *malak.CreateUpdateOptions) error {
 	m.ctrl.T.Helper()

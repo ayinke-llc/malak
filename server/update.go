@@ -311,7 +311,7 @@ func (u *updatesHandler) update(
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /workspaces/updates [get]
+// @Router /workspaces/updates/pins [get]
 func (u *updatesHandler) listPinnedUpdates(
 	ctx context.Context,
 	span trace.Span,
