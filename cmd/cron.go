@@ -36,8 +36,6 @@ func addCronCommand(c *cobra.Command, cfg *config.Config) {
 }
 
 // TODO(adelowo): test at scale before beta mvp release. Email rate scale and errors syncing
-//
-// TODO(adelowo): future version should include batching
 func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "updates-send",
@@ -233,6 +231,8 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 						title = update.Title
 					}
 
+					// TODO(adelowo): future version should include batching
+					// API calls will most likely be throttled and we will have to deal with lot of failures
 					for _, contact := range contactsFromDB {
 						go func() {
 							defer wg.Done()
