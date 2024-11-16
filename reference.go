@@ -3,12 +3,12 @@ package malak
 import (
 	"fmt"
 
-	"github.com/teris-io/shortid"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
 // DEPRECATED
 func GenerateReference(e EntityType) string {
-	return fmt.Sprintf("%s_%s", e.String(), shortid.MustGenerate())
+	return fmt.Sprintf("%s_%s", e.String(), gonanoid.Must())
 }
 
 // ENUM(
@@ -37,5 +37,5 @@ func (r *ReferenceGenerator) Generate(e EntityType) Reference {
 		fmt.Sprintf(
 			"%s_%s",
 			e.String(),
-			shortid.MustGenerate()))
+			gonanoid.Must()))
 }
