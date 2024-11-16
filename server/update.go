@@ -164,7 +164,7 @@ func (u *updatesHandler) list(
 	}
 
 	return listUpdateResponse{
-		APIStatus: newAPIStatus(http.StatusCreated, "updates fetched"),
+		APIStatus: newAPIStatus(http.StatusOK, "updates fetched"),
 		Updates:   updates,
 		Meta: meta{
 			Paging: pagingInfo{
@@ -334,7 +334,7 @@ func (u *updatesHandler) listPinnedUpdates(
 	}
 
 	return listUpdateResponse{
-		APIStatus: newAPIStatus(http.StatusCreated, "pinned updates fetched"),
+		APIStatus: newAPIStatus(http.StatusOK, "pinned updates fetched"),
 		Updates:   updates,
 	}, StatusSuccess
 }

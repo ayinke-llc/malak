@@ -337,8 +337,85 @@ func generateUpdateListTestTable() []struct {
 						},
 					}, nil)
 			},
-			expectedStatusCode: http.StatusCreated,
+			expectedStatusCode: http.StatusOK,
 		},
+	}
+}
+
+func generateUpdateListPinsTestTable() []struct {
+	name               string
+	mockFn             func(update *malak_mocks.MockUpdateRepository)
+	expectedStatusCode int
+} {
+
+	return []struct {
+		name               string
+		mockFn             func(update *malak_mocks.MockUpdateRepository)
+		expectedStatusCode int
+	}{
+		{
+			name: "culd not list update",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+				update.
+					EXPECT().
+					ListPinned(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("could not list update"))
+
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "listed pinned updates",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+				update.
+					EXPECT().
+					ListPinned(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]malak.Update{
+						{
+							Reference: malak.Reference("update_12345"),
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
+func TestUpdatesHandler_ListPins(t *testing.T) {
+	for _, v := range generateUpdateListPinsTestTable() {
+
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			updateRepo := malak_mocks.NewMockUpdateRepository(controller)
+
+			v.mockFn(updateRepo)
+
+			u := &updatesHandler{
+				referenceGenerator: &mockReferenceGenerator{},
+				updateRepo:         updateRepo,
+			}
+
+			var b = bytes.NewBuffer(nil)
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/", b)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			WrapMalakHTTPHandler(getLogger(t), u.listPinnedUpdates, getConfig(), "updates.list.pinned").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
 	}
 }
 
