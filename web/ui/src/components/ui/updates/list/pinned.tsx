@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { RiPushpinLine, RiUnpinLine } from "@remixicon/react"
+import { RiCalendarLine, RiFlipHorizontal2Line, RiFlipHorizontalLine, RiMoreLine, RiPushpinLine, RiUnpinLine } from "@remixicon/react"
 import { MalakUpdate } from "@/client/Api"
 import Link from "next/link"
 import UpdateBadge from "../../custom/update/badge"
@@ -10,6 +10,13 @@ import { LIST_PINNED_UPDATES } from "@/lib/query-constants"
 import client from "@/lib/client"
 import { toast } from "sonner";
 import { format } from "date-fns"
+import { Badge } from "@/components/ui/badge"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const PinnedList = () => {
 
@@ -56,29 +63,37 @@ const Item = (update: MalakUpdate) => {
 
   return (
 
-    <Card key={update.id} className="bg-primary/5">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">
-          <Link href={`/updates/${update.reference}`}>
+    <Card key={update?.id as string} className="bg-white border-none shadow-md hover:shadow-lg transition-shadow duration-300">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <Badge variant={update?.status as string === 'published' ? 'default' : 'secondary'} className="text-xs">
+            {update?.status}
+          </Badge>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <RiMoreLine className="h-4 w-4" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => { }}>
+                Unpin
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Link href={`/updates/${update.reference}`}>View Details</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <Link href={`/updates/${update?.reference as string}`} className="block group">
+          <h3 className="text-lg font-medium text-gray-800 group-hover:text-primary transition-colors duration-200 mb-2">
             {update?.title as string}
-          </Link>
-        </CardTitle>
-        <UpdateBadge status={update?.status as string} />
-      </CardHeader>
-      <CardContent>
-        <p className="text-xs text-muted-foreground">
+          </h3>
+        </Link>
+        <div className="flex items-center text-sm text-gray-500">
+          <RiCalendarLine className="h-4 w-4 mr-2" />
           {format(update?.created_at as string, "EEEE, MMMM do, yyyy")}
-        </p>
-        <div className="flex justify-end mt-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={() => togglePinnedStatus(update?.reference as string)}
-          >
-            <RiUnpinLine className="h-4 w-4" color="red" />
-            <span className="sr-only">Unpin update</span>
-          </Button>
         </div>
       </CardContent>
     </Card>

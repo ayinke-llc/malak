@@ -41,6 +41,7 @@ import { toast } from "sonner";
 import UpdateBadge from "../../custom/update/badge";
 import Link from "next/link";
 import { Separator } from "../../separator";
+import { format } from "date-fns";
 
 const SingleUpdate = (update: MalakUpdate) => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -141,7 +142,9 @@ const SingleUpdate = (update: MalakUpdate) => {
             </Link>
             <UpdateBadge status={update.status as string} />
           </div>
-          <p className="text-sm text-muted-foreground">{update.created_at}</p>
+          <p className="text-sm text-muted-foreground">
+            {format(update?.created_at as string, "EEEE, MMMM do, yyyy")}
+          </p>
         </div>
         <div className="flex space-x-2">
           <Button
