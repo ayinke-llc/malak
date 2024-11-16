@@ -202,9 +202,20 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 					}
 
 					if len(contactsFromDB) == 0 {
-						// mark as sent?
+						// mark as sent
 						logger.Info("no recipients for this update")
-						os.Exit(0)
+
+						scheduledUpdate.Status = malak.UpdateSendScheduleSent
+						_, err = db.NewUpdate().Model(scheduledUpdate).Where("id = ? ", scheduledUpdate.ID).
+							Exec(ctx)
+						if err != nil {
+							span.RecordError(err)
+							logger.Error("could not update schedule status",
+								zap.Error(err))
+							return err
+						}
+
+						return nil
 					}
 
 					wg.Add(len(contactsFromDB))
