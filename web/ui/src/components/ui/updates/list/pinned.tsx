@@ -1,0 +1,64 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { RiPushpinLine, RiUnpinLine } from "@remixicon/react"
+import { MalakUpdate } from "@/client/Api"
+import Link from "next/link"
+import UpdateBadge from "../../custom/update/badge"
+import Skeleton from "../../custom/loader/skeleton"
+
+const PinnedList = () => {
+  return (
+    <>
+      {
+        true ? (
+          <div className="pb-10">
+            <Skeleton count={10} />
+          </div>
+        )
+          : (
+            <div className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-4 gap-4 mb-6">
+            </div>
+          )
+      }
+
+    </>
+  )
+}
+
+const Item = (update: MalakUpdate) => {
+
+  const togglePinnedStatus = (reference: string) => {
+  }
+
+  return (
+
+    <Card key={update.id} className="bg-primary/5">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">
+          <Link href={`/updates/${update.reference}`}>
+            Update the title of this thing
+          </Link>
+        </CardTitle>
+        <UpdateBadge status={update?.status as string} />
+      </CardHeader>
+      <CardContent>
+        <p className="text-xs text-muted-foreground">
+          2023-04-01
+        </p>
+        <div className="flex justify-end mt-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={() => togglePinnedStatus(update?.reference as string)}
+          >
+            <RiUnpinLine className="h-4 w-4" color="red" />
+            <span className="sr-only">Unpin update</span>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+export default PinnedList;

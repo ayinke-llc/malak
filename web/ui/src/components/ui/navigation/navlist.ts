@@ -19,14 +19,14 @@ export const links = [
     icon: RiArchiveStackLine,
     items: [
       {
-        title: "Send a new update",
-        url: "/updates/new",
-        icon: RiChatNewLine,
-      },
-      {
         title: "All updates",
         url: "/updates"
-      }
+      },
+      {
+        title: "View your last update",
+        url: "/updates/latest",
+        icon: RiChatNewLine,
+      },
     ],
   },
   {
