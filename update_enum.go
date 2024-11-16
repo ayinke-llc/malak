@@ -91,6 +91,8 @@ const (
 	UpdateSendScheduleSent UpdateSendSchedule = "sent"
 	// UpdateSendScheduleFailed is a UpdateSendSchedule of type failed.
 	UpdateSendScheduleFailed UpdateSendSchedule = "failed"
+	// UpdateSendScheduleProcessing is a UpdateSendSchedule of type processing.
+	UpdateSendScheduleProcessing UpdateSendSchedule = "processing"
 )
 
 var ErrInvalidUpdateSendSchedule = errors.New("not a valid UpdateSendSchedule")
@@ -108,10 +110,11 @@ func (x UpdateSendSchedule) IsValid() bool {
 }
 
 var _UpdateSendScheduleValue = map[string]UpdateSendSchedule{
-	"scheduled": UpdateSendScheduleScheduled,
-	"cancelled": UpdateSendScheduleCancelled,
-	"sent":      UpdateSendScheduleSent,
-	"failed":    UpdateSendScheduleFailed,
+	"scheduled":  UpdateSendScheduleScheduled,
+	"cancelled":  UpdateSendScheduleCancelled,
+	"sent":       UpdateSendScheduleSent,
+	"failed":     UpdateSendScheduleFailed,
+	"processing": UpdateSendScheduleProcessing,
 }
 
 // ParseUpdateSendSchedule attempts to convert a string to a UpdateSendSchedule.

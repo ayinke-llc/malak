@@ -41,17 +41,12 @@ services:
       timeout: 20s
       retries: 3
 
-  mailpit:
-    image: axllent/mailpit
-    volumes:
-      - ./docker-data/mailpit:/data
+  mailhog:
+    image: mailhog/mailhog
+    container_name: "mailhog"
     ports:
-      - 9025:8025
-      - 9125:1025
-    environment:
-      MP_DATABASE: /data/mailpit.db
-      MP_SMTP_AUTH_ACCEPT_ANY: 1
-      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+      - "9125:1025"
+      - "9225:8025"
 
   collector:
     image: otel/opentelemetry-collector-contrib

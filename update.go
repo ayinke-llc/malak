@@ -26,7 +26,7 @@ type UpdateStatus string
 // ENUM(draft,sent,all)
 type ListUpdateFilterStatus string
 
-// ENUM(scheduled,cancelled,sent,failed)
+// ENUM(scheduled,cancelled,sent,failed,processing)
 type UpdateSendSchedule string
 
 type UpdateContent string

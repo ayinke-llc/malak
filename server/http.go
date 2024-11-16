@@ -47,7 +47,7 @@ func New(logger *zap.Logger,
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
-	cleanupOtelResources := initOTELCapabilities(cfg, logger)
+	cleanupOtelResources := InitOTELCapabilities(cfg, logger)
 
 	return srv, func() {
 		cleanupOtelResources()

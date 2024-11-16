@@ -8,11 +8,11 @@ import (
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
-	"github.com/wneessen/go-mail"
+	"gopkg.in/gomail.v2"
 )
 
 type smtpClient struct {
-	client *mail.Client
+	client *gomail.Dialer
 }
 
 func New(cfg config.Config) (email.Client, error) {
@@ -33,52 +33,32 @@ func New(cfg config.Config) (email.Client, error) {
 		return nil, errors.New("please provide a valid sender")
 	}
 
+	if util.IsStringEmpty(cfg.Email.SenderName) {
+		return nil, errors.New("please provide your sender name")
+	}
+
 	_, err := pkgmail.ParseAddress(string(cfg.Email.Sender))
 	if err != nil {
 		return nil, errors.Join(err, errors.New("invalid email sender"))
 	}
 
-	client, err := mail.NewClient(cfg.Email.SMTP.Host,
-		mail.WithPort(cfg.Email.SMTP.Port),
-		mail.WithUsername(cfg.Email.SMTP.Username),
-		mail.WithPassword(cfg.Email.SMTP.Password))
-	if err != nil {
-		return nil, err
-	}
-
-	client.SetTLSPolicy(mail.NoTLS)
-
-	if cfg.Email.SMTP.UseTLS {
-		client.SetTLSPolicy(mail.TLSMandatory)
-	}
-
-	if err := client.DialWithContext(context.Background()); err != nil {
-		return nil, err
-	}
+	client := gomail.NewDialer(cfg.Email.SMTP.Host, cfg.Email.SMTP.Port, cfg.Email.SMTP.Username, cfg.Email.SMTP.Password)
 
 	return &smtpClient{
 		client: client,
 	}, nil
 }
 
-func (s *smtpClient) Close() error { return s.client.Close() }
+func (s *smtpClient) Close() error { return nil }
 
 func (s *smtpClient) Send(ctx context.Context,
 	opts email.SendOptions) error {
 
-	msg := mail.NewMsg()
+	msg := gomail.NewMessage()
+	msg.SetAddressHeader("From", opts.Sender.String(), opts.Sender.String())
+	msg.SetHeader("To", opts.Recipient.String())
+	msg.SetHeader("Subject", opts.Subject)
+	msg.AddAlternative("text/html", opts.HTML)
 
-	if err := msg.From(opts.Sender.String()); err != nil {
-		return err
-	}
-
-	if err := msg.To(opts.Recipient.String()); err != nil {
-		return err
-	}
-
-	msg.Subject(opts.Subject)
-
-	msg.SetBodyString(mail.TypeTextHTML, opts.HTML)
-
-	return s.client.Send(msg)
+	return s.client.DialAndSend(msg)
 }

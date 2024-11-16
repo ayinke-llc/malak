@@ -86,23 +86,15 @@ func TestNew_Errors(t *testing.T) {
 		require.Contains(t, err.Error(), "smtp password")
 	})
 
-	t.Run("dialing does not succeed", func(t *testing.T) {
-
-		cfg := getConfig(1025)
-
-		_, err := New(cfg)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "connection refused")
-	})
-
 }
 
 func getConfig(port int) config.Config {
 	return config.Config{
 		Email: struct {
-			Provider config.EmailProvider "mapstructure:\"provider\" yaml:\"provider\""
-			Sender   malak.Email          "mapstructure:\"sender\" yaml:\"sender\""
-			SMTP     struct {
+			Provider   config.EmailProvider "mapstructure:\"provider\" yaml:\"provider\""
+			Sender     malak.Email          "mapstructure:\"sender\" yaml:\"sender\""
+			SenderName string               "mapstructure:\"sender_name\" yaml:\"sender_name\""
+			SMTP       struct {
 				Host     string "mapstructure:\"host\" yaml:\"host\""
 				Port     int    "mapstructure:\"port\" yaml:\"port\""
 				Username string "mapstructure:\"username\" yaml:\"username\""
@@ -110,8 +102,9 @@ func getConfig(port int) config.Config {
 				UseTLS   bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
 			} "mapstructure:\"smtp\" yaml:\"smtp\""
 		}{
-			Provider: config.EmailProviderSmtp,
-			Sender:   malak.Email("yo@oops.com"),
+			Provider:   config.EmailProviderSmtp,
+			Sender:     malak.Email("yo@oops.com"),
+			SenderName: "Malak Updates",
 			SMTP: struct {
 				Host     string "mapstructure:\"host\" yaml:\"host\""
 				Port     int    "mapstructure:\"port\" yaml:\"port\""
