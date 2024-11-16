@@ -135,15 +135,15 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
   };
 
   return (
-    <div className="relative w-full max-w-screen">
-      <div className="flex absolute right-5 top-5 z-10 mb-5 gap-2">
+    <div className="relative w-full max-w-screen pt-10">
+      <div className="flex absolute right-5 top-5 z-10 mb-15 gap-2">
         <Badge className="uppercase" variant={getVariant()}>
           {saveStatus}
         </Badge>
       </div>
       <BlockNoteView
         editor={editor}
-        theme={"light"}
+        theme={"dark"}
         onChange={() => {
           setSaveStatus("Storing");
           debouncedUpdates(editor.document);
