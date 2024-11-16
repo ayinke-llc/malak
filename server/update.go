@@ -164,7 +164,7 @@ func (u *updatesHandler) list(
 	}
 
 	return listUpdateResponse{
-		APIStatus: newAPIStatus(http.StatusCreated, "updates fetched"),
+		APIStatus: newAPIStatus(http.StatusOK, "updates fetched"),
 		Updates:   updates,
 		Meta: meta{
 			Paging: pagingInfo{
@@ -300,4 +300,41 @@ func (u *updatesHandler) update(
 
 	return newAPIStatus(http.StatusOK,
 		"updates stored"), StatusSuccess
+}
+
+// @Summary List pinned updates
+// @Tags updates
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} listUpdateResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/updates/pins [get]
+func (u *updatesHandler) listPinnedUpdates(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("Listing pinned updates")
+
+	workspace := getWorkspaceFromContext(r.Context())
+
+	updates, err := u.updateRepo.ListPinned(ctx, workspace.ID)
+	if err != nil {
+		logger.Error("could not list pinned updates",
+			zap.Error(err))
+
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"could not list pinned updates"), StatusFailed
+	}
+
+	return listUpdateResponse{
+		APIStatus: newAPIStatus(http.StatusOK, "pinned updates fetched"),
+		Updates:   updates,
+	}, StatusSuccess
 }

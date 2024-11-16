@@ -199,7 +199,7 @@ func TestUpdates_TogglePinned(t *testing.T) {
 	refGenerator := malak.NewReferenceGenerator()
 
 	// add 3 pinnned updates
-	for i := 0; i < 3; i++ {
+	for i := 0; i <= 3; i++ {
 		err = updatesRepo.Create(context.Background(), &malak.Update{
 			WorkspaceID: workspace.ID,
 			Status:      malak.UpdateStatusDraft,
@@ -283,4 +283,101 @@ func TestUpdates_SendUpdate(t *testing.T) {
 		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
+}
+
+func TestUpdates_ListPinned(t *testing.T) {
+
+	t.Run("no pinned items", func(t *testing.T) {
+
+		client, teardownFunc := setupDatabase(t)
+		defer teardownFunc()
+
+		updatesRepo := NewUpdatesRepository(client)
+		userRepo := NewUserRepository(client)
+		workspaceRepo := NewWorkspaceRepository(client)
+
+		// user from the fixtures
+		user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+			Email: "lanre@test.com",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, user)
+
+		// from workspaces.yml migration
+		workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+			ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+		})
+		require.NoError(t, err)
+
+		for range []int{0, 1, 2, 3, 4, 5} {
+			err = updatesRepo.Create(context.Background(), &malak.Update{
+				WorkspaceID: workspace.ID,
+				Status:      malak.UpdateStatusDraft,
+				CreatedBy:   user.ID,
+				Content:     []malak.Block{},
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeUpdate),
+			})
+			require.NoError(t, err)
+		}
+
+		updates, err := updatesRepo.ListPinned(context.Background(), workspace.ID)
+		require.NoError(t, err)
+		require.Len(t, updates, 0)
+	})
+
+	t.Run("pinned items count", func(t *testing.T) {
+
+		client, teardownFunc := setupDatabase(t)
+		defer teardownFunc()
+
+		updatesRepo := NewUpdatesRepository(client)
+		userRepo := NewUserRepository(client)
+		workspaceRepo := NewWorkspaceRepository(client)
+
+		// user from the fixtures
+		user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+			Email: "lanre@test.com",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, user)
+
+		// from workspaces.yml migration
+		workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+			ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+		})
+		require.NoError(t, err)
+
+		for range []int{0, 1, 2, 3} {
+			update := &malak.Update{
+				WorkspaceID: workspace.ID,
+				Status:      malak.UpdateStatusDraft,
+				CreatedBy:   user.ID,
+				Content:     []malak.Block{},
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeUpdate),
+			}
+
+			err = updatesRepo.Create(context.Background(), update)
+			require.NoError(t, err)
+
+			require.NoError(t, updatesRepo.TogglePinned(context.Background(), update))
+		}
+
+		update := &malak.Update{
+			WorkspaceID: workspace.ID,
+			Status:      malak.UpdateStatusDraft,
+			CreatedBy:   user.ID,
+			Content:     []malak.Block{},
+			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeUpdate),
+		}
+
+		err = updatesRepo.Create(context.Background(), update)
+		require.NoError(t, err)
+
+		// max 5 have been added as pinned items
+		require.Error(t, updatesRepo.TogglePinned(context.Background(), update))
+
+		updates, err := updatesRepo.ListPinned(context.Background(), workspace.ID)
+		require.NoError(t, err)
+		require.Len(t, updates, malak.MaximumNumberOfPinnedUpdates)
+	})
 }

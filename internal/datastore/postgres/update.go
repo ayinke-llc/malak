@@ -132,6 +132,20 @@ func (u *updatesRepo) List(ctx context.Context,
 	return updates, err
 }
 
+func (u *updatesRepo) ListPinned(ctx context.Context,
+	workspaceID uuid.UUID) ([]malak.Update, error) {
+
+	updates := make([]malak.Update, 0, malak.MaximumNumberOfPinnedUpdates)
+
+	return updates, u.inner.NewSelect().
+		Model(&updates).
+		Order("created_at DESC").
+		Where("workspace_id = ?", workspaceID).
+		Where("is_pinned = ?", true).
+		Limit(malak.MaximumNumberOfPinnedUpdates).
+		Scan(ctx)
+}
+
 func (u *updatesRepo) Delete(ctx context.Context,
 	update *malak.Update) error {
 

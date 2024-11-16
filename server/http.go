@@ -173,6 +173,10 @@ func buildRoutes(
 					WrapMalakHTTPHandler(logger, updateHandler.create, cfg, "updates.new"))
 				r.Get("/",
 					WrapMalakHTTPHandler(logger, updateHandler.list, cfg, "updates.list"))
+
+				r.Get("/pins",
+					WrapMalakHTTPHandler(logger, updateHandler.listPinnedUpdates, cfg, "updates.list.pins"))
+
 				r.Get("/{reference}",
 					WrapMalakHTTPHandler(logger, updateHandler.fetchUpdate, cfg, "updates.fetchUpdate"))
 				r.Delete("/{reference}",

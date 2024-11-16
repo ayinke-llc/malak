@@ -3,6 +3,7 @@
 import { ServerAPIStatus, ServerFetchUpdateReponse } from "@/client/Api";
 import { Button } from "@/components/ui/button";
 import ListUpdatesTable from "@/components/ui/updates/list/list";
+import PinnedList from "@/components/ui/updates/list/pinned";
 import client from "@/lib/client";
 import { RiAddLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
@@ -43,6 +44,11 @@ export default function Page() {
   return (
     <>
       <div className="pt-6">
+
+        <section>
+          <PinnedList />
+        </section>
+
         <section>
           <div className="sm:flex sm:items-center sm:justify-between">
             <div>

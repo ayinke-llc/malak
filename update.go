@@ -17,7 +17,7 @@ const (
 
 	ErrUpdateScheduleNotFound = MalakError("update schedule not found")
 
-	MaximumNumberOfPinnedUpdates = 3
+	MaximumNumberOfPinnedUpdates = 4
 )
 
 // ENUM(draft,sent)
@@ -134,6 +134,7 @@ type UpdateRepository interface {
 	Update(context.Context, *Update) error
 	Get(context.Context, FetchUpdateOptions) (*Update, error)
 	List(context.Context, ListUpdateOptions) ([]Update, error)
+	ListPinned(context.Context, uuid.UUID) ([]Update, error)
 	Delete(context.Context, *Update) error
 	TogglePinned(context.Context, *Update) error
 	GetSchedule(context.Context, uuid.UUID) (*UpdateSchedule, error)
