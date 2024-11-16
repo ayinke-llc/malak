@@ -35,8 +35,8 @@ export default function Page() {
     retry: false,
     onSuccess: (resp: AxiosResponse<ServerFetchUpdateReponse>) => {
       router.push(`/updates/${resp.data.update.reference}`);
+      setIsLoading(false)
     },
-    onSettled: () => setIsLoading(false),
     onMutate: () => setIsLoading(true),
   });
 
