@@ -199,7 +199,7 @@ func TestUpdates_TogglePinned(t *testing.T) {
 	refGenerator := malak.NewReferenceGenerator()
 
 	// add 3 pinnned updates
-	for i := 0; i < 3; i++ {
+	for i := 0; i <= 3; i++ {
 		err = updatesRepo.Create(context.Background(), &malak.Update{
 			WorkspaceID: workspace.ID,
 			Status:      malak.UpdateStatusDraft,
