@@ -50,8 +50,7 @@ func initResources() (*resource.Resource, error) {
 	)
 }
 
-func initOTELCapabilities(cfg config.Config,
-	logger *zap.Logger) func() {
+func InitOTELCapabilities(cfg config.Config, logger *zap.Logger) func() {
 
 	if !cfg.Otel.IsEnabled {
 		return func() {}
