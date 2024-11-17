@@ -20,6 +20,7 @@ import {
 import { EVENT_TOGGLE_PINNED_STATE } from "@/lib/analytics-constansts"
 import { usePostHog } from "posthog-js/react"
 import { useState } from "react"
+import UpdateBadge from "../../custom/update/badge"
 
 const PinnedList = () => {
 
@@ -102,9 +103,7 @@ const Item = (update: MalakUpdate) => {
     <Card key={update?.id as string} className="bg-white border-none shadow-md hover:shadow-lg transition-shadow duration-300">
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
-          <Badge variant={update?.status as string === 'published' ? 'default' : 'secondary'} className="text-xs">
-            {update?.status}
-          </Badge>
+          <UpdateBadge status={update?.status as string} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
