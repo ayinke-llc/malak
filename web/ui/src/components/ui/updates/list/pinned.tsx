@@ -1,16 +1,28 @@
-import { Card, CardContent } from "@/components/ui/card"
+import {
+  Card,
+  CardContent
+} from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { RiCalendarLine, RiMoreLine } from "@remixicon/react"
-import { MalakUpdate, ServerAPIStatus, ServerCreatedUpdateResponse, } from "@/client/Api"
+import {
+  RiCalendarLine,
+  RiMoreLine
+} from "@remixicon/react"
+import {
+  MalakUpdate,
+  ServerAPIStatus,
+  ServerCreatedUpdateResponse,
+} from "@/client/Api"
 import Link from "next/link"
-import type { AxiosError, AxiosResponse } from "axios";
+import type {
+  AxiosError,
+  AxiosResponse
+} from "axios"
 import Skeleton from "../../custom/loader/skeleton"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { LIST_PINNED_UPDATES, TOGGLE_PINNED_STATE } from "@/lib/query-constants"
 import client from "@/lib/client"
-import { toast } from "sonner";
+import { toast } from "sonner"
 import { format } from "date-fns"
-import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +51,7 @@ const PinnedList = () => {
   if (error) {
     toast.error(error.message);
   }
+
   return (
     <>
       {
@@ -55,7 +68,6 @@ const PinnedList = () => {
             </div>
           )
       }
-
     </>
   )
 }
