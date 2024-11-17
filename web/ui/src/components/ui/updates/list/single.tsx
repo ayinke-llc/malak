@@ -156,7 +156,9 @@ const SingleUpdate = (update: MalakUpdate) => {
               togglePinnedStatus.mutate(update.reference as string);
             }}
           >
-            <RiPushpinLine className="h-4 w-4" />
+            <RiPushpinLine
+              className="h-4 w-4"
+              color={update?.is_pinned as boolean ? "red" : "white"} />
           </Button>
           <Popover>
             <PopoverTrigger asChild>
