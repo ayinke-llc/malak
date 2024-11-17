@@ -16,7 +16,7 @@ type client struct {
 }
 
 func New(cfg config.Config) (email.Client, error) {
-	c := resendclient.NewClient("re_123456789")
+	c := resendclient.NewClient(cfg.Email.Resend.APIKey)
 
 	return &client{
 		inner:       c,
@@ -30,24 +30,29 @@ func (s *client) Close() error { return nil }
 func (s *client) Send(ctx context.Context,
 	opts email.SendOptions) error {
 
-	// msg := gomail.NewMessage()
-	// msg.SetAddressHeader("From", opts.Sender.String(), opts.Sender.String())
-	// msg.SetHeader("To", opts.Recipient.String())
-	// msg.SetHeader("Subject", opts.Subject)
-	// msg.AddAlternative("text/html", opts.HTML)
-	//
-	// return s.client.DialAndSend(msg)
-	return nil
+	params := &resendclient.SendEmailRequest{
+		From:    fmt.Sprintf("%s <%s>", s.senderName, s.senderEmail),
+		To:      []string{opts.Recipient.String()},
+		Subject: opts.Subject,
+		Html:    opts.HTML,
+	}
+
+	_, err := s.inner.Emails.Send(params)
+	return err
 }
 
 func (s *client) SendBatch(ctx context.Context,
-	opts []email.SendOptions) error {
+	opts email.SendOptionsBatch) error {
+
+	if err := opts.Validate(); err != nil {
+		return err
+	}
 
 	var batchEmails = make([]*resendclient.SendEmailRequest, 0, len(opts))
 
 	for _, v := range opts {
 		batchEmails = append(batchEmails, &resendclient.SendEmailRequest{
-			From:    fmt.Sprintf("%s %s", s.senderName, s.senderEmail),
+			From:    fmt.Sprintf("%s <%s>", s.senderName, s.senderEmail),
 			To:      []string{v.Recipient.String()},
 			Subject: v.Subject,
 			Html:    v.HTML,

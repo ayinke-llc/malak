@@ -15,7 +15,7 @@ import (
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
-	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
+	"github.com/ayinke-llc/malak/internal/pkg/email/resend"
 	"github.com/ayinke-llc/malak/server"
 	"github.com/spf13/cobra"
 	"github.com/uptrace/bun"
@@ -73,7 +73,7 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 			cleanupOtelResources := server.InitOTELCapabilities(hermes.DeRef(cfg), logger)
 			defer cleanupOtelResources()
 
-			emailClient, err := smtp.New(*cfg)
+			emailClient, err := resend.New(*cfg)
 			if err != nil {
 				logger.Fatal("could not set up smtp client",
 					zap.Error(err))
@@ -225,8 +225,6 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 						return nil
 					}
 
-					wg.Add(len(contactsFromDB))
-
 					title := fmt.Sprintf("[TEST] %s", update.Title)
 					if scheduledUpdate.UpdateType == malak.UpdateTypeLive {
 						title = update.Title
@@ -234,11 +232,24 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 
 					// TODO(adelowo): future version should include batching
 					// API calls will most likely be throttled and we will have to deal with lot of failures
-					for _, contact := range contactsFromDB {
-						go func() {
-							defer wg.Done()
 
-							sendOptions := email.SendOptions{
+					const batchSize = 20
+
+					// Split the contacts into batches of batchSize
+					for i := 0; i < len(contactsFromDB); i += batchSize {
+						end := i + batchSize
+						if end > len(contactsFromDB) {
+							end = len(contactsFromDB)
+						}
+
+						batch := contactsFromDB[i:end]
+
+						wg.Add(1)
+
+						var batchOptions email.SendOptionsBatch
+
+						for _, contact := range batch {
+							batchOptions = append(batchOptions, email.SendOptions{
 								HTML:      b.String(),
 								Sender:    cfg.Email.Sender,
 								Recipient: contact.Contact.Email,
@@ -250,15 +261,18 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 									Sign:       false,
 									PrivateKey: []byte(""),
 								},
-							}
+							})
+						}
 
-							time.Sleep(time.Second)
-							if err := emailClient.Send(ctx, sendOptions); err != nil {
-								span.RecordError(err)
-								logger.Error("could not send email",
-									zap.Error(err))
-							}
-						}()
+						time.Sleep(time.Second)
+						if err := emailClient.SendBatch(ctx, batchOptions); err != nil {
+							wg.Done()
+							span.RecordError(err)
+							logger.Error("could not send email", zap.Error(err))
+							return err
+						}
+
+						wg.Done()
 					}
 
 					wg.Wait()

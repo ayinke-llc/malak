@@ -64,6 +64,6 @@ func (s *smtpClient) Send(ctx context.Context,
 }
 
 func (s *smtpClient) SendBatch(ctx context.Context,
-	opts []email.SendOptions) error {
+	opts email.SendOptionsBatch) error {
 	return nil
 }
