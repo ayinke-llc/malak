@@ -144,6 +144,7 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
       <BlockNoteView
         editor={editor}
         theme={"dark"}
+        editable={update?.status !== 'sent'}
         onChange={() => {
           setSaveStatus("Storing");
           debouncedUpdates(editor.document);

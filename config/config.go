@@ -111,6 +111,9 @@ type Config struct {
 			Password string `mapstructure:"password" yaml:"password"`
 			UseTLS   bool   `yaml:"use_tls" mapstructure:"use_tls"`
 		} `mapstructure:"smtp" yaml:"smtp"`
+		Resend struct {
+			APIKey string `mapstructure:"api_key" yaml:"api_key"`
+		} `mapstructure:"resend" yaml:"resend"`
 	} `mapstructure:"email" yaml:"email"`
 
 	Auth struct {

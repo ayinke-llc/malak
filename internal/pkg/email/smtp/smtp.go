@@ -62,3 +62,8 @@ func (s *smtpClient) Send(ctx context.Context,
 
 	return s.client.DialAndSend(msg)
 }
+
+func (s *smtpClient) SendBatch(ctx context.Context,
+	opts []email.SendOptions) error {
+	return nil
+}

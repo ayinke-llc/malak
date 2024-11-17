@@ -84,8 +84,42 @@ type UpdateRecipient struct {
 	ContactID  uuid.UUID `json:"contact_id,omitempty"`
 	ScheduleID uuid.UUID `json:"schedule_id,omitempty"`
 
+	UpdateRecipientStat *UpdateRecipientStat `json:"update_recipient_stat" bun:"rel:has-one,join:id=recipient_id"`
+
 	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
+	bun.BaseModel
+}
+
+type UpdateRecipientStat struct {
+	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference   Reference `json:"reference,omitempty"`
+	RecipientID uuid.UUID `json:"recipient_id,omitempty"`
+
+	LastOpenedAt *time.Time `bun:",soft_delete,nullzero" json:"last_opened_at,omitempty"`
+	HasReaction  bool       `json:"has_reaction,omitempty"`
+	IsDelivered  bool       `json:"is_delivered,omitempty"`
+
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
+	bun.BaseModel
+}
+
+type UpdateStat struct {
+	ID        uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference Reference `json:"reference,omitempty"`
+	UpdateID  uuid.UUID `json:"update_id,omitempty"`
+
+	TotalOpens     int64 `json:"total_opens,omitempty"`
+	TotalReactions int64 `json:"total_reactions,omitempty"`
+	TotalClicks    int64 `json:"total_clicks,omitempty"`
+	TotalSent      int64 `json:"total_sent,omitempty"`
+	UniqueOpens    int64 `json:"unique_opens,omitempty"`
+
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
 	bun.BaseModel
 }
 

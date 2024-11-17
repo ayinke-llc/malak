@@ -50,4 +50,5 @@ func (s SendOptions) Validate() error {
 type Client interface {
 	io.Closer
 	Send(context.Context, SendOptions) error
+	SendBatch(context.Context, []SendOptions) error
 }
