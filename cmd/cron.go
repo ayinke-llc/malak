@@ -15,7 +15,7 @@ import (
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
-	"github.com/ayinke-llc/malak/internal/pkg/email/resend"
+	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
 	"github.com/ayinke-llc/malak/server"
 	"github.com/spf13/cobra"
 	"github.com/uptrace/bun"
@@ -73,7 +73,7 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 			cleanupOtelResources := server.InitOTELCapabilities(hermes.DeRef(cfg), logger)
 			defer cleanupOtelResources()
 
-			emailClient, err := resend.New(*cfg)
+			emailClient, err := smtp.New(*cfg)
 			if err != nil {
 				logger.Fatal("could not set up smtp client",
 					zap.Error(err))
