@@ -36,7 +36,7 @@ export default function Page() {
 
         <div className="mt-2">
           {isLoading ? (
-            <Skeleton count={10} />
+            <Skeleton count={20} />
           ) : (
             <>
               <div className="flex flex-col sm:flex-row justify-end gap-1">

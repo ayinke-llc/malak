@@ -50,7 +50,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         suppressHydrationWarning
-        className={`${inter.className} overflow-y-scroll scroll-auto antialiased dark:bg-gray-950`}
+        className={`${inter.className} overflow-y-scroll scroll-auto antialiased dark:bg-gray-950 theme-custom`}
       >
         <ThemeProvider
           attribute="class"

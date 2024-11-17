@@ -123,7 +123,7 @@ const Item = (update: MalakUpdate) => {
           </DropdownMenu>
         </div>
         <Link href={`/updates/${update?.reference as string}`} className="block group">
-          <h3 className="text-lg font-medium text-gray-800 group-hover:text-primary transition-colors duration-200 mb-2">
+          <h3 className="text-lg font-medium text-gray-800 mb-2">
             {update?.title as string}
           </h3>
         </Link>
