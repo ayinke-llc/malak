@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"sync"
@@ -263,8 +264,28 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 					wg.Wait()
 
 					scheduledUpdate.Status = malak.UpdateSendScheduleSent
-					_, err = db.NewUpdate().Model(scheduledUpdate).Where("id = ? ", scheduledUpdate.ID).
-						Exec(ctx)
+					err = db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+						_, err = tx.NewUpdate().Model(scheduledUpdate).
+							Where("id = ? ", scheduledUpdate.ID).
+							Exec(ctx)
+						if err != nil {
+							return err
+						}
+
+						if update.Status == malak.UpdateStatusSent {
+							return nil
+						}
+
+						update.Status = malak.UpdateStatusSent
+						update.SentBy = schedule.ScheduledBy
+
+						_, err = tx.NewUpdate().
+							Model(update).
+							Where("id = ?", update.ID).
+							Exec(ctx)
+						return err
+					})
+
 					if err != nil {
 						span.RecordError(err)
 						logger.Error("could not update schedule status",

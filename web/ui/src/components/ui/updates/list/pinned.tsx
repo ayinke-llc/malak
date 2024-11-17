@@ -20,6 +20,7 @@ import {
 import { EVENT_TOGGLE_PINNED_STATE } from "@/lib/analytics-constansts"
 import { usePostHog } from "posthog-js/react"
 import { useState } from "react"
+import UpdateBadge from "../../custom/update/badge"
 
 const PinnedList = () => {
 
@@ -99,12 +100,10 @@ const Item = (update: MalakUpdate) => {
   }
 
   return (
-    <Card key={update?.id as string} className="bg-white border-none shadow-md hover:shadow-lg transition-shadow duration-300">
+    <Card key={update?.id as string} className="shadow-md hover:shadow-lg transition-shadow duration-300">
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
-          <Badge variant={update?.status as string === 'published' ? 'default' : 'secondary'} className="text-xs">
-            {update?.status}
-          </Badge>
+          <UpdateBadge status={update?.status as string} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -113,7 +112,8 @@ const Item = (update: MalakUpdate) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => togglePinnedStatusMutation.mutate(update?.reference as string)}>
+              <DropdownMenuItem
+                onClick={() => togglePinnedStatusMutation.mutate(update?.reference as string)}>
                 Unpin
               </DropdownMenuItem>
               <DropdownMenuItem>
@@ -123,11 +123,11 @@ const Item = (update: MalakUpdate) => {
           </DropdownMenu>
         </div>
         <Link href={`/updates/${update?.reference as string}`} className="block group">
-          <h3 className="text-lg font-medium text-gray-800 group-hover:text-primary transition-colors duration-200 mb-2">
+          <h3 className="text-lg font-medium mb-2">
             {update?.title as string}
           </h3>
         </Link>
-        <div className="flex items-center text-sm text-gray-500">
+        <div className="flex items-center text-sm ">
           <RiCalendarLine className="h-4 w-4 mr-2" />
           {format(update?.created_at as string, "EEEE, MMMM do, yyyy")}
         </div>
