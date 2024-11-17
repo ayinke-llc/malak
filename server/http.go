@@ -137,6 +137,14 @@ func buildRoutes(
 		cache:              redisCache,
 	}
 
+	webhookHandler := &webhookHandler{
+		workspaceRepo:      workspaceRepo,
+		cfg:                cfg,
+		userRepo:           userRepo,
+		planRepo:           planRepo,
+		referenceGenerator: referenceGenerator,
+	}
+
 	router.Use(middleware.RequestID)
 	router.Use(writeRequestIDHeader)
 	router.Use(
@@ -146,6 +154,10 @@ func buildRoutes(
 			otelchi.WithChiRoutes(router)))
 	router.Use(jsonResponse)
 	router.Use(ratelimiterMiddleware.Handle)
+
+	router.Route("/hooks", func(r chi.Router) {
+		r.Post("/resend", webhookHandler.handleResend(logger))
+	})
 
 	router.Route("/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
