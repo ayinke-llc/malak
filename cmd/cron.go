@@ -290,6 +290,7 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 						span.RecordError(err)
 						logger.Error("could not update schedule status",
 							zap.Error(err))
+						return err
 					}
 
 					return nil

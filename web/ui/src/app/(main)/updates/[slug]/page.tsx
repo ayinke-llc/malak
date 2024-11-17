@@ -39,7 +39,7 @@ export default function Page() {
             <Skeleton count={20} />
           ) : (
             <>
-              <div className="flex flex-col sm:flex-row justify-end gap-1">
+              <div className="flex flex-col sm:flex-row justify-end gap-2">
                 <SendTestButton reference={reference} />
                 <SendUpdateButton reference={reference} />
               </div>
