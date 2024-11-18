@@ -112,7 +112,8 @@ func (u *updatesRepo) Create(ctx context.Context,
 		}
 
 		updateStats := &malak.UpdateStat{
-			UpdateID: update.ID,
+			UpdateID:  update.ID,
+			Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeUpdateStat),
 		}
 
 		_, err = tx.NewInsert().
