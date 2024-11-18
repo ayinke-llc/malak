@@ -107,6 +107,17 @@ func (u *updatesRepo) Create(ctx context.Context,
 		_, err := tx.NewInsert().
 			Model(update).
 			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		updateStats := &malak.UpdateStat{
+			UpdateID: update.ID,
+		}
+
+		_, err = tx.NewInsert().
+			Model(updateStats).
+			Exec(ctx)
 		return err
 	})
 }

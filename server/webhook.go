@@ -13,6 +13,8 @@ type webhookHandler struct {
 	userRepo           malak.UserRepository
 	workspaceRepo      malak.WorkspaceRepository
 	planRepo           malak.PlanRepository
+	updateRepo         malak.UpdateRepository
+	contactRepo        malak.ContactRepository
 	referenceGenerator malak.ReferenceGeneratorOperation
 }
 
@@ -21,5 +23,6 @@ func (we *webhookHandler) handleResend(
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		logger.Debug("Process resend webhook")
 	}
 }
