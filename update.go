@@ -77,14 +77,18 @@ type UpdateLink struct {
 // List is a flattened group that can contain infinite amount of emails
 type RecipientType string
 
-type UpdateRecipient struct {
-	ID         uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	Reference  Reference `json:"reference,omitempty"`
-	UpdateID   uuid.UUID `json:"update_id,omitempty"`
-	ContactID  uuid.UUID `json:"contact_id,omitempty"`
-	ScheduleID uuid.UUID `json:"schedule_id,omitempty"`
+// ENUM(pending,sent)
+type RecipientStatus string
 
-	UpdateRecipientStat *UpdateRecipientStat `json:"update_recipient_stat" bun:"rel:has-one,join:id=recipient_id"`
+type UpdateRecipient struct {
+	ID         uuid.UUID       `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference  Reference       `json:"reference,omitempty"`
+	UpdateID   uuid.UUID       `json:"update_id,omitempty"`
+	ContactID  uuid.UUID       `json:"contact_id,omitempty"`
+	ScheduleID uuid.UUID       `json:"schedule_id,omitempty"`
+	Status     RecipientStatus `json:"status,omitempty"`
+
+	UpdateRecipientStat *UpdateRecipientStat `json:"update_recipient_stat,omitempty" bun:"rel:has-one,join:id=recipient_id"`
 
 	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`

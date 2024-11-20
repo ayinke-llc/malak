@@ -49,6 +49,40 @@ func ParseListUpdateFilterStatus(name string) (ListUpdateFilterStatus, error) {
 }
 
 const (
+	// RecipientStatusPending is a RecipientStatus of type pending.
+	RecipientStatusPending RecipientStatus = "pending"
+	// RecipientStatusSent is a RecipientStatus of type sent.
+	RecipientStatusSent RecipientStatus = "sent"
+)
+
+var ErrInvalidRecipientStatus = errors.New("not a valid RecipientStatus")
+
+// String implements the Stringer interface.
+func (x RecipientStatus) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x RecipientStatus) IsValid() bool {
+	_, err := ParseRecipientStatus(string(x))
+	return err == nil
+}
+
+var _RecipientStatusValue = map[string]RecipientStatus{
+	"pending": RecipientStatusPending,
+	"sent":    RecipientStatusSent,
+}
+
+// ParseRecipientStatus attempts to convert a string to a RecipientStatus.
+func ParseRecipientStatus(name string) (RecipientStatus, error) {
+	if x, ok := _RecipientStatusValue[name]; ok {
+		return x, nil
+	}
+	return RecipientStatus(""), fmt.Errorf("%s is %w", name, ErrInvalidRecipientStatus)
+}
+
+const (
 	// RecipientTypeList is a RecipientType of type list.
 	RecipientTypeList RecipientType = "list"
 	// RecipientTypeEmail is a RecipientType of type email.

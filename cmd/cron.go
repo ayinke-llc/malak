@@ -15,7 +15,7 @@ import (
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
-	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
+	"github.com/ayinke-llc/malak/internal/pkg/email/resend"
 	"github.com/ayinke-llc/malak/server"
 	"github.com/spf13/cobra"
 	"github.com/uptrace/bun"
@@ -73,7 +73,7 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 			cleanupOtelResources := server.InitOTELCapabilities(hermes.DeRef(cfg), logger)
 			defer cleanupOtelResources()
 
-			emailClient, err := smtp.New(*cfg)
+			emailClient, err := resend.New(*cfg)
 			if err != nil {
 				logger.Fatal("could not set up smtp client",
 					zap.Error(err))
@@ -199,6 +199,7 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 					err = db.NewSelect().Model(&contactsFromDB).
 						Limit(10).
 						Where("update_id = ?", schedule.UpdateID).
+						Where("status = ?", malak.RecipientStatusPending).
 						Relation("Contact").
 						Scan(ctx)
 					if err != nil {
@@ -285,6 +286,18 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 						if err != nil {
 							return err
 						}
+
+						recipientIDs := make([]string, 0, len(contactsFromDB))
+
+						for _, v := range contactsFromDB {
+							recipientIDs = append(recipientIDs, v.ID.String())
+						}
+
+						_, err = tx.NewUpdate().
+							Model(&malak.UpdateRecipient{}).
+							Where("id IN (?)", bun.In(recipientIDs)).
+							Set("status = ?", malak.RecipientStatusSent).
+							Exec(ctx)
 
 						if update.Status == malak.UpdateStatusSent {
 							return nil
