@@ -22,7 +22,7 @@ type RateLimiterType string
 // ENUM(s3)
 type UploadDriver string
 
-// ENUM(smtp)
+// ENUM(smtp,resend,sendgrid)
 type EmailProvider string
 
 type Config struct {

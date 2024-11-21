@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"sync"
@@ -15,6 +16,7 @@ import (
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
+	"github.com/ayinke-llc/malak/internal/pkg/email/resend"
 	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
 	"github.com/ayinke-llc/malak/server"
 	"github.com/google/uuid"
@@ -35,6 +37,19 @@ func addCronCommand(c *cobra.Command, cfg *config.Config) {
 	cmd.AddCommand(sendScheduledUpdates(c, cfg))
 
 	c.AddCommand(cmd)
+}
+
+func getEmailProvider(cfg config.Config) (email.Client, error) {
+	switch cfg.Email.Provider {
+	case config.EmailProviderResend:
+		return resend.New(cfg)
+
+	case config.EmailProviderSmtp:
+		return smtp.New(cfg)
+
+	default:
+		return nil, errors.New("unsupported email provider")
+	}
 }
 
 // TODO(adelowo): test at scale before beta mvp release. Email rate scale and errors syncing
@@ -74,7 +89,7 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 			cleanupOtelResources := server.InitOTELCapabilities(hermes.DeRef(cfg), logger)
 			defer cleanupOtelResources()
 
-			emailClient, err := smtp.New(*cfg)
+			emailClient, err := getEmailProvider(*cfg)
 			if err != nil {
 				logger.Fatal("could not set up email client",
 					zap.Error(err))
