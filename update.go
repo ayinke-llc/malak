@@ -77,7 +77,7 @@ type UpdateLink struct {
 // List is a flattened group that can contain infinite amount of emails
 type RecipientType string
 
-// ENUM(pending,sent)
+// ENUM(pending,sent,failed)
 type RecipientStatus string
 
 type UpdateRecipient struct {

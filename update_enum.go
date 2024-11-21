@@ -53,6 +53,8 @@ const (
 	RecipientStatusPending RecipientStatus = "pending"
 	// RecipientStatusSent is a RecipientStatus of type sent.
 	RecipientStatusSent RecipientStatus = "sent"
+	// RecipientStatusFailed is a RecipientStatus of type failed.
+	RecipientStatusFailed RecipientStatus = "failed"
 )
 
 var ErrInvalidRecipientStatus = errors.New("not a valid RecipientStatus")
@@ -72,6 +74,7 @@ func (x RecipientStatus) IsValid() bool {
 var _RecipientStatusValue = map[string]RecipientStatus{
 	"pending": RecipientStatusPending,
 	"sent":    RecipientStatusSent,
+	"failed":  RecipientStatusFailed,
 }
 
 // ParseRecipientStatus attempts to convert a string to a RecipientStatus.

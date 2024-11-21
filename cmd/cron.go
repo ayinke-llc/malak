@@ -15,8 +15,9 @@ import (
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
-	"github.com/ayinke-llc/malak/internal/pkg/email/resend"
+	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
 	"github.com/ayinke-llc/malak/server"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/uptrace/bun"
 	"go.opentelemetry.io/otel"
@@ -73,9 +74,9 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 			cleanupOtelResources := server.InitOTELCapabilities(hermes.DeRef(cfg), logger)
 			defer cleanupOtelResources()
 
-			emailClient, err := resend.New(*cfg)
+			emailClient, err := smtp.New(*cfg)
 			if err != nil {
-				logger.Fatal("could not set up smtp client",
+				logger.Fatal("could not set up email client",
 					zap.Error(err))
 			}
 			defer emailClient.Close()
@@ -232,25 +233,23 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 					}
 
 					// TODO(adelowo): future version should include batching
+					// We cannot batch right now because Resend provider does not send tags when you send a batched email
+					// Without tags, there is no way to properly update the right recipient stat
+					//
 					// API calls will most likely be throttled and we will have to deal with lot of failures
+					// But we will figure that out
+					//
+					// This cron needs a lot of clean up anyways especially with synchronizations amongst others
 
-					const batchSize = 20
+					wg.Add(len(contactsFromDB))
 
-					// Split the contacts into batches of batchSize
-					for i := 0; i < len(contactsFromDB); i += batchSize {
-						end := i + batchSize
-						if end > len(contactsFromDB) {
-							end = len(contactsFromDB)
-						}
+					for _, contact := range contactsFromDB {
+						go func() {
+							defer wg.Done()
 
-						batch := contactsFromDB[i:end]
+							time.Sleep(time.Second)
 
-						wg.Add(1)
-
-						var batchOptions email.SendOptionsBatch
-
-						for _, contact := range batch {
-							batchOptions = append(batchOptions, email.SendOptions{
+							opts := email.SendOptions{
 								HTML:      b.String(),
 								Sender:    cfg.Email.Sender,
 								Recipient: contact.Contact.Email,
@@ -262,20 +261,53 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 									Sign:       false,
 									PrivateKey: []byte(""),
 								},
-								UpdateID:           contact.UpdateID,
-								RecipientReference: string(contact.Reference),
+							}
+
+							var status = malak.RecipientStatusSent
+
+							emailID, err := emailClient.Send(ctx, opts)
+							if err != nil {
+								logger.Error("could not send email", zap.Error(err),
+									zap.String("recipient_reference", contact.Reference.String()))
+
+								status = malak.RecipientStatusFailed
+								return
+							}
+
+							err = db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+								_, err := tx.NewUpdate().
+									Model(&malak.UpdateRecipient{}).
+									Where("reference = ?", contact.Reference.String()).
+									Set("status = ?", status).
+									Exec(ctx)
+								if err != nil {
+									return err
+								}
+
+								emailLog := &malak.UpdateRecipientLog{
+									ProviderID:  emailID,
+									RecipientID: contact.ID,
+									Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeRecipientLog),
+									Provider:    emailClient.Name(),
+									ID:          uuid.New(),
+								}
+
+								_, err = tx.NewInsert().
+									Model(emailLog).
+									Exec(ctx)
+								return err
 							})
-						}
 
-						time.Sleep(time.Second)
-						if err := emailClient.SendBatch(ctx, batchOptions); err != nil {
-							wg.Done()
-							span.RecordError(err)
-							logger.Error("could not send email", zap.Error(err))
-							return err
-						}
+							if err != nil {
+								logger.Error("could not update database", zap.Error(err),
+									zap.String("email_id", emailID),
+									zap.String("recipient_reference", contact.Reference.String()))
 
-						wg.Done()
+								status = malak.RecipientStatusFailed
+								return
+							}
+						}()
 					}
 
 					wg.Wait()
@@ -288,18 +320,6 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 						if err != nil {
 							return err
 						}
-
-						recipientIDs := make([]string, 0, len(contactsFromDB))
-
-						for _, v := range contactsFromDB {
-							recipientIDs = append(recipientIDs, v.ID.String())
-						}
-
-						_, err = tx.NewUpdate().
-							Model(&malak.UpdateRecipient{}).
-							Where("id IN (?)", bun.In(recipientIDs)).
-							Set("status = ?", malak.RecipientStatusSent).
-							Exec(ctx)
 
 						if update.Status == malak.UpdateStatusSent {
 							return nil
