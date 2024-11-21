@@ -56,6 +56,16 @@ func (s *client) SendBatch(ctx context.Context,
 			To:      []string{v.Recipient.String()},
 			Subject: v.Subject,
 			Html:    v.HTML,
+			Tags: []resendclient.Tag{
+				{
+					Name:  "update_id",
+					Value: v.UpdateID.String(),
+				},
+				{
+					Name:  "recipient_reference",
+					Value: v.RecipientReference,
+				},
+			},
 		})
 	}
 

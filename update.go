@@ -95,6 +95,22 @@ type UpdateRecipient struct {
 	bun.BaseModel
 }
 
+// ENUM(resend,sendgrid,smtp)
+type UpdateRecipientLogProvider string
+
+type UpdateRecipientLog struct {
+	ID          uuid.UUID                  `json:"id,omitempty"`
+	Reference   Reference                  `json:"reference,omitempty"`
+	RecipientID uuid.UUID                  `json:"recipient_id,omitempty"`
+	ProviderID  string                     `json:"provider_id,omitempty"`
+	Provider    UpdateRecipientLogProvider `json:"provider,omitempty"`
+
+	CreatedAt     time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt     time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
+	DeletedAt     *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
+	bun.BaseModel `json:"-"`
+}
+
 type UpdateRecipientStat struct {
 	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 	Reference   Reference `json:"reference,omitempty"`

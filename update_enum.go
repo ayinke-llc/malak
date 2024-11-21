@@ -117,6 +117,43 @@ func ParseRecipientType(name string) (RecipientType, error) {
 }
 
 const (
+	// UpdateRecipientLogProviderResend is a UpdateRecipientLogProvider of type resend.
+	UpdateRecipientLogProviderResend UpdateRecipientLogProvider = "resend"
+	// UpdateRecipientLogProviderSendgrid is a UpdateRecipientLogProvider of type sendgrid.
+	UpdateRecipientLogProviderSendgrid UpdateRecipientLogProvider = "sendgrid"
+	// UpdateRecipientLogProviderSmtp is a UpdateRecipientLogProvider of type smtp.
+	UpdateRecipientLogProviderSmtp UpdateRecipientLogProvider = "smtp"
+)
+
+var ErrInvalidUpdateRecipientLogProvider = errors.New("not a valid UpdateRecipientLogProvider")
+
+// String implements the Stringer interface.
+func (x UpdateRecipientLogProvider) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x UpdateRecipientLogProvider) IsValid() bool {
+	_, err := ParseUpdateRecipientLogProvider(string(x))
+	return err == nil
+}
+
+var _UpdateRecipientLogProviderValue = map[string]UpdateRecipientLogProvider{
+	"resend":   UpdateRecipientLogProviderResend,
+	"sendgrid": UpdateRecipientLogProviderSendgrid,
+	"smtp":     UpdateRecipientLogProviderSmtp,
+}
+
+// ParseUpdateRecipientLogProvider attempts to convert a string to a UpdateRecipientLogProvider.
+func ParseUpdateRecipientLogProvider(name string) (UpdateRecipientLogProvider, error) {
+	if x, ok := _UpdateRecipientLogProviderValue[name]; ok {
+		return x, nil
+	}
+	return UpdateRecipientLogProvider(""), fmt.Errorf("%s is %w", name, ErrInvalidUpdateRecipientLogProvider)
+}
+
+const (
 	// UpdateSendScheduleScheduled is a UpdateSendSchedule of type scheduled.
 	UpdateSendScheduleScheduled UpdateSendSchedule = "scheduled"
 	// UpdateSendScheduleCancelled is a UpdateSendSchedule of type cancelled.

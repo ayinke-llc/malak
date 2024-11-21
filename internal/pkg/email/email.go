@@ -8,6 +8,7 @@ import (
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"github.com/google/uuid"
 )
 
 var (
@@ -40,6 +41,8 @@ type SendOptions struct {
 		Sign       bool
 		PrivateKey []byte
 	}
+	UpdateID           uuid.UUID
+	RecipientReference string
 }
 
 func (s SendOptions) Validate() error {

@@ -262,6 +262,8 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 									Sign:       false,
 									PrivateKey: []byte(""),
 								},
+								UpdateID:           contact.UpdateID,
+								RecipientReference: string(contact.Reference),
 							})
 						}
 

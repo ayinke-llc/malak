@@ -42,6 +42,8 @@ const (
 	EntityTypeUpdateStat EntityType = "update_stat"
 	// EntityTypeRecipientStat is a EntityType of type recipient_stat.
 	EntityTypeRecipientStat EntityType = "recipient_stat"
+	// EntityTypeRecipientLog is a EntityType of type recipient_log.
+	EntityTypeRecipientLog EntityType = "recipient_log"
 )
 
 var ErrInvalidEntityType = errors.New("not a valid EntityType")
@@ -74,6 +76,7 @@ var _EntityTypeValue = map[string]EntityType{
 	"list_email":     EntityTypeListEmail,
 	"update_stat":    EntityTypeUpdateStat,
 	"recipient_stat": EntityTypeRecipientStat,
+	"recipient_log":  EntityTypeRecipientLog,
 }
 
 // ParseEntityType attempts to convert a string to a EntityType.
