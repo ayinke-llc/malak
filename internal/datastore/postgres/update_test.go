@@ -68,6 +68,22 @@ func TestUpdates_Update(t *testing.T) {
 	require.Equal(t, updatedItem.Content, updatedContent)
 }
 
+func TestUpdates_GetByID(t *testing.T) {
+
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	updatesRepo := NewUpdatesRepository(client)
+
+	_, err := updatesRepo.GetByID(context.Background(),
+		uuid.MustParse("07b0c648-12fd-44fc-a280-946de2700e65"))
+	require.NoError(t, err)
+
+	_, err = updatesRepo.GetByID(context.Background(), uuid.New())
+	require.Error(t, err)
+	require.Equal(t, err, malak.ErrUpdateNotFound)
+}
+
 func TestUpdates_Get(t *testing.T) {
 
 	client, teardownFunc := setupDatabase(t)
@@ -94,6 +110,42 @@ func TestUpdates_Get(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, update, updateByID)
+}
+
+func TestUpdates_Stat(t *testing.T) {
+
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	updatesRepo := NewUpdatesRepository(client)
+	userRepo := NewUserRepository(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	// user from the fixtures
+	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+
+	// from workspaces.yml migration
+	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	update := &malak.Update{
+		WorkspaceID: workspace.ID,
+		Status:      malak.UpdateStatusDraft,
+		CreatedBy:   user.ID,
+		Content:     make([]malak.Block, 0),
+		Reference:   "update_ifjfkjfo",
+	}
+
+	err = updatesRepo.Create(context.Background(), update)
+	require.NoError(t, err)
+
+	_, err = updatesRepo.Stat(context.Background(), update)
+	require.NoError(t, err)
 }
 
 func TestUpdates_Create(t *testing.T) {

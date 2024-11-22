@@ -187,10 +187,16 @@ type UpdateRepository interface {
 	Create(context.Context, *Update) error
 	Update(context.Context, *Update) error
 	Get(context.Context, FetchUpdateOptions) (*Update, error)
+	Stat(context.Context, *Update) (*UpdateStat, error)
+	GetByID(context.Context, uuid.UUID) (*Update, error)
 	List(context.Context, ListUpdateOptions) ([]Update, error)
 	ListPinned(context.Context, uuid.UUID) ([]Update, error)
 	Delete(context.Context, *Update) error
 	TogglePinned(context.Context, *Update) error
 	GetSchedule(context.Context, uuid.UUID) (*UpdateSchedule, error)
 	SendUpdate(context.Context, *CreateUpdateOptions) error
+}
+
+type UpdateRecipientRepository interface {
+	GetRecipientByEmailID(context.Context, string) (*UpdateRecipient, error)
 }

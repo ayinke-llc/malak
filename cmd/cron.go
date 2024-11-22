@@ -311,6 +311,20 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 								_, err = tx.NewInsert().
 									Model(emailLog).
 									Exec(ctx)
+								if err != nil {
+									return err
+								}
+
+								stats := &malak.UpdateRecipientStat{
+									Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeRecipientStat),
+									RecipientID: contact.ID,
+									HasReaction: false,
+									IsDelivered: status == malak.RecipientStatusSent,
+								}
+
+								_, err = tx.NewInsert().
+									Model(stats).
+									Exec(ctx)
 								return err
 							})
 

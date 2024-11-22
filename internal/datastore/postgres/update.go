@@ -69,6 +69,38 @@ func (u *updatesRepo) Update(ctx context.Context,
 	return err
 }
 
+func (u *updatesRepo) Stat(ctx context.Context, update *malak.Update) (
+	*malak.UpdateStat, error) {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	stat := new(malak.UpdateStat)
+
+	err := u.inner.NewSelect().
+		Model(stat).
+		Where("update_id = ?", update.ID).
+		Scan(ctx)
+
+	return stat, err
+}
+
+func (u *updatesRepo) GetByID(ctx context.Context, id uuid.UUID) (*malak.Update, error) {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	update := &malak.Update{}
+
+	sel := u.inner.NewSelect().Model(update).
+		Where("id = ?", id.String())
+
+	err := sel.Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = malak.ErrUpdateNotFound
+	}
+
+	return update, err
+}
+
 func (u *updatesRepo) Get(ctx context.Context,
 	opts malak.FetchUpdateOptions) (*malak.Update, error) {
 
