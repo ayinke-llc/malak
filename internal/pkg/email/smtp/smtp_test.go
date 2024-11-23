@@ -39,7 +39,7 @@ func TestSMTP_Send(t *testing.T) {
 
 	require.NoError(t, err)
 
-	err = client.Send(context.Background(), email.SendOptions{
+	_, err = client.Send(context.Background(), email.SendOptions{
 		HTML:      "This is my email in html format",
 		Sender:    "yo@lanre.wtf",
 		Recipient: "lanre@ayinke.ventures",
