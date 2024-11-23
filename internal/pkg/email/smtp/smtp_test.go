@@ -39,7 +39,7 @@ func TestSMTP_Send(t *testing.T) {
 
 	require.NoError(t, err)
 
-	err = client.Send(context.Background(), email.SendOptions{
+	_, err = client.Send(context.Background(), email.SendOptions{
 		HTML:      "This is my email in html format",
 		Sender:    "yo@lanre.wtf",
 		Recipient: "lanre@ayinke.ventures",
@@ -101,6 +101,9 @@ func getConfig(port int) config.Config {
 				Password string "mapstructure:\"password\" yaml:\"password\""
 				UseTLS   bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
 			} "mapstructure:\"smtp\" yaml:\"smtp\""
+			Resend struct {
+				APIKey string "mapstructure:\"api_key\" yaml:\"api_key\""
+			} "mapstructure:\"resend\" yaml:\"resend\""
 		}{
 			Provider:   config.EmailProviderSmtp,
 			Sender:     malak.Email("yo@oops.com"),

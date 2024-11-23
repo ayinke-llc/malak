@@ -300,6 +300,8 @@ github.com/redis/go-redis/extra/redisotel/v9 v9.0.5/go.mod h1:WZjPDy7VNzn77AAfnA
 github.com/redis/go-redis/v9 v9.0.5/go.mod h1:WqMKv5vnQbRuZstUwxQI195wHy+t4PuXDOjzMvcuQHk=
 github.com/redis/go-redis/v9 v9.6.1 h1:HHDteefn6ZkTtY5fGUE8tj8uy85AHk6zP7CpzIAM0y4=
 github.com/redis/go-redis/v9 v9.6.1/go.mod h1:0C0c6ycQsdpVNQpxb1njEQIqkx5UcsM8FJCQLgE9+RA=
+github.com/resend/resend-go/v2 v2.13.0 h1:O6Z5Z+LiBlDAm6daHHn0POQX4TJfsdGIhQJD8qGutW4=
+github.com/resend/resend-go/v2 v2.13.0/go.mod h1:3YCb8c8+pLiqhtRFXTyFwlLvfjQtluxOr9HEh2BwCkQ=
 github.com/riandyrn/otelchi v0.9.0 h1:BuQxXR7/JF2yYOQl21Yyz5d52hns/96ecAaPUZiKQzc=
 github.com/riandyrn/otelchi v0.9.0/go.mod h1:iX30kllzThsf8oEcEbl3GifPJZtN4cnCWUUc+UhE4yM=
 github.com/rogpeppe/go-internal v1.12.0 h1:exVL4IDcn6na9z1rAb56Vxr+CgyK3nn3O+epU5NdKM8=

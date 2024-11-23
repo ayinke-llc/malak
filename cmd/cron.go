@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"sync"
@@ -15,8 +16,10 @@ import (
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
+	"github.com/ayinke-llc/malak/internal/pkg/email/resend"
 	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
 	"github.com/ayinke-llc/malak/server"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/uptrace/bun"
 	"go.opentelemetry.io/otel"
@@ -34,6 +37,19 @@ func addCronCommand(c *cobra.Command, cfg *config.Config) {
 	cmd.AddCommand(sendScheduledUpdates(c, cfg))
 
 	c.AddCommand(cmd)
+}
+
+func getEmailProvider(cfg config.Config) (email.Client, error) {
+	switch cfg.Email.Provider {
+	case config.EmailProviderResend:
+		return resend.New(cfg)
+
+	case config.EmailProviderSmtp:
+		return smtp.New(cfg)
+
+	default:
+		return nil, errors.New("unsupported email provider")
+	}
 }
 
 // TODO(adelowo): test at scale before beta mvp release. Email rate scale and errors syncing
@@ -73,9 +89,9 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 			cleanupOtelResources := server.InitOTELCapabilities(hermes.DeRef(cfg), logger)
 			defer cleanupOtelResources()
 
-			emailClient, err := smtp.New(*cfg)
+			emailClient, err := getEmailProvider(*cfg)
 			if err != nil {
-				logger.Fatal("could not set up smtp client",
+				logger.Fatal("could not set up email client",
 					zap.Error(err))
 			}
 			defer emailClient.Close()
@@ -199,6 +215,7 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 					err = db.NewSelect().Model(&contactsFromDB).
 						Limit(10).
 						Where("update_id = ?", schedule.UpdateID).
+						Where("status = ?", malak.RecipientStatusPending).
 						Relation("Contact").
 						Scan(ctx)
 					if err != nil {
@@ -225,20 +242,29 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 						return nil
 					}
 
-					wg.Add(len(contactsFromDB))
-
 					title := fmt.Sprintf("[TEST] %s", update.Title)
 					if scheduledUpdate.UpdateType == malak.UpdateTypeLive {
 						title = update.Title
 					}
 
 					// TODO(adelowo): future version should include batching
+					// We cannot batch right now because Resend provider does not send tags when you send a batched email
+					// Without tags, there is no way to properly update the right recipient stat
+					//
 					// API calls will most likely be throttled and we will have to deal with lot of failures
+					// But we will figure that out
+					//
+					// This cron needs a lot of clean up anyways especially with synchronizations amongst others
+
+					wg.Add(len(contactsFromDB))
+
 					for _, contact := range contactsFromDB {
 						go func() {
 							defer wg.Done()
 
-							sendOptions := email.SendOptions{
+							time.Sleep(time.Second)
+
+							opts := email.SendOptions{
 								HTML:      b.String(),
 								Sender:    cfg.Email.Sender,
 								Recipient: contact.Contact.Email,
@@ -252,11 +278,63 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 								},
 							}
 
-							time.Sleep(time.Second)
-							if err := emailClient.Send(ctx, sendOptions); err != nil {
-								span.RecordError(err)
-								logger.Error("could not send email",
-									zap.Error(err))
+							var status = malak.RecipientStatusSent
+
+							emailID, err := emailClient.Send(ctx, opts)
+							if err != nil {
+								logger.Error("could not send email", zap.Error(err),
+									zap.String("recipient_reference", contact.Reference.String()))
+
+								status = malak.RecipientStatusFailed
+								return
+							}
+
+							err = db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+								_, err := tx.NewUpdate().
+									Model(&malak.UpdateRecipient{}).
+									Where("reference = ?", contact.Reference.String()).
+									Set("status = ?", status).
+									Exec(ctx)
+								if err != nil {
+									return err
+								}
+
+								emailLog := &malak.UpdateRecipientLog{
+									ProviderID:  emailID,
+									RecipientID: contact.ID,
+									Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeRecipientLog),
+									Provider:    emailClient.Name(),
+									ID:          uuid.New(),
+								}
+
+								_, err = tx.NewInsert().
+									Model(emailLog).
+									Exec(ctx)
+								if err != nil {
+									return err
+								}
+
+								stats := &malak.UpdateRecipientStat{
+									Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeRecipientStat),
+									RecipientID: contact.ID,
+									HasReaction: false,
+									IsDelivered: status == malak.RecipientStatusSent,
+								}
+
+								_, err = tx.NewInsert().
+									Model(stats).
+									Exec(ctx)
+								return err
+							})
+
+							if err != nil {
+								logger.Error("could not update database", zap.Error(err),
+									zap.String("email_id", emailID),
+									zap.String("recipient_reference", contact.Reference.String()))
+
+								status = malak.RecipientStatusFailed
+								return
 							}
 						}()
 					}

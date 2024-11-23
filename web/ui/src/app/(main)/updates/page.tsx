@@ -36,9 +36,9 @@ export default function Page() {
     retry: false,
     onSuccess: (resp: AxiosResponse<ServerFetchUpdateReponse>) => {
       router.push(`/updates/${resp.data.update.reference}`);
-      setIsLoading(false)
     },
     onMutate: () => setIsLoading(true),
+    onSettled: () => setIsLoading(false)
   });
 
   return (
@@ -51,15 +51,6 @@ export default function Page() {
 
         <section>
           <div className="sm:flex sm:items-center sm:justify-between">
-            <div>
-              <h3 className="scroll-mt-10 font-semibold">
-                Investor updates
-              </h3>
-              <p className="text-sm leading-6">
-                View and manage your previously sent updates. Or send a new one
-              </p>
-            </div>
-
             <div className="w-full text-right">
               <Button
                 type="button"

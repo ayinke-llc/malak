@@ -69,6 +69,67 @@ func (u *updatesRepo) Update(ctx context.Context,
 	return err
 }
 
+func (u *updatesRepo) UpdateStat(ctx context.Context,
+	stat *malak.UpdateStat,
+	recipientStat *malak.UpdateRecipientStat) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return u.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		_, err := tx.NewUpdate().
+			Where("id = ?", stat.ID).
+			Model(stat).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		if recipientStat == nil {
+			return nil
+		}
+
+		_, err = tx.NewUpdate().
+			Where("id = ?", recipientStat.ID).
+			Model(recipientStat).
+			Exec(ctx)
+		return err
+	})
+}
+
+func (u *updatesRepo) Stat(ctx context.Context, update *malak.Update) (
+	*malak.UpdateStat, error) {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	stat := new(malak.UpdateStat)
+
+	err := u.inner.NewSelect().
+		Model(stat).
+		Where("update_id = ?", update.ID).
+		Scan(ctx)
+
+	return stat, err
+}
+
+func (u *updatesRepo) GetByID(ctx context.Context, id uuid.UUID) (*malak.Update, error) {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	update := &malak.Update{}
+
+	sel := u.inner.NewSelect().Model(update).
+		Where("id = ?", id.String())
+
+	err := sel.Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = malak.ErrUpdateNotFound
+	}
+
+	return update, err
+}
+
 func (u *updatesRepo) Get(ctx context.Context,
 	opts malak.FetchUpdateOptions) (*malak.Update, error) {
 
@@ -106,6 +167,18 @@ func (u *updatesRepo) Create(ctx context.Context,
 
 		_, err := tx.NewInsert().
 			Model(update).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		updateStats := &malak.UpdateStat{
+			UpdateID:  update.ID,
+			Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeUpdateStat),
+		}
+
+		_, err = tx.NewInsert().
+			Model(updateStats).
 			Exec(ctx)
 		return err
 	})
@@ -232,6 +305,7 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 					UpdateID:   opts.Schedule.UpdateID,
 					ScheduleID: opts.Schedule.ID,
 					Reference:  opts.Generator.Generate(malak.EntityTypeRecipient),
+					Status:     malak.RecipientStatusPending,
 				})
 			}
 
@@ -239,4 +313,42 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 				Exec(ctx)
 			return err
 		})
+}
+
+func (u *updatesRepo) GetStatByEmailID(ctx context.Context,
+	emailID string,
+	provider malak.UpdateRecipientLogProvider) (
+	*malak.UpdateRecipientLog, *malak.UpdateRecipientStat, error) {
+
+	// can just JOIN this into one query
+	// but meh for now currently in the trenches
+	//
+	//
+	//
+	//
+	var log *malak.UpdateRecipientLog
+	var stat *malak.UpdateRecipientStat
+
+	log = &malak.UpdateRecipientLog{
+		Recipient: &malak.UpdateRecipient{},
+	}
+
+	err := u.inner.NewSelect().
+		Model(log).
+		Where("provider_id = ?", emailID).
+		Where("provider = ?", provider.String()).
+		Relation("Recipient").
+		Scan(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	stat = &malak.UpdateRecipientStat{}
+
+	err = u.inner.NewSelect().
+		Model(stat).
+		Where("recipient_id = ?", log.RecipientID).
+		Scan(ctx)
+
+	return log, stat, err
 }

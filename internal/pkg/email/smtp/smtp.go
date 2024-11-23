@@ -5,9 +5,11 @@ import (
 	"errors"
 	pkgmail "net/mail"
 
+	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"github.com/google/uuid"
 	"gopkg.in/gomail.v2"
 )
 
@@ -52,7 +54,7 @@ func New(cfg config.Config) (email.Client, error) {
 func (s *smtpClient) Close() error { return nil }
 
 func (s *smtpClient) Send(ctx context.Context,
-	opts email.SendOptions) error {
+	opts email.SendOptions) (string, error) {
 
 	msg := gomail.NewMessage()
 	msg.SetAddressHeader("From", opts.Sender.String(), opts.Sender.String())
@@ -60,5 +62,14 @@ func (s *smtpClient) Send(ctx context.Context,
 	msg.SetHeader("Subject", opts.Subject)
 	msg.AddAlternative("text/html", opts.HTML)
 
-	return s.client.DialAndSend(msg)
+	return uuid.NewString(), s.client.DialAndSend(msg)
+}
+
+func (s *smtpClient) SendBatch(ctx context.Context,
+	opts email.SendOptionsBatch) error {
+	return nil
+}
+
+func (s *smtpClient) Name() malak.UpdateRecipientLogProvider {
+	return malak.UpdateRecipientLogProviderSmtp
 }

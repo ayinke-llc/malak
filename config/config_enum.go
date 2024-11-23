@@ -45,6 +45,10 @@ func ParseDatabaseType(name string) (DatabaseType, error) {
 const (
 	// EmailProviderSmtp is a EmailProvider of type smtp.
 	EmailProviderSmtp EmailProvider = "smtp"
+	// EmailProviderResend is a EmailProvider of type resend.
+	EmailProviderResend EmailProvider = "resend"
+	// EmailProviderSendgrid is a EmailProvider of type sendgrid.
+	EmailProviderSendgrid EmailProvider = "sendgrid"
 )
 
 var ErrInvalidEmailProvider = errors.New("not a valid EmailProvider")
@@ -62,7 +66,9 @@ func (x EmailProvider) IsValid() bool {
 }
 
 var _EmailProviderValue = map[string]EmailProvider{
-	"smtp": EmailProviderSmtp,
+	"smtp":     EmailProviderSmtp,
+	"resend":   EmailProviderResend,
+	"sendgrid": EmailProviderSendgrid,
 }
 
 // ParseEmailProvider attempts to convert a string to a EmailProvider.

@@ -15,6 +15,22 @@ var (
 	UpdateHTMLEmailTemplate string
 )
 
+type SendOptionsBatch []SendOptions
+
+func (s SendOptionsBatch) Validate() error {
+	if len(s) > 25 {
+		return errors.New("maximum of 25 allowed per batch")
+	}
+
+	for _, v := range s {
+		if err := v.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 type SendOptions struct {
 	HTML      string
 	Sender    malak.Email
@@ -49,5 +65,7 @@ func (s SendOptions) Validate() error {
 
 type Client interface {
 	io.Closer
-	Send(context.Context, SendOptions) error
+	Send(context.Context, SendOptions) (string, error)
+	SendBatch(context.Context, SendOptionsBatch) error
+	Name() malak.UpdateRecipientLogProvider
 }

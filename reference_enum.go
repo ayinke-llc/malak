@@ -38,6 +38,12 @@ const (
 	EntityTypeList EntityType = "list"
 	// EntityTypeListEmail is a EntityType of type list_email.
 	EntityTypeListEmail EntityType = "list_email"
+	// EntityTypeUpdateStat is a EntityType of type update_stat.
+	EntityTypeUpdateStat EntityType = "update_stat"
+	// EntityTypeRecipientStat is a EntityType of type recipient_stat.
+	EntityTypeRecipientStat EntityType = "recipient_stat"
+	// EntityTypeRecipientLog is a EntityType of type recipient_log.
+	EntityTypeRecipientLog EntityType = "recipient_log"
 )
 
 var ErrInvalidEntityType = errors.New("not a valid EntityType")
@@ -55,19 +61,22 @@ func (x EntityType) IsValid() bool {
 }
 
 var _EntityTypeValue = map[string]EntityType{
-	"workspace":  EntityTypeWorkspace,
-	"invoice":    EntityTypeInvoice,
-	"team":       EntityTypeTeam,
-	"invite":     EntityTypeInvite,
-	"contact":    EntityTypeContact,
-	"deck":       EntityTypeDeck,
-	"update":     EntityTypeUpdate,
-	"link":       EntityTypeLink,
-	"room":       EntityTypeRoom,
-	"recipient":  EntityTypeRecipient,
-	"schedule":   EntityTypeSchedule,
-	"list":       EntityTypeList,
-	"list_email": EntityTypeListEmail,
+	"workspace":      EntityTypeWorkspace,
+	"invoice":        EntityTypeInvoice,
+	"team":           EntityTypeTeam,
+	"invite":         EntityTypeInvite,
+	"contact":        EntityTypeContact,
+	"deck":           EntityTypeDeck,
+	"update":         EntityTypeUpdate,
+	"link":           EntityTypeLink,
+	"room":           EntityTypeRoom,
+	"recipient":      EntityTypeRecipient,
+	"schedule":       EntityTypeSchedule,
+	"list":           EntityTypeList,
+	"list_email":     EntityTypeListEmail,
+	"update_stat":    EntityTypeUpdateStat,
+	"recipient_stat": EntityTypeRecipientStat,
+	"recipient_log":  EntityTypeRecipientLog,
 }
 
 // ParseEntityType attempts to convert a string to a EntityType.
