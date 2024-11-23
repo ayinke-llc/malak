@@ -116,12 +116,13 @@ func (mr *MockUpdateRepositoryMockRecorder) GetSchedule(arg0, arg1 any) *gomock.
 }
 
 // GetStatByEmailID mocks base method.
-func (m *MockUpdateRepository) GetStatByEmailID(arg0 context.Context, arg1 string, arg2 malak.UpdateRecipientLogProvider) (*malak.UpdateRecipientStat, error) {
+func (m *MockUpdateRepository) GetStatByEmailID(arg0 context.Context, arg1 string, arg2 malak.UpdateRecipientLogProvider) (*malak.UpdateRecipientLog, *malak.UpdateRecipientStat, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetStatByEmailID", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*malak.UpdateRecipientStat)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(*malak.UpdateRecipientLog)
+	ret1, _ := ret[1].(*malak.UpdateRecipientStat)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetStatByEmailID indicates an expected call of GetStatByEmailID.
