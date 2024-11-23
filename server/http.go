@@ -143,6 +143,8 @@ func buildRoutes(
 		userRepo:           userRepo,
 		planRepo:           planRepo,
 		referenceGenerator: referenceGenerator,
+		updateRepo:         updateRepo,
+		contactRepo:        contactRepo,
 	}
 
 	router.Use(middleware.RequestID)

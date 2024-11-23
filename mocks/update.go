@@ -85,6 +85,21 @@ func (mr *MockUpdateRepositoryMockRecorder) Get(arg0, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUpdateRepository)(nil).Get), arg0, arg1)
 }
 
+// GetByID mocks base method.
+func (m *MockUpdateRepository) GetByID(arg0 context.Context, arg1 uuid.UUID) (*malak.Update, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByID", arg0, arg1)
+	ret0, _ := ret[0].(*malak.Update)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByID indicates an expected call of GetByID.
+func (mr *MockUpdateRepositoryMockRecorder) GetByID(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockUpdateRepository)(nil).GetByID), arg0, arg1)
+}
+
 // GetSchedule mocks base method.
 func (m *MockUpdateRepository) GetSchedule(arg0 context.Context, arg1 uuid.UUID) (*malak.UpdateSchedule, error) {
 	m.ctrl.T.Helper()
@@ -98,6 +113,21 @@ func (m *MockUpdateRepository) GetSchedule(arg0 context.Context, arg1 uuid.UUID)
 func (mr *MockUpdateRepositoryMockRecorder) GetSchedule(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSchedule", reflect.TypeOf((*MockUpdateRepository)(nil).GetSchedule), arg0, arg1)
+}
+
+// GetStatByEmailID mocks base method.
+func (m *MockUpdateRepository) GetStatByEmailID(arg0 context.Context, arg1 string, arg2 malak.UpdateRecipientLogProvider) (*malak.UpdateRecipientStat, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStatByEmailID", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*malak.UpdateRecipientStat)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStatByEmailID indicates an expected call of GetStatByEmailID.
+func (mr *MockUpdateRepositoryMockRecorder) GetStatByEmailID(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatByEmailID", reflect.TypeOf((*MockUpdateRepository)(nil).GetStatByEmailID), arg0, arg1, arg2)
 }
 
 // List mocks base method.
@@ -144,6 +174,21 @@ func (mr *MockUpdateRepositoryMockRecorder) SendUpdate(arg0, arg1 any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendUpdate", reflect.TypeOf((*MockUpdateRepository)(nil).SendUpdate), arg0, arg1)
 }
 
+// Stat mocks base method.
+func (m *MockUpdateRepository) Stat(arg0 context.Context, arg1 *malak.Update) (*malak.UpdateStat, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Stat", arg0, arg1)
+	ret0, _ := ret[0].(*malak.UpdateStat)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Stat indicates an expected call of Stat.
+func (mr *MockUpdateRepositoryMockRecorder) Stat(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stat", reflect.TypeOf((*MockUpdateRepository)(nil).Stat), arg0, arg1)
+}
+
 // TogglePinned mocks base method.
 func (m *MockUpdateRepository) TogglePinned(arg0 context.Context, arg1 *malak.Update) error {
 	m.ctrl.T.Helper()
@@ -170,4 +215,18 @@ func (m *MockUpdateRepository) Update(arg0 context.Context, arg1 *malak.Update) 
 func (mr *MockUpdateRepositoryMockRecorder) Update(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockUpdateRepository)(nil).Update), arg0, arg1)
+}
+
+// UpdateStat mocks base method.
+func (m *MockUpdateRepository) UpdateStat(arg0 context.Context, arg1 *malak.UpdateStat, arg2 *malak.UpdateRecipientStat) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateStat", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateStat indicates an expected call of UpdateStat.
+func (mr *MockUpdateRepositoryMockRecorder) UpdateStat(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStat", reflect.TypeOf((*MockUpdateRepository)(nil).UpdateStat), arg0, arg1, arg2)
 }

@@ -69,6 +69,35 @@ func (u *updatesRepo) Update(ctx context.Context,
 	return err
 }
 
+func (u *updatesRepo) UpdateStat(ctx context.Context,
+	stat *malak.UpdateStat,
+	recipientStat *malak.UpdateRecipientStat) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return u.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		_, err := tx.NewUpdate().
+			Where("id = ?", stat.ID).
+			Model(stat).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		if recipientStat == nil {
+			return nil
+		}
+
+		_, err = tx.NewUpdate().
+			Where("id = ?", recipientStat.ID).
+			Model(recipientStat).
+			Exec(ctx)
+		return err
+	})
+}
+
 func (u *updatesRepo) Stat(ctx context.Context, update *malak.Update) (
 	*malak.UpdateStat, error) {
 	ctx, cancelFn := withContext(ctx)
@@ -283,4 +312,42 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 				Exec(ctx)
 			return err
 		})
+}
+
+func (u *updatesRepo) GetStatByEmailID(ctx context.Context,
+	emailID string,
+	provider malak.UpdateRecipientLogProvider) (
+	*malak.UpdateRecipientLog, *malak.UpdateRecipientStat, error) {
+
+	// can just JOIN this into one query
+	// but meh for now currently in the trenches
+	//
+	//
+	//
+	//
+	var log *malak.UpdateRecipientLog
+	var stat *malak.UpdateRecipientStat
+
+	log = &malak.UpdateRecipientLog{
+		Recipient: &malak.UpdateRecipient{},
+	}
+
+	err := u.inner.NewSelect().
+		Model(log).
+		Where("provider_id = ?", emailID).
+		Where("provider = ?", provider.String()).
+		Relation("Recipient").
+		Scan(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	stat = &malak.UpdateRecipientStat{}
+
+	err = u.inner.NewSelect().
+		Model(stat).
+		Where("recipient_id = ?", log.RecipientID).
+		Scan(ctx)
+
+	return log, stat, err
 }
