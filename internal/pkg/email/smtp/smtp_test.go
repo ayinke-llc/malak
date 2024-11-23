@@ -101,6 +101,9 @@ func getConfig(port int) config.Config {
 				Password string "mapstructure:\"password\" yaml:\"password\""
 				UseTLS   bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
 			} "mapstructure:\"smtp\" yaml:\"smtp\""
+			Resend struct {
+				APIKey string "mapstructure:\"api_key\" yaml:\"api_key\""
+			} "mapstructure:\"resend\" yaml:\"resend\""
 		}{
 			Provider:   config.EmailProviderSmtp,
 			Sender:     malak.Email("yo@oops.com"),

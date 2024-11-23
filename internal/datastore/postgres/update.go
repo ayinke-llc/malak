@@ -305,6 +305,7 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 					UpdateID:   opts.Schedule.UpdateID,
 					ScheduleID: opts.Schedule.ID,
 					Reference:  opts.Generator.Generate(malak.EntityTypeRecipient),
+					Status:     malak.RecipientStatusPending,
 				})
 			}
 
