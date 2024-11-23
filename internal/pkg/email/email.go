@@ -66,6 +66,5 @@ func (s SendOptions) Validate() error {
 type Client interface {
 	io.Closer
 	Send(context.Context, SendOptions) (string, error)
-	SendBatch(context.Context, SendOptionsBatch) error
 	Name() malak.UpdateRecipientLogProvider
 }

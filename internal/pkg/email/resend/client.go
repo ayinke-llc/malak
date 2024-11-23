@@ -46,28 +46,6 @@ func (s *client) Send(ctx context.Context,
 	return res.Id, nil
 }
 
-func (s *client) SendBatch(ctx context.Context,
-	opts email.SendOptionsBatch) error {
-
-	if err := opts.Validate(); err != nil {
-		return err
-	}
-
-	var batchEmails = make([]*resendclient.SendEmailRequest, 0, len(opts))
-
-	for _, v := range opts {
-		batchEmails = append(batchEmails, &resendclient.SendEmailRequest{
-			From:    fmt.Sprintf("%s <%s>", s.senderName, s.senderEmail),
-			To:      []string{v.Recipient.String()},
-			Subject: v.Subject,
-			Html:    v.HTML,
-		})
-	}
-
-	_, err := s.inner.Batch.SendWithContext(ctx, batchEmails)
-	return err
-}
-
 func (s *client) Name() malak.UpdateRecipientLogProvider {
 	return malak.UpdateRecipientLogProviderResend
 }

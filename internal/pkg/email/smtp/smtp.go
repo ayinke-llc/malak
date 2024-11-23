@@ -65,11 +65,6 @@ func (s *smtpClient) Send(ctx context.Context,
 	return uuid.NewString(), s.client.DialAndSend(msg)
 }
 
-func (s *smtpClient) SendBatch(ctx context.Context,
-	opts email.SendOptionsBatch) error {
-	return nil
-}
-
 func (s *smtpClient) Name() malak.UpdateRecipientLogProvider {
 	return malak.UpdateRecipientLogProviderSmtp
 }
