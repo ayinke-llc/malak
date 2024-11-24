@@ -187,6 +187,9 @@ func (u *updatesRepo) Create(ctx context.Context,
 func (u *updatesRepo) List(ctx context.Context,
 	opts malak.ListUpdateOptions) ([]malak.Update, error) {
 
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
 	updates := make([]malak.Update, 0, opts.Paginator.PerPage)
 
 	q := u.inner.NewSelect().
@@ -208,6 +211,9 @@ func (u *updatesRepo) List(ctx context.Context,
 func (u *updatesRepo) ListPinned(ctx context.Context,
 	workspaceID uuid.UUID) ([]malak.Update, error) {
 
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
 	updates := make([]malak.Update, 0, malak.MaximumNumberOfPinnedUpdates)
 
 	return updates, u.inner.NewSelect().
@@ -221,6 +227,9 @@ func (u *updatesRepo) ListPinned(ctx context.Context,
 
 func (u *updatesRepo) Delete(ctx context.Context,
 	update *malak.Update) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
 
 	_, err := u.inner.NewDelete().Model(update).
 		Where("id = ?", update.ID).
@@ -250,6 +259,9 @@ func (u *updatesRepo) GetSchedule(ctx context.Context, scheduleID uuid.UUID) (
 
 func (u *updatesRepo) SendUpdate(ctx context.Context,
 	opts *malak.CreateUpdateOptions) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
 
 	return u.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
@@ -326,6 +338,10 @@ func (u *updatesRepo) GetStatByEmailID(ctx context.Context,
 	//
 	//
 	//
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
 	var log *malak.UpdateRecipientLog
 	var stat *malak.UpdateRecipientStat
 
@@ -351,4 +367,19 @@ func (u *updatesRepo) GetStatByEmailID(ctx context.Context,
 		Scan(ctx)
 
 	return log, stat, err
+}
+
+func (u *updatesRepo) RecipientStat(ctx context.Context,
+	update *malak.Update) ([]malak.UpdateRecipientStat, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	stats := make([]malak.UpdateRecipientStat, 0)
+
+	return stats, u.inner.NewSelect().
+		Model(&stats).
+		Order("created_at DESC").
+		Where("update_id = ?", update.ID).
+		Scan(ctx)
 }
