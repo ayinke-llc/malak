@@ -370,16 +370,17 @@ func (u *updatesRepo) GetStatByEmailID(ctx context.Context,
 }
 
 func (u *updatesRepo) RecipientStat(ctx context.Context,
-	update *malak.Update) ([]malak.UpdateRecipientStat, error) {
+	update *malak.Update) ([]malak.UpdateRecipient, error) {
 
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
 
-	stats := make([]malak.UpdateRecipientStat, 0)
+	recipients := make([]malak.UpdateRecipient, 0)
 
-	return stats, u.inner.NewSelect().
-		Model(&stats).
+	return recipients, u.inner.NewSelect().
+		Model(&recipients).
 		Order("created_at DESC").
 		Where("update_id = ?", update.ID).
+		Relation("UpdateRecipientStat").
 		Scan(ctx)
 }

@@ -96,6 +96,6 @@ type fetchContactListsResponse struct {
 
 type fetchUpdateAnalyticsResponse struct {
 	APIStatus
-	Update         malak.UpdateStat            `json:"update,omitempty"`
-	RecipientStats []malak.UpdateRecipientStat `json:"recipient_stats,omitempty"`
+	Update     malak.UpdateStat        `json:"update,omitempty"`
+	Recipients []malak.UpdateRecipient `json:"recipients,omitempty"`
 }

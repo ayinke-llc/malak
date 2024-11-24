@@ -57,14 +57,14 @@ func (u *updatesHandler) fetchUpdateAnalytics(
 	}
 
 	var stat *malak.UpdateStat
-	var recipientStats []malak.UpdateRecipientStat
+	var recipients []malak.UpdateRecipient
 
 	var g errgroup.Group
 
 	g.Go(func() error {
 		var err error
 
-		recipientStats, err = u.updateRepo.RecipientStat(ctx, update)
+		recipients, err = u.updateRepo.RecipientStat(ctx, update)
 		if err != nil {
 			logger.Error("could not fetch recipient stats", zap.Error(err))
 			return err
@@ -91,8 +91,8 @@ func (u *updatesHandler) fetchUpdateAnalytics(
 	}
 
 	return fetchUpdateAnalyticsResponse{
-		APIStatus:      newAPIStatus(http.StatusOK, "update fetched"),
-		RecipientStats: recipientStats,
-		Update:         hermes.DeRef(stat),
+		APIStatus:  newAPIStatus(http.StatusOK, "update fetched"),
+		Recipients: recipients,
+		Update:     hermes.DeRef(stat),
 	}, StatusSuccess
 }

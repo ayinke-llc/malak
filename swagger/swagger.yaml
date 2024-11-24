@@ -212,8 +212,6 @@ components:
           type: boolean
         last_opened_at:
           type: string
-        recipient:
-          $ref: '#/components/schemas/malak.UpdateRecipient'
         recipient_id:
           type: string
         reference:
@@ -455,9 +453,9 @@ components:
       properties:
         message:
           type: string
-        recipient_stats:
+        recipients:
           items:
-            $ref: '#/components/schemas/malak.UpdateRecipientStat'
+            $ref: '#/components/schemas/malak.UpdateRecipient'
           type: array
         update:
           $ref: '#/components/schemas/malak.UpdateStat'

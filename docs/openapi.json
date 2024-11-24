@@ -309,9 +309,6 @@
 					"last_opened_at": {
 						"type": "string"
 					},
-					"recipient": {
-						"$ref": "#/components/schemas/malak.UpdateRecipient"
-					},
 					"recipient_id": {
 						"type": "string"
 					},
@@ -667,9 +664,9 @@
 					"message": {
 						"type": "string"
 					},
-					"recipient_stats": {
+					"recipients": {
 						"items": {
-							"$ref": "#/components/schemas/malak.UpdateRecipientStat"
+							"$ref": "#/components/schemas/malak.UpdateRecipient"
 						},
 						"type": "array"
 					},

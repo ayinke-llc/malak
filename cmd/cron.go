@@ -320,7 +320,6 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 									RecipientID: contact.ID,
 									HasReaction: false,
 									IsDelivered: status == malak.RecipientStatusSent,
-									UpdateID:    schedule.UpdateID,
 								}
 
 								_, err = tx.NewInsert().

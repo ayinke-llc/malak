@@ -162,10 +162,10 @@ func (mr *MockUpdateRepositoryMockRecorder) ListPinned(arg0, arg1 any) *gomock.C
 }
 
 // RecipientStat mocks base method.
-func (m *MockUpdateRepository) RecipientStat(arg0 context.Context, arg1 *malak.Update) ([]malak.UpdateRecipientStat, error) {
+func (m *MockUpdateRepository) RecipientStat(arg0 context.Context, arg1 *malak.Update) ([]malak.UpdateRecipient, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RecipientStat", arg0, arg1)
-	ret0, _ := ret[0].([]malak.UpdateRecipientStat)
+	ret0, _ := ret[0].([]malak.UpdateRecipient)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

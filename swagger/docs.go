@@ -1540,9 +1540,6 @@ const docTemplate = `{
                 "last_opened_at": {
                     "type": "string"
                 },
-                "recipient": {
-                    "$ref": "#/definitions/malak.UpdateRecipient"
-                },
                 "recipient_id": {
                     "type": "string"
                 },
@@ -1901,10 +1898,10 @@ const docTemplate = `{
                 "message": {
                     "type": "string"
                 },
-                "recipient_stats": {
+                "recipients": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/malak.UpdateRecipientStat"
+                        "$ref": "#/definitions/malak.UpdateRecipient"
                     }
                 },
                 "update": {

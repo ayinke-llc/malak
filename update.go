@@ -118,9 +118,6 @@ type UpdateRecipientStat struct {
 	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 	Reference   Reference `json:"reference,omitempty"`
 	RecipientID uuid.UUID `json:"recipient_id,omitempty"`
-	UpdateID    uuid.UUID `json:"update_id,omitempty"`
-
-	Recipient *UpdateRecipient `json:"-" bun:"rel:has-one,join:recipient_id=id"`
 
 	LastOpenedAt *time.Time `bun:",soft_delete,nullzero" json:"last_opened_at,omitempty"`
 	HasReaction  bool       `json:"has_reaction,omitempty"`
@@ -208,5 +205,5 @@ type UpdateRepository interface {
 		UpdateRecipientLogProvider) (*UpdateRecipientLog, *UpdateRecipientStat, error)
 	Stat(context.Context, *Update) (*UpdateStat, error)
 	UpdateStat(context.Context, *UpdateStat, *UpdateRecipientStat) error
-	RecipientStat(context.Context, *Update) ([]UpdateRecipientStat, error)
+	RecipientStat(context.Context, *Update) ([]UpdateRecipient, error)
 }
