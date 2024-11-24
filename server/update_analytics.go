@@ -17,7 +17,7 @@ import (
 
 // @Tags updates
 // @Summary Fetch analytics for a specific update
-// @id updateAnalytics
+// @id fetchUpdateAnalytics
 // @Accept  json
 // @Produce  json
 // @Param reference path string required "update unique reference.. e.g update_"

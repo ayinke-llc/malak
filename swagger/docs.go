@@ -952,7 +952,7 @@ const docTemplate = `{
                     "updates"
                 ],
                 "summary": "Fetch analytics for a specific update",
-                "operationId": "updateAnalytics",
+                "operationId": "fetchUpdateAnalytics",
                 "parameters": [
                     {
                         "type": "string",

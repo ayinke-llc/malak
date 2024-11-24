@@ -1302,7 +1302,7 @@ paths:
       - updates
   /workspaces/updates/{reference}/analytics:
     get:
-      operationId: updateAnalytics
+      operationId: fetchUpdateAnalytics
       parameters:
       - description: update unique reference.. e.g update_
         in: path
