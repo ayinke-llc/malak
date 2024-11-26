@@ -3,6 +3,8 @@ import { FETCH_SINGLE_UPDATE_ANALYTICS } from "@/lib/query-constants";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Skeleton from "../../custom/loader/skeleton";
+import View from "./view";
+import { MalakUpdateStat } from "@/client/Api";
 
 type Props = {
   reference: string
@@ -32,6 +34,7 @@ const Analytics = (props: Props) => {
             <Skeleton count={20} />
           ) : (
             <>
+              <View update={data?.data.update as MalakUpdateStat} />
             </>
           )}
         </div>

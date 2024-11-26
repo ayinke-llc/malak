@@ -41,7 +41,7 @@ export default function Page() {
           ) : (
             <>
               <Analytics reference={reference} />
-              <div className="flex flex-col sm:flex-row justify-end gap-2">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 mt-8">
                 <SendTestButton reference={reference} />
                 <SendUpdateButton reference={reference} />
               </div>
