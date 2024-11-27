@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Skeleton from "../../custom/loader/skeleton";
 import View from "./view";
-import { MalakUpdateStat } from "@/client/Api";
+import { MalakUpdateRecipientStat, MalakUpdateStat } from "@/client/Api";
 
 type Props = {
   reference: string
@@ -20,7 +20,6 @@ const Analytics = (props: Props) => {
   });
 
   if (error) {
-    console.log(error)
     toast.error("an error occurred while fetching analytics for this update");
   }
 
@@ -34,7 +33,9 @@ const Analytics = (props: Props) => {
             <Skeleton count={20} />
           ) : (
             <>
-              <View update={data?.data.update as MalakUpdateStat} />
+              <View
+                update={data?.data?.update as MalakUpdateStat}
+                recipientStats={data?.data?.recipients as MalakUpdateRecipientStat[]} />
             </>
           )}
         </div>

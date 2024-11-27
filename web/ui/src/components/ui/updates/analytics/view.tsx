@@ -17,25 +17,16 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import { RiBarChart2Line, RiEye2Line, RiMouseLine, RiThumbUpLine } from "@remixicon/react"
-import { MalakUpdateStat } from "@/client/Api"
+import { MalakUpdateRecipient, MalakUpdateStat } from "@/client/Api"
 
-type Recipient = {
-  name: string
-  email: string
-  delivered: boolean
-  lastOpened: Date | null
-  reacted: string | null
-  clicks: number
-}
-
-const columns: ColumnDef<Recipient>[] = [
+const columns: ColumnDef<MalakUpdateRecipient>[] = [
   {
     accessorKey: "name",
     header: "Name",
     cell: ({ row }) => (
       <div>
-        <div className="font-medium">{row.original.name}</div>
-        <div className="text-sm text-muted-foreground">{row.original.email}</div>
+        <div className="font-medium">{row.original.reference}</div>
+        <div className="text-sm text-muted-foreground">{row.original.reference}</div>
       </div>
     ),
   },
@@ -44,7 +35,7 @@ const columns: ColumnDef<Recipient>[] = [
     header: "Delivered",
     cell: ({ row }) => (
       <div className="flex justify-center">
-        {row.original.delivered ? (
+        {row.original.update_recipient_stat?.is_delivered ? (
           <span className="text-green-500 text-xl">✓</span>
         ) : (
           <span className="text-red-500 text-xl">✗</span>
@@ -57,8 +48,8 @@ const columns: ColumnDef<Recipient>[] = [
     header: "Last Opened",
     cell: ({ row }) => (
       <div>
-        {row.original.lastOpened
-          ? row.original.lastOpened.toLocaleString()
+        {row.original.update_recipient_stat?.last_opened_at
+          ? row.original.update_recipient_stat?.last_opened_at.toLocaleString()
           : "Not opened"}
       </div>
     ),
@@ -67,71 +58,31 @@ const columns: ColumnDef<Recipient>[] = [
     accessorKey: "reacted",
     header: "Reacted",
     cell: ({ row }) => (
-      <div className="text-center text-xl">{row.original.reacted || "-"}</div>
+      <div className="text-center text-xl">{row.original.update_recipient_stat?.has_reaction || "-"}</div>
     ),
   },
   {
     accessorKey: "clicks",
     header: "Clicks",
-    cell: ({ row }) => <div className="text-center">{row.original.clicks}</div>,
-  },
-]
-
-const data: Recipient[] = [
-  {
-    name: "Lanre Adelowo",
-    email: "yo@lanre.wtf",
-    delivered: true,
-    lastOpened: new Date("2023-06-15T10:30:00"),
-    reacted: "👍",
-    clicks: 3,
-  },
-  {
-    name: "Bobby bro",
-    email: "bob@example.com",
-    delivered: true,
-    lastOpened: null,
-    reacted: null,
-    clicks: 0,
-  },
-  {
-    name: "Charlie XCX",
-    email: "charlie@example.com",
-    delivered: false,
-    lastOpened: null,
-    reacted: null,
-    clicks: 0,
-  },
-  {
-    name: "Elon Musk",
-    email: "elon@example.com",
-    delivered: true,
-    lastOpened: new Date("2023-06-14T15:45:00"),
-    reacted: "❤️",
-    clicks: 5,
-  },
-  {
-    name: "PG - Paul george or Graham",
-    email: "pg@example.com",
-    delivered: true,
-    lastOpened: new Date("2023-06-15T09:00:00"),
-    reacted: "😊",
-    clicks: 2,
+    cell: ({ row }) => <div className="text-center">{0}</div>,
   },
 ]
 
 export interface Props {
   update: MalakUpdateStat
+  recipientStats: MalakUpdateRecipient[]
+  showAll: boolean
 }
 
 export default function View(
-  { update }: Props
+  { update, recipientStats, showAll }: Props
 ) {
-  const progressPercentage = (update?.unique_opens as number / update?.total_opens as number) * 100
+
+  const progressPercentage = (update?.unique_opens as number / (update?.total_opens as number)) * 100
 
   const table = useReactTable({
     columns,
-    data,
+    data: showAll ? recipientStats : recipientStats.slice(0, 5),
     getCoreRowModel: getCoreRowModel(),
   })
 
