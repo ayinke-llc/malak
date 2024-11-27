@@ -6,6 +6,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -17,7 +18,9 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import { RiBarChart2Line, RiEye2Line, RiMouseLine, RiThumbUpLine } from "@remixicon/react"
-import { MalakUpdateRecipient, MalakUpdateStat } from "@/client/Api"
+import { MalakContact, MalakUpdateRecipient, MalakUpdateStat } from "@/client/Api"
+import { format } from "date-fns";
+import { fullName } from "@/lib/custom"
 
 const columns: ColumnDef<MalakUpdateRecipient>[] = [
   {
@@ -25,8 +28,10 @@ const columns: ColumnDef<MalakUpdateRecipient>[] = [
     header: "Name",
     cell: ({ row }) => (
       <div>
-        <div className="font-medium">{row.original.reference}</div>
-        <div className="text-sm text-muted-foreground">{row.original.reference}</div>
+        <div className="font-medium">
+          {fullName(row.original.contact as MalakContact)}
+        </div>
+        <div className="text-sm text-muted-foreground">{row.original.contact?.email}</div>
       </div>
     ),
   },
@@ -49,7 +54,7 @@ const columns: ColumnDef<MalakUpdateRecipient>[] = [
     cell: ({ row }) => (
       <div>
         {row.original.update_recipient_stat?.last_opened_at
-          ? row.original.update_recipient_stat?.last_opened_at.toLocaleString()
+          ? format(row.original.update_recipient_stat?.last_opened_at, "EEEE, MMMM do, yyyy")
           : "Not opened"}
       </div>
     ),

@@ -1490,6 +1490,9 @@ const docTemplate = `{
         "malak.UpdateRecipient": {
             "type": "object",
             "properties": {
+                "contact": {
+                    "$ref": "#/definitions/malak.Contact"
+                },
                 "contact_id": {
                     "type": "string"
                 },
@@ -1539,6 +1542,9 @@ const docTemplate = `{
                 },
                 "last_opened_at": {
                     "type": "string"
+                },
+                "recipient": {
+                    "$ref": "#/definitions/malak.UpdateRecipient"
                 },
                 "recipient_id": {
                     "type": "string"

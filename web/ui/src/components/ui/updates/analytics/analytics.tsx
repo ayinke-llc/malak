@@ -34,6 +34,7 @@ const Analytics = (props: Props) => {
           ) : (
             <>
               <View
+                showAll={false}
                 update={data?.data?.update as MalakUpdateStat}
                 recipientStats={data?.data?.recipients as MalakUpdateRecipientStat[]} />
             </>

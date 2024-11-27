@@ -259,6 +259,9 @@
 			},
 			"malak.UpdateRecipient": {
 				"properties": {
+					"contact": {
+						"$ref": "#/components/schemas/malak.Contact"
+					},
 					"contact_id": {
 						"type": "string"
 					},
@@ -308,6 +311,9 @@
 					},
 					"last_opened_at": {
 						"type": "string"
+					},
+					"recipient": {
+						"$ref": "#/components/schemas/malak.UpdateRecipient"
 					},
 					"recipient_id": {
 						"type": "string"
