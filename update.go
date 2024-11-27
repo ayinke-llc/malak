@@ -89,6 +89,7 @@ type UpdateRecipient struct {
 	Status     RecipientStatus `json:"status,omitempty"`
 
 	UpdateRecipientStat *UpdateRecipientStat `json:"update_recipient_stat,omitempty" bun:"rel:has-one,join:id=recipient_id"`
+	Contact             *Contact             `json:"contact,omitempty" bun:"rel:has-one,join:contact_id=id"`
 
 	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`

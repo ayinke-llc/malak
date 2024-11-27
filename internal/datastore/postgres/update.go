@@ -382,5 +382,6 @@ func (u *updatesRepo) RecipientStat(ctx context.Context,
 		Order("created_at DESC").
 		Where("update_id = ?", update.ID).
 		Relation("UpdateRecipientStat").
+		Relation("Contact").
 		Scan(ctx)
 }
