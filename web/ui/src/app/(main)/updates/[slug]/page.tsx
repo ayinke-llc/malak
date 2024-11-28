@@ -42,8 +42,8 @@ export default function Page() {
             <>
               <Analytics reference={reference} />
               <div className="flex flex-col sm:flex-row justify-end gap-2 mt-8">
-                <SendTestButton reference={reference} />
-                <SendUpdateButton reference={reference} />
+                {data?.data?.update?.status === "draft" && <SendTestButton reference={reference} />}
+                <SendUpdateButton reference={reference} isSent={data?.data?.update?.status === "sent"} />
               </div>
               <BlockNoteJSEditor
                 reference={reference}

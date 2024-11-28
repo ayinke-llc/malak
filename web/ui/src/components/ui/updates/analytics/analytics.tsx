@@ -5,12 +5,15 @@ import { toast } from "sonner";
 import Skeleton from "../../custom/loader/skeleton";
 import View from "./view";
 import { MalakUpdateRecipientStat, MalakUpdateStat } from "@/client/Api";
+import { useState } from "react";
 
 type Props = {
   reference: string
 }
 
 const Analytics = (props: Props) => {
+
+  const [showAll, setShowAll] = useState(false)
 
   const { data, error, isLoading } = useQuery({
     queryKey: [FETCH_SINGLE_UPDATE_ANALYTICS],
@@ -23,7 +26,6 @@ const Analytics = (props: Props) => {
     toast.error("an error occurred while fetching analytics for this update");
   }
 
-
   return (
     <div>
       <section>
@@ -32,12 +34,13 @@ const Analytics = (props: Props) => {
           {isLoading ? (
             <Skeleton count={20} />
           ) : (
-            <>
-              <View
-                showAll={false}
-                update={data?.data?.update as MalakUpdateStat}
-                recipientStats={data?.data?.recipients as MalakUpdateRecipientStat[]} />
-            </>
+            <View
+              showAll={showAll}
+              toggleShowAll={() => {
+                setShowAll(!showAll)
+              }}
+              update={data?.data?.update as MalakUpdateStat}
+              recipientStats={data?.data?.recipients as MalakUpdateRecipientStat[]} />
           )}
         </div>
       </section>

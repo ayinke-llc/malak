@@ -1,26 +1,42 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { format } from "date-fns"
+import {
+  MalakContact,
+  MalakUpdateRecipient,
+  MalakUpdateStat
+} from "@/client/Api"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow
 } from "@/components/ui/table"
+import { fullName } from "@/lib/custom"
+import {
+  RiArrowDownLine,
+  RiArrowUpLine,
+  RiBarChart2Line,
+  RiEye2Line,
+  RiMouseLine,
+  RiThumbUpLine
+} from "@remixicon/react"
 import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { RiBarChart2Line, RiEye2Line, RiMouseLine, RiThumbUpLine } from "@remixicon/react"
-import { MalakContact, MalakUpdateRecipient, MalakUpdateStat } from "@/client/Api"
-import { format } from "date-fns";
-import { fullName } from "@/lib/custom"
 
 const columns: ColumnDef<MalakUpdateRecipient>[] = [
   {
@@ -77,10 +93,11 @@ export interface Props {
   update: MalakUpdateStat
   recipientStats: MalakUpdateRecipient[]
   showAll: boolean
+  toggleShowAll: () => void
 }
 
 export default function View(
-  { update, recipientStats, showAll }: Props
+  { update, recipientStats, showAll, toggleShowAll }: Props
 ) {
 
   const progressPercentage = (update?.unique_opens as number / (update?.total_opens as number)) * 100
@@ -140,7 +157,7 @@ export default function View(
             <span>Total Opens Progress</span>
             <span>{progressPercentage.toFixed(1)}%</span>
           </div>
-          <Progress value={progressPercentage} className="h-2" />
+          <Progress value={progressPercentage} className="h-2 [&>div]:bg-green-500" />
         </div>
         <div className="rounded-md border">
           <Table>
@@ -183,6 +200,16 @@ export default function View(
               )}
             </TableBody>
           </Table>
+        </div>
+        <div className="mt-4 flex justify-center">
+          <Button
+            onClick={() => toggleShowAll()}
+            variant="outline"
+            className="flex items-center space-x-2"
+          >
+            <span>{showAll ? 'Show Less' : 'Show All'}</span>
+            {showAll ? <RiArrowUpLine className="h-4 w-4" /> : <RiArrowDownLine className="h-4 w-4" />}
+          </Button>
         </div>
       </CardContent>
     </Card>
