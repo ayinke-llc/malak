@@ -7,7 +7,6 @@ import {
   MalakUpdateRecipient,
   MalakUpdateStat
 } from "@/client/Api"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -25,8 +24,6 @@ import {
 } from "@/components/ui/table"
 import { fullName } from "@/lib/custom"
 import {
-  RiArrowDownLine,
-  RiArrowUpLine,
   RiBarChart2Line,
   RiEye2Line,
   RiMouseLine,
@@ -45,7 +42,7 @@ const columns: ColumnDef<MalakUpdateRecipient>[] = [
     accessorKey: "name",
     header: "Name",
     cell: ({ row }) => (
-      <div>
+      <div className='mt-3 mb-3'>
         <div className="font-medium">
           {fullName(row.original.contact as MalakContact)}
         </div>
@@ -87,20 +84,21 @@ const columns: ColumnDef<MalakUpdateRecipient>[] = [
   {
     accessorKey: "clicks",
     header: "Clicks",
-    cell: ({ row }) => <div className="text-center">{0}</div>,
+    cell: () => <div className="text-center">{0}</div>,
   },
 ]
 
 export interface Props {
   update: MalakUpdateStat
   recipientStats: MalakUpdateRecipient[]
-  showAll: boolean
-  toggleShowAll: () => void
 }
 
 export default function View(
-  { update, recipientStats, showAll, toggleShowAll }: Props
+  { update, recipientStats }: Props
 ) {
+
+  const [showAll, setShowAll] = useState(false)
+
   const tableContainerRef = useRef<HTMLDivElement>(null)
   const [tableHeight, setTableHeight] = useState(400) // Default height
 
@@ -115,7 +113,7 @@ export default function View(
   const { rows } = table.getRowModel()
 
   const rowVirtualizer = useVirtualizer({
-    count: showAll ? rows?.length || 0 : Math.min(rows?.length || 0, 5),
+    count: rows?.length,
     getScrollElement: () => tableContainerRef.current,
     estimateSize: () => 50, // Adjust this value based on your row height
     overscan: 5,
@@ -181,7 +179,7 @@ export default function View(
         <div
           className="rounded-md border"
           ref={tableContainerRef}
-          style={{ height: showAll ? 'auto' : '400px', overflowY: 'auto' }}
+          style={{ height: showAll ? 'auto' : '700px', overflowY: 'auto' }}
         >
           <Table>
             <TableHeader>
@@ -231,16 +229,6 @@ export default function View(
               )}
             </TableBody>
           </Table>
-        </div>
-        <div className="mt-4 flex justify-center">
-          <Button
-            onClick={toggleShowAll}
-            variant="outline"
-            className="flex items-center space-x-2"
-          >
-            <span>{showAll ? 'Show Less' : 'Show All'}</span>
-            {showAll ? <RiArrowUpLine className="h-4 w-4" /> : <RiArrowDownLine className="h-4 w-4" />}
-          </Button>
         </div>
       </CardContent>
     </Card>

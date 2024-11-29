@@ -5,15 +5,12 @@ import { toast } from "sonner";
 import Skeleton from "../../custom/loader/skeleton";
 import View from "./view";
 import { MalakUpdateRecipientStat, MalakUpdateStat } from "@/client/Api";
-import { useState } from "react";
 
 type Props = {
   reference: string
 }
 
 const Analytics = (props: Props) => {
-
-  const [showAll, setShowAll] = useState(false)
 
   const { data, error, isLoading } = useQuery({
     queryKey: [FETCH_SINGLE_UPDATE_ANALYTICS],
@@ -35,10 +32,6 @@ const Analytics = (props: Props) => {
             <Skeleton count={20} />
           ) : (
             <View
-              showAll={showAll}
-              toggleShowAll={() => {
-                setShowAll(!showAll)
-              }}
               update={data?.data?.update as MalakUpdateStat}
               recipientStats={data?.data?.recipients as MalakUpdateRecipientStat[]} />
           )}
