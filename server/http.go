@@ -211,6 +211,8 @@ func buildRoutes(
 				r.Post("/{reference}/preview",
 					WrapMalakHTTPHandler(logger, updateHandler.previewUpdate, cfg, "updates.preview"))
 
+				r.Get("/{reference}/analytics",
+					WrapMalakHTTPHandler(logger, updateHandler.fetchUpdateAnalytics, cfg, "updates.analytics"))
 			})
 		})
 

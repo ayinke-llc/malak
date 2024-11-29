@@ -89,10 +89,12 @@ type UpdateRecipient struct {
 	Status     RecipientStatus `json:"status,omitempty"`
 
 	UpdateRecipientStat *UpdateRecipientStat `json:"update_recipient_stat,omitempty" bun:"rel:has-one,join:id=recipient_id"`
+	Contact             *Contact             `json:"contact,omitempty" bun:"rel:has-one,join:contact_id=id"`
 
 	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
-	bun.BaseModel
+
+	bun.BaseModel `json:"-"`
 }
 
 // ENUM(resend,sendgrid,smtp)
@@ -114,11 +116,10 @@ type UpdateRecipientLog struct {
 }
 
 type UpdateRecipientStat struct {
-	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	Reference   Reference `json:"reference,omitempty"`
-	RecipientID uuid.UUID `json:"recipient_id,omitempty"`
-
-	Recipient *UpdateRecipient `json:"recipient" bun:"rel:has-one,join:recipient_id=id"`
+	ID          uuid.UUID        `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference   Reference        `json:"reference,omitempty"`
+	RecipientID uuid.UUID        `json:"recipient_id,omitempty"`
+	Recipient   *UpdateRecipient `json:"recipient" bun:"rel:has-one,join:recipient_id=id"`
 
 	LastOpenedAt *time.Time `bun:",soft_delete,nullzero" json:"last_opened_at,omitempty"`
 	HasReaction  bool       `json:"has_reaction,omitempty"`
@@ -128,7 +129,8 @@ type UpdateRecipientStat struct {
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
 	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
-	bun.BaseModel
+
+	bun.BaseModel `json:"-"`
 }
 
 type UpdateStat struct {
@@ -145,7 +147,8 @@ type UpdateStat struct {
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
 	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
-	bun.BaseModel
+
+	bun.BaseModel `json:"-"`
 }
 
 // ENUM(preview,live)
@@ -160,9 +163,10 @@ type UpdateSchedule struct {
 	UpdateType  UpdateType         `json:"update_type,omitempty"`
 
 	// Time to send this update at?
-	SendAt        time.Time `json:"send_at,omitempty"`
-	CreatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
-	UpdatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
+	SendAt    time.Time `json:"send_at,omitempty"`
+	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
+
 	bun.BaseModel `json:"-"`
 }
 
@@ -192,8 +196,6 @@ type UpdateRepository interface {
 	Create(context.Context, *Update) error
 	Update(context.Context, *Update) error
 	Get(context.Context, FetchUpdateOptions) (*Update, error)
-	Stat(context.Context, *Update) (*UpdateStat, error)
-	UpdateStat(context.Context, *UpdateStat, *UpdateRecipientStat) error
 	GetByID(context.Context, uuid.UUID) (*Update, error)
 	List(context.Context, ListUpdateOptions) ([]Update, error)
 	ListPinned(context.Context, uuid.UUID) ([]Update, error)
@@ -203,4 +205,7 @@ type UpdateRepository interface {
 	SendUpdate(context.Context, *CreateUpdateOptions) error
 	GetStatByEmailID(context.Context, string,
 		UpdateRecipientLogProvider) (*UpdateRecipientLog, *UpdateRecipientStat, error)
+	Stat(context.Context, *Update) (*UpdateStat, error)
+	UpdateStat(context.Context, *UpdateStat, *UpdateRecipientStat) error
+	RecipientStat(context.Context, *Update) ([]UpdateRecipient, error)
 }

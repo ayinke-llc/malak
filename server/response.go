@@ -93,3 +93,9 @@ type fetchContactListsResponse struct {
 		Mappings []malak.ContactListMappingWithContact `json:"mappings,omitempty" validate:"required"`
 	} `json:"lists,omitempty" validate:"required"`
 }
+
+type fetchUpdateAnalyticsResponse struct {
+	APIStatus
+	Update     malak.UpdateStat        `json:"update,omitempty"`
+	Recipients []malak.UpdateRecipient `json:"recipients,omitempty"`
+}

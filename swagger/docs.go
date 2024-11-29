@@ -940,6 +940,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/workspaces/updates/{reference}/analytics": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "updates"
+                ],
+                "summary": "Fetch analytics for a specific update",
+                "operationId": "fetchUpdateAnalytics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "update unique reference.. e.g update_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchUpdateAnalyticsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/workspaces/updates/{reference}/duplicate": {
             "post": {
                 "consumes": [
@@ -1350,6 +1406,19 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.RecipientStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "sent",
+                "failed"
+            ],
+            "x-enum-varnames": [
+                "RecipientStatusPending",
+                "RecipientStatusSent",
+                "RecipientStatusFailed"
+            ]
+        },
         "malak.Role": {
             "type": "string",
             "enum": [
@@ -1417,6 +1486,111 @@ const docTemplate = `{
         },
         "malak.UpdateMetadata": {
             "type": "object"
+        },
+        "malak.UpdateRecipient": {
+            "type": "object",
+            "properties": {
+                "contact": {
+                    "$ref": "#/definitions/malak.Contact"
+                },
+                "contact_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "schedule_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/malak.RecipientStatus"
+                },
+                "update_id": {
+                    "type": "string"
+                },
+                "update_recipient_stat": {
+                    "$ref": "#/definitions/malak.UpdateRecipientStat"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.UpdateRecipientStat": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "has_reaction": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_bounced": {
+                    "type": "boolean"
+                },
+                "is_delivered": {
+                    "type": "boolean"
+                },
+                "last_opened_at": {
+                    "type": "string"
+                },
+                "recipient": {
+                    "$ref": "#/definitions/malak.UpdateRecipient"
+                },
+                "recipient_id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.UpdateStat": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "total_clicks": {
+                    "type": "integer"
+                },
+                "total_opens": {
+                    "type": "integer"
+                },
+                "total_reactions": {
+                    "type": "integer"
+                },
+                "total_sent": {
+                    "type": "integer"
+                },
+                "unique_opens": {
+                    "type": "integer"
+                },
+                "update_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
         },
         "malak.UpdateStatus": {
             "type": "string",
@@ -1718,6 +1892,26 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "server.fetchUpdateAnalyticsResponse": {
+            "type": "object",
+            "required": [
+                "message"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "recipients": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.UpdateRecipient"
+                    }
+                },
+                "update": {
+                    "$ref": "#/definitions/malak.UpdateStat"
                 }
             }
         },

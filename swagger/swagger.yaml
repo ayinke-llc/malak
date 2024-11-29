@@ -119,6 +119,16 @@ components:
               type: integer
           type: object
       type: object
+    malak.RecipientStatus:
+      enum:
+      - pending
+      - sent
+      - failed
+      type: string
+      x-enum-varnames:
+      - RecipientStatusPending
+      - RecipientStatusSent
+      - RecipientStatusFailed
     malak.Role:
       enum:
       - admin
@@ -166,6 +176,75 @@ components:
           type: string
       type: object
     malak.UpdateMetadata:
+      type: object
+    malak.UpdateRecipient:
+      properties:
+        contact:
+          $ref: '#/components/schemas/malak.Contact'
+        contact_id:
+          type: string
+        created_at:
+          type: string
+        id:
+          type: string
+        reference:
+          type: string
+        schedule_id:
+          type: string
+        status:
+          $ref: '#/components/schemas/malak.RecipientStatus'
+        update_id:
+          type: string
+        update_recipient_stat:
+          $ref: '#/components/schemas/malak.UpdateRecipientStat'
+        updated_at:
+          type: string
+      type: object
+    malak.UpdateRecipientStat:
+      properties:
+        created_at:
+          type: string
+        has_reaction:
+          type: boolean
+        id:
+          type: string
+        is_bounced:
+          type: boolean
+        is_delivered:
+          type: boolean
+        last_opened_at:
+          type: string
+        recipient:
+          $ref: '#/components/schemas/malak.UpdateRecipient'
+        recipient_id:
+          type: string
+        reference:
+          type: string
+        updated_at:
+          type: string
+      type: object
+    malak.UpdateStat:
+      properties:
+        created_at:
+          type: string
+        id:
+          type: string
+        reference:
+          type: string
+        total_clicks:
+          type: integer
+        total_opens:
+          type: integer
+        total_reactions:
+          type: integer
+        total_sent:
+          type: integer
+        unique_opens:
+          type: integer
+        update_id:
+          type: string
+        updated_at:
+          type: string
       type: object
     malak.UpdateStatus:
       enum:
@@ -372,6 +451,19 @@ components:
           type: string
       required:
       - contact
+      - message
+      type: object
+    server.fetchUpdateAnalyticsResponse:
+      properties:
+        message:
+          type: string
+        recipients:
+          items:
+            $ref: '#/components/schemas/malak.UpdateRecipient'
+          type: array
+        update:
+          $ref: '#/components/schemas/malak.UpdateStat'
+      required:
       - message
       type: object
     server.fetchUpdateReponse:
@@ -1210,6 +1302,50 @@ paths:
                 $ref: '#/components/schemas/server.APIStatus'
           description: Internal Server Error
       summary: Update a specific update
+      tags:
+      - updates
+  /workspaces/updates/{reference}/analytics:
+    get:
+      operationId: fetchUpdateAnalytics
+      parameters:
+      - description: update unique reference.. e.g update_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchUpdateAnalyticsResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: Fetch analytics for a specific update
       tags:
       - updates
   /workspaces/updates/{reference}/duplicate:

@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Skeleton from "@/components/ui/custom/loader/skeleton";
+import Analytics from "@/components/ui/updates/analytics/analytics";
 
 export default function Page() {
   const params = useParams();
@@ -39,9 +40,10 @@ export default function Page() {
             <Skeleton count={20} />
           ) : (
             <>
-              <div className="flex flex-col sm:flex-row justify-end gap-2">
-                <SendTestButton reference={reference} />
-                <SendUpdateButton reference={reference} />
+              <Analytics reference={reference} />
+              <div className="flex flex-col sm:flex-row justify-end gap-2 mt-8">
+                {data?.data?.update?.status === "draft" && <SendTestButton reference={reference} />}
+                <SendUpdateButton reference={reference} isSent={data?.data?.update?.status === "sent"} />
               </div>
               <BlockNoteJSEditor
                 reference={reference}

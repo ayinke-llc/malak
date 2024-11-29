@@ -161,6 +161,21 @@ func (mr *MockUpdateRepositoryMockRecorder) ListPinned(arg0, arg1 any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPinned", reflect.TypeOf((*MockUpdateRepository)(nil).ListPinned), arg0, arg1)
 }
 
+// RecipientStat mocks base method.
+func (m *MockUpdateRepository) RecipientStat(arg0 context.Context, arg1 *malak.Update) ([]malak.UpdateRecipient, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RecipientStat", arg0, arg1)
+	ret0, _ := ret[0].([]malak.UpdateRecipient)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RecipientStat indicates an expected call of RecipientStat.
+func (mr *MockUpdateRepositoryMockRecorder) RecipientStat(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecipientStat", reflect.TypeOf((*MockUpdateRepository)(nil).RecipientStat), arg0, arg1)
+}
+
 // SendUpdate mocks base method.
 func (m *MockUpdateRepository) SendUpdate(arg0 context.Context, arg1 *malak.CreateUpdateOptions) error {
 	m.ctrl.T.Helper()

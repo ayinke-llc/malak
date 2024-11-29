@@ -17,17 +17,6 @@ export const links = [
     title: "Updates",
     url: "/updates",
     icon: RiArchiveStackLine,
-    items: [
-      {
-        title: "All updates",
-        url: "/updates"
-      },
-      {
-        title: "View your last update",
-        url: "/updates/latest",
-        icon: RiChatNewLine,
-      },
-    ],
   },
   {
     title: "Decks",
@@ -38,17 +27,6 @@ export const links = [
     title: "Contacts",
     url: "/contacts",
     icon: RiContactsLine,
-    items: [
-      {
-        title: "View contacts",
-        url: "/contacts",
-        icon: RiChatNewLine,
-      },
-      {
-        title: "View contact lists",
-        url: "/contacts"
-      }
-    ],
   },
   {
     title: "Fundraising",

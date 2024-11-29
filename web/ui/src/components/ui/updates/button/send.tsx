@@ -38,12 +38,11 @@ interface Option {
   readonly value: string;
 }
 
-
 const schema = yup
   .object({})
   .required();
 
-const SendUpdateButton = ({ reference }: ButtonProps) => {
+const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean }) => {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [showAllRecipients, setShowAllRecipients] = useState<boolean>(false);
@@ -166,7 +165,7 @@ const SendUpdateButton = ({ reference }: ButtonProps) => {
               variant="default"
               className="gap-1">
               <RiMailSendLine size={18} />
-              Send
+              {isSent ? "Add recipient" : "Send"}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg">
