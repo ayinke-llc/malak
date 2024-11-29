@@ -78,7 +78,11 @@ export function TeamSwitcher() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu
+          open={dropdownOpen}
+          onOpenChange={setDropdownOpen}
+          modal={false}
+        >
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
@@ -128,10 +132,10 @@ export function TeamSwitcher() {
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="gap-2 p-2">
-              <div className="flex size-6 items-center justify-center rounded-md border bg-background">
+              <div
+                className="flex size-6 items-center justify-center rounded-md border bg-background cursor-pointer">
                 <Plus className="size-4" />
               </div>
-
               <ModalAddWorkspace
                 onSelect={handleDialogItemSelect}
                 onOpenChange={handleDialogItemOpenChange}

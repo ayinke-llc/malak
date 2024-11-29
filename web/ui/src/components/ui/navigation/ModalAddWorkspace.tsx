@@ -10,10 +10,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import client from "@/lib/client";
-import { CREATE_WORKSPACE } from "@/lib/query-constants";
 import useWorkspacesStore from "@/store/workspace";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
@@ -50,7 +50,7 @@ export function ModalAddWorkspace({
   const router = useRouter();
 
   const mutation = useMutation({
-    mutationKey: [CREATE_WORKSPACE],
+    mutationKey: ["create-workspace"],
     mutationFn: (data: CreateWorkspaceInput) =>
       client.workspaces.workspacesCreate(data),
     onSuccess: ({ data }) => {
@@ -85,60 +85,67 @@ export function ModalAddWorkspace({
   };
 
   return (
-    <Dialog onOpenChange={onOpenChange} modal={true}>
-      <DialogTrigger asChild>
-        <p className="w-full text-left font-medium text-muted-foreground cursor-pointer">
-          Create workspace
-        </p>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col gap-y-1"
-        >
-          <DialogHeader>
-            <DialogTitle>Add new workspace</DialogTitle>
-            <DialogDescription className="mt-1 text-sm leading-6">
-              Get started with connecting and building relationships with your
-              investors
-            </DialogDescription>
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <div className="col-span-full">
-                <Label htmlFor="workspace-name" className="font-medium">
-                  Workspace name
-                </Label>
-                <Input
-                  id="name"
-                  placeholder="Ayinke Ventures"
-                  className="mt-2"
-                  {...register("name")}
-                />
-                <p className="mt-2 text-xs text-gray-500">
-                  Please provide the name of your product, startup or company
-                </p>
-                {errors.name && (
-                  <p className="mt-4 text-xs text-red-600 dark:text-red-500">
-                    <span className="font-medium">{errors.name.message}</span>
+    <>
+      <Dialog onOpenChange={onOpenChange}>
+        <DialogTrigger className="w-full text-left">
+          <DropdownMenuItem
+            onSelect={(event) => {
+              event.preventDefault();
+              onSelect?.();
+            }}
+          >
+            Create Workspace
+          </DropdownMenuItem>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-lg">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col gap-y-1"
+          >
+            <DialogHeader>
+              <DialogTitle>Add new workspace</DialogTitle>
+              <DialogDescription className="mt-1 text-sm leading-6">
+                Get started with connecting and building relationships with your
+                investors
+              </DialogDescription>
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <div className="col-span-full">
+                  <Label htmlFor="workspace-name" className="font-medium">
+                    Workspace name
+                  </Label>
+                  <Input
+                    id="name"
+                    placeholder="Ayinke Ventures"
+                    className="mt-2"
+                    {...register("name")}
+                  />
+                  <p className="mt-2 text-xs text-gray-500">
+                    Please provide the name of your product, startup or company
                   </p>
-                )}
+                  {errors.name && (
+                    <p className="mt-4 text-xs text-red-600 dark:text-red-500">
+                      <span className="font-medium">{errors.name.message}</span>
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          </DialogHeader>
-          <DialogFooter className="mt-6">
-            <DialogClose asChild>
-              <Button
-                className="mt-2 w-full sm:mt-0 sm:w-fit"
-                variant="secondary"
-              >
-                Go back
+            </DialogHeader>
+            <DialogFooter className="mt-6">
+              <DialogClose asChild>
+                <Button
+                  className="mt-2 w-full sm:mt-0 sm:w-fit"
+                  variant="secondary"
+                >
+                  Go back
+                </Button>
+              </DialogClose>
+              <Button type="submit" className="w-full sm:w-fit">
+                Add workspace
               </Button>
-            </DialogClose>
-            <Button type="submit" className="w-full sm:w-fit">
-              Create
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
