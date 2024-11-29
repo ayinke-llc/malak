@@ -17,7 +17,6 @@ import useWorkspacesStore from "@/store/workspace";
 import { RiArrowRightSLine, RiExpandUpDownLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
-import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import Skeleton from "../custom/loader/skeleton";
@@ -34,8 +33,6 @@ export const WorkspacesDropdownDesktop = () => {
   const workspaces = useWorkspacesStore.getState().workspaces;
   const current = useWorkspacesStore.getState().current;
   const setCurrent = useWorkspacesStore.getState().setCurrent;
-
-  const router = useRouter();
 
   const handleDialogItemSelect = () => {
     focusRef.current = dropdownTriggerRef.current;
@@ -321,7 +318,6 @@ export const WorkspacesDropdownMobile = () => {
           <ModalAddWorkspace
             onSelect={handleDialogItemSelect}
             onOpenChange={handleDialogItemOpenChange}
-            itemName="Add workspace"
           />
         </DropdownMenuContent>
       </DropdownMenu>

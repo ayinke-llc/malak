@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { ChevronsUpDown, Plus } from "lucide-react"
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,23 +17,72 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { MalakWorkspace } from "@/client/Api"
+import { MalakWorkspace, ServerAPIStatus } from "@/client/Api"
 import { Avatar } from "./custom/avatar/avatar"
+import { ModalAddWorkspace } from "./navigation/ModalAddWorkspace"
+import useWorkspacesStore from "@/store/workspace"
+import client from "@/lib/client"
+import { SWITCH_WORKSPACE } from "@/lib/query-constants"
+import { useMutation } from "@tanstack/react-query"
+import { AxiosError } from "axios"
+import { toast } from "sonner"
 
-export function TeamSwitcher({
-  teams,
-  current,
-}: {
-  teams: MalakWorkspace[]
-  current: MalakWorkspace | null,
-}) {
+export function TeamSwitcher() {
+
   const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+
+  const [dropdownOpen, setDropdownOpen] = React.useState(false);
+  const [hasOpenDialog, setHasOpenDialog] = React.useState(false);
+
+  const dropdownTriggerRef = React.useRef<null | HTMLButtonElement>(null);
+  const focusRef = React.useRef<null | HTMLButtonElement>(null);
+
+  const [loading, setLoading] = React.useState<boolean>(false);
+
+  const { workspaces, current, setCurrent } = useWorkspacesStore()
+
+  const [activeTeam, setActiveTeam] = React.useState(workspaces[0])
+
+  const handleDialogItemSelect = () => {
+    focusRef.current = dropdownTriggerRef.current;
+  };
+
+  const handleDialogItemOpenChange = (open: boolean) => {
+    setHasOpenDialog(open);
+    if (!open) {
+      setDropdownOpen(false);
+    }
+  };
+
+  const mutation = useMutation({
+    mutationKey: [SWITCH_WORKSPACE],
+    mutationFn: (reference: string) =>
+      client.workspaces.switchworkspace(reference),
+    onSuccess: ({ data }) => {
+      setCurrent(data.workspace);
+      toast.success(data.message);
+      window.location.reload();
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      let msg = err.message;
+      if (err.response !== undefined) {
+        msg = err.response?.data.message;
+      }
+      toast.error(msg);
+    },
+    retry: false,
+    gcTime: Number.POSITIVE_INFINITY,
+    onSettled: () => setLoading(false),
+  });
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu
+          open={dropdownOpen}
+          onOpenChange={setDropdownOpen}
+          modal={false}
+        >
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
@@ -57,29 +105,41 @@ export function TeamSwitcher({
             align="start"
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
+            hidden={hasOpenDialog}
+            onCloseAutoFocus={(event) => {
+              if (focusRef.current) {
+                focusRef.current.focus();
+                focusRef.current = null;
+                event.preventDefault();
+              }
+            }}
           >
             <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Teams
+              Workspaces
             </DropdownMenuLabel>
-            {teams.map((team, index) => (
+            {workspaces.map((workspace, index) => (
               <DropdownMenuItem
-                key={team.reference}
-                onClick={() => setActiveTeam(team)}
-                className="gap-2 p-2"
+                key={workspace.reference}
+                onClick={() => setActiveTeam(workspace)}
+                className="gap-2 p-2 cursor-pointer"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <Avatar className="size-4 shrink-0" />
                 </div>
-                {team.workspace_name}
+                {workspace.workspace_name}
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="gap-2 p-2">
-              <div className="flex size-6 items-center justify-center rounded-md border bg-background">
+              <div
+                className="flex size-6 items-center justify-center rounded-md border bg-background cursor-pointer">
                 <Plus className="size-4" />
               </div>
-              <div className="font-medium text-muted-foreground">Add Workspace</div>
+              <ModalAddWorkspace
+                onSelect={handleDialogItemSelect}
+                onOpenChange={handleDialogItemOpenChange}
+              />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

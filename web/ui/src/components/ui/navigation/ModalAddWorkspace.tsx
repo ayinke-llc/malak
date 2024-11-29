@@ -25,7 +25,6 @@ import { toast } from "sonner";
 import * as yup from "yup";
 
 export type ModalProps = {
-  itemName: string;
   onSelect: () => void;
   onOpenChange: (open: boolean) => void;
 };
@@ -41,7 +40,6 @@ const schema = yup
   .required();
 
 export function ModalAddWorkspace({
-  itemName,
   onSelect,
   onOpenChange,
 }: ModalProps) {
@@ -96,7 +94,7 @@ export function ModalAddWorkspace({
               onSelect?.();
             }}
           >
-            {itemName}
+            Create Workspace
           </DropdownMenuItem>
         </DialogTrigger>
         <DialogContent className="sm:max-w-lg">
