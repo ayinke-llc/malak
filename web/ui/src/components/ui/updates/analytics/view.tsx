@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef, useEffect, useState } from 'react'
 import { format } from "date-fns"
 import {
   MalakContact,
@@ -37,6 +38,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table"
+import { useVirtualizer } from "@tanstack/react-virtual"
 
 const columns: ColumnDef<MalakUpdateRecipient>[] = [
   {
@@ -99,14 +101,31 @@ export interface Props {
 export default function View(
   { update, recipientStats, showAll, toggleShowAll }: Props
 ) {
+  const tableContainerRef = useRef<HTMLDivElement>(null)
+  const [tableHeight, setTableHeight] = useState(400) // Default height
 
   const progressPercentage = (update?.unique_opens as number / (update?.total_opens as number)) * 100
 
   const table = useReactTable({
     columns,
-    data: showAll ? recipientStats : recipientStats.slice(0, 5),
+    data: recipientStats,
     getCoreRowModel: getCoreRowModel(),
   })
+
+  const { rows } = table.getRowModel()
+
+  const rowVirtualizer = useVirtualizer({
+    count: showAll ? rows?.length || 0 : Math.min(rows?.length || 0, 5),
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => 50, // Adjust this value based on your row height
+    overscan: 5,
+  })
+
+  useEffect(() => {
+    if (tableContainerRef.current) {
+      setTableHeight(tableContainerRef.current.offsetHeight)
+    }
+  }, [showAll])
 
   return (
     <Card className="w-full">
@@ -159,7 +178,11 @@ export default function View(
           </div>
           <Progress value={progressPercentage} className="h-2 [&>div]:bg-green-500" />
         </div>
-        <div className="rounded-md border">
+        <div
+          className="rounded-md border"
+          ref={tableContainerRef}
+          style={{ height: showAll ? 'auto' : '400px', overflowY: 'auto' }}
+        >
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -178,32 +201,40 @@ export default function View(
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
+              {recipientStats.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-24 text-center">
                     No results.
                   </TableCell>
                 </TableRow>
+              ) : (
+                rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const row = rows?.[virtualRow.index]
+                  if (!row) return null // Skip rendering if row is undefined
+                  return (
+                    <TableRow
+                      key={row.id}
+                      data-index={virtualRow.index}
+                      ref={rowVirtualizer.measureElement}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  )
+                })
               )}
             </TableBody>
           </Table>
         </div>
         <div className="mt-4 flex justify-center">
           <Button
-            onClick={() => toggleShowAll()}
+            onClick={toggleShowAll}
             variant="outline"
             className="flex items-center space-x-2"
           >
