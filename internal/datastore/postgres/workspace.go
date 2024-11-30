@@ -90,7 +90,7 @@ func (o *workspaceRepo) Get(ctx context.Context,
 	}
 
 	if opts.ID != uuid.Nil {
-		q = q.Where("id = ?", opts.ID)
+		q = q.Where("workspaces.id = ?", opts.ID)
 	}
 
 	err := q.Model(workspace).
