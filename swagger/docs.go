@@ -378,6 +378,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/decks": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "decks"
+                ],
+                "summary": "Creates a new deck",
+                "parameters": [
+                    {
+                        "description": "deck request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createDeckRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchDeckResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/images/upload": {
             "post": {
                 "consumes": [
@@ -1390,9 +1447,78 @@ const docTemplate = `{
                 "type": "string"
             }
         },
+        "malak.Deck": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "short_link": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.Plan": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "Defaults to zero",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "default_price_id": {
+                    "description": "Stripe default price id. Again not needed if not using Stripe",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/malak.PlanMetadata"
+                },
+                "plan_name": {
+                    "type": "string"
+                },
+                "reference": {
+                    "description": "Can use a fake id really\nAs this only matters if you turn on Stripe",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.PlanMetadata": {
             "type": "object",
             "properties": {
+                "deck": {
+                    "type": "object",
+                    "properties": {
+                        "count": {
+                            "type": "integer"
+                        }
+                    }
+                },
                 "team": {
                     "type": "object",
                     "properties": {
@@ -1676,6 +1802,9 @@ const docTemplate = `{
                 "metadata": {
                     "$ref": "#/definitions/malak.PlanMetadata"
                 },
+                "plan": {
+                    "$ref": "#/definitions/malak.Plan"
+                },
                 "plan_id": {
                     "type": "string"
                 },
@@ -1767,6 +1896,41 @@ const docTemplate = `{
                 },
                 "last_name": {
                     "type": "string"
+                }
+            }
+        },
+        "server.createDeckRequest": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "deck_url": {
+                    "type": "string"
+                },
+                "enable_downloading": {
+                    "type": "boolean"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "object",
+                    "required": [
+                        "enabled",
+                        "password"
+                    ],
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "password": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "require_email": {
+                    "type": "boolean"
                 }
             }
         },
@@ -1889,6 +2053,20 @@ const docTemplate = `{
             "properties": {
                 "contact": {
                     "$ref": "#/definitions/malak.Contact"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.fetchDeckResponse": {
+            "type": "object",
+            "required": [
+                "message"
+            ],
+            "properties": {
+                "deck": {
+                    "$ref": "#/definitions/malak.Deck"
                 },
                 "message": {
                     "type": "string"

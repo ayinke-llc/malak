@@ -1,6 +1,8 @@
 package malak
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
@@ -41,4 +43,13 @@ func (r *ReferenceGenerator) Generate(e EntityType) Reference {
 			"%s_%s",
 			e.String(),
 			gonanoid.Must()))
+}
+
+func ShortLink() string {
+	b := make([]byte, 8) // 6 bytes = 8 characters in base64
+	_, err := rand.Read(b)
+	if err != nil {
+		panic(err)
+	}
+	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(b)
 }

@@ -53,6 +53,16 @@ type PasswordDeckPreferences struct {
 	Password Password `json:"password,omitempty"`
 }
 
+type CreateDeckOptions struct {
+	RequireEmail      bool `json:"require_email,omitempty"`
+	EnableDownloading bool `json:"enable_downloading,omitempty"`
+	Password          struct {
+		Enabled  bool     `json:"enabled,omitempty" validate:"required"`
+		Password Password `json:"password,omitempty" validate:"required"`
+	} `json:"password,omitempty" validate:"required"`
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+}
+
 type DeckRepository interface {
-	Create(context.Context, *Deck, *DeckPreference) error
+	Create(context.Context, *Deck, *CreateDeckOptions) error
 }
