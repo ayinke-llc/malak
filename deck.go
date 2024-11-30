@@ -61,6 +61,7 @@ type CreateDeckOptions struct {
 		Password Password `json:"password,omitempty" validate:"required"`
 	} `json:"password,omitempty" validate:"required"`
 	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+	Reference Reference  `json:"reference,omitempty"`
 }
 
 type DeckRepository interface {

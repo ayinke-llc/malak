@@ -19,7 +19,7 @@ func NewDeckRepository(db *bun.DB) malak.DeckRepository {
 }
 
 func (d *decksRepo) Create(ctx context.Context,
-	deck *malak.Deck, deckPreferences *malak.DeckPreference) error {
+	deck *malak.Deck, opts *malak.CreateDeckOptions) error {
 
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
@@ -32,6 +32,24 @@ func (d *decksRepo) Create(ctx context.Context,
 				Exec(ctx)
 			if err != nil {
 				return err
+			}
+
+			p, err := malak.HashPassword(string(opts.Password.Password))
+			if err != nil {
+				return err
+			}
+
+			deckPreferences := &malak.DeckPreference{
+				DeckID: deck.ID,
+				Password: malak.PasswordDeckPreferences{
+					Enabled:  opts.Password.Enabled,
+					Password: malak.Password(p),
+				},
+				Reference:         opts.Reference,
+				ExpiresAt:         opts.ExpiresAt,
+				WorkspaceID:       deck.WorkspaceID,
+				RequireEmail:      opts.RequireEmail,
+				EnableDownloading: opts.EnableDownloading,
 			}
 
 			_, err = tx.NewInsert().
