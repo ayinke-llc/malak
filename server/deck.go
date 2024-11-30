@@ -52,8 +52,8 @@ func (c *createDeckRequest) Validate() error {
 
 	if c.Password.Enabled {
 		password := hermes.DeRef(c.Password.Password)
-		if len(string(password)) < 5 {
-			return errors.New("password must be 5 characters or more")
+		if password.IsZero() {
+			return errors.New("please provide your password")
 		}
 	}
 
