@@ -8,7 +8,6 @@ import (
 
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/config"
 	"github.com/go-chi/render"
 	"github.com/microcosm-cc/bluemonday"
 	"go.opentelemetry.io/otel/trace"
@@ -16,7 +15,6 @@ import (
 )
 
 type deckHandler struct {
-	cfg                config.Config
 	deckRepo           malak.DeckRepository
 	referenceGenerator malak.ReferenceGeneratorOperation
 }
