@@ -1931,6 +1931,9 @@ const docTemplate = `{
                 },
                 "require_email": {
                     "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },

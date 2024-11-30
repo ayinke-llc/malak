@@ -42,7 +42,7 @@ func (m *MockDeckRepository) EXPECT() *MockDeckRepositoryMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockDeckRepository) Create(arg0 context.Context, arg1 *malak.Deck, arg2 *malak.DeckPreference) error {
+func (m *MockDeckRepository) Create(arg0 context.Context, arg1 *malak.Deck, arg2 *malak.CreateDeckOptions) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)

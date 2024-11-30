@@ -440,6 +440,8 @@ components:
           type: object
         require_email:
           type: boolean
+        title:
+          type: string
       required:
       - password
       type: object
