@@ -22,8 +22,6 @@ const (
 	EntityTypeInvite EntityType = "invite"
 	// EntityTypeContact is a EntityType of type contact.
 	EntityTypeContact EntityType = "contact"
-	// EntityTypeDeck is a EntityType of type deck.
-	EntityTypeDeck EntityType = "deck"
 	// EntityTypeUpdate is a EntityType of type update.
 	EntityTypeUpdate EntityType = "update"
 	// EntityTypeLink is a EntityType of type link.
@@ -44,6 +42,10 @@ const (
 	EntityTypeRecipientStat EntityType = "recipient_stat"
 	// EntityTypeRecipientLog is a EntityType of type recipient_log.
 	EntityTypeRecipientLog EntityType = "recipient_log"
+	// EntityTypeDeck is a EntityType of type deck.
+	EntityTypeDeck EntityType = "deck"
+	// EntityTypeDeckPreference is a EntityType of type deck_preference.
+	EntityTypeDeckPreference EntityType = "deck_preference"
 )
 
 var ErrInvalidEntityType = errors.New("not a valid EntityType")
@@ -61,22 +63,23 @@ func (x EntityType) IsValid() bool {
 }
 
 var _EntityTypeValue = map[string]EntityType{
-	"workspace":      EntityTypeWorkspace,
-	"invoice":        EntityTypeInvoice,
-	"team":           EntityTypeTeam,
-	"invite":         EntityTypeInvite,
-	"contact":        EntityTypeContact,
-	"deck":           EntityTypeDeck,
-	"update":         EntityTypeUpdate,
-	"link":           EntityTypeLink,
-	"room":           EntityTypeRoom,
-	"recipient":      EntityTypeRecipient,
-	"schedule":       EntityTypeSchedule,
-	"list":           EntityTypeList,
-	"list_email":     EntityTypeListEmail,
-	"update_stat":    EntityTypeUpdateStat,
-	"recipient_stat": EntityTypeRecipientStat,
-	"recipient_log":  EntityTypeRecipientLog,
+	"workspace":       EntityTypeWorkspace,
+	"invoice":         EntityTypeInvoice,
+	"team":            EntityTypeTeam,
+	"invite":          EntityTypeInvite,
+	"contact":         EntityTypeContact,
+	"update":          EntityTypeUpdate,
+	"link":            EntityTypeLink,
+	"room":            EntityTypeRoom,
+	"recipient":       EntityTypeRecipient,
+	"schedule":        EntityTypeSchedule,
+	"list":            EntityTypeList,
+	"list_email":      EntityTypeListEmail,
+	"update_stat":     EntityTypeUpdateStat,
+	"recipient_stat":  EntityTypeRecipientStat,
+	"recipient_log":   EntityTypeRecipientLog,
+	"deck":            EntityTypeDeck,
+	"deck_preference": EntityTypeDeckPreference,
 }
 
 // ParseEntityType attempts to convert a string to a EntityType.

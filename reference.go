@@ -14,10 +14,11 @@ func GenerateReference(e EntityType) string {
 // ENUM(
 // workspace,invoice,
 // team,invite,contact,
-// deck,update,link,room,
+// update,link,room,
 // recipient,schedule,list,
 // list_email, update_stat,
-// recipient_stat,recipient_log)
+// recipient_stat,recipient_log,
+// deck,deck_preference)
 type EntityType string
 
 type Reference string

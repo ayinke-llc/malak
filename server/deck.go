@@ -13,10 +13,6 @@ type deckHandler struct {
 }
 
 type createDeckRequest struct {
-	GenericRequest
+	// GenericRequest
 
-	Email     malak.Email `json:"email,omitempty" validate:"'required'"`
-	FirstName *string     `json:"first_name,omitempty" validate:"'required'"`
-
-	LastName *string `json:"last_name,omitempty" validate:"'required'"`
 }

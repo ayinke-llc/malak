@@ -22,3 +22,4 @@ package malak
 //go:generate mockgen -source=contact_list.go -destination=mocks/contact_list.go -package=malak_mocks
 //go:generate mockgen -source=update.go -destination=mocks/update.go -package=malak_mocks
 //go:generate mockgen -source=reference.go -destination=mocks/reference.go -package=malak_mocks
+//go:generate mockgen -source=deck.go -destination=mocks/deck.go -package=malak_mocks
