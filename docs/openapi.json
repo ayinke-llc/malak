@@ -160,8 +160,77 @@
 				},
 				"type": "object"
 			},
+			"malak.Deck": {
+				"properties": {
+					"created_at": {
+						"type": "string"
+					},
+					"created_by": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"reference": {
+						"type": "string"
+					},
+					"short_link": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"updated_at": {
+						"type": "string"
+					},
+					"workspace_id": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"malak.Plan": {
+				"properties": {
+					"amount": {
+						"description": "Defaults to zero",
+						"type": "integer"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"default_price_id": {
+						"description": "Stripe default price id. Again not needed if not using Stripe",
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"metadata": {
+						"$ref": "#/components/schemas/malak.PlanMetadata"
+					},
+					"plan_name": {
+						"type": "string"
+					},
+					"reference": {
+						"description": "Can use a fake id really\nAs this only matters if you turn on Stripe",
+						"type": "string"
+					},
+					"updated_at": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
 			"malak.PlanMetadata": {
 				"properties": {
+					"deck": {
+						"properties": {
+							"count": {
+								"type": "integer"
+							}
+						},
+						"type": "object"
+					},
 					"team": {
 						"properties": {
 							"enabled": {
@@ -445,6 +514,9 @@
 					"metadata": {
 						"$ref": "#/components/schemas/malak.PlanMetadata"
 					},
+					"plan": {
+						"$ref": "#/components/schemas/malak.Plan"
+					},
 					"plan_id": {
 						"type": "string"
 					},
@@ -538,6 +610,41 @@
 						"type": "string"
 					}
 				},
+				"type": "object"
+			},
+			"server.createDeckRequest": {
+				"properties": {
+					"deck_url": {
+						"type": "string"
+					},
+					"enable_downloading": {
+						"type": "boolean"
+					},
+					"expires_at": {
+						"type": "string"
+					},
+					"password": {
+						"properties": {
+							"enabled": {
+								"type": "boolean"
+							},
+							"password": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"enabled",
+							"password"
+						],
+						"type": "object"
+					},
+					"require_email": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"password"
+				],
 				"type": "object"
 			},
 			"server.createUpdateContent": {
@@ -661,6 +768,20 @@
 				},
 				"required": [
 					"contact",
+					"message"
+				],
+				"type": "object"
+			},
+			"server.fetchDeckResponse": {
+				"properties": {
+					"deck": {
+						"$ref": "#/components/schemas/malak.Deck"
+					},
+					"message": {
+						"type": "string"
+					}
+				},
+				"required": [
 					"message"
 				],
 				"type": "object"
@@ -1286,6 +1407,78 @@
 				"summary": "Edit a contact list",
 				"tags": [
 					"contacts"
+				]
+			}
+		},
+		"/decks": {
+			"post": {
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.createDeckRequest"
+							}
+						}
+					},
+					"description": "deck request body",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.fetchDeckResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "Creates a new deck",
+				"tags": [
+					"decks"
 				]
 			}
 		},

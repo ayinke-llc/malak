@@ -39,6 +39,9 @@ type PlanMetadata struct {
 		Size    Counter `json:"size,omitempty"`
 		Enabled bool    `json:"enabled,omitempty"`
 	} `json:"team,omitempty"`
+	Deck struct {
+		Count Counter `json:"count,omitempty"`
+	} `json:"deck,omitempty"`
 }
 
 type Plan struct {
