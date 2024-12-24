@@ -20,11 +20,9 @@ import { toast } from "sonner";
 
 export default function Login() {
   const router = useRouter();
-
-  const setUser = useAuthStore().setUser
-  const setToken = useAuthStore().setToken
-
   const posthog = usePostHog();
+  
+  const { setUser, setToken } = useAuthStore();
 
   const mutation = useMutation({
     mutationFn: ({ code }: { code: string }) => {
@@ -38,8 +36,8 @@ export default function Login() {
     },
     onSuccess: (resp: AxiosResponse<ServerCreatedUserResponse>) => {
       posthog?.identify(resp.data.user.id);
-      setUser(resp.data.user);
       setToken(resp.data.token);
+      setUser(resp.data.user);
       router.push("/");
     },
   });

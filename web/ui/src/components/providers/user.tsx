@@ -9,33 +9,37 @@ import { useEffect } from "react";
 export default function UserProvider({
   children,
 }: { children: React.ReactNode }) {
-  const { token, setUser, isAuthenticated, logout } = useAuthStore.getState();
-
-  const { setWorkspaces, setCurrent } = useWorkspacesStore.getState();
-
+  const { token, setUser, isAuthenticated, logout } = useAuthStore();
+  const { setWorkspaces, setCurrent } = useWorkspacesStore();
   const router = useRouter();
 
-  client.instance.interceptors.request.use(
-    async (config) => {
-      if (isAuthenticated()) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    },
-    (error) => Promise.reject(error),
-  );
+  useEffect(() => {
+    const requestInterceptor = client.instance.interceptors.request.use(
+      async (config) => {
+        if (isAuthenticated()) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error),
+    );
 
-  client.instance.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      if (error.response && error.response.status === 401) {
-        logout();
-        router.push("/login");
-      }
+    const responseInterceptor = client.instance.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && error.response.status === 401) {
+          logout();
+          router.push("/login");
+        }
+        return Promise.reject(error);
+      },
+    );
 
-      return Promise.reject(error);
-    },
-  );
+    return () => {
+      client.instance.interceptors.request.eject(requestInterceptor);
+      client.instance.interceptors.response.eject(responseInterceptor);
+    };
+  }, [token, isAuthenticated, logout, router]);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -43,25 +47,20 @@ export default function UserProvider({
       router.push("/login");
       return;
     }
-  }, [token]);
 
-  useEffect(() => {
-    if (isAuthenticated()) {
-      client.user
-        .userList()
-        .then((res) => {
-          setUser(res.data.user);
-          if (res.data.current_workspace !== undefined) {
-            setCurrent(res.data.current_workspace);
-          }
-
-          setWorkspaces(res.data.workspaces);
-        })
-        .catch((err) => {
-          console.log(err, "authenticate user");
-        });
-    }
-  }, [token]);
+    client.user
+      .userList()
+      .then((res) => {
+        setUser(res.data.user);
+        if (res.data.current_workspace !== undefined) {
+          setCurrent(res.data.current_workspace);
+        }
+        setWorkspaces(res.data.workspaces);
+      })
+      .catch((err) => {
+        console.log(err, "authenticate user");
+      });
+  }, [token, isAuthenticated]);
 
   return children;
 }
