@@ -41,11 +41,13 @@ type DeckPreference struct {
 	Password          PasswordDeckPreferences `json:"password,omitempty"`
 	ExpiresAt         *time.Time              `bun:",soft_delete,nullzero" json:"expires_at,omitempty"`
 
+	CreatedBy uuid.UUID `json:"created_by,omitempty"`
+
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 
 	DeletedAt     *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
-	bun.BaseModel `bun:"table:decks" json:"-"`
+	bun.BaseModel `json:"-"`
 }
 
 type PasswordDeckPreferences struct {

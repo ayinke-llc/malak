@@ -50,6 +50,7 @@ func (d *decksRepo) Create(ctx context.Context,
 				WorkspaceID:       deck.WorkspaceID,
 				RequireEmail:      opts.RequireEmail,
 				EnableDownloading: opts.EnableDownloading,
+				CreatedBy:         deck.CreatedBy,
 			}
 
 			_, err = tx.NewInsert().

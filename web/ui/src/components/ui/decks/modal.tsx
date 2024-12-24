@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { toast } from "sonner";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import client from "@/lib/client";
 import type { ServerAPIStatus } from "@/client/Api";
 import type { AxiosError } from "axios";
@@ -27,6 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { LIST_DECKS } from "@/lib/query-constants";
 
 type FormData = {
   title: string;
@@ -35,7 +36,7 @@ type FormData = {
 
 const schema = yup.object({
   title: yup.string().required("Title is required").min(3, "Title must be at least 3 characters"),
-  pdfUrl: yup.string().required("Please upload a PDF file").url("Invalid URL format"),
+  pdfUrl: yup.string().required("Please upload a PDF file"),
 }).required();
 
 const truncateText = (text: string, maxLength: number) => {
@@ -47,6 +48,7 @@ export default function UploadDeckModal() {
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -73,6 +75,27 @@ export default function UploadDeckModal() {
     }
   });
 
+  const createDeckMutation = useMutation({
+    mutationFn: (data: FormData) => client.decks.decksCreate({
+      title: data.title,
+      deck_url: data.pdfUrl,
+    }),
+    onSuccess: ({ data }) => {
+      toast.success(data.message);
+      setOpen(false);
+      reset();
+      setSelectedFile(null);
+      queryClient.invalidateQueries({ queryKey: [LIST_DECKS] });
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      let msg = err.message;
+      if (err.response !== undefined) {
+        msg = err.response.data.message;
+      }
+      toast.error(msg);
+    }
+  });
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -84,7 +107,7 @@ export default function UploadDeckModal() {
       // Set the title to the file name without the extension
       const fileName = file.name.replace(/\.[^/.]+$/, "");
       setValue("title", fileName);
-      
+
       uploadMutation.mutate(file);
     }
   };
@@ -96,7 +119,7 @@ export default function UploadDeckModal() {
       setSelectedFile(file);
       const fileName = file.name.replace(/\.[^/.]+$/, "");
       setValue("title", fileName);
-      
+
       uploadMutation.mutate(file);
     } else {
       toast.error("Please upload a PDF file");
@@ -108,12 +131,10 @@ export default function UploadDeckModal() {
   };
 
   const onSubmit = async (data: FormData) => {
-    // TODO: Handle form submission with data.title and data.pdfUrl
-    console.log("Form submitted:", data);
-    setOpen(false);
-    reset();
-    setSelectedFile(null);
+    createDeckMutation.mutate(data);
   };
+
+  const isSubmitting = uploadMutation.isPending || createDeckMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -148,7 +169,7 @@ export default function UploadDeckModal() {
               <p className="text-sm text-red-500">{errors.title.message}</p>
             )}
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="deck" className="text-zinc-100">Deck File</Label>
             <div className="flex items-center justify-center w-full">
@@ -216,10 +237,10 @@ export default function UploadDeckModal() {
             </Button>
             <Button
               type="submit"
-              disabled={uploadMutation.isPending}
+              disabled={isSubmitting}
               className="bg-zinc-100 text-zinc-900 hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {uploadMutation.isPending ? "Uploading..." : "Upload"}
+              {isSubmitting ? "Uploading..." : "Upload"}
             </Button>
           </div>
         </form>
