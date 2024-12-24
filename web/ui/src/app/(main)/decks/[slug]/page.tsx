@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { RiFileCopyLine, RiCheckLine, RiArrowLeftLine, RiEyeLine, RiTimeLine, RiDownloadLine, RiUserLine, RiSettings4Line } from "@remixicon/react";
+import { RiFileCopyLine, RiCheckLine, RiArrowLeftLine, RiEyeLine, RiTimeLine, RiDownloadLine, RiUserLine, RiSettings4Line, RiPushpin2Line, RiPushpin2Fill, RiExternalLinkLine, RiDeleteBinLine } from "@remixicon/react";
 import { format, formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -27,6 +27,17 @@ import { Separator } from "@/components/ui/separator";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // This is a placeholder until we implement the actual data fetching
 const mockDeck = {
@@ -42,11 +53,13 @@ const mockDeck = {
     timeSpentAvg: "02:45",
     downloads: 3,
   },
+  pinned: false,
 };
 
 type ViewEntry = {
   id: number;
   viewer: string;
+  email?: string;
   viewedAt: Date;
   downloaded: boolean;
   timeSpent: string;
@@ -57,7 +70,8 @@ const mockViews: ViewEntry[] = [
   {
     id: 1,
     viewer: "macOS · Safari · NG · Lagos",
-    viewedAt: new Date(Date.now() - 14 * 60 * 1000), // 14 minutes ago
+    email: "very.long.email.address.that.needs.truncation@really-long-domain-name.enterprise.com",
+    viewedAt: new Date(Date.now() - 14 * 60 * 1000),
     downloaded: false,
     timeSpent: "00:04",
     slidesViewed: "1 / 55",
@@ -65,6 +79,7 @@ const mockViews: ViewEntry[] = [
   {
     id: 2,
     viewer: "Windows · Chrome · US · New York",
+    email: "john.doe@company.com",
     viewedAt: new Date(Date.now() - 45 * 60 * 1000),
     downloaded: true,
     timeSpent: "05:30",
@@ -97,6 +112,7 @@ const mockViews: ViewEntry[] = [
   {
     id: 6,
     viewer: "Windows · Edge · DE · Berlin",
+    email: "maria.schmidt@enterprise.de",
     viewedAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
     downloaded: true,
     timeSpent: "04:10",
@@ -198,6 +214,10 @@ const settingsSchema = yup.object().shape({
 export default function DeckDetails({ params }: { params: { slug: string } }) {
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPinned, setIsPinned] = useState(mockDeck.pinned);
+  const [isPinning, setIsPinning] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const {
     control,
@@ -256,9 +276,23 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
           <div className="h-8 w-8 rounded bg-zinc-800 flex items-center justify-center text-zinc-400">
             {info.row.original.viewer.substring(0, 2).toUpperCase()}
           </div>
-          <div>
-            <p className="text-zinc-100 font-medium">{info.getValue()}</p>
-            <p className="text-sm text-zinc-400">
+          <div className="min-w-0 flex-1">
+            <p className="text-zinc-100 font-medium truncate">{info.getValue()}</p>
+            {info.row.original.email && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <p className="text-sm text-zinc-400 truncate max-w-[200px] cursor-default">
+                      {info.row.original.email}
+                    </p>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[300px] break-all">
+                    <p className="text-sm">{info.row.original.email}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            <p className="text-sm text-zinc-500">
               {formatDistanceToNow(info.row.original.viewedAt, { addSuffix: true })}
             </p>
           </div>
@@ -297,6 +331,36 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const handleTogglePin = async () => {
+    setIsPinning(true);
+    try {
+      // TODO: API call to toggle pin status
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulated API call
+      setIsPinned(!isPinned);
+      toast.success(isPinned ? "Deck unpinned" : "Deck pinned", {
+        description: isPinned ? "Deck removed from pinned items" : "Deck added to pinned items",
+      });
+    } catch (error) {
+      toast.error("Failed to update pin status");
+    } finally {
+      setIsPinning(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      // TODO: API call to delete deck
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
+      toast.success("Deck deleted successfully");
+      // Redirect to decks list
+      window.location.href = "/decks";
+    } catch (error) {
+      toast.error("Failed to delete deck");
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="pt-6">
       <div className="mb-8 flex items-center justify-between">
@@ -308,129 +372,167 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
           Back to decks
         </Link>
 
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-zinc-400 hover:text-zinc-300"
-            >
-              <RiSettings4Line className="h-5 w-5" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-zinc-100">Deck settings</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
-              {/* Sharing Settings */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-medium text-zinc-100">Sharing settings</h3>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-zinc-400 hover:text-zinc-300"
+            onClick={() => window.open(mockDeck.url, '_blank')}
+          >
+            <RiExternalLinkLine className="h-5 w-5" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`${
+              isPinned ? 'text-blue-400 hover:text-blue-300' : 'text-zinc-400 hover:text-zinc-300'
+            } ${isPinning ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={handleTogglePin}
+            disabled={isPinning}
+          >
+            {isPinning ? (
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            ) : isPinned ? (
+              <RiPushpin2Fill className="h-5 w-5" />
+            ) : (
+              <RiPushpin2Line className="h-5 w-5" />
+            )}
+          </Button>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-zinc-400 hover:text-zinc-300"
+              >
+                <RiSettings4Line className="h-5 w-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-zinc-100">Deck settings</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
+                {/* Sharing Settings */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="enable-downloading" className="text-zinc-100">Enable downloading</Label>
-                    <Controller
-                      name="enableDownloading"
-                      control={control}
-                      render={({ field: { value, onChange } }) => (
-                        <Switch
-                          id="enable-downloading"
-                          checked={value}
-                          onCheckedChange={onChange}
-                        />
-                      )}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="require-email" className="text-zinc-100">Require email to view</Label>
-                    <Controller
-                      name="requireEmail"
-                      control={control}
-                      render={({ field: { value, onChange } }) => (
-                        <Switch
-                          id="require-email"
-                          checked={value}
-                          onCheckedChange={onChange}
-                        />
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <Separator className="bg-zinc-800" />
-
-              {/* Advanced Settings */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-medium text-zinc-100">Advanced settings</h3>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <Label htmlFor="password-protection" className="text-zinc-100">Password protection</Label>
+                  <h3 className="text-sm font-medium text-zinc-100">Sharing settings</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="enable-downloading" className="text-zinc-100">Enable downloading</Label>
                       <Controller
-                        name="passwordProtection"
+                        name="enableDownloading"
                         control={control}
                         render={({ field: { value, onChange } }) => (
                           <Switch
-                            id="password-protection"
+                            id="enable-downloading"
                             checked={value}
                             onCheckedChange={onChange}
                           />
                         )}
                       />
                     </div>
-                    {passwordProtection && (
-                      <div className="mt-2 space-y-2">
+
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="require-email" className="text-zinc-100">Require email to view</Label>
+                      <Controller
+                        name="requireEmail"
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <Switch
+                            id="require-email"
+                            checked={value}
+                            onCheckedChange={onChange}
+                          />
+                        )}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator className="bg-zinc-800" />
+
+                {/* Advanced Settings */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-zinc-100">Advanced settings</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <Label htmlFor="password-protection" className="text-zinc-100">Password protection</Label>
                         <Controller
-                          name="password"
+                          name="passwordProtection"
                           control={control}
-                          render={({ field }) => (
-                            <Input
-                              {...field}
-                              type="password"
-                              placeholder="Enter password"
-                              className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
+                          render={({ field: { value, onChange } }) => (
+                            <Switch
+                              id="password-protection"
+                              checked={value}
+                              onCheckedChange={onChange}
                             />
                           )}
                         />
-                        {errors.password && (
-                          <p className="text-sm text-red-500">{errors.password.message}</p>
-                        )}
                       </div>
-                    )}
+                      {passwordProtection && (
+                        <div className="mt-2 space-y-2">
+                          <Controller
+                            name="password"
+                            control={control}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                type="password"
+                                placeholder="Enter password"
+                                className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
+                              />
+                            )}
+                          />
+                          {errors.password && (
+                            <p className="text-sm text-red-500">{errors.password.message}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex justify-end gap-2 pt-4">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="text-zinc-400 hover:text-zinc-300"
-                  onClick={() => reset()}
-                  disabled={isSubmitting}
-                >
-                  Reset
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-zinc-100 text-zinc-900 hover:bg-zinc-200 disabled:opacity-50"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent" />
-                      Saving...
-                    </div>
-                  ) : (
-                    "Save changes"
-                  )}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-zinc-400 hover:text-zinc-300"
+                    onClick={() => reset()}
+                    disabled={isSubmitting}
+                  >
+                    Reset
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="bg-zinc-100 text-zinc-900 hover:bg-zinc-200 disabled:opacity-50"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent" />
+                        Saving...
+                      </div>
+                    ) : (
+                      "Save changes"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-red-400 hover:text-red-300"
+            onClick={() => setShowDeleteDialog(true)}
+          >
+            <RiDeleteBinLine className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-6">
@@ -566,6 +668,40 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
           </div>
         </Card>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-zinc-100">Delete deck?</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              This action cannot be undone. This will permanently delete the deck
+              and remove all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="bg-transparent border-zinc-800 text-zinc-100 hover:bg-zinc-800 hover:text-zinc-100"
+              disabled={isDeleting}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 text-zinc-100 hover:bg-red-700"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-100 border-t-transparent" />
+                  Deleting...
+                </div>
+              ) : (
+                "Delete deck"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
