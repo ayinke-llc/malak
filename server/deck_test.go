@@ -8,9 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
-	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/go-chi/chi/v5"
@@ -48,39 +46,6 @@ func generateDeckCreateRequest() []struct {
 			},
 		},
 		{
-			name:               "invalid password",
-			mockFn:             func(deck *malak_mocks.MockDeckRepository) {},
-			expectedStatusCode: http.StatusBadRequest,
-			req: createDeckRequest{
-				DeckURL: "https://google.com",
-				Title:   "oops",
-				Password: struct {
-					Enabled  bool            "json:\"enabled,omitempty\" validate:\"required\""
-					Password *malak.Password "json:\"password,omitempty\" validate:\"required\""
-				}{
-					Enabled:  true,
-					Password: hermes.Ref(malak.Password("")),
-				},
-			},
-		},
-		{
-			name:               "expiration date in past",
-			mockFn:             func(deck *malak_mocks.MockDeckRepository) {},
-			expectedStatusCode: http.StatusBadRequest,
-			req: createDeckRequest{
-				DeckURL: "https://google.com",
-				Title:   "oops",
-				Password: struct {
-					Enabled  bool            "json:\"enabled,omitempty\" validate:\"required\""
-					Password *malak.Password "json:\"password,omitempty\" validate:\"required\""
-				}{
-					Enabled:  true,
-					Password: hermes.Ref(malak.Password("12345")),
-				},
-				ExpiresAt: hermes.Ref(time.Now().Add(time.Hour * -2)),
-			},
-		},
-		{
 			name: "could not create deck",
 			mockFn: func(deck *malak_mocks.MockDeckRepository) {
 				deck.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).
@@ -91,13 +56,6 @@ func generateDeckCreateRequest() []struct {
 			req: createDeckRequest{
 				DeckURL: "https://google.com",
 				Title:   "oops",
-				Password: struct {
-					Enabled  bool            "json:\"enabled,omitempty\" validate:\"required\""
-					Password *malak.Password "json:\"password,omitempty\" validate:\"required\""
-				}{
-					Enabled:  true,
-					Password: hermes.Ref(malak.Password("12345")),
-				},
 			},
 		},
 		{
@@ -111,13 +69,6 @@ func generateDeckCreateRequest() []struct {
 			req: createDeckRequest{
 				DeckURL: "https://google.com",
 				Title:   "oops",
-				Password: struct {
-					Enabled  bool            "json:\"enabled,omitempty\" validate:\"required\""
-					Password *malak.Password "json:\"password,omitempty\" validate:\"required\""
-				}{
-					Enabled:  true,
-					Password: hermes.Ref(malak.Password("12345")),
-				},
 			},
 		},
 	}

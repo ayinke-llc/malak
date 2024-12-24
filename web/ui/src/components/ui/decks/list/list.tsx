@@ -193,7 +193,7 @@ export default function ListDecks() {
             {table.getRowModel().rows.map((row) => (
               <tr
                 key={row.id}
-                className="border-t border-zinc-800"
+                className="border-t border-zinc-800 hover:bg-zinc-800/50 transition-colors"
               >
                 {row.getVisibleCells().map((cell) => (
                   <td
