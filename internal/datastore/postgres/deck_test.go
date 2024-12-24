@@ -39,7 +39,7 @@ func TestDeck_Create(t *testing.T) {
 		WorkspaceID: workspace.ID,
 		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck),
 		Title:       "fojgfnolkgj",
-		ShortLink:   malak.ShortLink(),
+		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
 		CreatedBy:   user.ID,
 	}
 
