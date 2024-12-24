@@ -10,33 +10,96 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { RiAddLine, RiUploadCloud2Line } from "@remixicon/react";
-import { useState, useRef, ChangeEvent } from "react";
+import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { toast } from "sonner";
+
+type FormData = {
+  title: string;
+  pdfUrl: string;
+};
+
+const schema = yup.object({
+  title: yup.string().required("Title is required").min(3, "Title must be at least 3 characters"),
+  pdfUrl: yup.string().required("Please upload a PDF file").url("Invalid URL format"),
+}).required();
+
+// Simulated file upload function that returns a URL
+const simulateFileUpload = async (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Simulate a URL being returned after upload
+      const fakeUrl = `https://storage.example.com/${file.name}-${Date.now()}`;
+      resolve(fakeUrl);
+    }, 1000);
+  });
+};
 
 export default function UploadDeckModal() {
   const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+    reset
+  } = useForm<FormData>({
+    resolver: yupResolver(schema)
+  });
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.type !== "application/pdf") {
+        toast.error("Please upload a PDF file");
+        return;
+      }
       setSelectedFile(file);
       // Set the title to the file name without the extension
       const fileName = file.name.replace(/\.[^/.]+$/, "");
-      setTitle(fileName);
+      setValue("title", fileName);
+      
+      setIsUploading(true);
+      try {
+        const url = await simulateFileUpload(file);
+        setValue("pdfUrl", url);
+        toast.success("File uploaded successfully");
+      } catch (error) {
+        toast.error("Failed to upload file");
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+  const handleDrop = async (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
     if (file && file.type === "application/pdf") {
       setSelectedFile(file);
       const fileName = file.name.replace(/\.[^/.]+$/, "");
-      setTitle(fileName);
+      setValue("title", fileName);
+      
+      setIsUploading(true);
+      try {
+        const url = await simulateFileUpload(file);
+        setValue("pdfUrl", url);
+        toast.success("File uploaded successfully");
+      } catch (error) {
+        toast.error("Failed to upload file");
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      toast.error("Please upload a PDF file");
     }
   };
 
@@ -44,11 +107,11 @@ export default function UploadDeckModal() {
     e.preventDefault();
   };
 
-  const handleSubmit = () => {
-    if (!selectedFile || !title.trim()) return;
-    // TODO: Handle file upload
+  const onSubmit = async (data: FormData) => {
+    // TODO: Handle form submission with data.title and data.pdfUrl
+    console.log("Form submitted:", data);
     setOpen(false);
-    setTitle("");
+    reset();
     setSelectedFile(null);
   };
 
@@ -71,17 +134,19 @@ export default function UploadDeckModal() {
             Upload a PDF file for your company.
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-6 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-6">
           <div className="space-y-2">
             <Label htmlFor="title" className="text-zinc-100">Deck Title</Label>
             <Input
               id="title"
               type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter deck title"
+              {...register("title")}
               className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
+              placeholder="Enter deck title"
             />
+            {errors.title && (
+              <p className="text-sm text-red-500">{errors.title.message}</p>
+            )}
           </div>
           
           <div className="space-y-2">
@@ -112,6 +177,7 @@ export default function UploadDeckModal() {
                   )}
                 </div>
                 <Input
+                  {...register("pdfUrl")}
                   ref={fileInputRef}
                   id="deck"
                   type="file"
@@ -121,6 +187,9 @@ export default function UploadDeckModal() {
                 />
               </label>
             </div>
+            {errors.pdfUrl && (
+              <p className="text-sm text-red-500">{errors.pdfUrl.message}</p>
+            )}
           </div>
 
           <div className="flex justify-end gap-3">
@@ -129,7 +198,7 @@ export default function UploadDeckModal() {
               variant="ghost"
               onClick={() => {
                 setOpen(false);
-                setTitle("");
+                reset();
                 setSelectedFile(null);
               }}
               className="text-zinc-100 hover:text-zinc-200 hover:bg-zinc-800"
@@ -137,15 +206,14 @@ export default function UploadDeckModal() {
               Cancel
             </Button>
             <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={!selectedFile || !title.trim()}
+              type="submit"
+              disabled={isUploading}
               className="bg-zinc-100 text-zinc-900 hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Upload
+              {isUploading ? "Uploading..." : "Upload"}
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
