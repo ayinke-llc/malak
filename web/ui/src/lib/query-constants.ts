@@ -14,3 +14,5 @@ export const LIST_CONTACT_LISTS = "LIST_CONTACT_LISTS" as const;
 export const SEND_UPDATE = "SEND_UPDATE" as const;
 export const LIST_PINNED_UPDATES = 'LIST_PINNED_UPDATES' as const;
 export const FETCH_SINGLE_UPDATE_ANALYTICS = 'FETCH_SINGLE_UPDATE_ANALYTICS' as const;
+export const UPLOAD_DECK = "UPLOAD_DECK" as const;
+export const LIST_DECKS = 'LIST_DECKS' as const;

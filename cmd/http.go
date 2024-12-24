@@ -103,6 +103,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			contactRepo := postgres.NewContactRepository(db)
 			updateRepo := postgres.NewUpdatesRepository(db)
 			contactlistRepo := postgres.NewContactListRepository(db)
+			deckRepo := postgres.NewDeckRepository(db)
 
 			googleAuthProvider := socialauth.NewGoogle(*cfg)
 
@@ -207,7 +208,8 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			gulterHandler, err := gulter.New(
 				gulter.WithMaxFileSize(cfg.Uploader.MaxUploadSize),
-				gulter.WithValidationFunc(gulter.MimeTypeValidator("image/jpeg", "image/png")),
+				gulter.WithValidationFunc(
+					gulter.MimeTypeValidator("image/jpeg", "image/png", "application/pdf")),
 				gulter.WithStorage(s3Store),
 				gulter.WithIgnoreNonExistentKey(true),
 				gulter.WithErrorResponseHandler(func(err error) http.HandlerFunc {
@@ -237,7 +239,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				util.DeRef(cfg), db,
 				tokenManager, googleAuthProvider,
 				userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
-				contactlistRepo,
+				contactlistRepo, deckRepo,
 				mid, gulterHandler, queueHandler, redisCache)
 
 			go func() {

@@ -19,6 +19,10 @@ import (
 
 type mockReferenceGenerator struct{}
 
+func (m *mockReferenceGenerator) ShortLink() string {
+	return "oops"
+}
+
 func (m *mockReferenceGenerator) Generate(e malak.EntityType) malak.Reference {
 	return malak.Reference(fmt.Sprintf("%s_%s", e.String(), "test_reference"))
 }

@@ -378,6 +378,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/decks": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "decks"
+                ],
+                "summary": "Creates a new deck",
+                "parameters": [
+                    {
+                        "description": "deck request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createDeckRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchDeckResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/images/upload": {
             "post": {
                 "consumes": [
@@ -1390,9 +1447,46 @@ const docTemplate = `{
                 "type": "string"
             }
         },
+        "malak.Deck": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "short_link": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.PlanMetadata": {
             "type": "object",
             "properties": {
+                "deck": {
+                    "type": "object",
+                    "properties": {
+                        "count": {
+                            "type": "integer"
+                        }
+                    }
+                },
                 "team": {
                     "type": "object",
                     "properties": {
@@ -1770,6 +1864,17 @@ const docTemplate = `{
                 }
             }
         },
+        "server.createDeckRequest": {
+            "type": "object",
+            "properties": {
+                "deck_url": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "server.createUpdateContent": {
             "type": "object",
             "required": [
@@ -1889,6 +1994,20 @@ const docTemplate = `{
             "properties": {
                 "contact": {
                     "$ref": "#/definitions/malak.Contact"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.fetchDeckResponse": {
+            "type": "object",
+            "required": [
+                "message"
+            ],
+            "properties": {
+                "deck": {
+                    "$ref": "#/definitions/malak.Deck"
                 },
                 "message": {
                     "type": "string"

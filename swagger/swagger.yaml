@@ -109,8 +109,32 @@ components:
       additionalProperties:
         type: string
       type: object
+    malak.Deck:
+      properties:
+        created_at:
+          type: string
+        created_by:
+          type: string
+        id:
+          type: string
+        reference:
+          type: string
+        short_link:
+          type: string
+        title:
+          type: string
+        updated_at:
+          type: string
+        workspace_id:
+          type: string
+      type: object
     malak.PlanMetadata:
       properties:
+        deck:
+          properties:
+            count:
+              type: integer
+          type: object
         team:
           properties:
             enabled:
@@ -370,6 +394,13 @@ components:
         last_name:
           type: string
       type: object
+    server.createDeckRequest:
+      properties:
+        deck_url:
+          type: string
+        title:
+          type: string
+      type: object
     server.createUpdateContent:
       properties:
         title:
@@ -451,6 +482,15 @@ components:
           type: string
       required:
       - contact
+      - message
+      type: object
+    server.fetchDeckResponse:
+      properties:
+        deck:
+          $ref: '#/components/schemas/malak.Deck'
+        message:
+          type: string
+      required:
       - message
       type: object
     server.fetchUpdateAnalyticsResponse:
@@ -845,6 +885,50 @@ paths:
       summary: Edit a contact list
       tags:
       - contacts
+  /decks:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.createDeckRequest'
+        description: deck request body
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchDeckResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: Creates a new deck
+      tags:
+      - decks
   /images/upload:
     post:
       operationId: uploadImage

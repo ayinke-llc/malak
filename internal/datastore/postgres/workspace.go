@@ -93,7 +93,8 @@ func (o *workspaceRepo) Get(ctx context.Context,
 		q = q.Where("id = ?", opts.ID)
 	}
 
-	err := q.Model(workspace).Scan(ctx)
+	err := q.Model(workspace).
+		Scan(ctx)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		err = malak.ErrWorkspaceNotFound

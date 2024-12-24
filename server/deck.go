@@ -1,0 +1,109 @@
+package server
+
+import (
+	"context"
+	"errors"
+	"net/http"
+
+	"github.com/ayinke-llc/hermes"
+	"github.com/ayinke-llc/malak"
+	"github.com/go-chi/render"
+	"github.com/microcosm-cc/bluemonday"
+	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
+)
+
+type deckHandler struct {
+	deckRepo           malak.DeckRepository
+	referenceGenerator malak.ReferenceGeneratorOperation
+}
+
+type createDeckRequest struct {
+	GenericRequest
+
+	Title   string `json:"title,omitempty"`
+	DeckURL string `json:"deck_url,omitempty"`
+}
+
+func (c *createDeckRequest) Validate() error {
+	if hermes.IsStringEmpty(c.DeckURL) {
+		return errors.New("please provide the deck url")
+	}
+
+	if hermes.IsStringEmpty(c.Title) {
+		return errors.New("please provide the title of the deck")
+	}
+
+	p := bluemonday.StrictPolicy()
+
+	c.Title = p.Sanitize(c.Title)
+
+	return nil
+}
+
+// @Summary Creates a new deck
+// @Tags decks
+// @Accept  json
+// @Produce  json
+// @Param message body createDeckRequest true "deck request body"
+// @Success 200 {object} fetchDeckResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /decks [post]
+func (d *deckHandler) Create(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("creating deck")
+
+	req := new(createDeckRequest)
+
+	workspace := getWorkspaceFromContext(r.Context())
+
+	user := getUserFromContext(r.Context())
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	opts := &malak.CreateDeckOptions{
+		RequireEmail:      true,
+		EnableDownloading: false,
+		Password: struct {
+			Enabled  bool           "json:\"enabled,omitempty\" validate:\"required\""
+			Password malak.Password "json:\"password,omitempty\" validate:\"required\""
+		}{
+			Enabled: false,
+		},
+		Reference: d.referenceGenerator.Generate(malak.EntityTypeDeckPreference),
+	}
+
+	deck := &malak.Deck{
+		Title:       req.Title,
+		ShortLink:   d.referenceGenerator.ShortLink(),
+		Reference:   d.referenceGenerator.Generate(malak.EntityTypeDeck),
+		WorkspaceID: workspace.ID,
+		CreatedBy:   user.ID,
+	}
+
+	if err := d.deckRepo.Create(ctx, deck, opts); err != nil {
+		logger.Error("could not create deck",
+			zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not create deck"),
+			StatusFailed
+	}
+
+	return fetchDeckResponse{
+		Deck:      hermes.DeRef(deck),
+		APIStatus: newAPIStatus(http.StatusOK, "deck created"),
+	}, StatusSuccess
+}

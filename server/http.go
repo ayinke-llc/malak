@@ -34,6 +34,7 @@ func New(logger *zap.Logger,
 	contactRepo malak.ContactRepository,
 	updateRepo malak.UpdateRepository,
 	contactListRepo malak.ContactListRepository,
+	deckRepo malak.DeckRepository,
 	mid *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
@@ -42,7 +43,7 @@ func New(logger *zap.Logger,
 	srv := &http.Server{
 		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
 			userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
-			contactListRepo,
+			contactListRepo, deckRepo,
 			googleAuthProvider, mid, gulterHandler, queueHandler, redisCache),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
@@ -82,6 +83,7 @@ func buildRoutes(
 	contactRepo malak.ContactRepository,
 	updateRepo malak.UpdateRepository,
 	contactListRepo malak.ContactListRepository,
+	deckRepo malak.DeckRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	ratelimiterMiddleware *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
@@ -145,6 +147,11 @@ func buildRoutes(
 		referenceGenerator: referenceGenerator,
 		updateRepo:         updateRepo,
 		contactRepo:        contactRepo,
+	}
+
+	deckHandler := &deckHandler{
+		referenceGenerator: referenceGenerator,
+		deckRepo:           deckRepo,
 	}
 
 	router.Use(middleware.RequestID)
@@ -236,6 +243,12 @@ func buildRoutes(
 
 			r.Post("/lists/{reference}",
 				WrapMalakHTTPHandler(logger, contactHandler.addUserToContactList, cfg, "contacts.lists.add"))
+		})
+
+		r.Route("/decks", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Post("/",
+				WrapMalakHTTPHandler(logger, deckHandler.Create, cfg, "decks.add"))
 		})
 
 		r.Route("/images", func(r chi.Router) {

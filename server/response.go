@@ -99,3 +99,8 @@ type fetchUpdateAnalyticsResponse struct {
 	Update     malak.UpdateStat        `json:"update,omitempty"`
 	Recipients []malak.UpdateRecipient `json:"recipients,omitempty"`
 }
+
+type fetchDeckResponse struct {
+	Deck malak.Deck `json:"deck,omitempty"`
+	APIStatus
+}

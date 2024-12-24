@@ -1,6 +1,8 @@
 package malak
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
@@ -14,10 +16,11 @@ func GenerateReference(e EntityType) string {
 // ENUM(
 // workspace,invoice,
 // team,invite,contact,
-// deck,update,link,room,
+// update,link,room,
 // recipient,schedule,list,
 // list_email, update_stat,
-// recipient_stat,recipient_log)
+// recipient_stat,recipient_log,
+// deck,deck_preference)
 type EntityType string
 
 type Reference string
@@ -26,6 +29,7 @@ func (r Reference) String() string { return string(r) }
 
 type ReferenceGeneratorOperation interface {
 	Generate(EntityType) Reference
+	ShortLink() string
 }
 
 type ReferenceGenerator struct{}
@@ -40,4 +44,13 @@ func (r *ReferenceGenerator) Generate(e EntityType) Reference {
 			"%s_%s",
 			e.String(),
 			gonanoid.Must()))
+}
+
+func (r *ReferenceGenerator) ShortLink() string {
+	b := make([]byte, 8) // 6 bytes = 8 characters in base64
+	_, err := rand.Read(b)
+	if err != nil {
+		panic(err)
+	}
+	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(b)
 }
