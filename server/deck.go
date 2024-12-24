@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
@@ -90,12 +89,10 @@ func (d *deckHandler) Create(
 
 	deck := &malak.Deck{
 		Title:       req.Title,
-		ShortLink:   malak.ShortLink(),
+		ShortLink:   d.referenceGenerator.ShortLink(),
 		Reference:   d.referenceGenerator.Generate(malak.EntityTypeDeck),
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
 	}
 
 	if err := d.deckRepo.Create(ctx, deck, opts); err != nil {

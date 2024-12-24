@@ -29,6 +29,7 @@ func (r Reference) String() string { return string(r) }
 
 type ReferenceGeneratorOperation interface {
 	Generate(EntityType) Reference
+	ShortLink() string
 }
 
 type ReferenceGenerator struct{}
@@ -45,7 +46,7 @@ func (r *ReferenceGenerator) Generate(e EntityType) Reference {
 			gonanoid.Must()))
 }
 
-func ShortLink() string {
+func (r *ReferenceGenerator) ShortLink() string {
 	b := make([]byte, 8) // 6 bytes = 8 characters in base64
 	_, err := rand.Read(b)
 	if err != nil {
