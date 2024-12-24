@@ -1,8 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { RiAddLine } from "@remixicon/react";
 import ListDecks from "@/components/ui/decks/list/list";
+import UploadDeckModal from "@/components/ui/decks/modal";
 
 export default function Page() {
   return (
@@ -23,14 +22,7 @@ export default function Page() {
             </div>
 
             <div>
-              <Button
-                type="button"
-                variant="default"
-                className="whitespace-nowrap bg-zinc-100 text-zinc-900 hover:bg-zinc-200"
-              >
-                <RiAddLine className="mr-2 h-4 w-4" />
-                Upload Deck
-              </Button>
+              <UploadDeckModal />
             </div>
           </div>
         </section>

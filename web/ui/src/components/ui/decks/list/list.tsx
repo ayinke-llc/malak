@@ -11,7 +11,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
-import { RiFileList3Line, RiUploadCloud2Line } from "@remixicon/react";
+import { RiUploadCloud2Line } from "@remixicon/react";
+import UploadDeckModal from "../modal";
 
 // This is a placeholder until we implement the actual data fetching
 const mockDecks: any[] = [];
@@ -30,10 +31,9 @@ export default function ListDecks() {
           <p className="mt-2 text-sm text-zinc-400/80">
             Upload your company decks and PDFs to keep them organized and easily accessible in one place.
           </p>
-          <Button className="mt-6 bg-zinc-100 text-zinc-900 hover:bg-zinc-200" size="lg">
-            <RiUploadCloud2Line className="mr-2 h-4 w-4" />
-            Upload your first deck
-          </Button>
+          <div className="mt-6">
+            <UploadDeckModal />
+          </div>
         </div>
       </Card>
     );
