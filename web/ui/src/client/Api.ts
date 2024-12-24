@@ -73,7 +73,21 @@ export interface MalakContactListMappingWithContact {
 
 export type MalakCustomContactMetadata = Record<string, string>;
 
+export interface MalakDeck {
+  created_at?: string;
+  created_by?: string;
+  id?: string;
+  reference?: string;
+  short_link?: string;
+  title?: string;
+  updated_at?: string;
+  workspace_id?: string;
+}
+
 export interface MalakPlanMetadata {
+  deck?: {
+    count?: number;
+  };
   team?: {
     enabled?: boolean;
     size?: number;
@@ -230,6 +244,11 @@ export interface ServerCreateContactRequest {
   last_name?: string;
 }
 
+export interface ServerCreateDeckRequest {
+  deck_url?: string;
+  title?: string;
+}
+
 export interface ServerCreateUpdateContent {
   title: string;
 }
@@ -266,6 +285,11 @@ export interface ServerFetchContactListsResponse {
 
 export interface ServerFetchContactResponse {
   contact: MalakContact;
+  message: string;
+}
+
+export interface ServerFetchDeckResponse {
+  deck?: MalakDeck;
   message: string;
 }
 
@@ -565,6 +589,25 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerFetchContactListResponse, ServerAPIStatus>({
         path: `/contacts/lists/${reference}`,
         method: "PUT",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  decks = {
+    /**
+     * No description
+     *
+     * @tags decks
+     * @name DecksCreate
+     * @summary Creates a new deck
+     * @request POST:/decks
+     */
+    decksCreate: (data: ServerCreateDeckRequest, params: RequestParams = {}) =>
+      this.request<ServerFetchDeckResponse, ServerAPIStatus>({
+        path: `/decks`,
+        method: "POST",
         body: data,
         type: ContentType.Json,
         format: "json",

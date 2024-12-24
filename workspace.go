@@ -16,8 +16,6 @@ type Workspace struct {
 	PlanID        uuid.UUID `json:"plan_id,omitempty"`
 	Reference     string    `json:"reference,omitempty"`
 
-	Plan *Plan `json:"plan" bun:"rel:has-one,join:plan_id=id"`
-
 	// Not required
 	// Dummy values work really
 	StripeCustomerID string `json:"stripe_customer_id,omitempty"`

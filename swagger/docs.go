@@ -1476,38 +1476,6 @@ const docTemplate = `{
                 }
             }
         },
-        "malak.Plan": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "description": "Defaults to zero",
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "default_price_id": {
-                    "description": "Stripe default price id. Again not needed if not using Stripe",
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/malak.PlanMetadata"
-                },
-                "plan_name": {
-                    "type": "string"
-                },
-                "reference": {
-                    "description": "Can use a fake id really\nAs this only matters if you turn on Stripe",
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
         "malak.PlanMetadata": {
             "type": "object",
             "properties": {
@@ -1801,9 +1769,6 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "$ref": "#/definitions/malak.PlanMetadata"
-                },
-                "plan": {
-                    "$ref": "#/definitions/malak.Plan"
                 },
                 "plan_id": {
                     "type": "string"

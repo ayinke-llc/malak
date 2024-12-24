@@ -208,7 +208,8 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			gulterHandler, err := gulter.New(
 				gulter.WithMaxFileSize(cfg.Uploader.MaxUploadSize),
-				gulter.WithValidationFunc(gulter.MimeTypeValidator("image/jpeg", "image/png")),
+				gulter.WithValidationFunc(
+					gulter.MimeTypeValidator("image/jpeg", "image/png", "application/pdf")),
 				gulter.WithStorage(s3Store),
 				gulter.WithIgnoreNonExistentKey(true),
 				gulter.WithErrorResponseHandler(func(err error) http.HandlerFunc {

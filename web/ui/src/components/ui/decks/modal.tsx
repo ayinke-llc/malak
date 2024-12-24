@@ -17,6 +17,16 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
+import client from "@/lib/client";
+import type { ServerAPIStatus } from "@/client/Api";
+import type { AxiosError } from "axios";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type FormData = {
   title: string;
@@ -28,21 +38,14 @@ const schema = yup.object({
   pdfUrl: yup.string().required("Please upload a PDF file").url("Invalid URL format"),
 }).required();
 
-// Simulated file upload function that returns a URL
-const simulateFileUpload = async (file: File): Promise<string> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Simulate a URL being returned after upload
-      const fakeUrl = `https://storage.example.com/${file.name}-${Date.now()}`;
-      resolve(fakeUrl);
-    }, 1000);
-  });
+const truncateText = (text: string, maxLength: number) => {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + "...";
 };
 
 export default function UploadDeckModal() {
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -53,6 +56,21 @@ export default function UploadDeckModal() {
     reset
   } = useForm<FormData>({
     resolver: yupResolver(schema)
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: (file: File) => client.images.uploadImage({ image_body: file }),
+    onSuccess: ({ data }) => {
+      setValue("pdfUrl", data.url);
+      toast.success("File uploaded successfully");
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      let msg = err.message;
+      if (err.response !== undefined) {
+        msg = err.response.data.message;
+      }
+      toast.error(msg);
+    }
   });
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,16 +85,7 @@ export default function UploadDeckModal() {
       const fileName = file.name.replace(/\.[^/.]+$/, "");
       setValue("title", fileName);
       
-      setIsUploading(true);
-      try {
-        const url = await simulateFileUpload(file);
-        setValue("pdfUrl", url);
-        toast.success("File uploaded successfully");
-      } catch (error) {
-        toast.error("Failed to upload file");
-      } finally {
-        setIsUploading(false);
-      }
+      uploadMutation.mutate(file);
     }
   };
 
@@ -88,16 +97,7 @@ export default function UploadDeckModal() {
       const fileName = file.name.replace(/\.[^/.]+$/, "");
       setValue("title", fileName);
       
-      setIsUploading(true);
-      try {
-        const url = await simulateFileUpload(file);
-        setValue("pdfUrl", url);
-        toast.success("File uploaded successfully");
-      } catch (error) {
-        toast.error("Failed to upload file");
-      } finally {
-        setIsUploading(false);
-      }
+      uploadMutation.mutate(file);
     } else {
       toast.error("Please upload a PDF file");
     }
@@ -162,9 +162,18 @@ export default function UploadDeckModal() {
                   <RiUploadCloud2Line className="w-8 h-8 mb-3 text-zinc-400" />
                   {selectedFile ? (
                     <div className="text-center">
-                      <p className="mb-2 text-sm text-zinc-400">
-                        Selected: <span className="font-medium text-zinc-300">{selectedFile.name}</span>
-                      </p>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <p className="mb-2 text-sm text-zinc-400">
+                              Selected: <span className="font-medium text-zinc-300">{truncateText(selectedFile.name, 40)}</span>
+                            </p>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{selectedFile.name}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                       <p className="text-xs text-zinc-500">Click or drag to change file</p>
                     </div>
                   ) : (
@@ -207,10 +216,10 @@ export default function UploadDeckModal() {
             </Button>
             <Button
               type="submit"
-              disabled={isUploading}
+              disabled={uploadMutation.isPending}
               className="bg-zinc-100 text-zinc-900 hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isUploading ? "Uploading..." : "Upload"}
+              {uploadMutation.isPending ? "Uploading..." : "Upload"}
             </Button>
           </div>
         </form>

@@ -128,30 +128,6 @@ components:
         workspace_id:
           type: string
       type: object
-    malak.Plan:
-      properties:
-        amount:
-          description: Defaults to zero
-          type: integer
-        created_at:
-          type: string
-        default_price_id:
-          description: Stripe default price id. Again not needed if not using Stripe
-          type: string
-        id:
-          type: string
-        metadata:
-          $ref: '#/components/schemas/malak.PlanMetadata'
-        plan_name:
-          type: string
-        reference:
-          description: |-
-            Can use a fake id really
-            As this only matters if you turn on Stripe
-          type: string
-        updated_at:
-          type: string
-      type: object
     malak.PlanMetadata:
       properties:
         deck:
@@ -355,8 +331,6 @@ components:
           type: string
         metadata:
           $ref: '#/components/schemas/malak.PlanMetadata'
-        plan:
-          $ref: '#/components/schemas/malak.Plan'
         plan_id:
           type: string
         reference:
