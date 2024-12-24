@@ -617,37 +617,10 @@
 					"deck_url": {
 						"type": "string"
 					},
-					"enable_downloading": {
-						"type": "boolean"
-					},
-					"expires_at": {
-						"type": "string"
-					},
-					"password": {
-						"properties": {
-							"enabled": {
-								"type": "boolean"
-							},
-							"password": {
-								"type": "string"
-							}
-						},
-						"required": [
-							"enabled",
-							"password"
-						],
-						"type": "object"
-					},
-					"require_email": {
-						"type": "boolean"
-					},
 					"title": {
 						"type": "string"
 					}
 				},
-				"required": [
-					"password"
-				],
 				"type": "object"
 			},
 			"server.createUpdateContent": {

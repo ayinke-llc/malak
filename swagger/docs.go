@@ -1901,36 +1901,9 @@ const docTemplate = `{
         },
         "server.createDeckRequest": {
             "type": "object",
-            "required": [
-                "password"
-            ],
             "properties": {
                 "deck_url": {
                     "type": "string"
-                },
-                "enable_downloading": {
-                    "type": "boolean"
-                },
-                "expires_at": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "object",
-                    "required": [
-                        "enabled",
-                        "password"
-                    ],
-                    "properties": {
-                        "enabled": {
-                            "type": "boolean"
-                        },
-                        "password": {
-                            "type": "string"
-                        }
-                    }
-                },
-                "require_email": {
-                    "type": "boolean"
                 },
                 "title": {
                     "type": "string"

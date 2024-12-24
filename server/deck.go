@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
@@ -22,17 +21,8 @@ type deckHandler struct {
 type createDeckRequest struct {
 	GenericRequest
 
-	Title             string `json:"title,omitempty"`
-	DeckURL           string `json:"deck_url,omitempty"`
-	RequireEmail      bool   `json:"require_email,omitempty"`
-	EnableDownloading bool   `json:"enable_downloading,omitempty"`
-
-	Password struct {
-		Enabled  bool            `json:"enabled,omitempty" validate:"required"`
-		Password *malak.Password `json:"password,omitempty" validate:"required"`
-	} `json:"password,omitempty" validate:"required"`
-
-	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+	Title   string `json:"title,omitempty"`
+	DeckURL string `json:"deck_url,omitempty"`
 }
 
 func (c *createDeckRequest) Validate() error {
@@ -47,20 +37,6 @@ func (c *createDeckRequest) Validate() error {
 	p := bluemonday.StrictPolicy()
 
 	c.Title = p.Sanitize(c.Title)
-
-	if c.Password.Enabled {
-		password := hermes.DeRef(c.Password.Password)
-		if password.IsZero() {
-			return errors.New("please provide your password")
-		}
-	}
-
-	if c.ExpiresAt != nil {
-		exp := hermes.DeRef(c.ExpiresAt)
-		if exp.Before(time.Now()) {
-			return errors.New("expiration date cannot be in the past")
-		}
-	}
 
 	return nil
 }
@@ -99,23 +75,15 @@ func (d *deckHandler) Create(
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	var pass string
-
-	if len(string(hermes.DeRef(req.Password.Password))) >= 0 {
-		pass = string(hermes.DeRef(req.Password.Password))
-	}
-
 	opts := &malak.CreateDeckOptions{
-		RequireEmail:      req.RequireEmail,
-		EnableDownloading: req.EnableDownloading,
+		RequireEmail:      true,
+		EnableDownloading: false,
 		Password: struct {
 			Enabled  bool           "json:\"enabled,omitempty\" validate:\"required\""
 			Password malak.Password "json:\"password,omitempty\" validate:\"required\""
 		}{
-			Enabled:  req.Password.Enabled,
-			Password: malak.Password(pass),
+			Enabled: false,
 		},
-		ExpiresAt: req.ExpiresAt,
 	}
 
 	deck := &malak.Deck{
