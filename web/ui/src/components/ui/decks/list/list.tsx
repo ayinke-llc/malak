@@ -10,9 +10,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import {
   Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+  TooltipContent, TooltipTrigger
 } from "@/components/ui/tooltip";
 import {
   createColumnHelper,
@@ -28,14 +26,10 @@ import type { ServerFetchDecksResponse, MalakDeck } from "@/client/Api";
 export default function ListDecks() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const { data, error, isLoading } = useQuery<ServerFetchDecksResponse>({
+  const { data, isLoading } = useQuery<ServerFetchDecksResponse>({
     queryKey: [LIST_DECKS],
     queryFn: () => client.decks.decksList().then(res => res.data),
   });
-
-  if (error) {
-    toast.error("an error occurred while trying to fetch decks");
-  }
 
   const decks = useMemo(() => data?.decks ?? [], [data]);
 
@@ -69,23 +63,21 @@ export default function ListDecks() {
           const title = info.getValue() ?? "";
           return (
             <div className="max-w-[300px]">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Link
-                      href={`/decks/${info.row.original.reference}`}
-                      className="block hover:opacity-80"
-                    >
-                      <span className="font-medium text-zinc-100 truncate block">
-                        {truncateText(title, 40)}
-                      </span>
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{title}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href={`/decks/${info.row.original.reference}`}
+                    className="block hover:opacity-80"
+                  >
+                    <span className="font-medium text-zinc-100 truncate block">
+                      {truncateText(title, 40)}
+                    </span>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{title}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           );
         },

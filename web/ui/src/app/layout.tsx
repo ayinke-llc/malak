@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "@/components/providers/providers";
 import { siteConfig } from "./siteConfig";
 import { ThemeProvider } from "@/components/providers/theme";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -57,7 +58,9 @@ export default function RootLayout({
           defaultTheme="dark"
           disableTransitionOnChange
         >
-          <Providers>{children}</Providers>
+          <TooltipProvider>
+            <Providers>{children}</Providers>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>
