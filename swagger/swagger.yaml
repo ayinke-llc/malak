@@ -493,6 +493,17 @@ components:
       required:
       - message
       type: object
+    server.fetchDecksResponse:
+      properties:
+        decks:
+          items:
+            $ref: '#/components/schemas/malak.Deck'
+          type: array
+        message:
+          type: string
+      required:
+      - message
+      type: object
     server.fetchUpdateAnalyticsResponse:
       properties:
         message:
@@ -886,6 +897,41 @@ paths:
       tags:
       - contacts
   /decks:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchDecksResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: list all decks. No pagination
+      tags:
+      - decks
     post:
       requestBody:
         content:

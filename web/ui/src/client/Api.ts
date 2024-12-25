@@ -293,6 +293,11 @@ export interface ServerFetchDeckResponse {
   message: string;
 }
 
+export interface ServerFetchDecksResponse {
+  decks?: MalakDeck[];
+  message: string;
+}
+
 export interface ServerFetchUpdateAnalyticsResponse {
   message: string;
   recipients?: MalakUpdateRecipient[];
@@ -596,6 +601,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
   };
   decks = {
+    /**
+     * No description
+     *
+     * @tags decks
+     * @name DecksList
+     * @summary list all decks. No pagination
+     * @request GET:/decks
+     */
+    decksList: (params: RequestParams = {}) =>
+      this.request<ServerFetchDecksResponse, ServerAPIStatus>({
+        path: `/decks`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *

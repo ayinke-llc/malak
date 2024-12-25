@@ -54,3 +54,18 @@ func (mr *MockDeckRepositoryMockRecorder) Create(arg0, arg1, arg2 any) *gomock.C
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockDeckRepository)(nil).Create), arg0, arg1, arg2)
 }
+
+// List mocks base method.
+func (m *MockDeckRepository) List(arg0 context.Context, arg1 *malak.Workspace) ([]malak.Deck, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", arg0, arg1)
+	ret0, _ := ret[0].([]malak.Deck)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// List indicates an expected call of List.
+func (mr *MockDeckRepositoryMockRecorder) List(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockDeckRepository)(nil).List), arg0, arg1)
+}

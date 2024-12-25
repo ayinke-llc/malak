@@ -247,8 +247,11 @@ func buildRoutes(
 
 		r.Route("/decks", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, deckHandler.Create, cfg, "decks.add"))
+			r.Get("/",
+				WrapMalakHTTPHandler(logger, deckHandler.List, cfg, "decks.list"))
 		})
 
 		r.Route("/images", func(r chi.Router) {

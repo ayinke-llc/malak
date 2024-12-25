@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/ayinke-llc/malak"
@@ -112,6 +113,82 @@ func TestDeckHandler_Create(t *testing.T) {
 			WrapMalakHTTPHandler(getLogger(t),
 				u.Create,
 				getConfig(), "decks.create").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateDeckListRequest() []struct {
+	name               string
+	mockFn             func(update *malak_mocks.MockDeckRepository)
+	expectedStatusCode int
+} {
+
+	return []struct {
+		name               string
+		mockFn             func(deck *malak_mocks.MockDeckRepository)
+		expectedStatusCode int
+	}{
+		{
+			name: "could not list decks",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().List(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]malak.Deck{}, errors.New("error occurred"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "listed deck successfully",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().List(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]malak.Deck{
+						{
+							Reference: "oops",
+						},
+						{
+							Reference: "opsdfkf",
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
+func TestDeckHandler_List(t *testing.T) {
+
+	for _, v := range generateDeckListRequest() {
+
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			deckRepo := malak_mocks.NewMockDeckRepository(controller)
+
+			v.mockFn(deckRepo)
+
+			u := &deckHandler{
+				referenceGenerator: &mockReferenceGenerator{},
+				deckRepo:           deckRepo,
+			}
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(""))
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			WrapMalakHTTPHandler(getLogger(t),
+				u.List,
+				getConfig(), "decks.list").
 				ServeHTTP(rr, req)
 
 			require.Equal(t, v.expectedStatusCode, rr.Code)

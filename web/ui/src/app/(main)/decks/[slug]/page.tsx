@@ -27,7 +27,7 @@ import { Separator } from "@/components/ui/separator";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -279,18 +279,16 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
           <div className="min-w-0 flex-1">
             <p className="text-zinc-100 font-medium truncate">{info.getValue()}</p>
             {info.row.original.email && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <p className="text-sm text-zinc-400 truncate max-w-[200px] cursor-default">
-                      {info.row.original.email}
-                    </p>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-[300px] break-all">
-                    <p className="text-sm">{info.row.original.email}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <p className="text-sm text-zinc-400 truncate max-w-[200px] cursor-default">
+                    {info.row.original.email}
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[300px] break-all">
+                  <p className="text-sm">{info.row.original.email}</p>
+                </TooltipContent>
+              </Tooltip>
             )}
             <p className="text-sm text-zinc-500">
               {formatDistanceToNow(info.row.original.viewedAt, { addSuffix: true })}
@@ -385,9 +383,8 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
           <Button
             variant="ghost"
             size="icon"
-            className={`${
-              isPinned ? 'text-blue-400 hover:text-blue-300' : 'text-zinc-400 hover:text-zinc-300'
-            } ${isPinning ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`${isPinned ? 'text-blue-400 hover:text-blue-300' : 'text-zinc-400 hover:text-zinc-300'
+              } ${isPinning ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handleTogglePin}
             disabled={isPinning}
           >
@@ -637,9 +634,9 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                             {header.isPlaceholder
                               ? null
                               : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
                           </th>
                         ))}
                       </tr>

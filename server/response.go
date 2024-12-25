@@ -104,3 +104,8 @@ type fetchDeckResponse struct {
 	Deck malak.Deck `json:"deck,omitempty"`
 	APIStatus
 }
+
+type fetchDecksResponse struct {
+	Decks []malak.Deck `json:"decks,omitempty"`
+	APIStatus
+}
