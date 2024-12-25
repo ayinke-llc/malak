@@ -189,7 +189,7 @@ func TestDeck_Delete(t *testing.T) {
 
 	require.NoError(t, deck.Delete(context.Background(), deckFromDB))
 
-	deckFromDB, err = deck.Get(context.Background(), malak.FetchDeckOptions{
+	_, err = deck.Get(context.Background(), malak.FetchDeckOptions{
 		Reference: ref.String(),
 	})
 	require.Error(t, err)
