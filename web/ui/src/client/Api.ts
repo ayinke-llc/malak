@@ -650,6 +650,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags decks
+     * @name DecksDetail
+     * @summary fetch a deck
+     * @request GET:/decks/{reference}
+     */
+    decksDetail: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerFetchDeckResponse, ServerAPIStatus>({
+        path: `/decks/${reference}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
   };
   images = {
     /**
