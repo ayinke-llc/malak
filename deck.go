@@ -68,4 +68,5 @@ type CreateDeckOptions struct {
 
 type DeckRepository interface {
 	Create(context.Context, *Deck, *CreateDeckOptions) error
+	List(context.Context, *Workspace) ([]Deck, error)
 }

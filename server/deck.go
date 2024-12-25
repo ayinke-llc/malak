@@ -107,3 +107,37 @@ func (d *deckHandler) Create(
 		APIStatus: newAPIStatus(http.StatusOK, "deck created"),
 	}, StatusSuccess
 }
+
+// @Summary list all decks. No pagination
+// @Tags decks
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} fetchDecksResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /decks [get]
+func (d *deckHandler) List(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("listing deck")
+
+	workspace := getWorkspaceFromContext(r.Context())
+
+	decks, err := d.deckRepo.List(ctx, workspace)
+	if err != nil {
+		logger.Error("could not list decks", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not list decks"),
+			StatusFailed
+	}
+
+	return fetchDecksResponse{
+		Decks:     decks,
+		APIStatus: newAPIStatus(http.StatusOK, "fetched your decks"),
+	}, StatusSuccess
+}

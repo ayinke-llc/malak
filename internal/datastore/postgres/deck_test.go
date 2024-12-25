@@ -46,3 +46,50 @@ func TestDeck_Create(t *testing.T) {
 	err = deck.Create(context.Background(), decks, opts)
 	require.NoError(t, err)
 }
+
+func TestDeck_List(t *testing.T) {
+
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	deck := NewDeckRepository(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	userRepo := NewUserRepository(client)
+
+	// user from the fixtures
+	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+
+	_ = user
+
+	// from workspaces.yml migration
+	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	decks, err := deck.List(context.Background(), workspace)
+
+	require.NoError(t, err)
+	require.Len(t, decks, 0)
+
+	err = deck.Create(context.Background(), &malak.Deck{
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck),
+		WorkspaceID: workspace.ID,
+		CreatedBy:   user.ID,
+		Title:       "oops",
+		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+	}, &malak.CreateDeckOptions{
+		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
+	})
+
+	require.NoError(t, err)
+
+	decks, err = deck.List(context.Background(), workspace)
+
+	require.NoError(t, err)
+	require.Len(t, decks, 1)
+}

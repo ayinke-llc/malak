@@ -53,3 +53,17 @@ func (mr *MockReferenceGeneratorOperationMockRecorder) Generate(arg0 any) *gomoc
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockReferenceGeneratorOperation)(nil).Generate), arg0)
 }
+
+// ShortLink mocks base method.
+func (m *MockReferenceGeneratorOperation) ShortLink() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ShortLink")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// ShortLink indicates an expected call of ShortLink.
+func (mr *MockReferenceGeneratorOperationMockRecorder) ShortLink() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShortLink", reflect.TypeOf((*MockReferenceGeneratorOperation)(nil).ShortLink))
+}
