@@ -193,3 +193,50 @@ func (d *deckHandler) Delete(
 
 	return newAPIStatus(http.StatusOK, "deleted your deck"), StatusSuccess
 }
+
+// @Summary fetch a deck
+// @Tags decks
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "deck unique reference.. e.g deck_"
+// @Success 200 {object} fetchDeckResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /decks/{reference} [get]
+func (d *deckHandler) fetch(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("fetching deck")
+
+	ref := chi.URLParam(r, "reference")
+
+	if hermes.IsStringEmpty(ref) {
+		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
+	}
+
+	deck, err := d.deckRepo.Get(ctx, malak.FetchDeckOptions{
+		Reference: ref,
+	})
+	if err != nil {
+		status := http.StatusInternalServerError
+		msg := "an error occurred while fetching deck"
+
+		if errors.Is(err, malak.ErrDeckNotFound) {
+			status = http.StatusNotFound
+			msg = "deck does not exists"
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	return fetchDeckResponse{
+		APIStatus: newAPIStatus(http.StatusOK, "fetched deck details"),
+		Deck:      hermes.DeRef(deck),
+	}, StatusSuccess
+}
