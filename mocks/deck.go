@@ -55,6 +55,35 @@ func (mr *MockDeckRepositoryMockRecorder) Create(arg0, arg1, arg2 any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockDeckRepository)(nil).Create), arg0, arg1, arg2)
 }
 
+// Delete mocks base method.
+func (m *MockDeckRepository) Delete(arg0 context.Context, arg1 *malak.Deck) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockDeckRepositoryMockRecorder) Delete(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockDeckRepository)(nil).Delete), arg0, arg1)
+}
+
+// Get mocks base method.
+func (m *MockDeckRepository) Get(arg0 context.Context, arg1 malak.FetchDeckOptions) (*malak.Deck, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret0, _ := ret[0].(*malak.Deck)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockDeckRepositoryMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockDeckRepository)(nil).Get), arg0, arg1)
+}
+
 // List mocks base method.
 func (m *MockDeckRepository) List(arg0 context.Context, arg1 *malak.Workspace) ([]malak.Deck, error) {
 	m.ctrl.T.Helper()

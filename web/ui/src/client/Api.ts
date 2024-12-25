@@ -634,6 +634,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags decks
+     * @name DecksDelete
+     * @summary delete a deck
+     * @request DELETE:/decks/{reference}
+     */
+    decksDelete: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/decks/${reference}`,
+        method: "DELETE",
+        format: "json",
+        ...params,
+      }),
   };
   images = {
     /**
