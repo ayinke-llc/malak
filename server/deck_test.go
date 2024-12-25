@@ -196,3 +196,106 @@ func TestDeckHandler_List(t *testing.T) {
 		})
 	}
 }
+
+func generateDeckDeleteRequest() []struct {
+	name               string
+	mockFn             func(update *malak_mocks.MockDeckRepository)
+	expectedStatusCode int
+} {
+
+	return []struct {
+		name               string
+		mockFn             func(deck *malak_mocks.MockDeckRepository)
+		expectedStatusCode int
+	}{
+		{
+			name: "could not fetch deck",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Deck{}, errors.New("error occurred"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "could not fetch deck because deck does not exists",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Deck{}, malak.ErrDeckNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "could not delete deck",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Deck{
+						Reference: "osfifjf",
+					}, nil)
+
+				deck.EXPECT().Delete(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(errors.New("could not delete deck"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "deleted deck",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Deck{
+						Reference: "osfifjf",
+					}, nil)
+
+				deck.EXPECT().Delete(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
+func TestDeckHandler_Delete(t *testing.T) {
+
+	for _, v := range generateDeckDeleteRequest() {
+
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			deckRepo := malak_mocks.NewMockDeckRepository(controller)
+
+			v.mockFn(deckRepo)
+
+			u := &deckHandler{
+				referenceGenerator: &mockReferenceGenerator{},
+				deckRepo:           deckRepo,
+			}
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(""))
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			ctx := chi.NewRouteContext()
+			ctx.URLParams.Add("reference", "deck_djdnd")
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
+
+			WrapMalakHTTPHandler(getLogger(t),
+				u.Delete,
+				getConfig(), "decks.delete").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
