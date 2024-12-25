@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/uptrace/bun"
@@ -45,6 +46,9 @@ func (d *decksRepo) Create(ctx context.Context,
 
 	return d.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
+
+			deck.CreatedAt = time.Now()
+			deck.UpdatedAt = time.Now()
 
 			_, err := tx.NewInsert().
 				Model(deck).
