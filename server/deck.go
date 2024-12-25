@@ -7,6 +7,7 @@ import (
 
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/microcosm-cc/bluemonday"
 	"go.opentelemetry.io/otel/trace"
@@ -140,4 +141,55 @@ func (d *deckHandler) List(
 		Decks:     decks,
 		APIStatus: newAPIStatus(http.StatusOK, "fetched your decks"),
 	}, StatusSuccess
+}
+
+// @Summary delete a deck
+// @Tags decks
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "deck unique reference.. e.g deck_"
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /decks/{reference} [delete]
+func (d *deckHandler) Delete(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("deleting deck")
+
+	ref := chi.URLParam(r, "reference")
+
+	if hermes.IsStringEmpty(ref) {
+		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
+	}
+
+	deck, err := d.deckRepo.Get(ctx, malak.FetchDeckOptions{
+		Reference: ref,
+	})
+	if err != nil {
+		status := http.StatusInternalServerError
+		msg := "an error occurred while fetching deck"
+
+		if errors.Is(err, malak.ErrDeckNotFound) {
+			status = http.StatusNotFound
+			msg = "deck does not exists"
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	if err := d.deckRepo.Delete(ctx, deck); err != nil {
+		logger.Error("error occurred while deleting the deck",
+			zap.Error(err))
+
+		return newAPIStatus(http.StatusInternalServerError, "error occurred while deleting deck"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "deleted your deck"), StatusSuccess
 }

@@ -38,6 +38,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { log } from "console";
+import { useMutation } from "@tanstack/react-query";
+import client from "@/lib/client";
+import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
+import { ServerAPIStatus } from "@/client/Api";
 
 // This is a placeholder until we implement the actual data fetching
 const mockDeck = {
@@ -218,6 +224,24 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
   const [isPinning, setIsPinning] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter()
+
+  const deleteMutation = useMutation({
+    onMutate: () => setIsDeleting(true),
+    onSettled: () => setIsDeleting(false),
+    mutationFn: () => client.decks.decksDelete(params.slug),
+    onSuccess: () => {
+      toast.success("Deck deleted successfully");
+      router.push("/decks")
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err?.response?.data?.message || "Failed to delete deck");
+    }
+  })
+
+  const handleDelete = () => {
+    deleteMutation.mutate()
+  };
 
   const {
     control,
@@ -345,19 +369,6 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     }
   };
 
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      // TODO: API call to delete deck
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
-      toast.success("Deck deleted successfully");
-      // Redirect to decks list
-      window.location.href = "/decks";
-    } catch (error) {
-      toast.error("Failed to delete deck");
-      setIsDeleting(false);
-    }
-  };
 
   return (
     <div className="pt-6">

@@ -66,7 +66,13 @@ type CreateDeckOptions struct {
 	Reference Reference  `json:"reference,omitempty"`
 }
 
+type FetchDeckOptions struct {
+	Reference string
+}
+
 type DeckRepository interface {
 	Create(context.Context, *Deck, *CreateDeckOptions) error
 	List(context.Context, *Workspace) ([]Deck, error)
+	Get(context.Context, FetchDeckOptions) (*Deck, error)
+	Delete(context.Context, *Deck) error
 }

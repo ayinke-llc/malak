@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/ayinke-llc/malak"
@@ -81,4 +82,33 @@ func (d *decksRepo) Create(ctx context.Context,
 				Exec(ctx)
 			return err
 		})
+}
+
+func (d *decksRepo) Get(ctx context.Context, opts malak.FetchDeckOptions) (
+	*malak.Deck, error) {
+
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	deck := &malak.Deck{}
+
+	err := d.inner.NewSelect().Model(deck).
+		Where("reference = ?", opts.Reference).
+		Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = malak.ErrDeckNotFound
+	}
+
+	return deck, err
+}
+
+func (d *decksRepo) Delete(ctx context.Context, deck *malak.Deck) error {
+
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	_, err := d.inner.NewDelete().Model(deck).
+		Where("reference = ?", deck.Reference).
+		Exec(ctx)
+	return err
 }
