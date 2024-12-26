@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { RiFileCopyLine, RiCheckLine, RiArrowLeftLine, RiEyeLine, RiTimeLine, RiDownloadLine, RiUserLine, RiSettings4Line, RiPushpin2Line, RiPushpin2Fill, RiExternalLinkLine, RiDeleteBinLine } from "@remixicon/react";
 import { format, formatDistanceToNow } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 import {
@@ -38,12 +38,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { log } from "console";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import client from "@/lib/client";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 import { ServerAPIStatus } from "@/client/Api";
+import { FETCH_DECK } from "@/lib/query-constants";
+import { DECKS_DOMAIN } from "@/lib/config";
 
 // This is a placeholder until we implement the actual data fetching
 const mockDeck = {
@@ -218,80 +219,15 @@ const settingsSchema = yup.object().shape({
 }) satisfies yup.ObjectSchema<SettingsFormData>;
 
 export default function DeckDetails({ params }: { params: { slug: string } }) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isPinned, setIsPinned] = useState(mockDeck.pinned);
+  const [isPinned, setIsPinned] = useState(false);
   const [isPinning, setIsPinning] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const router = useRouter()
-
-  const deleteMutation = useMutation({
-    onMutate: () => setIsDeleting(true),
-    onSettled: () => setIsDeleting(false),
-    mutationFn: () => client.decks.decksDelete(params.slug),
-    onSuccess: () => {
-      toast.success("Deck deleted successfully");
-      router.push("/decks")
-    },
-    onError: (err: AxiosError<ServerAPIStatus>) => {
-      toast.error(err?.response?.data?.message || "Failed to delete deck");
-    }
-  })
-
-  const handleDelete = () => {
-    deleteMutation.mutate()
-  };
-
-  const {
-    control,
-    handleSubmit,
-    watch,
-    reset,
-    formState: { errors },
-  } = useForm<SettingsFormData>({
-    resolver: yupResolver(settingsSchema),
-    defaultValues: {
-      enableDownloading: true,
-      requireEmail: false,
-      passwordProtection: false,
-      password: undefined,
-    },
-  });
-
-  const passwordProtection = watch("passwordProtection");
-
-  const onSubmit = async (data: SettingsFormData) => {
-    setIsSubmitting(true);
-    try {
-      // TODO: API call to update settings
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
-      console.log("Form data:", data);
-      toast.success("Settings updated successfully");
-    } catch (error) {
-      toast.error("Failed to update settings");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      toast.success("Link copied to clipboard", {
-        description: "The deck URL has been copied to your clipboard.",
-      });
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      toast.error("Failed to copy link", {
-        description: "Please try copying the link again.",
-      });
-    }
-  };
 
   const columnHelper = createColumnHelper<ViewEntry>();
-
   const columns = [
     columnHelper.accessor("viewer", {
       header: "Views",
@@ -348,10 +284,93 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
   ];
 
   const table = useReactTable({
-    data: mockViews,
+    data: [],
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => client.decks.decksDelete(params.slug),
+    onMutate: () => {
+      setIsDeleting(true);
+    },
+    onSuccess: () => {
+      toast.success("Deck deleted successfully");
+      router.push("/decks");
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err?.response?.data?.message || "Failed to delete deck");
+    },
+    onSettled: () => {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  });
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: [FETCH_DECK],
+    queryFn: () => client.decks.decksDetail(params.slug),
+    retry: false,
+    gcTime: Number.POSITIVE_INFINITY
+  });
+
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<SettingsFormData>({
+    resolver: yupResolver(settingsSchema),
+    defaultValues: {
+      enableDownloading: data?.data?.deck?.preferences?.enable_downloading ?? true,
+      requireEmail: data?.data?.deck?.preferences?.require_email ?? false,
+      passwordProtection: data?.data?.deck?.preferences?.password?.enabled ?? false,
+      password: data?.data?.deck?.preferences?.password?.password,
+    },
+  });
+
+  const passwordProtection = watch("passwordProtection");
+
+  useEffect(() => {
+    if (error) {
+      toast.error((error as AxiosError<ServerAPIStatus>)?.response?.data?.message || "Failed to load deck");
+      router.push("/decks");
+    }
+  }, [error, router]);
+
+  const handleDelete = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    deleteMutation.mutate();
+  };
+
+  const onSubmit = async (formData: SettingsFormData) => {
+    setIsSubmitting(true);
+    try {
+      // TODO: API call to update settings
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
+      console.log("Form data:", formData);
+      toast.success("Settings updated successfully");
+    } catch (error) {
+      toast.error("Failed to update settings");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success("Link copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error("Failed to copy link");
+    }
+  };
 
   const handleTogglePin = async () => {
     setIsPinning(true);
@@ -369,6 +388,13 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     }
   };
 
+  if (error || isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-100 border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="pt-6">
@@ -386,7 +412,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
             variant="ghost"
             size="icon"
             className="text-zinc-400 hover:text-zinc-300"
-            onClick={() => window.open(mockDeck.url, '_blank')}
+            onClick={() => window.open(data?.data?.deck?.short_link, '_blank')}
           >
             <RiExternalLinkLine className="h-5 w-5" />
           </Button>
@@ -536,7 +562,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
             variant="ghost"
             size="icon"
             className="text-red-400 hover:text-red-300"
-            onClick={() => setShowDeleteDialog(true)}
+            onClick={handleDelete}
           >
             <RiDeleteBinLine className="h-5 w-5" />
           </Button>
@@ -552,28 +578,28 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                 <RiEyeLine className="h-4 w-4" />
                 <span className="text-sm">Total views</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">{mockDeck.metrics.totalViews}</p>
+              <p className="text-2xl font-medium text-zinc-100">0</p>
             </div>
             <div>
               <div className="flex items-center gap-2 text-zinc-400 mb-1">
                 <RiUserLine className="h-4 w-4" />
                 <span className="text-sm">Unique views</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">{mockDeck.metrics.uniqueViews}</p>
+              <p className="text-2xl font-medium text-zinc-100">0</p>
             </div>
             <div>
               <div className="flex items-center gap-2 text-zinc-400 mb-1">
                 <RiTimeLine className="h-4 w-4" />
                 <span className="text-sm">Time spent (avg)</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">{mockDeck.metrics.timeSpentAvg}</p>
+              <p className="text-2xl font-medium text-zinc-100">00:00</p>
             </div>
             <div>
               <div className="flex items-center gap-2 text-zinc-400 mb-1">
                 <RiDownloadLine className="h-4 w-4" />
                 <span className="text-sm">Downloads</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">{mockDeck.metrics.downloads}</p>
+              <p className="text-2xl font-medium text-zinc-100">0</p>
             </div>
           </div>
         </Card>
@@ -584,10 +610,11 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
             {/* Header Section */}
             <div>
               <h1 className="text-xl font-medium text-zinc-100 mb-2">
-                {mockDeck.name}
+                {data?.data?.deck?.title}
               </h1>
               <p className="text-sm text-zinc-400">
-                {mockDeck.description}
+                {/* TODO: Add description field to deck */}
+                {data?.data?.deck?.title}
               </p>
             </div>
 
@@ -597,27 +624,50 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                 <div>
                   <h3 className="text-sm font-medium text-zinc-400 mb-1">Uploaded</h3>
                   <p className="text-zinc-100">
-                    {format(mockDeck.uploadedAt, "MMMM d, yyyy 'at' h:mm a")}
+                    {data?.data?.deck?.created_at ? (
+                      format(new Date(data.data.deck.created_at), "MMMM d, yyyy 'at' h:mm a")
+                    ) : (
+                      "-"
+                    )}
                   </p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-zinc-400 mb-1">File Size</h3>
-                  <p className="text-zinc-100">{mockDeck.size}</p>
+                  <p className="text-zinc-100">-</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <h3 className="text-sm font-medium text-zinc-400 mb-1">Share URL</h3>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 block rounded bg-zinc-800 px-3 py-2 text-sm text-zinc-100">
-                      {mockDeck.url}
-                    </code>
+                  <div className="flex items-center gap-2 max-w-md">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <code 
+                          className="block rounded bg-zinc-800 px-3 py-2 text-sm text-zinc-100 truncate cursor-pointer w-full" 
+                          onClick={() => {
+                            if (data?.data?.deck?.short_link) {
+                              copyToClipboard(`${DECKS_DOMAIN}/${data.data.deck.short_link}`);
+                            }
+                          }}
+                        >
+                          {DECKS_DOMAIN}/{data?.data?.deck?.short_link || "-"}
+                        </code>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p className="text-sm">Click to copy</p>
+                      </TooltipContent>
+                    </Tooltip>
                     <Button
                       variant="ghost"
                       size="sm"
                       className="shrink-0 h-9 w-9 p-0 text-zinc-400 hover:text-zinc-100"
-                      onClick={() => copyToClipboard(mockDeck.url)}
+                      onClick={() => {
+                        if (data?.data?.deck?.short_link) {
+                          copyToClipboard(`${DECKS_DOMAIN}/${data.data.deck.short_link}`);
+                        }
+                      }}
+                      disabled={!data?.data?.deck?.short_link}
                     >
                       {copied ? (
                         <RiCheckLine className="h-4 w-4" />
@@ -695,7 +745,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 text-zinc-100 hover:bg-red-700"
-              onClick={handleDelete}
+              onClick={confirmDelete}
               disabled={isDeleting}
             >
               {isDeleting ? (

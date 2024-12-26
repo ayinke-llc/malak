@@ -42,23 +42,45 @@ const ListUpdatesTable = () => {
   }
 
   return (
-    <div>
-      {isFetching ? (
-        <Skeleton count={30} />
-      ) : (
-        data?.pages?.map((value) => {
-          return value?.data?.updates?.map((update, idx) => {
-            return <SingleUpdate {...update} key={idx} />;
-          });
-        })
+    <div className="space-y-4">
+      <div className="rounded-lg border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        {isFetching ? (
+          <div className="p-6 space-y-6">
+            <Skeleton count={5} />
+          </div>
+        ) : (
+          <div className="divide-y divide-border/50">
+            {data?.pages?.map((value) => {
+              return value?.data?.updates?.map((update) => (
+                <div 
+                  key={update.reference} 
+                  className="p-4 hover:bg-muted/50 transition-colors"
+                >
+                  <SingleUpdate {...update} />
+                </div>
+              ));
+            })}
+          </div>
+        )}
+      </div>
+
+      {isFetchingNextPage && (
+        <div className="rounded-lg border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-6">
+          <div className="space-y-6">
+            <Skeleton count={3} />
+          </div>
+        </div>
       )}
 
-      {isFetchingNextPage && <Skeleton count={30} />}
-
       {hasNextPage && (
-        <div className="mt-5">
-          <Button variant="secondary" onClick={() => fetchNextPage()}>
-            Load more
+        <div className="flex justify-center py-6">
+          <Button
+            variant="outline"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="min-w-[200px] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          >
+            {isFetchingNextPage ? "Loading more updates..." : "Show more updates"}
           </Button>
         </div>
       )}
