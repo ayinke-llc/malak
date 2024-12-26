@@ -38,7 +38,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { log } from "console";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import client from "@/lib/client";
 import { useRouter } from "next/navigation";
@@ -221,7 +220,7 @@ const settingsSchema = yup.object().shape({
 export default function DeckDetails({ params }: { params: { slug: string } }) {
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isPinned, setIsPinned] = useState(mockDeck.pinned);
+  const [isPinned, setIsPinned] = useState(false);
   const [isPinning, setIsPinning] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -258,21 +257,21 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
   } = useForm<SettingsFormData>({
     resolver: yupResolver(settingsSchema),
     defaultValues: {
-      enableDownloading: true,
-      requireEmail: false,
-      passwordProtection: false,
-      password: undefined,
+      enableDownloading: data?.data?.deck?.preferences?.enable_downloading ?? true,
+      requireEmail: data?.data?.deck?.preferences?.require_email ?? false,
+      passwordProtection: data?.data?.deck?.preferences?.password?.enabled ?? false,
+      password: data?.data?.deck?.preferences?.password?.password,
     },
   });
 
   const passwordProtection = watch("passwordProtection");
 
-  const onSubmit = async (data: SettingsFormData) => {
+  const onSubmit = async (formData: SettingsFormData) => {
     setIsSubmitting(true);
     try {
       // TODO: API call to update settings
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
-      console.log("Form data:", data);
+      console.log("Form data:", formData);
       toast.success("Settings updated successfully");
     } catch (error) {
       toast.error("Failed to update settings");
@@ -354,7 +353,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
   ];
 
   const table = useReactTable({
-    data: mockViews,
+    data: [],
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -375,6 +374,13 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-100 border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="pt-6">
@@ -392,7 +398,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
             variant="ghost"
             size="icon"
             className="text-zinc-400 hover:text-zinc-300"
-            onClick={() => window.open(mockDeck.url, '_blank')}
+            onClick={() => window.open(data?.data?.deck?.short_link, '_blank')}
           >
             <RiExternalLinkLine className="h-5 w-5" />
           </Button>
@@ -558,28 +564,28 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                 <RiEyeLine className="h-4 w-4" />
                 <span className="text-sm">Total views</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">{mockDeck.metrics.totalViews}</p>
+              <p className="text-2xl font-medium text-zinc-100">0</p>
             </div>
             <div>
               <div className="flex items-center gap-2 text-zinc-400 mb-1">
                 <RiUserLine className="h-4 w-4" />
                 <span className="text-sm">Unique views</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">{mockDeck.metrics.uniqueViews}</p>
+              <p className="text-2xl font-medium text-zinc-100">0</p>
             </div>
             <div>
               <div className="flex items-center gap-2 text-zinc-400 mb-1">
                 <RiTimeLine className="h-4 w-4" />
                 <span className="text-sm">Time spent (avg)</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">{mockDeck.metrics.timeSpentAvg}</p>
+              <p className="text-2xl font-medium text-zinc-100">00:00</p>
             </div>
             <div>
               <div className="flex items-center gap-2 text-zinc-400 mb-1">
                 <RiDownloadLine className="h-4 w-4" />
                 <span className="text-sm">Downloads</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">{mockDeck.metrics.downloads}</p>
+              <p className="text-2xl font-medium text-zinc-100">0</p>
             </div>
           </div>
         </Card>
@@ -590,10 +596,11 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
             {/* Header Section */}
             <div>
               <h1 className="text-xl font-medium text-zinc-100 mb-2">
-                {mockDeck.name}
+                {data?.data?.deck?.title}
               </h1>
               <p className="text-sm text-zinc-400">
-                {mockDeck.description}
+                {/* TODO: Add description field to deck */}
+                {data?.data?.deck?.title}
               </p>
             </div>
 
@@ -603,12 +610,12 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                 <div>
                   <h3 className="text-sm font-medium text-zinc-400 mb-1">Uploaded</h3>
                   <p className="text-zinc-100">
-                    {format(mockDeck.uploadedAt, "MMMM d, yyyy 'at' h:mm a")}
+                    {format(new Date(data?.data?.deck?.created_at!), "MMMM d, yyyy 'at' h:mm a")}
                   </p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-zinc-400 mb-1">File Size</h3>
-                  <p className="text-zinc-100">{mockDeck.size}</p>
+                  <p className="text-zinc-100">-</p>
                 </div>
               </div>
 
@@ -617,13 +624,13 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                   <h3 className="text-sm font-medium text-zinc-400 mb-1">Share URL</h3>
                   <div className="flex items-center gap-2">
                     <code className="flex-1 block rounded bg-zinc-800 px-3 py-2 text-sm text-zinc-100">
-                      {mockDeck.url}
+                      {data?.data?.deck?.short_link}
                     </code>
                     <Button
                       variant="ghost"
                       size="sm"
                       className="shrink-0 h-9 w-9 p-0 text-zinc-400 hover:text-zinc-100"
-                      onClick={() => copyToClipboard(mockDeck.url)}
+                      onClick={() => copyToClipboard(data?.data?.deck?.short_link!)}
                     >
                       {copied ? (
                         <RiCheckLine className="h-4 w-4" />
