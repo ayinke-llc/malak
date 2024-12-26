@@ -173,6 +173,7 @@ func (d *deckHandler) Delete(
 		Reference: ref,
 	})
 	if err != nil {
+		logger.Error("could not fetch deck", zap.Error(err))
 		status := http.StatusInternalServerError
 		msg := "an error occurred while fetching deck"
 
@@ -224,6 +225,7 @@ func (d *deckHandler) fetch(
 		Reference: ref,
 	})
 	if err != nil {
+		logger.Error("could not fetch deck", zap.Error(err))
 		status := http.StatusInternalServerError
 		msg := "an error occurred while fetching deck"
 

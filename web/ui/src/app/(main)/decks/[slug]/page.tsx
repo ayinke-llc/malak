@@ -239,9 +239,14 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     }
   })
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: [FETCH_DECK],
-    queryFn: () => client.decks.decksDetail(params.slug)
+    queryFn: () => client.decks.decksDetail(params.slug),
+    retry: false,
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err?.response?.data?.message || "Failed to load deck");
+      router.push("/decks");
+    }
   })
 
   const handleDelete = () => {
@@ -610,7 +615,11 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                 <div>
                   <h3 className="text-sm font-medium text-zinc-400 mb-1">Uploaded</h3>
                   <p className="text-zinc-100">
-                    {format(new Date(data?.data?.deck?.created_at!), "MMMM d, yyyy 'at' h:mm a")}
+                    {data?.data?.deck?.created_at ? (
+                      format(new Date(data.data.deck.created_at), "MMMM d, yyyy 'at' h:mm a")
+                    ) : (
+                      "-"
+                    )}
                   </p>
                 </div>
                 <div>
@@ -624,13 +633,14 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                   <h3 className="text-sm font-medium text-zinc-400 mb-1">Share URL</h3>
                   <div className="flex items-center gap-2">
                     <code className="flex-1 block rounded bg-zinc-800 px-3 py-2 text-sm text-zinc-100">
-                      {data?.data?.deck?.short_link}
+                      {data?.data?.deck?.short_link || "-"}
                     </code>
                     <Button
                       variant="ghost"
                       size="sm"
                       className="shrink-0 h-9 w-9 p-0 text-zinc-400 hover:text-zinc-100"
-                      onClick={() => copyToClipboard(data?.data?.deck?.short_link!)}
+                      onClick={() => data?.data?.deck?.short_link && copyToClipboard(data.data.deck.short_link)}
+                      disabled={!data?.data?.deck?.short_link}
                     >
                       {copied ? (
                         <RiCheckLine className="h-4 w-4" />
