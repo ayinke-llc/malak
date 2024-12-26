@@ -290,15 +290,20 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
   });
 
   const deleteMutation = useMutation({
-    onMutate: () => setIsDeleting(true),
-    onSettled: () => setIsDeleting(false),
     mutationFn: () => client.decks.decksDelete(params.slug),
+    onMutate: () => {
+      setIsDeleting(true);
+    },
     onSuccess: () => {
       toast.success("Deck deleted successfully");
-      router.push("/decks")
+      router.push("/decks");
     },
     onError: (err: AxiosError<ServerAPIStatus>) => {
       toast.error(err?.response?.data?.message || "Failed to delete deck");
+    },
+    onSettled: () => {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
     }
   });
 
@@ -335,7 +340,11 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
   }, [error, router]);
 
   const handleDelete = () => {
-    deleteMutation.mutate()
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    deleteMutation.mutate();
   };
 
   const onSubmit = async (formData: SettingsFormData) => {
@@ -356,14 +365,10 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      toast.success("Link copied to clipboard", {
-        description: "The deck URL has been copied to your clipboard.",
-      });
+      toast.success("Link copied to clipboard");
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      toast.error("Failed to copy link", {
-        description: "Please try copying the link again.",
-      });
+    } catch (err) {
+      toast.error("Failed to copy link");
     }
   };
 
@@ -557,7 +562,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
             variant="ghost"
             size="icon"
             className="text-red-400 hover:text-red-300"
-            onClick={() => setShowDeleteDialog(true)}
+            onClick={handleDelete}
           >
             <RiDeleteBinLine className="h-5 w-5" />
           </Button>
@@ -635,15 +640,33 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
               <div className="space-y-4">
                 <div>
                   <h3 className="text-sm font-medium text-zinc-400 mb-1">Share URL</h3>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 block rounded bg-zinc-800 px-3 py-2 text-sm text-zinc-100">
-                      {DECKS_DOMAIN}/{data?.data?.deck?.short_link || "-"}
-                    </code>
+                  <div className="flex items-center gap-2 max-w-md">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <code 
+                          className="block rounded bg-zinc-800 px-3 py-2 text-sm text-zinc-100 truncate cursor-pointer w-full" 
+                          onClick={() => {
+                            if (data?.data?.deck?.short_link) {
+                              copyToClipboard(`${DECKS_DOMAIN}/${data.data.deck.short_link}`);
+                            }
+                          }}
+                        >
+                          {DECKS_DOMAIN}/{data?.data?.deck?.short_link || "-"}
+                        </code>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p className="text-sm">Click to copy</p>
+                      </TooltipContent>
+                    </Tooltip>
                     <Button
                       variant="ghost"
                       size="sm"
                       className="shrink-0 h-9 w-9 p-0 text-zinc-400 hover:text-zinc-100"
-                      onClick={() => data?.data?.deck?.short_link && copyToClipboard(data.data.deck.short_link)}
+                      onClick={() => {
+                        if (data?.data?.deck?.short_link) {
+                          copyToClipboard(`${DECKS_DOMAIN}/${data.data.deck.short_link}`);
+                        }
+                      }}
                       disabled={!data?.data?.deck?.short_link}
                     >
                       {copied ? (
@@ -722,7 +745,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 text-zinc-100 hover:bg-red-700"
-              onClick={handleDelete}
+              onClick={confirmDelete}
               disabled={isDeleting}
             >
               {isDeleting ? (
