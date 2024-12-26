@@ -77,11 +77,31 @@ export interface MalakDeck {
   created_at?: string;
   created_by?: string;
   id?: string;
+  preferences?: MalakDeckPreference;
   reference?: string;
   short_link?: string;
   title?: string;
   updated_at?: string;
   workspace_id?: string;
+}
+
+export interface MalakDeckPreference {
+  created_at?: string;
+  created_by?: string;
+  deck_id?: string;
+  enable_downloading?: boolean;
+  expires_at?: string;
+  id?: string;
+  password?: MalakPasswordDeckPreferences;
+  reference?: string;
+  require_email?: boolean;
+  updated_at?: string;
+  workspace_id?: string;
+}
+
+export interface MalakPasswordDeckPreferences {
+  enabled?: boolean;
+  password?: string;
 }
 
 export interface MalakPlanMetadata {

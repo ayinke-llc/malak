@@ -93,6 +93,7 @@ func (d *decksRepo) Get(ctx context.Context, opts malak.FetchDeckOptions) (
 	deck := &malak.Deck{}
 
 	err := d.inner.NewSelect().Model(deck).
+		Relation("Preferences").
 		Where("reference = ?", opts.Reference).
 		Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {

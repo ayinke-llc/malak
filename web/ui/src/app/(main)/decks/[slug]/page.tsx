@@ -39,11 +39,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { log } from "console";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import client from "@/lib/client";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 import { ServerAPIStatus } from "@/client/Api";
+import { FETCH_DECK } from "@/lib/query-constants";
 
 // This is a placeholder until we implement the actual data fetching
 const mockDeck = {
@@ -237,6 +238,11 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     onError: (err: AxiosError<ServerAPIStatus>) => {
       toast.error(err?.response?.data?.message || "Failed to delete deck");
     }
+  })
+
+  const { data, isLoading } = useQuery({
+    queryKey: [FETCH_DECK],
+    queryFn: () => client.decks.decksDetail(params.slug)
   })
 
   const handleDelete = () => {
