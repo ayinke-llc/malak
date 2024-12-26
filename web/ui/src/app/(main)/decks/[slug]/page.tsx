@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { RiFileCopyLine, RiCheckLine, RiArrowLeftLine, RiEyeLine, RiTimeLine, RiDownloadLine, RiUserLine, RiSettings4Line, RiPushpin2Line, RiPushpin2Fill, RiExternalLinkLine, RiDeleteBinLine } from "@remixicon/react";
 import { format, formatDistanceToNow } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 import {
@@ -44,6 +44,7 @@ import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 import { ServerAPIStatus } from "@/client/Api";
 import { FETCH_DECK } from "@/lib/query-constants";
+import { DECKS_DOMAIN } from "@/lib/config";
 
 // This is a placeholder until we implement the actual data fetching
 const mockDeck = {
@@ -218,90 +219,15 @@ const settingsSchema = yup.object().shape({
 }) satisfies yup.ObjectSchema<SettingsFormData>;
 
 export default function DeckDetails({ params }: { params: { slug: string } }) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [isPinning, setIsPinning] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const router = useRouter()
-
-  const deleteMutation = useMutation({
-    onMutate: () => setIsDeleting(true),
-    onSettled: () => setIsDeleting(false),
-    mutationFn: () => client.decks.decksDelete(params.slug),
-    onSuccess: () => {
-      toast.success("Deck deleted successfully");
-      router.push("/decks")
-    },
-    onError: (err: AxiosError<ServerAPIStatus>) => {
-      toast.error(err?.response?.data?.message || "Failed to delete deck");
-    }
-  })
-
-  const { data, isLoading, error } = useQuery({
-    queryKey: [FETCH_DECK],
-    queryFn: () => client.decks.decksDetail(params.slug),
-    retry: false,
-    onError: (err: AxiosError<ServerAPIStatus>) => {
-      toast.error(err?.response?.data?.message || "Failed to load deck");
-      router.push("/decks");
-    }
-  })
-
-  const handleDelete = () => {
-    deleteMutation.mutate()
-  };
-
-  const {
-    control,
-    handleSubmit,
-    watch,
-    reset,
-    formState: { errors },
-  } = useForm<SettingsFormData>({
-    resolver: yupResolver(settingsSchema),
-    defaultValues: {
-      enableDownloading: data?.data?.deck?.preferences?.enable_downloading ?? true,
-      requireEmail: data?.data?.deck?.preferences?.require_email ?? false,
-      passwordProtection: data?.data?.deck?.preferences?.password?.enabled ?? false,
-      password: data?.data?.deck?.preferences?.password?.password,
-    },
-  });
-
-  const passwordProtection = watch("passwordProtection");
-
-  const onSubmit = async (formData: SettingsFormData) => {
-    setIsSubmitting(true);
-    try {
-      // TODO: API call to update settings
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
-      console.log("Form data:", formData);
-      toast.success("Settings updated successfully");
-    } catch (error) {
-      toast.error("Failed to update settings");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      toast.success("Link copied to clipboard", {
-        description: "The deck URL has been copied to your clipboard.",
-      });
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      toast.error("Failed to copy link", {
-        description: "Please try copying the link again.",
-      });
-    }
-  };
 
   const columnHelper = createColumnHelper<ViewEntry>();
-
   const columns = [
     columnHelper.accessor("viewer", {
       header: "Views",
@@ -363,6 +289,84 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const deleteMutation = useMutation({
+    onMutate: () => setIsDeleting(true),
+    onSettled: () => setIsDeleting(false),
+    mutationFn: () => client.decks.decksDelete(params.slug),
+    onSuccess: () => {
+      toast.success("Deck deleted successfully");
+      router.push("/decks")
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err?.response?.data?.message || "Failed to delete deck");
+    }
+  });
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: [FETCH_DECK],
+    queryFn: () => client.decks.decksDetail(params.slug),
+    retry: false,
+    gcTime: Number.POSITIVE_INFINITY
+  });
+
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<SettingsFormData>({
+    resolver: yupResolver(settingsSchema),
+    defaultValues: {
+      enableDownloading: data?.data?.deck?.preferences?.enable_downloading ?? true,
+      requireEmail: data?.data?.deck?.preferences?.require_email ?? false,
+      passwordProtection: data?.data?.deck?.preferences?.password?.enabled ?? false,
+      password: data?.data?.deck?.preferences?.password?.password,
+    },
+  });
+
+  const passwordProtection = watch("passwordProtection");
+
+  useEffect(() => {
+    if (error) {
+      toast.error((error as AxiosError<ServerAPIStatus>)?.response?.data?.message || "Failed to load deck");
+      router.push("/decks");
+    }
+  }, [error, router]);
+
+  const handleDelete = () => {
+    deleteMutation.mutate()
+  };
+
+  const onSubmit = async (formData: SettingsFormData) => {
+    setIsSubmitting(true);
+    try {
+      // TODO: API call to update settings
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
+      console.log("Form data:", formData);
+      toast.success("Settings updated successfully");
+    } catch (error) {
+      toast.error("Failed to update settings");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success("Link copied to clipboard", {
+        description: "The deck URL has been copied to your clipboard.",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast.error("Failed to copy link", {
+        description: "Please try copying the link again.",
+      });
+    }
+  };
+
   const handleTogglePin = async () => {
     setIsPinning(true);
     try {
@@ -379,7 +383,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     }
   };
 
-  if (isLoading) {
+  if (error || isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-100 border-t-transparent" />
@@ -633,7 +637,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                   <h3 className="text-sm font-medium text-zinc-400 mb-1">Share URL</h3>
                   <div className="flex items-center gap-2">
                     <code className="flex-1 block rounded bg-zinc-800 px-3 py-2 text-sm text-zinc-100">
-                      {data?.data?.deck?.short_link || "-"}
+                      {DECKS_DOMAIN}/{data?.data?.deck?.short_link || "-"}
                     </code>
                     <Button
                       variant="ghost"
