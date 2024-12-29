@@ -28,16 +28,6 @@ import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import client from "@/lib/client";
 import { useRouter } from "next/navigation";
@@ -45,6 +35,7 @@ import { AxiosError } from "axios";
 import { ServerAPIStatus } from "@/client/Api";
 import { FETCH_DECK } from "@/lib/query-constants";
 import { DECKS_DOMAIN } from "@/lib/config";
+import DeleteDeck from "@/components/ui/decks/details/delete";
 
 // This is a placeholder until we implement the actual data fetching
 const mockDeck = {
@@ -220,12 +211,9 @@ const settingsSchema = yup.object().shape({
 
 export default function DeckDetails({ params }: { params: { slug: string } }) {
   const router = useRouter();
-  const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [isPinning, setIsPinning] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const columnHelper = createColumnHelper<ViewEntry>();
   const columns = [
@@ -289,29 +277,12 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     getCoreRowModel: getCoreRowModel(),
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: () => client.decks.decksDelete(params.slug),
-    onMutate: () => {
-      setIsDeleting(true);
-    },
-    onSuccess: () => {
-      toast.success("Deck deleted successfully");
-      router.push("/decks");
-    },
-    onError: (err: AxiosError<ServerAPIStatus>) => {
-      toast.error(err?.response?.data?.message || "Failed to delete deck");
-    },
-    onSettled: () => {
-      setIsDeleting(false);
-      setShowDeleteDialog(false);
-    }
-  });
 
   const { data, isLoading, error } = useQuery({
     queryKey: [FETCH_DECK],
     queryFn: () => client.decks.decksDetail(params.slug),
     retry: false,
-    gcTime: Number.POSITIVE_INFINITY
+    gcTime: Number.POSITIVE_INFINITY,
   });
 
   const {
@@ -332,21 +303,6 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
 
   const passwordProtection = watch("passwordProtection");
 
-  useEffect(() => {
-    if (error) {
-      toast.error((error as AxiosError<ServerAPIStatus>)?.response?.data?.message || "Failed to load deck");
-      router.push("/decks");
-    }
-  }, [error, router]);
-
-  const handleDelete = () => {
-    setShowDeleteDialog(true);
-  };
-
-  const confirmDelete = () => {
-    deleteMutation.mutate();
-  };
-
   const onSubmit = async (formData: SettingsFormData) => {
     setIsSubmitting(true);
     try {
@@ -361,12 +317,10 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     }
   };
 
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = (text: string) => {
     try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
+      navigator.clipboard.writeText(text);
       toast.success("Link copied to clipboard");
-      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       toast.error("Failed to copy link");
     }
@@ -435,14 +389,10 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
           </Button>
 
           <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-zinc-400 hover:text-zinc-300"
-              >
+            <DialogTrigger>
+              <div className="text-zinc-400 hover:text-zinc-300 cursor-pointer p-2">
                 <RiSettings4Line className="h-5 w-5" />
-              </Button>
+              </div>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
@@ -557,15 +507,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
               </form>
             </DialogContent>
           </Dialog>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-red-400 hover:text-red-300"
-            onClick={handleDelete}
-          >
-            <RiDeleteBinLine className="h-5 w-5" />
-          </Button>
+          <DeleteDeck reference={params.slug} />
         </div>
       </div>
 
@@ -643,16 +585,18 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                   <div className="flex items-center gap-2 max-w-md">
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <code 
-                          className="block rounded bg-zinc-800 px-3 py-2 text-sm text-zinc-100 truncate cursor-pointer w-full" 
+                        <div
+                          className="block rounded bg-zinc-800 px-3 py-2 text-sm text-zinc-100 truncate cursor-pointer w-full"
                           onClick={() => {
                             if (data?.data?.deck?.short_link) {
                               copyToClipboard(`${DECKS_DOMAIN}/${data.data.deck.short_link}`);
                             }
                           }}
                         >
-                          {DECKS_DOMAIN}/{data?.data?.deck?.short_link || "-"}
-                        </code>
+                          <code className="text-zinc-100">
+                            {DECKS_DOMAIN}/{data?.data?.deck?.short_link || "-"}
+                          </code>
+                        </div>
                       </TooltipTrigger>
                       <TooltipContent side="top">
                         <p className="text-sm">Click to copy</p>
@@ -669,11 +613,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                       }}
                       disabled={!data?.data?.deck?.short_link}
                     >
-                      {copied ? (
-                        <RiCheckLine className="h-4 w-4" />
-                      ) : (
-                        <RiFileCopyLine className="h-4 w-4" />
-                      )}
+                      <RiFileCopyLine className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -727,39 +667,6 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
         </Card>
       </div>
 
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-zinc-100">Delete deck?</AlertDialogTitle>
-            <AlertDialogDescription className="text-zinc-400">
-              This action cannot be undone. This will permanently delete the deck
-              and remove all associated data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              className="bg-transparent border-zinc-800 text-zinc-100 hover:bg-zinc-800 hover:text-zinc-100"
-              disabled={isDeleting}
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 text-zinc-100 hover:bg-red-700"
-              onClick={confirmDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-100 border-t-transparent" />
-                  Deleting...
-                </div>
-              ) : (
-                "Delete deck"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
