@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { RiFileCopyLine, RiCheckLine, RiArrowLeftLine, RiEyeLine, RiTimeLine, RiDownloadLine, RiUserLine, RiSettings4Line, RiPushpin2Line, RiPushpin2Fill, RiExternalLinkLine, RiDeleteBinLine } from "@remixicon/react";
 import { format, formatDistanceToNow } from "date-fns";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 import {
@@ -285,6 +285,13 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     gcTime: Number.POSITIVE_INFINITY,
   });
 
+  const defaultValues = useMemo(() => ({
+    enableDownloading: data?.data?.deck?.preferences?.enable_downloading ?? true,
+    requireEmail: data?.data?.deck?.preferences?.require_email ?? false,
+    passwordProtection: data?.data?.deck?.preferences?.password?.enabled ?? false,
+    password: data?.data?.deck?.preferences?.password?.password,
+  }), [data]);
+
   const {
     control,
     handleSubmit,
@@ -293,13 +300,12 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     formState: { errors },
   } = useForm<SettingsFormData>({
     resolver: yupResolver(settingsSchema),
-    defaultValues: {
-      enableDownloading: data?.data?.deck?.preferences?.enable_downloading ?? true,
-      requireEmail: data?.data?.deck?.preferences?.require_email ?? false,
-      passwordProtection: data?.data?.deck?.preferences?.password?.enabled ?? false,
-      password: data?.data?.deck?.preferences?.password?.password,
-    },
+    defaultValues,
   });
+
+  const handleReset = () => {
+    reset(defaultValues);
+  };
 
   const passwordProtection = watch("passwordProtection");
 
@@ -484,7 +490,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                     type="button"
                     variant="ghost"
                     className="text-zinc-400 hover:text-zinc-300"
-                    onClick={() => reset()}
+                    onClick={handleReset}
                     disabled={isSubmitting}
                   >
                     Reset
