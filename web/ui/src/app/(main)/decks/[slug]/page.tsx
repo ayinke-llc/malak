@@ -2,9 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { RiFileCopyLine, RiCheckLine, RiArrowLeftLine, RiEyeLine, RiTimeLine, RiDownloadLine, RiUserLine, RiSettings4Line, RiPushpin2Line, RiPushpin2Fill, RiExternalLinkLine, RiDeleteBinLine } from "@remixicon/react";
-import { format, formatDistanceToNow } from "date-fns";
-import { useState, useEffect, useMemo } from "react";
+import { RiFileCopyLine, RiArrowLeftLine, RiEyeLine, RiTimeLine, RiDownloadLine, RiUserLine, RiSettings4Line, RiPushpin2Line, RiPushpin2Fill, RiExternalLinkLine } from "@remixicon/react";
+import { format } from "date-fns";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 import {
@@ -16,179 +16,18 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import client from "@/lib/client";
 import { useRouter } from "next/navigation";
-import { AxiosError } from "axios";
-import { ServerAPIStatus } from "@/client/Api";
 import { FETCH_DECK } from "@/lib/query-constants";
 import { DECKS_DOMAIN } from "@/lib/config";
 import DeleteDeck from "@/components/ui/decks/details/delete";
-
-// This is a placeholder until we implement the actual data fetching
-const mockDeck = {
-  id: 1,
-  name: "Company Overview 2024 - Q1 Financial Results and Future Projections.pdf",
-  uploadedAt: new Date(),
-  size: "2.4 MB",
-  url: "https://example.com/decks/very-long-url-that-needs-to-be-truncated-but-still-copyable-123456789",
-  description: "Q1 2024 financial results presentation including revenue growth, market expansion plans, and future projections.",
-  metrics: {
-    totalViews: 15,
-    uniqueViews: 12,
-    timeSpentAvg: "02:45",
-    downloads: 3,
-  },
-  pinned: false,
-};
-
-type ViewEntry = {
-  id: number;
-  viewer: string;
-  email?: string;
-  viewedAt: Date;
-  downloaded: boolean;
-  timeSpent: string;
-  slidesViewed: string;
-};
-
-const mockViews: ViewEntry[] = [
-  {
-    id: 1,
-    viewer: "macOS · Safari · NG · Lagos",
-    email: "very.long.email.address.that.needs.truncation@really-long-domain-name.enterprise.com",
-    viewedAt: new Date(Date.now() - 14 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "00:04",
-    slidesViewed: "1 / 55",
-  },
-  {
-    id: 2,
-    viewer: "Windows · Chrome · US · New York",
-    email: "john.doe@company.com",
-    viewedAt: new Date(Date.now() - 45 * 60 * 1000),
-    downloaded: true,
-    timeSpent: "05:30",
-    slidesViewed: "55 / 55",
-  },
-  {
-    id: 3,
-    viewer: "Linux · Firefox · UK · London",
-    viewedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    downloaded: true,
-    timeSpent: "03:15",
-    slidesViewed: "42 / 55",
-  },
-  {
-    id: 4,
-    viewer: "iOS · Safari · CA · Toronto",
-    viewedAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "01:45",
-    slidesViewed: "25 / 55",
-  },
-  {
-    id: 5,
-    viewer: "Android · Chrome · AU · Sydney",
-    viewedAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "02:20",
-    slidesViewed: "35 / 55",
-  },
-  {
-    id: 6,
-    viewer: "Windows · Edge · DE · Berlin",
-    email: "maria.schmidt@enterprise.de",
-    viewedAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-    downloaded: true,
-    timeSpent: "04:10",
-    slidesViewed: "55 / 55",
-  },
-  {
-    id: 7,
-    viewer: "macOS · Chrome · FR · Paris",
-    viewedAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "02:50",
-    slidesViewed: "38 / 55",
-  },
-  {
-    id: 8,
-    viewer: "Windows · Firefox · JP · Tokyo",
-    viewedAt: new Date(Date.now() - 7 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "01:55",
-    slidesViewed: "28 / 55",
-  },
-  {
-    id: 9,
-    viewer: "Linux · Chrome · BR · São Paulo",
-    viewedAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "02:15",
-    slidesViewed: "32 / 55",
-  },
-  {
-    id: 10,
-    viewer: "macOS · Safari · SG · Singapore",
-    viewedAt: new Date(Date.now() - 9 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "01:40",
-    slidesViewed: "22 / 55",
-  },
-  {
-    id: 11,
-    viewer: "Windows · Chrome · IN · Mumbai",
-    viewedAt: new Date(Date.now() - 10 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "03:05",
-    slidesViewed: "45 / 55",
-  },
-  {
-    id: 12,
-    viewer: "iOS · Safari · ZA · Cape Town",
-    viewedAt: new Date(Date.now() - 11 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "02:30",
-    slidesViewed: "36 / 55",
-  },
-  {
-    id: 13,
-    viewer: "Android · Chrome · ES · Madrid",
-    viewedAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "02:45",
-    slidesViewed: "40 / 55",
-  },
-  {
-    id: 14,
-    viewer: "macOS · Firefox · IT · Rome",
-    viewedAt: new Date(Date.now() - 13 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "01:50",
-    slidesViewed: "26 / 55",
-  },
-  {
-    id: 15,
-    viewer: "Windows · Edge · NL · Amsterdam",
-    viewedAt: new Date(Date.now() - 14 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "02:35",
-    slidesViewed: "37 / 55",
-  },
-];
 
 type SettingsFormData = {
   enableDownloading: boolean;
@@ -214,69 +53,6 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [isPinning, setIsPinning] = useState(false);
-
-  const columnHelper = createColumnHelper<ViewEntry>();
-  const columns = [
-    columnHelper.accessor("viewer", {
-      header: "Views",
-      cell: (info) => (
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded bg-zinc-800 flex items-center justify-center text-zinc-400">
-            {info.row.original.viewer.substring(0, 2).toUpperCase()}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-zinc-100 font-medium truncate">{info.getValue()}</p>
-            {info.row.original.email && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <p className="text-sm text-zinc-400 truncate max-w-[200px] cursor-default">
-                    {info.row.original.email}
-                  </p>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-[300px] break-all">
-                  <p className="text-sm">{info.row.original.email}</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
-            <p className="text-sm text-zinc-500">
-              {formatDistanceToNow(info.row.original.viewedAt, { addSuffix: true })}
-            </p>
-          </div>
-        </div>
-      ),
-    }),
-    columnHelper.accessor("downloaded", {
-      header: "Downloaded",
-      cell: (info) => (
-        <span className="text-zinc-100">
-          {info.getValue() ? "Yes" : "No"}
-        </span>
-      ),
-    }),
-    columnHelper.accessor("timeSpent", {
-      header: "Time spent",
-      cell: (info) => (
-        <span className="text-zinc-100">
-          {info.getValue()}
-        </span>
-      ),
-    }),
-    columnHelper.accessor("slidesViewed", {
-      header: "Viewed slides",
-      cell: (info) => (
-        <span className="text-zinc-100">
-          {info.getValue()}
-        </span>
-      ),
-    }),
-  ];
-
-  const table = useReactTable({
-    data: [],
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
-
 
   const { data, isLoading, error } = useQuery({
     queryKey: [FETCH_DECK],
@@ -623,50 +399,6 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                     </Button>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Views Table */}
-            <div>
-              <div className="relative overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <tr key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => (
-                          <th
-                            key={header.id}
-                            className="px-6 py-4 text-sm font-medium text-zinc-400"
-                          >
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                          </th>
-                        ))}
-                      </tr>
-                    ))}
-                  </thead>
-                  <tbody>
-                    {table.getRowModel().rows.map((row) => (
-                      <tr
-                        key={row.id}
-                        className="border-t border-zinc-800"
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <td
-                            key={cell.id}
-                            className="px-6 py-4"
-                          >
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
             </div>
           </div>
