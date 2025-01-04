@@ -587,6 +587,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/decks/{reference}/preferences": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "decks"
+                ],
+                "summary": "update a deck preferences",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deck unique reference.. e.g deck_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "deck preferences request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.updateDeckPreferencesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchDeckResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/images/upload": {
             "post": {
                 "consumes": [
@@ -2359,6 +2423,28 @@ const docTemplate = `{
                 },
                 "send_at": {
                     "type": "integer"
+                }
+            }
+        },
+        "server.updateDeckPreferencesRequest": {
+            "type": "object",
+            "properties": {
+                "enable_downloading": {
+                    "type": "boolean"
+                },
+                "password_protection": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "value": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "require_email": {
+                    "type": "boolean"
                 }
             }
         },

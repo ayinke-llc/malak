@@ -923,6 +923,28 @@
 				},
 				"type": "object"
 			},
+			"server.updateDeckPreferencesRequest": {
+				"properties": {
+					"enable_downloading": {
+						"type": "boolean"
+					},
+					"password_protection": {
+						"properties": {
+							"enabled": {
+								"type": "boolean"
+							},
+							"value": {
+								"type": "string"
+							}
+						},
+						"type": "object"
+					},
+					"require_email": {
+						"type": "boolean"
+					}
+				},
+				"type": "object"
+			},
 			"server.uploadImageResponse": {
 				"properties": {
 					"message": {
@@ -1685,6 +1707,89 @@
 					}
 				},
 				"summary": "fetch a deck",
+				"tags": [
+					"decks"
+				]
+			}
+		},
+		"/decks/{reference}/preferences": {
+			"put": {
+				"parameters": [
+					{
+						"description": "deck unique reference.. e.g deck_",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.updateDeckPreferencesRequest"
+							}
+						}
+					},
+					"description": "deck preferences request body",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.fetchDeckResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "update a deck preferences",
 				"tags": [
 					"decks"
 				]

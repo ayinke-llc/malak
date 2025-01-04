@@ -77,4 +77,5 @@ type DeckRepository interface {
 	List(context.Context, *Workspace) ([]Deck, error)
 	Get(context.Context, FetchDeckOptions) (*Deck, error)
 	Delete(context.Context, *Deck) error
+	UpdatePreferences(context.Context, *Deck) error
 }

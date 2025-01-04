@@ -124,3 +124,27 @@ func (d *decksRepo) Delete(ctx context.Context, deck *malak.Deck) error {
 		return err
 	})
 }
+
+func (d *decksRepo) UpdatePreferences(ctx context.Context, deck *malak.Deck) error {
+
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	return d.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		deck.DeckPreference.UpdatedAt = time.Now()
+
+		p, err := malak.HashPassword(string(deck.DeckPreference.Password.Password))
+		if err != nil {
+			return err
+		}
+
+		deck.DeckPreference.Password.Password = malak.Password(p)
+
+		_, err = d.inner.NewUpdate().
+			Model(deck.DeckPreference).
+			Where("id = ?", deck.DeckPreference.ID).
+			Exec(ctx)
+		return err
+	})
+}

@@ -359,6 +359,15 @@ export interface ServerSendUpdateRequest {
   send_at?: number;
 }
 
+export interface ServerUpdateDeckPreferencesRequest {
+  enable_downloading?: boolean;
+  password_protection?: {
+    enabled?: boolean;
+    value?: string;
+  };
+  require_email?: boolean;
+}
+
 export interface ServerUploadImageResponse {
   message: string;
   url: string;
@@ -683,6 +692,24 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerFetchDeckResponse, ServerAPIStatus>({
         path: `/decks/${reference}`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags decks
+     * @name PreferencesUpdate
+     * @summary update a deck preferences
+     * @request PUT:/decks/{reference}/preferences
+     */
+    preferencesUpdate: (reference: string, data: ServerUpdateDeckPreferencesRequest, params: RequestParams = {}) =>
+      this.request<ServerFetchDeckResponse, ServerAPIStatus>({
+        path: `/decks/${reference}/preferences`,
+        method: "PUT",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

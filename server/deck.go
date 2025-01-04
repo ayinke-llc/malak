@@ -242,3 +242,99 @@ func (d *deckHandler) fetch(
 		Deck:      hermes.DeRef(deck),
 	}, StatusSuccess
 }
+
+type updateDeckPreferencesRequest struct {
+	GenericRequest
+
+	EnableDownloading  bool `json:"enable_downloading,omitempty"`
+	RequireEmail       bool `json:"require_email,omitempty"`
+	PasswordProtection struct {
+		Enabled bool           `json:"enabled,omitempty"`
+		Value   malak.Password `json:"value,omitempty"`
+	} `json:"password_protection,omitempty"`
+}
+
+func (u *updateDeckPreferencesRequest) Validate() error {
+
+	if u.PasswordProtection.Enabled {
+		if u.PasswordProtection.Value.IsZero() {
+			return errors.New("please provide your password")
+		}
+	}
+
+	return nil
+}
+
+// @Summary update a deck preferences
+// @Tags decks
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "deck unique reference.. e.g deck_"
+// @Param message body updateDeckPreferencesRequest true "deck preferences request body"
+// @Success 200 {object} fetchDeckResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /decks/{reference}/preferences [put]
+// TODO: make this a PATCH?
+func (d *deckHandler) updatePreferences(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("updating deck preferences")
+
+	ref := chi.URLParam(r, "reference")
+
+	if hermes.IsStringEmpty(ref) {
+		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
+	}
+
+	req := new(updateDeckPreferencesRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	deck, err := d.deckRepo.Get(ctx, malak.FetchDeckOptions{
+		Reference: ref,
+	})
+	if err != nil {
+		logger.Error("could not fetch deck", zap.Error(err))
+		status := http.StatusInternalServerError
+		msg := "an error occurred while fetching deck"
+
+		if errors.Is(err, malak.ErrDeckNotFound) {
+			status = http.StatusNotFound
+			msg = "deck does not exists"
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	deck.DeckPreference.Password = malak.PasswordDeckPreferences{
+		Enabled:  req.PasswordProtection.Enabled,
+		Password: req.PasswordProtection.Value,
+	}
+
+	deck.DeckPreference.EnableDownloading = req.EnableDownloading
+	deck.DeckPreference.RequireEmail = req.RequireEmail
+
+	if err := d.deckRepo.UpdatePreferences(ctx, deck); err != nil {
+		logger.Error("could not update preferences", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not update preferences"),
+			StatusFailed
+	}
+
+	return fetchDeckResponse{
+		APIStatus: newAPIStatus(http.StatusOK, "Updated deck preferences"),
+		Deck:      hermes.DeRef(deck),
+	}, StatusSuccess
+}

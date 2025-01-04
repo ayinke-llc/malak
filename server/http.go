@@ -256,6 +256,8 @@ func buildRoutes(
 				WrapMalakHTTPHandler(logger, deckHandler.Delete, cfg, "decks.delete"))
 			r.Get("/{reference}",
 				WrapMalakHTTPHandler(logger, deckHandler.fetch, cfg, "decks.retrieve"))
+			r.Put("/{reference}/preferences",
+				WrapMalakHTTPHandler(logger, deckHandler.updatePreferences, cfg, "decks.preferences.update"))
 		})
 
 		r.Route("/images", func(r chi.Router) {

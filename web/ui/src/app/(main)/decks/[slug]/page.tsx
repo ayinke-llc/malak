@@ -2,7 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { RiFileCopyLine, RiArrowLeftLine, RiEyeLine, RiTimeLine, RiDownloadLine, RiUserLine, RiSettings4Line, RiPushpin2Line, RiPushpin2Fill, RiExternalLinkLine } from "@remixicon/react";
+import {
+  RiFileCopyLine, RiArrowLeftLine, RiEyeLine,
+  RiTimeLine, RiDownloadLine, RiUserLine, RiSettings4Line,
+  RiPushpin2Line, RiPushpin2Fill, RiExternalLinkLine
+} from "@remixicon/react";
 import { format } from "date-fns";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
@@ -21,13 +25,18 @@ import { Separator } from "@/components/ui/separator";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useQuery } from "@tanstack/react-query";
+import {
+  Tooltip, TooltipContent,
+  TooltipTrigger
+} from "@/components/ui/tooltip";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import client from "@/lib/client";
 import { useRouter } from "next/navigation";
 import { FETCH_DECK } from "@/lib/query-constants";
 import { DECKS_DOMAIN } from "@/lib/config";
 import DeleteDeck from "@/components/ui/decks/details/delete";
+import { ServerAPIStatus, ServerFetchDeckResponse } from "@/client/Api";
+import { AxiosError, AxiosResponse } from "axios";
 
 type SettingsFormData = {
   enableDownloading: boolean;
@@ -50,7 +59,6 @@ const settingsSchema = yup.object().shape({
 
 export default function DeckDetails({ params }: { params: { slug: string } }) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [isPinning, setIsPinning] = useState(false);
 
@@ -67,6 +75,26 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     passwordProtection: data?.data?.deck?.preferences?.password?.enabled ?? false,
     password: data?.data?.deck?.preferences?.password?.password,
   }), [data]);
+
+  const mutation = useMutation({
+    mutationFn: (data: SettingsFormData) => {
+      return client.decks.preferencesUpdate(params.slug, {
+        enable_downloading: data.enableDownloading,
+        password_protection: {
+          enabled: data.passwordProtection,
+          value: data.password
+        },
+        require_email: data.requireEmail
+      })
+    },
+    gcTime: 0,
+    onError: (err: AxiosError<ServerAPIStatus>): void => {
+      toast.error(err?.response?.data?.message || "an error occurred while updating preferences");
+    },
+    onSuccess: (resp: AxiosResponse<ServerFetchDeckResponse>) => {
+      toast.success(resp.data.message)
+    },
+  });
 
   const {
     control,
@@ -86,17 +114,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
   const passwordProtection = watch("passwordProtection");
 
   const onSubmit = async (formData: SettingsFormData) => {
-    setIsSubmitting(true);
-    try {
-      // TODO: API call to update settings
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
-      console.log("Form data:", formData);
-      toast.success("Settings updated successfully");
-    } catch (error) {
-      toast.error("Failed to update settings");
-    } finally {
-      setIsSubmitting(false);
-    }
+    mutation.mutate(formData)
   };
 
   const copyToClipboard = (text: string) => {
@@ -267,16 +285,17 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                     variant="ghost"
                     className="text-zinc-400 hover:text-zinc-300"
                     onClick={handleReset}
-                    disabled={isSubmitting}
+                    disabled={mutation.isPending}
                   >
                     Reset
                   </Button>
                   <Button
                     type="submit"
                     className="bg-zinc-100 text-zinc-900 hover:bg-zinc-200 disabled:opacity-50"
-                    disabled={isSubmitting}
+                    loading={mutation.isPending}
+                    disabled={mutation.isPending}
                   >
-                    {isSubmitting ? (
+                    {mutation.isPending ? (
                       <div className="flex items-center gap-2">
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent" />
                         Saving...
