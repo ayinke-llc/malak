@@ -77,11 +77,31 @@ export interface MalakDeck {
   created_at?: string;
   created_by?: string;
   id?: string;
+  preferences?: MalakDeckPreference;
   reference?: string;
   short_link?: string;
   title?: string;
   updated_at?: string;
   workspace_id?: string;
+}
+
+export interface MalakDeckPreference {
+  created_at?: string;
+  created_by?: string;
+  deck_id?: string;
+  enable_downloading?: boolean;
+  expires_at?: string;
+  id?: string;
+  password?: MalakPasswordDeckPreferences;
+  reference?: string;
+  require_email?: boolean;
+  updated_at?: string;
+  workspace_id?: string;
+}
+
+export interface MalakPasswordDeckPreferences {
+  enabled?: boolean;
+  password?: string;
 }
 
 export interface MalakPlanMetadata {
@@ -337,6 +357,15 @@ export interface ServerPreviewUpdateRequest {
 export interface ServerSendUpdateRequest {
   emails?: string[];
   send_at?: number;
+}
+
+export interface ServerUpdateDeckPreferencesRequest {
+  enable_downloading?: boolean;
+  password_protection?: {
+    enabled?: boolean;
+    value?: string;
+  };
+  require_email?: boolean;
 }
 
 export interface ServerUploadImageResponse {
@@ -647,6 +676,40 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerAPIStatus, ServerAPIStatus>({
         path: `/decks/${reference}`,
         method: "DELETE",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags decks
+     * @name DecksDetail
+     * @summary fetch a deck
+     * @request GET:/decks/{reference}
+     */
+    decksDetail: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerFetchDeckResponse, ServerAPIStatus>({
+        path: `/decks/${reference}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags decks
+     * @name PreferencesUpdate
+     * @summary update a deck preferences
+     * @request PUT:/decks/{reference}/preferences
+     */
+    preferencesUpdate: (reference: string, data: ServerUpdateDeckPreferencesRequest, params: RequestParams = {}) =>
+      this.request<ServerFetchDeckResponse, ServerAPIStatus>({
+        path: `/decks/${reference}/preferences`,
+        method: "PUT",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

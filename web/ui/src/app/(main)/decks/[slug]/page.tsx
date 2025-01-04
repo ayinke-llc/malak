@@ -2,9 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { RiFileCopyLine, RiCheckLine, RiArrowLeftLine, RiEyeLine, RiTimeLine, RiDownloadLine, RiUserLine, RiSettings4Line, RiPushpin2Line, RiPushpin2Fill, RiExternalLinkLine, RiDeleteBinLine } from "@remixicon/react";
-import { format, formatDistanceToNow } from "date-fns";
-import { useState } from "react";
+import {
+  RiFileCopyLine, RiArrowLeftLine, RiEyeLine,
+  RiTimeLine, RiDownloadLine, RiUserLine, RiSettings4Line,
+  RiPushpin2Line, RiPushpin2Fill, RiExternalLinkLine
+} from "@remixicon/react";
+import { format } from "date-fns";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 import {
@@ -16,187 +20,23 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { log } from "console";
-import { useMutation } from "@tanstack/react-query";
+  Tooltip, TooltipContent,
+  TooltipTrigger
+} from "@/components/ui/tooltip";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import client from "@/lib/client";
 import { useRouter } from "next/navigation";
-import { AxiosError } from "axios";
-import { ServerAPIStatus } from "@/client/Api";
-
-// This is a placeholder until we implement the actual data fetching
-const mockDeck = {
-  id: 1,
-  name: "Company Overview 2024 - Q1 Financial Results and Future Projections.pdf",
-  uploadedAt: new Date(),
-  size: "2.4 MB",
-  url: "https://example.com/decks/very-long-url-that-needs-to-be-truncated-but-still-copyable-123456789",
-  description: "Q1 2024 financial results presentation including revenue growth, market expansion plans, and future projections.",
-  metrics: {
-    totalViews: 15,
-    uniqueViews: 12,
-    timeSpentAvg: "02:45",
-    downloads: 3,
-  },
-  pinned: false,
-};
-
-type ViewEntry = {
-  id: number;
-  viewer: string;
-  email?: string;
-  viewedAt: Date;
-  downloaded: boolean;
-  timeSpent: string;
-  slidesViewed: string;
-};
-
-const mockViews: ViewEntry[] = [
-  {
-    id: 1,
-    viewer: "macOS · Safari · NG · Lagos",
-    email: "very.long.email.address.that.needs.truncation@really-long-domain-name.enterprise.com",
-    viewedAt: new Date(Date.now() - 14 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "00:04",
-    slidesViewed: "1 / 55",
-  },
-  {
-    id: 2,
-    viewer: "Windows · Chrome · US · New York",
-    email: "john.doe@company.com",
-    viewedAt: new Date(Date.now() - 45 * 60 * 1000),
-    downloaded: true,
-    timeSpent: "05:30",
-    slidesViewed: "55 / 55",
-  },
-  {
-    id: 3,
-    viewer: "Linux · Firefox · UK · London",
-    viewedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    downloaded: true,
-    timeSpent: "03:15",
-    slidesViewed: "42 / 55",
-  },
-  {
-    id: 4,
-    viewer: "iOS · Safari · CA · Toronto",
-    viewedAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "01:45",
-    slidesViewed: "25 / 55",
-  },
-  {
-    id: 5,
-    viewer: "Android · Chrome · AU · Sydney",
-    viewedAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "02:20",
-    slidesViewed: "35 / 55",
-  },
-  {
-    id: 6,
-    viewer: "Windows · Edge · DE · Berlin",
-    email: "maria.schmidt@enterprise.de",
-    viewedAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-    downloaded: true,
-    timeSpent: "04:10",
-    slidesViewed: "55 / 55",
-  },
-  {
-    id: 7,
-    viewer: "macOS · Chrome · FR · Paris",
-    viewedAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "02:50",
-    slidesViewed: "38 / 55",
-  },
-  {
-    id: 8,
-    viewer: "Windows · Firefox · JP · Tokyo",
-    viewedAt: new Date(Date.now() - 7 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "01:55",
-    slidesViewed: "28 / 55",
-  },
-  {
-    id: 9,
-    viewer: "Linux · Chrome · BR · São Paulo",
-    viewedAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "02:15",
-    slidesViewed: "32 / 55",
-  },
-  {
-    id: 10,
-    viewer: "macOS · Safari · SG · Singapore",
-    viewedAt: new Date(Date.now() - 9 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "01:40",
-    slidesViewed: "22 / 55",
-  },
-  {
-    id: 11,
-    viewer: "Windows · Chrome · IN · Mumbai",
-    viewedAt: new Date(Date.now() - 10 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "03:05",
-    slidesViewed: "45 / 55",
-  },
-  {
-    id: 12,
-    viewer: "iOS · Safari · ZA · Cape Town",
-    viewedAt: new Date(Date.now() - 11 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "02:30",
-    slidesViewed: "36 / 55",
-  },
-  {
-    id: 13,
-    viewer: "Android · Chrome · ES · Madrid",
-    viewedAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "02:45",
-    slidesViewed: "40 / 55",
-  },
-  {
-    id: 14,
-    viewer: "macOS · Firefox · IT · Rome",
-    viewedAt: new Date(Date.now() - 13 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "01:50",
-    slidesViewed: "26 / 55",
-  },
-  {
-    id: 15,
-    viewer: "Windows · Edge · NL · Amsterdam",
-    viewedAt: new Date(Date.now() - 14 * 60 * 60 * 1000),
-    downloaded: false,
-    timeSpent: "02:35",
-    slidesViewed: "37 / 55",
-  },
-];
+import { FETCH_DECK } from "@/lib/query-constants";
+import { DECKS_DOMAIN } from "@/lib/config";
+import DeleteDeck from "@/components/ui/decks/details/delete";
+import { ServerAPIStatus, ServerFetchDeckResponse } from "@/client/Api";
+import { AxiosError, AxiosResponse } from "axios";
 
 type SettingsFormData = {
   enableDownloading: boolean;
@@ -218,30 +58,43 @@ const settingsSchema = yup.object().shape({
 }) satisfies yup.ObjectSchema<SettingsFormData>;
 
 export default function DeckDetails({ params }: { params: { slug: string } }) {
-  const [copied, setCopied] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isPinned, setIsPinned] = useState(mockDeck.pinned);
+  const router = useRouter();
+  const [isPinned, setIsPinned] = useState(false);
   const [isPinning, setIsPinning] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const router = useRouter()
 
-  const deleteMutation = useMutation({
-    onMutate: () => setIsDeleting(true),
-    onSettled: () => setIsDeleting(false),
-    mutationFn: () => client.decks.decksDelete(params.slug),
-    onSuccess: () => {
-      toast.success("Deck deleted successfully");
-      router.push("/decks")
+  const { data, isLoading, error } = useQuery({
+    queryKey: [FETCH_DECK],
+    queryFn: () => client.decks.decksDetail(params.slug),
+    retry: false,
+    gcTime: Number.POSITIVE_INFINITY,
+  });
+
+  const defaultValues = useMemo(() => ({
+    enableDownloading: data?.data?.deck?.preferences?.enable_downloading ?? true,
+    requireEmail: data?.data?.deck?.preferences?.require_email ?? false,
+    passwordProtection: data?.data?.deck?.preferences?.password?.enabled ?? false,
+    password: data?.data?.deck?.preferences?.password?.password,
+  }), [data]);
+
+  const mutation = useMutation({
+    mutationFn: (data: SettingsFormData) => {
+      return client.decks.preferencesUpdate(params.slug, {
+        enable_downloading: data.enableDownloading,
+        password_protection: {
+          enabled: data.passwordProtection,
+          value: data.password
+        },
+        require_email: data.requireEmail
+      })
     },
-    onError: (err: AxiosError<ServerAPIStatus>) => {
-      toast.error(err?.response?.data?.message || "Failed to delete deck");
-    }
-  })
-
-  const handleDelete = () => {
-    deleteMutation.mutate()
-  };
+    gcTime: 0,
+    onError: (err: AxiosError<ServerAPIStatus>): void => {
+      toast.error(err?.response?.data?.message || "an error occurred while updating preferences");
+    },
+    onSuccess: (resp: AxiosResponse<ServerFetchDeckResponse>) => {
+      toast.success(resp.data.message)
+    },
+  });
 
   const {
     control,
@@ -251,107 +104,27 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     formState: { errors },
   } = useForm<SettingsFormData>({
     resolver: yupResolver(settingsSchema),
-    defaultValues: {
-      enableDownloading: true,
-      requireEmail: false,
-      passwordProtection: false,
-      password: undefined,
-    },
+    defaultValues,
   });
+
+  const handleReset = () => {
+    reset(defaultValues);
+  };
 
   const passwordProtection = watch("passwordProtection");
 
-  const onSubmit = async (data: SettingsFormData) => {
-    setIsSubmitting(true);
-    try {
-      // TODO: API call to update settings
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
-      console.log("Form data:", data);
-      toast.success("Settings updated successfully");
-    } catch (error) {
-      toast.error("Failed to update settings");
-    } finally {
-      setIsSubmitting(false);
-    }
+  const onSubmit = async (formData: SettingsFormData) => {
+    mutation.mutate(formData)
   };
 
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = (text: string) => {
     try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      toast.success("Link copied to clipboard", {
-        description: "The deck URL has been copied to your clipboard.",
-      });
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      toast.error("Failed to copy link", {
-        description: "Please try copying the link again.",
-      });
+      navigator.clipboard.writeText(text);
+      toast.success("Link copied to clipboard");
+    } catch (err) {
+      toast.error("Failed to copy link");
     }
   };
-
-  const columnHelper = createColumnHelper<ViewEntry>();
-
-  const columns = [
-    columnHelper.accessor("viewer", {
-      header: "Views",
-      cell: (info) => (
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded bg-zinc-800 flex items-center justify-center text-zinc-400">
-            {info.row.original.viewer.substring(0, 2).toUpperCase()}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-zinc-100 font-medium truncate">{info.getValue()}</p>
-            {info.row.original.email && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <p className="text-sm text-zinc-400 truncate max-w-[200px] cursor-default">
-                    {info.row.original.email}
-                  </p>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-[300px] break-all">
-                  <p className="text-sm">{info.row.original.email}</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
-            <p className="text-sm text-zinc-500">
-              {formatDistanceToNow(info.row.original.viewedAt, { addSuffix: true })}
-            </p>
-          </div>
-        </div>
-      ),
-    }),
-    columnHelper.accessor("downloaded", {
-      header: "Downloaded",
-      cell: (info) => (
-        <span className="text-zinc-100">
-          {info.getValue() ? "Yes" : "No"}
-        </span>
-      ),
-    }),
-    columnHelper.accessor("timeSpent", {
-      header: "Time spent",
-      cell: (info) => (
-        <span className="text-zinc-100">
-          {info.getValue()}
-        </span>
-      ),
-    }),
-    columnHelper.accessor("slidesViewed", {
-      header: "Viewed slides",
-      cell: (info) => (
-        <span className="text-zinc-100">
-          {info.getValue()}
-        </span>
-      ),
-    }),
-  ];
-
-  const table = useReactTable({
-    data: mockViews,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
 
   const handleTogglePin = async () => {
     setIsPinning(true);
@@ -369,6 +142,13 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     }
   };
 
+  if (error || isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-100 border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="pt-6">
@@ -386,7 +166,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
             variant="ghost"
             size="icon"
             className="text-zinc-400 hover:text-zinc-300"
-            onClick={() => window.open(mockDeck.url, '_blank')}
+            onClick={() => window.open(data?.data?.deck?.short_link, '_blank')}
           >
             <RiExternalLinkLine className="h-5 w-5" />
           </Button>
@@ -409,14 +189,10 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
           </Button>
 
           <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-zinc-400 hover:text-zinc-300"
-              >
+            <DialogTrigger>
+              <div className="text-zinc-400 hover:text-zinc-300 cursor-pointer p-2">
                 <RiSettings4Line className="h-5 w-5" />
-              </Button>
+              </div>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
@@ -508,17 +284,18 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                     type="button"
                     variant="ghost"
                     className="text-zinc-400 hover:text-zinc-300"
-                    onClick={() => reset()}
-                    disabled={isSubmitting}
+                    onClick={handleReset}
+                    disabled={mutation.isPending}
                   >
                     Reset
                   </Button>
                   <Button
                     type="submit"
                     className="bg-zinc-100 text-zinc-900 hover:bg-zinc-200 disabled:opacity-50"
-                    disabled={isSubmitting}
+                    loading={mutation.isPending}
+                    disabled={mutation.isPending}
                   >
-                    {isSubmitting ? (
+                    {mutation.isPending ? (
                       <div className="flex items-center gap-2">
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent" />
                         Saving...
@@ -531,15 +308,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
               </form>
             </DialogContent>
           </Dialog>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-red-400 hover:text-red-300"
-            onClick={() => setShowDeleteDialog(true)}
-          >
-            <RiDeleteBinLine className="h-5 w-5" />
-          </Button>
+          <DeleteDeck reference={params.slug} />
         </div>
       </div>
 
@@ -552,28 +321,28 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                 <RiEyeLine className="h-4 w-4" />
                 <span className="text-sm">Total views</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">{mockDeck.metrics.totalViews}</p>
+              <p className="text-2xl font-medium text-zinc-100">0</p>
             </div>
             <div>
               <div className="flex items-center gap-2 text-zinc-400 mb-1">
                 <RiUserLine className="h-4 w-4" />
                 <span className="text-sm">Unique views</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">{mockDeck.metrics.uniqueViews}</p>
+              <p className="text-2xl font-medium text-zinc-100">0</p>
             </div>
             <div>
               <div className="flex items-center gap-2 text-zinc-400 mb-1">
                 <RiTimeLine className="h-4 w-4" />
                 <span className="text-sm">Time spent (avg)</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">{mockDeck.metrics.timeSpentAvg}</p>
+              <p className="text-2xl font-medium text-zinc-100">00:00</p>
             </div>
             <div>
               <div className="flex items-center gap-2 text-zinc-400 mb-1">
                 <RiDownloadLine className="h-4 w-4" />
                 <span className="text-sm">Downloads</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">{mockDeck.metrics.downloads}</p>
+              <p className="text-2xl font-medium text-zinc-100">0</p>
             </div>
           </div>
         </Card>
@@ -584,10 +353,11 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
             {/* Header Section */}
             <div>
               <h1 className="text-xl font-medium text-zinc-100 mb-2">
-                {mockDeck.name}
+                {data?.data?.deck?.title}
               </h1>
               <p className="text-sm text-zinc-400">
-                {mockDeck.description}
+                {/* TODO: Add description field to deck */}
+                {data?.data?.deck?.title}
               </p>
             </div>
 
@@ -597,119 +367,63 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                 <div>
                   <h3 className="text-sm font-medium text-zinc-400 mb-1">Uploaded</h3>
                   <p className="text-zinc-100">
-                    {format(mockDeck.uploadedAt, "MMMM d, yyyy 'at' h:mm a")}
+                    {data?.data?.deck?.created_at ? (
+                      format(new Date(data.data.deck.created_at), "MMMM d, yyyy 'at' h:mm a")
+                    ) : (
+                      "-"
+                    )}
                   </p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-zinc-400 mb-1">File Size</h3>
-                  <p className="text-zinc-100">{mockDeck.size}</p>
+                  <p className="text-zinc-100">-</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <h3 className="text-sm font-medium text-zinc-400 mb-1">Share URL</h3>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 block rounded bg-zinc-800 px-3 py-2 text-sm text-zinc-100">
-                      {mockDeck.url}
-                    </code>
+                  <div className="flex items-center gap-2 max-w-md">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className="block rounded bg-zinc-800 px-3 py-2 text-sm text-zinc-100 truncate cursor-pointer w-full"
+                          onClick={() => {
+                            if (data?.data?.deck?.short_link) {
+                              copyToClipboard(`${DECKS_DOMAIN}/${data.data.deck.short_link}`);
+                            }
+                          }}
+                        >
+                          <code className="text-zinc-100">
+                            {DECKS_DOMAIN}/{data?.data?.deck?.short_link || "-"}
+                          </code>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p className="text-sm">Click to copy</p>
+                      </TooltipContent>
+                    </Tooltip>
                     <Button
                       variant="ghost"
                       size="sm"
                       className="shrink-0 h-9 w-9 p-0 text-zinc-400 hover:text-zinc-100"
-                      onClick={() => copyToClipboard(mockDeck.url)}
+                      onClick={() => {
+                        if (data?.data?.deck?.short_link) {
+                          copyToClipboard(`${DECKS_DOMAIN}/${data.data.deck.short_link}`);
+                        }
+                      }}
+                      disabled={!data?.data?.deck?.short_link}
                     >
-                      {copied ? (
-                        <RiCheckLine className="h-4 w-4" />
-                      ) : (
-                        <RiFileCopyLine className="h-4 w-4" />
-                      )}
+                      <RiFileCopyLine className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Views Table */}
-            <div>
-              <div className="relative overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <tr key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => (
-                          <th
-                            key={header.id}
-                            className="px-6 py-4 text-sm font-medium text-zinc-400"
-                          >
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                          </th>
-                        ))}
-                      </tr>
-                    ))}
-                  </thead>
-                  <tbody>
-                    {table.getRowModel().rows.map((row) => (
-                      <tr
-                        key={row.id}
-                        className="border-t border-zinc-800"
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <td
-                            key={cell.id}
-                            className="px-6 py-4"
-                          >
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
             </div>
           </div>
         </Card>
       </div>
 
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-zinc-100">Delete deck?</AlertDialogTitle>
-            <AlertDialogDescription className="text-zinc-400">
-              This action cannot be undone. This will permanently delete the deck
-              and remove all associated data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              className="bg-transparent border-zinc-800 text-zinc-100 hover:bg-zinc-800 hover:text-zinc-100"
-              disabled={isDeleting}
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 text-zinc-100 hover:bg-red-700"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-100 border-t-transparent" />
-                  Deleting...
-                </div>
-              ) : (
-                "Delete deck"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

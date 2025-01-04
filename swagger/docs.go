@@ -480,6 +480,59 @@ const docTemplate = `{
             }
         },
         "/decks/{reference}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "decks"
+                ],
+                "summary": "fetch a deck",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deck unique reference.. e.g deck_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchDeckResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "consumes": [
                     "application/json"
@@ -505,6 +558,70 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/decks/{reference}/preferences": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "decks"
+                ],
+                "summary": "update a deck preferences",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deck unique reference.. e.g deck_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "deck preferences request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.updateDeckPreferencesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchDeckResponse"
                         }
                     },
                     "400": {
@@ -1558,6 +1675,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "preferences": {
+                    "$ref": "#/definitions/malak.DeckPreference"
+                },
                 "reference": {
                     "type": "string"
                 },
@@ -1571,6 +1691,55 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.DeckPreference": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "deck_id": {
+                    "type": "string"
+                },
+                "enable_downloading": {
+                    "type": "boolean"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "password": {
+                    "$ref": "#/definitions/malak.PasswordDeckPreferences"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "require_email": {
+                    "type": "boolean"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.PasswordDeckPreferences": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "password": {
                     "type": "string"
                 }
             }
@@ -2254,6 +2423,28 @@ const docTemplate = `{
                 },
                 "send_at": {
                     "type": "integer"
+                }
+            }
+        },
+        "server.updateDeckPreferencesRequest": {
+            "type": "object",
+            "properties": {
+                "enable_downloading": {
+                    "type": "boolean"
+                },
+                "password_protection": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "value": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "require_email": {
+                    "type": "boolean"
                 }
             }
         },

@@ -25,7 +25,7 @@ func (d *decksRepo) List(ctx context.Context,
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
 
-	// TODO: pagination? will people have like 20/30 decks?
+	// TODO:(adelowo): pagination? will people have like 20/30 decks?
 	// so wait till we get there
 	decks := make([]malak.Deck, 0)
 
@@ -92,8 +92,10 @@ func (d *decksRepo) Get(ctx context.Context, opts malak.FetchDeckOptions) (
 
 	deck := &malak.Deck{}
 
-	err := d.inner.NewSelect().Model(deck).
-		Where("reference = ?", opts.Reference).
+	err := d.inner.NewSelect().
+		Model(deck).
+		Where("deck.reference = ?", opts.Reference).
+		Relation("DeckPreference").
 		Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = malak.ErrDeckNotFound
@@ -107,8 +109,42 @@ func (d *decksRepo) Delete(ctx context.Context, deck *malak.Deck) error {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	_, err := d.inner.NewDelete().Model(deck).
-		Where("reference = ?", deck.Reference).
-		Exec(ctx)
-	return err
+	return d.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		_, err := tx.NewDelete().Model(&malak.DeckPreference{}).
+			Where("deck_id = ?", deck.ID).
+			Exec(ctx)
+
+		if err != nil {
+			return err
+		}
+		_, err = d.inner.NewDelete().Model(deck).
+			Where("reference = ?", deck.Reference).
+			Exec(ctx)
+		return err
+	})
+}
+
+func (d *decksRepo) UpdatePreferences(ctx context.Context, deck *malak.Deck) error {
+
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	return d.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		deck.DeckPreference.UpdatedAt = time.Now()
+
+		p, err := malak.HashPassword(string(deck.DeckPreference.Password.Password))
+		if err != nil {
+			return err
+		}
+
+		deck.DeckPreference.Password.Password = malak.Password(p)
+
+		_, err = d.inner.NewUpdate().
+			Model(deck.DeckPreference).
+			Where("id = ?", deck.DeckPreference.ID).
+			Exec(ctx)
+		return err
+	})
 }

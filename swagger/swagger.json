@@ -171,6 +171,9 @@
 					"id": {
 						"type": "string"
 					},
+					"preferences": {
+						"$ref": "#/components/schemas/malak.DeckPreference"
+					},
 					"reference": {
 						"type": "string"
 					},
@@ -184,6 +187,55 @@
 						"type": "string"
 					},
 					"workspace_id": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"malak.DeckPreference": {
+				"properties": {
+					"created_at": {
+						"type": "string"
+					},
+					"created_by": {
+						"type": "string"
+					},
+					"deck_id": {
+						"type": "string"
+					},
+					"enable_downloading": {
+						"type": "boolean"
+					},
+					"expires_at": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"password": {
+						"$ref": "#/components/schemas/malak.PasswordDeckPreferences"
+					},
+					"reference": {
+						"type": "string"
+					},
+					"require_email": {
+						"type": "boolean"
+					},
+					"updated_at": {
+						"type": "string"
+					},
+					"workspace_id": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"malak.PasswordDeckPreferences": {
+				"properties": {
+					"enabled": {
+						"type": "boolean"
+					},
+					"password": {
 						"type": "string"
 					}
 				},
@@ -867,6 +919,28 @@
 					},
 					"send_at": {
 						"type": "integer"
+					}
+				},
+				"type": "object"
+			},
+			"server.updateDeckPreferencesRequest": {
+				"properties": {
+					"enable_downloading": {
+						"type": "boolean"
+					},
+					"password_protection": {
+						"properties": {
+							"enabled": {
+								"type": "boolean"
+							},
+							"value": {
+								"type": "string"
+							}
+						},
+						"type": "object"
+					},
+					"require_email": {
+						"type": "boolean"
 					}
 				},
 				"type": "object"
@@ -1564,6 +1638,158 @@
 					}
 				},
 				"summary": "delete a deck",
+				"tags": [
+					"decks"
+				]
+			},
+			"get": {
+				"parameters": [
+					{
+						"description": "deck unique reference.. e.g deck_",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.fetchDeckResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "fetch a deck",
+				"tags": [
+					"decks"
+				]
+			}
+		},
+		"/decks/{reference}/preferences": {
+			"put": {
+				"parameters": [
+					{
+						"description": "deck unique reference.. e.g deck_",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.updateDeckPreferencesRequest"
+							}
+						}
+					},
+					"description": "deck preferences request body",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.fetchDeckResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "update a deck preferences",
 				"tags": [
 					"decks"
 				]

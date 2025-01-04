@@ -26,6 +26,8 @@ type Deck struct {
 
 	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
 
+	DeckPreference *DeckPreference `bun:"rel:has-one,join:id=deck_id" json:"preferences,omitempty"`
+
 	bun.BaseModel `bun:"table:decks" json:"-"`
 }
 
@@ -75,4 +77,5 @@ type DeckRepository interface {
 	List(context.Context, *Workspace) ([]Deck, error)
 	Get(context.Context, FetchDeckOptions) (*Deck, error)
 	Delete(context.Context, *Deck) error
+	UpdatePreferences(context.Context, *Deck) error
 }
