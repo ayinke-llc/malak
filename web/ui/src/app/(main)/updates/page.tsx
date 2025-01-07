@@ -43,7 +43,7 @@ export default function Page() {
 
   return (
     <>
-      <div className="pt-6">
+      <div className="pt-6 bg-background">
 
         <section>
           <PinnedList />
@@ -55,11 +55,11 @@ export default function Page() {
               <Button
                 type="button"
                 variant="default"
-                className="whitespace-nowrap"
+                className="whitespace-nowrap text-foreground"
                 loading={isLoading}
                 onClick={() => mutation.mutate()}
               >
-                <RiAddLine />
+                <RiAddLine className="text-foreground" />
                 New update
               </Button>
             </div>

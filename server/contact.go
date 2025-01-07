@@ -477,3 +477,65 @@ func (c *contactHandler) addUserToContactList(
 
 	return newAPIStatus(http.StatusCreated, "list was successfully updated with contact"), StatusSuccess
 }
+
+// @Summary list your contacts
+// @Tags contacts
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} fetchContactResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /contacts [get]
+func (c *contactHandler) list(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	user := getUserFromContext(r.Context())
+
+	logger.Debug("creating contact")
+
+	req := new(createContactRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	contact := &malak.Contact{
+		Email:       req.Email,
+		FirstName:   util.DeRef(req.FirstName),
+		LastName:    util.DeRef(req.LastName),
+		Metadata:    make(malak.CustomContactMetadata),
+		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
+		Reference:   c.referenceGenerator.Generate(malak.EntityTypeContact),
+		// Default to the user who created it
+		OwnerID:   user.ID,
+		CreatedBy: user.ID,
+	}
+
+	err := c.contactRepo.Create(ctx, contact)
+	if errors.Is(err, malak.ErrContactExists) {
+		return newAPIStatus(http.StatusConflict, err.Error()), StatusFailed
+	}
+
+	if err != nil {
+		logger.
+			Error("an error occurred while storing contact to the database", zap.Error(err))
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"an error occurred while creating contact"), StatusFailed
+	}
+
+	return fetchContactResponse{
+		APIStatus: newAPIStatus(http.StatusCreated, "contact was successfully created"),
+		Contact:   util.DeRef(contact),
+	}, StatusSuccess
+}

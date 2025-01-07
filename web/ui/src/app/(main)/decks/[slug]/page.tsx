@@ -155,7 +155,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
       <div className="mb-8 flex items-center justify-between">
         <Link
           href="/decks"
-          className="inline-flex items-center text-sm text-zinc-400 hover:text-zinc-300"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
         >
           <RiArrowLeftLine className="mr-1 h-4 w-4" />
           Back to decks
@@ -165,7 +165,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
           <Button
             variant="ghost"
             size="icon"
-            className="text-zinc-400 hover:text-zinc-300"
+            className="text-muted-foreground hover:text-foreground"
             onClick={() => window.open(data?.data?.deck?.short_link, '_blank')}
           >
             <RiExternalLinkLine className="h-5 w-5" />
@@ -174,7 +174,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
           <Button
             variant="ghost"
             size="icon"
-            className={`${isPinned ? 'text-blue-400 hover:text-blue-300' : 'text-zinc-400 hover:text-zinc-300'
+            className={`${isPinned ? 'text-blue-600 hover:text-blue-700' : 'text-muted-foreground hover:text-foreground'
               } ${isPinning ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handleTogglePin}
             disabled={isPinning}
@@ -190,21 +190,21 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
 
           <Dialog>
             <DialogTrigger>
-              <div className="text-zinc-400 hover:text-zinc-300 cursor-pointer p-2">
+              <div className="text-muted-foreground hover:text-foreground cursor-pointer p-2">
                 <RiSettings4Line className="h-5 w-5" />
               </div>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle className="text-zinc-100">Deck settings</DialogTitle>
+                <DialogTitle>Deck settings</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
                 {/* Sharing Settings */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-zinc-100">Sharing settings</h3>
+                  <h3 className="text-sm font-medium">Sharing settings</h3>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="enable-downloading" className="text-zinc-100">Enable downloading</Label>
+                      <Label htmlFor="enable-downloading">Enable downloading</Label>
                       <Controller
                         name="enableDownloading"
                         control={control}
@@ -219,7 +219,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="require-email" className="text-zinc-100">Require email to view</Label>
+                      <Label htmlFor="require-email">Require email to view</Label>
                       <Controller
                         name="requireEmail"
                         control={control}
@@ -235,15 +235,15 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                   </div>
                 </div>
 
-                <Separator className="bg-zinc-800" />
+                <Separator />
 
                 {/* Advanced Settings */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-zinc-100">Advanced settings</h3>
+                  <h3 className="text-sm font-medium">Advanced settings</h3>
                   <div className="space-y-4">
                     <div>
                       <div className="flex items-center justify-between mb-4">
-                        <Label htmlFor="password-protection" className="text-zinc-100">Password protection</Label>
+                        <Label htmlFor="password-protection">Password protection</Label>
                         <Controller
                           name="passwordProtection"
                           control={control}
@@ -266,7 +266,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                                 {...field}
                                 type="password"
                                 placeholder="Enter password"
-                                className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
+                                className="placeholder:text-muted-foreground"
                               />
                             )}
                           />
@@ -283,7 +283,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                   <Button
                     type="button"
                     variant="ghost"
-                    className="text-zinc-400 hover:text-zinc-300"
+                    className="text-muted-foreground hover:text-foreground"
                     onClick={handleReset}
                     disabled={mutation.isPending}
                   >
@@ -291,13 +291,11 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-zinc-100 text-zinc-900 hover:bg-zinc-200 disabled:opacity-50"
-                    loading={mutation.isPending}
                     disabled={mutation.isPending}
                   >
                     {mutation.isPending ? (
                       <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent" />
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                         Saving...
                       </div>
                     ) : (
@@ -314,48 +312,48 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
 
       <div className="space-y-6">
         {/* Metrics Overview */}
-        <Card className="bg-zinc-900/50 p-6">
+        <Card className="p-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div>
-              <div className="flex items-center gap-2 text-zinc-400 mb-1">
+              <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <RiEyeLine className="h-4 w-4" />
                 <span className="text-sm">Total views</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">0</p>
+              <p className="text-2xl font-medium">0</p>
             </div>
             <div>
-              <div className="flex items-center gap-2 text-zinc-400 mb-1">
+              <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <RiUserLine className="h-4 w-4" />
                 <span className="text-sm">Unique views</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">0</p>
+              <p className="text-2xl font-medium">0</p>
             </div>
             <div>
-              <div className="flex items-center gap-2 text-zinc-400 mb-1">
+              <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <RiTimeLine className="h-4 w-4" />
                 <span className="text-sm">Time spent (avg)</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">00:00</p>
+              <p className="text-2xl font-medium">00:00</p>
             </div>
             <div>
-              <div className="flex items-center gap-2 text-zinc-400 mb-1">
+              <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <RiDownloadLine className="h-4 w-4" />
                 <span className="text-sm">Downloads</span>
               </div>
-              <p className="text-2xl font-medium text-zinc-100">0</p>
+              <p className="text-2xl font-medium">0</p>
             </div>
           </div>
         </Card>
 
         {/* Main Content Card */}
-        <Card className="bg-zinc-900/50 p-6">
+        <Card className="p-6">
           <div className="space-y-8">
             {/* Header Section */}
             <div>
-              <h1 className="text-xl font-medium text-zinc-100 mb-2">
+              <h1 className="text-xl font-medium mb-2">
                 {data?.data?.deck?.title}
               </h1>
-              <p className="text-sm text-zinc-400">
+              <p className="text-sm text-muted-foreground">
                 {/* TODO: Add description field to deck */}
                 {data?.data?.deck?.title}
               </p>
@@ -365,8 +363,8 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-zinc-400 mb-1">Uploaded</h3>
-                  <p className="text-zinc-100">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Uploaded</h3>
+                  <p>
                     {data?.data?.deck?.created_at ? (
                       format(new Date(data.data.deck.created_at), "MMMM d, yyyy 'at' h:mm a")
                     ) : (
@@ -375,26 +373,26 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                   </p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-zinc-400 mb-1">File Size</h3>
-                  <p className="text-zinc-100">-</p>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">File Size</h3>
+                  <p>-</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-zinc-400 mb-1">Share URL</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Share URL</h3>
                   <div className="flex items-center gap-2 max-w-md">
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div
-                          className="block rounded bg-zinc-800 px-3 py-2 text-sm text-zinc-100 truncate cursor-pointer w-full"
+                          className="block rounded border px-3 py-2 text-sm truncate cursor-pointer w-full"
                           onClick={() => {
                             if (data?.data?.deck?.short_link) {
                               copyToClipboard(`${DECKS_DOMAIN}/${data.data.deck.short_link}`);
                             }
                           }}
                         >
-                          <code className="text-zinc-100">
+                          <code>
                             {DECKS_DOMAIN}/{data?.data?.deck?.short_link || "-"}
                           </code>
                         </div>
@@ -406,7 +404,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="shrink-0 h-9 w-9 p-0 text-zinc-400 hover:text-zinc-100"
+                      className="shrink-0 h-9 w-9 p-0 text-muted-foreground hover:text-foreground"
                       onClick={() => {
                         if (data?.data?.deck?.short_link) {
                           copyToClipboard(`${DECKS_DOMAIN}/${data.data.deck.short_link}`);

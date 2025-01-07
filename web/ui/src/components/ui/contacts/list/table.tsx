@@ -108,7 +108,7 @@ export const columns: ColumnDef<Contact>[] = [
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
-        className="border-gray-700/50"
+        className="border-border"
       />
     ),
     cell: ({ row }) => (
@@ -116,7 +116,7 @@ export const columns: ColumnDef<Contact>[] = [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
-        className="border-gray-700/50"
+        className="border-border"
       />
     ),
     enableSorting: false,
@@ -130,7 +130,7 @@ export const columns: ColumnDef<Contact>[] = [
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="p-0 hover:bg-transparent text-gray-400 hover:text-gray-300 font-normal -ml-4"
+            className="p-0 hover:bg-transparent text-muted-foreground hover:text-foreground font-normal -ml-4"
           >
             Contact
             <CaretSortIcon className="ml-2 h-4 w-4" />
@@ -149,19 +149,19 @@ export const columns: ColumnDef<Contact>[] = [
             className="group block"
           >
             <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex-shrink-0 w-8 h-8 rounded-full bg-gray-800/50 flex items-center justify-center text-gray-400 text-sm font-medium uppercase">
+              <div className="mt-0.5 flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-sm font-medium uppercase">
                 {contact.first_name[0]}{contact.last_name[0]}
               </div>
               <div>
-                <h3 className="font-medium text-gray-200 group-hover:text-white transition-colors">
+                <h3 className="font-medium text-foreground group-hover:text-foreground/90 transition-colors">
                   {fullName}
                 </h3>
                 <div className="flex flex-col gap-0.5">
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     {contact.email}
                   </p>
                   {contact.company && (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground/70">
                       {contact.company}
                     </p>
                   )}
@@ -176,7 +176,7 @@ export const columns: ColumnDef<Contact>[] = [
   {
     accessorKey: "lists",
     header: () => (
-      <div className="text-left text-gray-400 font-normal">Lists</div>
+      <div className="text-left text-muted-foreground font-normal">Lists</div>
     ),
     cell: ({ row }) => {
       const lists = row.getValue("lists") as ContactList[];
@@ -188,7 +188,7 @@ export const columns: ColumnDef<Contact>[] = [
               <Badge
                 key={list.id}
                 variant="secondary"
-                className="bg-gray-800/30 text-gray-300 hover:bg-gray-800/50 transition-colors border border-gray-800/50 px-2 py-0.5 text-xs font-normal"
+                className="bg-muted/50 text-foreground hover:bg-muted transition-colors border border-border px-2 py-0.5 text-xs font-normal"
               >
                 {list.title}
               </Badge>
@@ -196,7 +196,7 @@ export const columns: ColumnDef<Contact>[] = [
             {lists.length > 3 && (
               <Badge
                 variant="secondary"
-                className="bg-transparent border border-gray-800/50 text-gray-500 px-2 py-0.5 text-xs font-normal"
+                className="bg-transparent border border-border text-muted-foreground px-2 py-0.5 text-xs font-normal"
               >
                 +{lists.length - 3} more
               </Badge>
@@ -210,7 +210,7 @@ export const columns: ColumnDef<Contact>[] = [
   {
     accessorKey: "created_at",
     header: () => (
-      <div className="text-left text-gray-400 font-normal">Created</div>
+      <div className="text-left text-muted-foreground font-normal">Created</div>
     ),
     cell: ({ row }) => {
       const date = new Date(row.getValue("created_at"));
@@ -220,7 +220,7 @@ export const columns: ColumnDef<Contact>[] = [
       }).format(date);
 
       return (
-        <div className="text-sm text-gray-500 whitespace-nowrap">
+        <div className="text-sm text-muted-foreground/70 whitespace-nowrap">
           {formatted}
         </div>
       );
@@ -236,7 +236,7 @@ export const columns: ColumnDef<Contact>[] = [
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="h-8 w-8 p-0 hover:bg-gray-800/50 text-gray-500 hover:text-gray-400"
+              className="h-8 w-8 p-0 hover:bg-muted text-muted-foreground hover:text-foreground"
             >
               <span className="sr-only">Open menu</span>
               <RiMoreLine className="h-4 w-4" />
@@ -244,25 +244,25 @@ export const columns: ColumnDef<Contact>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="w-48 bg-gray-900 border-gray-800/50"
+            className="w-48 bg-background border-border"
           >
-            <DropdownMenuLabel className="text-gray-400 text-xs">Actions</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-muted-foreground text-xs">Actions</DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(contact.email)}
-              className="text-gray-300 focus:bg-gray-800 focus:text-gray-200 text-sm"
+              className="text-muted-foreground focus:bg-muted focus:text-foreground text-sm"
             >
               Copy email
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-gray-800/50" />
-            <DropdownMenuItem className="focus:bg-gray-800 focus:text-gray-200 text-sm">
+            <DropdownMenuSeparator className="bg-border" />
+            <DropdownMenuItem className="focus:bg-muted focus:text-foreground text-sm">
               <Link
                 href={`/contacts/${contact.reference}`}
-                className="text-gray-300 w-full"
+                className="text-muted-foreground w-full"
               >
                 View details
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-gray-300 focus:bg-gray-800 focus:text-gray-200 text-sm">
+            <DropdownMenuItem className="text-muted-foreground focus:bg-muted focus:text-foreground text-sm">
               Add to list
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -289,6 +289,11 @@ export default function ContactsTable() {
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
     state: {
       sorting,
       columnFilters,
@@ -298,7 +303,7 @@ export default function ContactsTable() {
   });
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4 bg-background">
       <div className="flex items-center justify-between">
         <Input
           placeholder="Filter contacts..."
@@ -306,7 +311,7 @@ export default function ContactsTable() {
           onChange={(event) =>
             table.getColumn("email")?.setFilterValue(event.target.value)
           }
-          className="max-w-xs bg-transparent border-gray-800/50 text-sm placeholder:text-gray-600 focus-visible:ring-0 focus-visible:border-gray-700"
+          className="max-w-xs bg-transparent border-border text-sm placeholder:text-gray-600 focus-visible:ring-0 focus-visible:border-gray-700"
         />
         <div className="flex items-center gap-2">
           <DropdownMenu>
@@ -314,12 +319,12 @@ export default function ContactsTable() {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 border-gray-800/50 bg-transparent text-gray-400 hover:bg-gray-800/30 hover:text-gray-300"
+                className="h-8 border-border bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 View <ChevronDownIcon className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40 bg-gray-900 border-gray-800/50">
+            <DropdownMenuContent align="end" className="w-40 bg-background border-border">
               {table
                 .getAllColumns()
                 .filter((column) => column.getCanHide())
@@ -327,7 +332,7 @@ export default function ContactsTable() {
                   return (
                     <DropdownMenuCheckboxItem
                       key={column.id}
-                      className="capitalize text-gray-300 text-sm"
+                      className="capitalize text-muted-foreground text-sm"
                       checked={column.getIsVisible()}
                       onCheckedChange={(value) =>
                         column.toggleVisibility(!!value)
@@ -342,19 +347,19 @@ export default function ContactsTable() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-gray-800/50 bg-gray-900/30">
+      <div className="rounded-lg border border-border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="border-b border-gray-800/50 hover:bg-transparent"
+                className="border-b border-border hover:bg-transparent"
               >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
                       key={header.id}
-                      className="text-gray-400 h-10"
+                      className="text-muted-foreground h-10"
                     >
                       {header.isPlaceholder
                         ? null
@@ -374,7 +379,7 @@ export default function ContactsTable() {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="border-b border-gray-800/50 hover:bg-gray-800/20"
+                  className="border-b border-border hover:bg-muted/10"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -393,7 +398,7 @@ export default function ContactsTable() {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center text-gray-500"
+                  className="h-24 text-center text-muted-foreground"
                 >
                   No contacts found.
                 </TableCell>
@@ -404,29 +409,106 @@ export default function ContactsTable() {
       </div>
 
       <div className="flex items-center justify-between py-2">
-        <div className="text-sm text-gray-500">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} selected
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div>
+            {table.getFilteredSelectedRowModel().rows.length} of{" "}
+            {table.getFilteredRowModel().rows.length} selected
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+              >
+                {table.getState().pagination.pageSize} per page <ChevronDownIcon className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {[10, 20, 30, 50, 100].map((pageSize) => (
+                <DropdownMenuItem
+                  key={pageSize}
+                  onClick={() => table.setPageSize(pageSize)}
+                >
+                  Show {pageSize} rows
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-        <div className="flex items-center space-x-2 text-sm">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            className="h-8 border-gray-800/50 bg-transparent text-gray-400 hover:bg-gray-800/30 hover:text-gray-300 disabled:opacity-50"
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            className="h-8 border-gray-800/50 bg-transparent text-gray-400 hover:bg-gray-800/30 hover:text-gray-300 disabled:opacity-50"
-          >
-            Next
-          </Button>
+
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.setPageIndex(0)}
+              disabled={!table.getCanPreviousPage()}
+              className="h-8 w-8 p-0"
+            >
+              <span className="sr-only">Go to first page</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                <path fillRule="evenodd" d="M15.79 14.77a.75.75 0 01-1.06.02l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 111.04 1.08L11.832 10l3.938 3.71a.75.75 0 01.02 1.06zm-6 0a.75.75 0 01-1.06.02l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 111.04 1.08L5.832 10l3.938 3.71a.75.75 0 01.02 1.06z" clipRule="evenodd" />
+              </svg>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              className="h-8 w-8 p-0"
+            >
+              <span className="sr-only">Go to previous page</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+              </svg>
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <span className="text-sm text-muted-foreground">Page</span>
+            <Input
+              type="number"
+              min={1}
+              max={table.getPageCount()}
+              value={table.getState().pagination.pageIndex + 1}
+              onChange={e => {
+                const page = e.target.value ? Number(e.target.value) - 1 : 0;
+                if (page >= 0 && page < table.getPageCount()) {
+                  table.setPageIndex(page);
+                }
+              }}
+              className="w-12 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <span className="text-sm text-muted-foreground">of {table.getPageCount()}</span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className="h-8 w-8 p-0"
+            >
+              <span className="sr-only">Go to next page</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+              </svg>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+              disabled={!table.getCanNextPage()}
+              className="h-8 w-8 p-0"
+            >
+              <span className="sr-only">Go to last page</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                <path fillRule="evenodd" d="M4.21 14.77a.75.75 0 01.02-1.06L8.168 10 4.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z M10.21 14.77a.75.75 0 01.02-1.06L14.168 10 10.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+              </svg>
+            </Button>
+          </div>
         </div>
       </div>
     </div>

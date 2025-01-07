@@ -30,12 +30,12 @@ export const links = [
   },
   {
     title: "Fundraising",
-    url: "#",
+    url: "/fundraising",
     icon: RiContactsLine,
   },
   {
     title: "Captable",
-    url: "#",
+    url: "/captable",
     icon: RiContactsLine,
   },
 ];

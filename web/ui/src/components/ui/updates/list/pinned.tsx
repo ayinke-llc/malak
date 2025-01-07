@@ -119,7 +119,7 @@ const Item = (update: MalakUpdate) => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
-                <RiMoreLine className="h-4 w-4" />
+                <RiMoreLine className="h-4 w-4 text-muted-foreground" />
                 <span className="sr-only">Open menu</span>
               </Button>
             </DropdownMenuTrigger>
@@ -135,12 +135,12 @@ const Item = (update: MalakUpdate) => {
           </DropdownMenu>
         </div>
         <Link href={`/updates/${update?.reference as string}`} className="block group">
-          <h3 className="text-lg font-medium mb-2">
+          <h3 className="text-lg font-medium mb-2 text-foreground">
             {update?.title as string}
           </h3>
         </Link>
-        <div className="flex items-center text-sm ">
-          <RiCalendarLine className="h-4 w-4 mr-2" />
+        <div className="flex items-center text-sm text-muted-foreground">
+          <RiCalendarLine className="h-4 w-4 mr-2 text-muted-foreground" />
           {format(update?.created_at as string, "EEEE, MMMM do, yyyy")}
         </div>
       </CardContent>

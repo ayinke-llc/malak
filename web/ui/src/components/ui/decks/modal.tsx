@@ -142,7 +142,7 @@ export default function UploadDeckModal() {
         <Button
           type="button"
           variant="default"
-          className="whitespace-nowrap bg-zinc-100 text-zinc-900 hover:bg-zinc-200"
+          className="whitespace-nowrap"
         >
           <RiAddLine className="mr-2 h-4 w-4" />
           Upload Deck

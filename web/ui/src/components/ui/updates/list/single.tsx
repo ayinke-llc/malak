@@ -138,7 +138,7 @@ const SingleUpdate = (update: MalakUpdate) => {
         <div className="flex flex-col space-y-1">
           <div className="flex items-center space-x-2">
             <Link href={`/updates/${update.reference}`}>
-              <h3 className="font-semibold">{update.title}</h3>
+              <h3 className="font-semibold text-foreground">{update.title}</h3>
             </Link>
             <UpdateBadge status={update.status as string} />
           </div>
@@ -158,30 +158,30 @@ const SingleUpdate = (update: MalakUpdate) => {
           >
             <RiPushpinLine
               className="h-4 w-4"
-              color={update?.is_pinned as boolean ? "red" : "white"} />
+              color={update?.is_pinned as boolean ? "red" : "currentColor"} />
           </Button>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="More options">
-                <RiMoreLine className="h-4 w-4" />
+                <RiMoreLine className="h-4 w-4 text-muted-foreground" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-40 p-0">
               <Dialog open={duplicateDialogOpen}>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start rounded-none px-2 py-1.5 text-sm"
+                  className="w-full justify-start rounded-none px-2 py-1.5 text-sm text-foreground"
                   onClick={() => {
                     setDuplicateDialogOpen(true);
                   }}
                 >
-                  <RiFileCopyLine className="mr-2 h-4 w-4" />
+                  <RiFileCopyLine className="mr-2 h-4 w-4 text-muted-foreground" />
                   Duplicate
                 </Button>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Duplicate update</DialogTitle>
-                    <DialogDescription className="mt-2">
+                    <DialogDescription className="mt-2 text-muted-foreground">
                       Are you sure you want to duplicate this investor update? A
                       new update containing the exact content of this update
                       will created.
@@ -223,7 +223,7 @@ const SingleUpdate = (update: MalakUpdate) => {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Confirm Deletion</DialogTitle>
-                    <DialogDescription className="mt-2">
+                    <DialogDescription className="mt-2 text-muted-foreground">
                       Are you sure you want to delete this investor update? This
                       action cannot be undone.
                     </DialogDescription>
