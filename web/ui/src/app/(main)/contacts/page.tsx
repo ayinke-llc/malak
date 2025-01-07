@@ -7,29 +7,35 @@ import ManageListModal from "@/components/ui/contacts/new-list-modal";
 export default function Page() {
   return (
     <>
-      <div className="pt-6">
-        <section>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-medium text-gray-200">
-                Saved contacts
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                View and manage your investors' contacts
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <ManageListModal />
-              <CreateContactModal />
-            </div>
+    <div className="pt-6">
+      <section>
+        <div className="sm:flex sm:items-center sm:justify-between">
+          <div>
+            <h3
+              id="company-decks"
+              className="text-lg font-medium text-zinc-100"
+            >
+              Company Decks
+            </h3>
+            <p className="text-sm text-zinc-400/80">
+            View and manage your investors' contacts
+            </p>
           </div>
-        </section>
 
-        <section className="mt-6">
-          <ListContacts />
-        </section>
-      </div>
-    </>
+          <div>
+            
+            <ManageListModal />
+            <CreateContactModal />
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-10">
+       
+        <ListContacts />
+      </section>
+    </div>
+  </>
+
   );
 }
