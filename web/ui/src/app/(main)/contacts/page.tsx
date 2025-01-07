@@ -9,27 +9,24 @@ export default function Page() {
     <>
       <div className="pt-6">
         <section>
-          <div className="sm:flex sm:items-center sm:justify-between">
+          <div className="flex items-center justify-between">
             <div>
-              <h3
-                id="existing-contacts"
-                className="scroll-mt-10 font-semibold text-gray-900 dark:text-gray-50"
-              >
-                Stored Contacts
+              <h3 className="text-base font-medium text-gray-200">
+                Saved contacts
               </h3>
-              <p className="text-sm leading-6 text-gray-500">
-                View and manage all your existing contacts
+              <p className="mt-1 text-sm text-gray-500">
+                View and manage your investors' contacts
               </p>
             </div>
 
-            <div className="flex justify-center gap-2">
+            <div className="flex items-center gap-2">
               <ManageListModal />
               <CreateContactModal />
             </div>
           </div>
         </section>
 
-        <section>
+        <section className="mt-6">
           <ListContacts />
         </section>
       </div>
