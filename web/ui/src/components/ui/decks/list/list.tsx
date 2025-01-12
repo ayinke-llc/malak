@@ -199,7 +199,7 @@ export default function ListDecks() {
             {table.getRowModel().rows.map((row) => (
               <tr
                 key={row.id}
-                className="border-t border-zinc-200/10 dark:border-zinc-800 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50 transition-colors"
+                className="border-t border-zinc-200 dark:border-zinc-800 cursor-pointer"
               >
                 {row.getVisibleCells().map((cell) => (
                   <td
