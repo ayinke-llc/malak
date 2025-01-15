@@ -109,3 +109,9 @@ type fetchDecksResponse struct {
 	Decks []malak.Deck `json:"decks,omitempty"`
 	APIStatus
 }
+
+type listContactsResponse struct {
+	Contacts []malak.Contact `json:"contacts,omitempty" validate:"required"`
+	Meta     meta            `json:"meta,omitempty" validate:"required"`
+	APIStatus
+}

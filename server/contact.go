@@ -495,47 +495,36 @@ func (c *contactHandler) list(
 	w http.ResponseWriter,
 	r *http.Request) (render.Renderer, Status) {
 
-	user := getUserFromContext(r.Context())
+	logger.Debug("Listing contacts")
 
-	logger.Debug("creating contact")
+	workspace := getWorkspaceFromContext(r.Context())
 
-	req := new(createContactRequest)
-
-	if err := render.Bind(r, req); err != nil {
-		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	opts := malak.ListContactOptions{
+		Paginator:   malak.PaginatorFromRequest(r),
+		WorkspaceID: workspace.ID,
 	}
 
-	if err := req.Validate(); err != nil {
-		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
-	}
+	span.SetAttributes(opts.Paginator.OTELAttributes()...)
 
-	contact := &malak.Contact{
-		Email:       req.Email,
-		FirstName:   util.DeRef(req.FirstName),
-		LastName:    util.DeRef(req.LastName),
-		Metadata:    make(malak.CustomContactMetadata),
-		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
-		Reference:   c.referenceGenerator.Generate(malak.EntityTypeContact),
-		// Default to the user who created it
-		OwnerID:   user.ID,
-		CreatedBy: user.ID,
-	}
-
-	err := c.contactRepo.Create(ctx, contact)
-	if errors.Is(err, malak.ErrContactExists) {
-		return newAPIStatus(http.StatusConflict, err.Error()), StatusFailed
-	}
-
+	contacts, otalCount, err := c.contactRepo.List(ctx, opts)
 	if err != nil {
-		logger.
-			Error("an error occurred while storing contact to the database", zap.Error(err))
+		logger.Error("could not list contacts",
+			zap.Error(err))
+
 		return newAPIStatus(
 			http.StatusInternalServerError,
-			"an error occurred while creating contact"), StatusFailed
+			"could not list contacts"), StatusFailed
 	}
 
-	return fetchContactResponse{
+	return listContactsResponse{
 		APIStatus: newAPIStatus(http.StatusCreated, "contact was successfully created"),
-		Contact:   util.DeRef(contact),
+		Contacts:  contacts,
+		Meta: meta{
+			Paging: pagingInfo{
+				PerPage: opts.Paginator.PerPage,
+				Page:    opts.Paginator.Page,
+				Total: otalCount,
+			},
+		},
 	}, StatusSuccess
 }

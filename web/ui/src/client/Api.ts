@@ -538,6 +538,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags contacts
+     * @name ContactsList
+     * @summary list your contacts
+     * @request GET:/contacts
+     */
+    contactsList: (params: RequestParams = {}) =>
+      this.request<ServerFetchContactResponse, ServerAPIStatus>({
+        path: `/contacts`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags contacts
      * @name ContactsCreate
      * @summary Creates a new contact
      * @request POST:/contacts
