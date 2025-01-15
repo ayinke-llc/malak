@@ -41,7 +41,7 @@ import { Badge } from "@/components/ui/badge";
 import { RiMoreLine } from "@remixicon/react";
 import Link from "next/link";
 import client from "@/lib/client";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import type { MalakContact, MalakContactListMapping } from "@/client/Api";
 
 export const columns: ColumnDef<MalakContact>[] = [
@@ -230,26 +230,19 @@ export default function ContactsTable() {
     pageSize: 10,
   });
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
-    queryKey: ['contacts', pageSize],
-    queryFn: async ({ pageParam = 1 }) => {
+  const { data, isLoading } = useQuery({
+    queryKey: ['contacts', pageIndex + 1, pageSize],
+    queryFn: async () => {
       const response = await client.contacts.contactsList({
-        page: pageParam,
+        page: pageIndex + 1,
         per_page: pageSize,
       });
       return response.data;
     },
-    getNextPageParam: (lastPage) => {
-      const currentPage = lastPage.meta.paging.page;
-      const totalPages = Math.ceil(lastPage.meta.paging.total / pageSize);
-      return currentPage < totalPages ? currentPage + 1 : undefined;
-    },
-    initialPageParam: 1,
   });
 
   const contacts = React.useMemo(() => {
-    if (!data?.pages) return [];
-    return data.pages.flatMap(page => page.contacts);
+    return data?.contacts || [];
   }, [data]);
 
   const pagination = React.useMemo(
@@ -273,7 +266,7 @@ export default function ContactsTable() {
     onRowSelectionChange: setRowSelection,
     onPaginationChange: setPagination,
     manualPagination: true,
-    pageCount: data?.pages[0]?.meta.paging.total ? Math.ceil(data.pages[0].meta.paging.total / pageSize) : 0,
+    pageCount: data?.meta.paging.total ? Math.ceil(data.meta.paging.total / pageSize) : 0,
     state: {
       sorting,
       columnFilters,
@@ -282,16 +275,6 @@ export default function ContactsTable() {
       pagination,
     },
   });
-
-  // Handle page changes
-  React.useEffect(() => {
-    const totalPages = Math.ceil((data?.pages[0]?.meta.paging.total || 0) / pageSize);
-    const targetPage = pageIndex + 1;
-    
-    if (targetPage <= totalPages && targetPage > (data?.pages.length || 0)) {
-      fetchNextPage();
-    }
-  }, [data, pageIndex, pageSize, fetchNextPage]);
 
   return (
     <div className="w-full space-y-4 bg-background">
