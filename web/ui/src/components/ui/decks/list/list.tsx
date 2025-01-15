@@ -58,7 +58,7 @@ export default function ListDecks() {
   const columns = useMemo(
     () => [
       columnHelper.accessor("title", {
-        header: () => <span className="text-zinc-400">Name</span>,
+        header: () => <span className="text-muted-foreground">Name</span>,
         cell: (info) => {
           const title = info.getValue() ?? "";
           return (
@@ -67,9 +67,9 @@ export default function ListDecks() {
                 <TooltipTrigger asChild>
                   <Link
                     href={`/decks/${info.row.original.reference}`}
-                    className="block hover:opacity-80"
+                    className="block text-foreground hover:opacity-80"
                   >
-                    <span className="font-medium text-zinc-100 truncate block">
+                    <span className="font-medium truncate block">
                       {truncateText(title, 40)}
                     </span>
                   </Link>
@@ -84,8 +84,8 @@ export default function ListDecks() {
       }),
       columnHelper.accessor(() => "N/A" as const, {
         id: "size",
-        header: () => <span className="text-zinc-400">Size</span>,
-        cell: (info) => <span className="text-zinc-100">{info.getValue()}</span>,
+        header: () => <span className="text-muted-foreground">Size</span>,
+        cell: (info) => <span className="text-foreground">{info.getValue()}</span>,
       }),
       columnHelper.accessor(
         (row) => {
@@ -94,18 +94,18 @@ export default function ListDecks() {
         },
         {
           id: "url",
-          header: () => <span className="text-zinc-400">URL</span>,
+          header: () => <span className="text-muted-foreground">URL</span>,
           cell: (info) => {
             const url = info.getValue();
             return (
               <div className="flex items-center gap-2 max-w-[300px]">
-                <span className="text-zinc-100 truncate block">
+                <span className="truncate block text-foreground">
                   {truncateText(url, 40)}
                 </span>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="shrink-0 h-8 w-8 p-0 text-zinc-400 hover:text-zinc-100"
+                  className="shrink-0 h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                   onClick={() => copyToClipboard(url, info.row.original.id ?? "")}
                 >
                   {copiedId === info.row.original.id ? (
@@ -120,11 +120,11 @@ export default function ListDecks() {
         }
       ),
       columnHelper.accessor("created_at", {
-        header: () => <span className="text-zinc-400">Uploaded</span>,
+        header: () => <span className="text-muted-foreground">Uploaded</span>,
         cell: (info) => {
           const date = info.getValue();
           return (
-            <span className="text-zinc-100 whitespace-nowrap">
+            <span className="whitespace-nowrap text-foreground">
               {date ? format(new Date(date), "MMM d, yyyy") : "N/A"}
             </span>
           );
@@ -142,10 +142,10 @@ export default function ListDecks() {
 
   if (isLoading) {
     return (
-      <Card className="flex flex-col items-center justify-center py-16 px-4 bg-zinc-900/50">
+      <Card className="flex flex-col items-center justify-center py-16 px-4 bg-zinc-50/50 dark:bg-zinc-900">
         <div className="flex flex-col items-center justify-center text-center max-w-sm">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-400 border-t-transparent" />
-          <p className="mt-4 text-sm text-zinc-400">Loading decks...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-500 dark:border-zinc-300 border-t-transparent" />
+          <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-300">Loading decks...</p>
         </div>
       </Card>
     );
@@ -153,15 +153,15 @@ export default function ListDecks() {
 
   if (decks.length === 0) {
     return (
-      <Card className="flex flex-col items-center justify-center py-16 px-4 bg-zinc-900/50">
+      <Card className="flex flex-col items-center justify-center py-16 px-4 bg-zinc-50/50 dark:bg-zinc-900">
         <div className="flex flex-col items-center justify-center text-center max-w-sm">
-          <div className="rounded-full bg-zinc-800 p-4">
-            <RiUploadCloud2Line className="h-8 w-8 text-zinc-400" />
+          <div className="rounded-full bg-zinc-100 dark:bg-zinc-800 p-4">
+            <RiUploadCloud2Line className="h-8 w-8 text-zinc-500 dark:text-zinc-300" />
           </div>
-          <h3 className="mt-6 text-lg font-medium text-zinc-100">
+          <h3 className="mt-6 text-lg font-medium text-zinc-900 dark:text-zinc-50">
             No decks uploaded yet
           </h3>
-          <p className="mt-2 text-sm text-zinc-400/80">
+          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
             Upload your company decks and PDFs to keep them organized and easily accessible in one place.
           </p>
           <div className="mt-6">
@@ -173,12 +173,12 @@ export default function ListDecks() {
   }
 
   return (
-    <Card className="bg-zinc-900/50">
+    <Card className="bg-background dark:bg-zinc-900 text-foreground">
       <div className="relative overflow-x-auto">
         <table className="w-full text-left">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
+              <tr key={headerGroup.id} className="border-b border-zinc-200/10 dark:border-zinc-800">
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
@@ -199,7 +199,7 @@ export default function ListDecks() {
             {table.getRowModel().rows.map((row) => (
               <tr
                 key={row.id}
-                className="border-t border-zinc-800 hover:bg-zinc-800/50 transition-colors"
+                className="border-t border-zinc-200 dark:border-zinc-800 cursor-pointer"
               >
                 {row.getVisibleCells().map((cell) => (
                   <td

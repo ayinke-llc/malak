@@ -55,7 +55,14 @@ type FetchContactOptions struct {
 	WorkspaceID uuid.UUID
 }
 
+type ListContactOptions struct {
+	Paginator   Paginator
+	WorkspaceID uuid.UUID
+	Status      ListUpdateFilterStatus
+}
+
 type ContactRepository interface {
 	Create(context.Context, *Contact) error
 	Get(context.Context, FetchContactOptions) (*Contact, error)
+	List(context.Context, ListContactOptions) ([]Contact, int64, error)
 }

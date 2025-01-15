@@ -477,3 +477,56 @@ func (c *contactHandler) addUserToContactList(
 
 	return newAPIStatus(http.StatusCreated, "list was successfully updated with contact"), StatusSuccess
 }
+
+// @Summary list your contacts
+// @Tags contacts
+// @Accept  json
+// @Produce  json
+// @Param page query int false "Page to query data from. Defaults to 1"
+// @Param per_page query int false "Number to items to return. Defaults to 10 items"
+// @Success 200 {object} listContactsResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /contacts [get]
+func (c *contactHandler) list(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("Listing contacts")
+
+	workspace := getWorkspaceFromContext(r.Context())
+
+	opts := malak.ListContactOptions{
+		Paginator:   malak.PaginatorFromRequest(r),
+		WorkspaceID: workspace.ID,
+	}
+
+	span.SetAttributes(opts.Paginator.OTELAttributes()...)
+
+	contacts, otalCount, err := c.contactRepo.List(ctx, opts)
+	if err != nil {
+		logger.Error("could not list contacts",
+			zap.Error(err))
+
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"could not list contacts"), StatusFailed
+	}
+
+	return listContactsResponse{
+		APIStatus: newAPIStatus(http.StatusCreated, "contact was successfully created"),
+		Contacts:  contacts,
+		Meta: meta{
+			Paging: pagingInfo{
+				PerPage: opts.Paginator.PerPage,
+				Page:    opts.Paginator.Page,
+				Total: otalCount,
+			},
+		},
+	}, StatusSuccess
+}

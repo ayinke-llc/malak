@@ -846,6 +846,28 @@
 				],
 				"type": "object"
 			},
+			"server.listContactsResponse": {
+				"properties": {
+					"contacts": {
+						"items": {
+							"$ref": "#/components/schemas/malak.Contact"
+						},
+						"type": "array"
+					},
+					"message": {
+						"type": "string"
+					},
+					"meta": {
+						"$ref": "#/components/schemas/server.meta"
+					}
+				},
+				"required": [
+					"contacts",
+					"message",
+					"meta"
+				],
+				"type": "object"
+			},
 			"server.listUpdateResponse": {
 				"properties": {
 					"message": {
@@ -1063,6 +1085,82 @@
 			}
 		},
 		"/contacts": {
+			"get": {
+				"parameters": [
+					{
+						"description": "Page to query data from. Defaults to 1",
+						"in": "query",
+						"name": "page",
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"description": "Number to items to return. Defaults to 10 items",
+						"in": "query",
+						"name": "per_page",
+						"schema": {
+							"type": "integer"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.listContactsResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "list your contacts",
+				"tags": [
+					"contacts"
+				]
+			},
 			"post": {
 				"requestBody": {
 					"content": {
