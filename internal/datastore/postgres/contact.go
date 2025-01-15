@@ -115,7 +115,7 @@ func (o *contactRepo) List(ctx context.Context,
 
 	count = int64(totalCount)
 
-	err = o.inner.NewSelect().
+	return contacts, count, o.inner.NewSelect().
 		Model(&contacts).
 		Where("workspace_id = ?", opts.WorkspaceID).
 		Where("deleted_at IS NULL").
@@ -123,6 +123,4 @@ func (o *contactRepo) List(ctx context.Context,
 		Limit(int(opts.Paginator.PerPage)).
 		Offset(int(opts.Paginator.Offset())).
 		Scan(ctx)
-
-	return contacts, count, nil
 }
