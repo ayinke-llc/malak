@@ -94,11 +94,25 @@ const docTemplate = `{
                     "contacts"
                 ],
                 "summary": "list your contacts",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page to query data from. Defaults to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number to items to return. Defaults to 10 items",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.fetchContactResponse"
+                            "$ref": "#/definitions/server.listContactsResponse"
                         }
                     },
                     "400": {
@@ -2390,6 +2404,28 @@ const docTemplate = `{
                 },
                 "workspace": {
                     "$ref": "#/definitions/malak.Workspace"
+                }
+            }
+        },
+        "server.listContactsResponse": {
+            "type": "object",
+            "required": [
+                "contacts",
+                "message",
+                "meta"
+            ],
+            "properties": {
+                "contacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.Contact"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "meta": {
+                    "$ref": "#/definitions/server.meta"
                 }
             }
         },

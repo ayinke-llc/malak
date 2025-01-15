@@ -334,6 +334,12 @@ export interface ServerFetchWorkspaceResponse {
   workspace: MalakWorkspace;
 }
 
+export interface ServerListContactsResponse {
+  contacts: MalakContact[];
+  message: string;
+  meta: ServerMeta;
+}
+
 export interface ServerListUpdateResponse {
   message: string;
   meta: ServerMeta;
@@ -542,10 +548,19 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary list your contacts
      * @request GET:/contacts
      */
-    contactsList: (params: RequestParams = {}) =>
-      this.request<ServerFetchContactResponse, ServerAPIStatus>({
+    contactsList: (
+      query?: {
+        /** Page to query data from. Defaults to 1 */
+        page?: number;
+        /** Number to items to return. Defaults to 10 items */
+        per_page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerListContactsResponse, ServerAPIStatus>({
         path: `/contacts`,
         method: "GET",
+        query: query,
         format: "json",
         ...params,
       }),

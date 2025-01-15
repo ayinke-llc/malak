@@ -482,7 +482,9 @@ func (c *contactHandler) addUserToContactList(
 // @Tags contacts
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} fetchContactResponse
+// @Param page query int false "Page to query data from. Defaults to 1"
+// @Param per_page query int false "Number to items to return. Defaults to 10 items"
+// @Success 200 {object} listContactsResponse
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus

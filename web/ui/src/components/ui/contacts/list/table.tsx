@@ -40,64 +40,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { RiMoreLine } from "@remixicon/react";
 import Link from "next/link";
+import client from "@/lib/client";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import type { MalakContact, MalakContactListMapping } from "@/client/Api";
 
-export type Contact = {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  company?: string;
-  city?: string;
-  phone?: string;
-  notes?: string;
-  reference: string;
-  lists: ContactList[];
-  created_at: string;
-  updated_at: string;
-};
-
-interface ContactList {
-  id: string;
-  title: string;
-  reference: string;
-}
-
-const data: Contact[] = [
-  {
-    id: "1",
-    email: "john@example.com",
-    first_name: "John",
-    last_name: "Doe",
-    company: "Example Corp",
-    city: "San Francisco",
-    phone: "+1234567890",
-    reference: "contact_123",
-    lists: [
-      { id: "1", title: "Investors", reference: "list_1" },
-      { id: "2", title: "VCs", reference: "list_2" },
-      { id: "3", title: "Angels", reference: "list_3" },
-    ],
-    created_at: "2024-01-15T10:00:00Z",
-    updated_at: "2024-01-15T10:00:00Z",
-  },
-  {
-    id: "2",
-    email: "jane@example.com",
-    first_name: "Jane",
-    last_name: "Smith",
-    company: "Tech Corp",
-    city: "New York",
-    phone: "+0987654321",
-    reference: "contact_456",
-    lists: [
-      { id: "1", title: "Investors", reference: "list_1" },
-    ],
-    created_at: "2024-01-14T10:00:00Z",
-    updated_at: "2024-01-14T10:00:00Z",
-  },
-];
-
-export const columns: ColumnDef<Contact>[] = [
+export const columns: ColumnDef<MalakContact>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -140,7 +87,7 @@ export const columns: ColumnDef<Contact>[] = [
     },
     cell: ({ row }) => {
       const contact = row.original;
-      const fullName = `${contact.first_name} ${contact.last_name}`;
+      const fullName = `${contact.first_name || ''} ${contact.last_name || ''}`.trim();
 
       return (
         <div className="min-w-[320px]">
@@ -150,11 +97,12 @@ export const columns: ColumnDef<Contact>[] = [
           >
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-sm font-medium uppercase">
-                {contact.first_name[0]}{contact.last_name[0]}
+                {(contact.first_name?.[0] || '')}
+                {(contact.last_name?.[0] || '')}
               </div>
               <div>
                 <h3 className="font-medium text-foreground group-hover:text-foreground/90 transition-colors">
-                  {fullName}
+                  {fullName || contact.email}
                 </h3>
                 <div className="flex flex-col gap-0.5">
                   <p className="text-sm text-muted-foreground">
@@ -179,7 +127,7 @@ export const columns: ColumnDef<Contact>[] = [
       <div className="text-left text-muted-foreground font-normal">Lists</div>
     ),
     cell: ({ row }) => {
-      const lists = row.getValue("lists") as ContactList[];
+      const lists = row.getValue("lists") as MalakContactListMapping[];
 
       if (lists && lists.length > 0) {
         return (
@@ -190,7 +138,7 @@ export const columns: ColumnDef<Contact>[] = [
                 variant="secondary"
                 className="bg-muted/50 text-foreground hover:bg-muted transition-colors border border-border px-2 py-0.5 text-xs font-normal"
               >
-                {list.title}
+                {list.reference}
               </Badge>
             ))}
             {lists.length > 3 && (
@@ -248,7 +196,7 @@ export const columns: ColumnDef<Contact>[] = [
           >
             <DropdownMenuLabel className="text-muted-foreground text-xs">Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(contact.email)}
+              onClick={() => navigator.clipboard.writeText(contact.email || '')}
               className="text-muted-foreground focus:bg-muted focus:text-foreground text-sm"
             >
               Copy email
@@ -277,9 +225,43 @@ export default function ContactsTable() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [{ pageIndex, pageSize }, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: ['contacts', pageSize],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await client.contacts.contactsList({
+        page: pageParam,
+        per_page: pageSize,
+      });
+      return response.data;
+    },
+    getNextPageParam: (lastPage) => {
+      const currentPage = lastPage.meta.paging.page;
+      const totalPages = Math.ceil(lastPage.meta.paging.total / pageSize);
+      return currentPage < totalPages ? currentPage + 1 : undefined;
+    },
+    initialPageParam: 1,
+  });
+
+  const contacts = React.useMemo(() => {
+    if (!data?.pages) return [];
+    return data.pages.flatMap(page => page.contacts);
+  }, [data]);
+
+  const pagination = React.useMemo(
+    () => ({
+      pageIndex,
+      pageSize,
+    }),
+    [pageIndex, pageSize]
+  );
 
   const table = useReactTable({
-    data,
+    data: contacts,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -289,18 +271,27 @@ export default function ContactsTable() {
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    initialState: {
-      pagination: {
-        pageSize: 10,
-      },
-    },
+    onPaginationChange: setPagination,
+    manualPagination: true,
+    pageCount: data?.pages[0]?.meta.paging.total ? Math.ceil(data.pages[0].meta.paging.total / pageSize) : 0,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      pagination,
     },
   });
+
+  // Handle page changes
+  React.useEffect(() => {
+    const totalPages = Math.ceil((data?.pages[0]?.meta.paging.total || 0) / pageSize);
+    const targetPage = pageIndex + 1;
+    
+    if (targetPage <= totalPages && targetPage > (data?.pages.length || 0)) {
+      fetchNextPage();
+    }
+  }, [data, pageIndex, pageSize, fetchNextPage]);
 
   return (
     <div className="w-full space-y-4 bg-background">
@@ -374,7 +365,16 @@ export default function ContactsTable() {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  Loading contacts...
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -425,12 +425,12 @@ export default function ContactsTable() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {[10, 20, 30, 50, 100].map((pageSize) => (
+              {[10, 20, 30, 50, 100].map((size) => (
                 <DropdownMenuItem
-                  key={pageSize}
-                  onClick={() => table.setPageSize(pageSize)}
+                  key={size}
+                  onClick={() => table.setPageSize(size)}
                 >
-                  Show {pageSize} rows
+                  Show {size} rows
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -505,7 +505,7 @@ export default function ContactsTable() {
             >
               <span className="sr-only">Go to last page</span>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                <path fillRule="evenodd" d="M4.21 14.77a.75.75 0 01.02-1.06L8.168 10 4.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z M10.21 14.77a.75.75 0 01.02-1.06L14.168 10 10.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M4.21 14.77a.75.75 0 01.02-1.06L8.168 10 4.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l4.5-4.25a.75.75 0 01-1.06-.02z M10.21 14.77a.75.75 0 01.02-1.06L14.168 10 10.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
               </svg>
             </Button>
           </div>
