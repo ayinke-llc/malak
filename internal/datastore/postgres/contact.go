@@ -96,28 +96,33 @@ func (o *contactRepo) Get(ctx context.Context,
 func (o *contactRepo) List(ctx context.Context,
 	opts malak.ListContactOptions) ([]malak.Contact, int64, error) {
 
+	// simple pagination but can always be improved if it proves to be a data hog
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
 
 	var contacts []malak.Contact
-	var totalCount int64
+	count := int64(0)
 
-	err := o.inner.NewSelect().
+	totalCount, err := o.inner.NewSelect().
 		Model(&contacts).
-		ColumnExpr("contacts.*").
-		ColumnExpr("count(*) over() as total_count").
+		Where("workspace_id = ?", opts.WorkspaceID).
+		Where("deleted_at IS NULL").
+		Count(ctx)
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	count = int64(totalCount)
+
+	err = o.inner.NewSelect().
+		Model(&contacts).
 		Where("workspace_id = ?", opts.WorkspaceID).
 		Where("deleted_at IS NULL").
 		Order("created_at DESC").
 		Limit(int(opts.Paginator.PerPage)).
 		Offset(int(opts.Paginator.Offset())).
-		Scan(ctx, &contacts, &totalCount)
+		Scan(ctx)
 
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return []malak.Contact{}, 0, nil
-		}
-	}
-
-	return contacts, totalCount, err
+	return contacts, count, nil
 }
