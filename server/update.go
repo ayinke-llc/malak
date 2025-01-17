@@ -13,7 +13,6 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -26,6 +25,7 @@ type updatesHandler struct {
 	cfg                config.Config
 	cache              cache.Cache
 	queueHandler       queue.QueueHandler
+	uuidGenerator      malak.UuidGenerator
 }
 
 type createUpdateContent struct {
@@ -88,7 +88,7 @@ func (u *updatesHandler) create(
 		CreatedBy:   user.ID,
 		Content: malak.BlockContents{
 			{
-				ID:   uuid.New().String(),
+				ID:   u.uuidGenerator.Create().String(),
 				Type: "heading",
 				Props: map[string]interface{}{
 					"level":           2,
@@ -106,7 +106,7 @@ func (u *updatesHandler) create(
 				Children: []malak.Block{},
 			},
 			{
-				ID:   uuid.New().String(),
+				ID:   u.uuidGenerator.Create().String(),
 				Type: "paragraph",
 				Props: map[string]interface{}{
 					"textColor":       "default",

@@ -137,6 +137,7 @@ func buildRoutes(
 		cfg:                cfg,
 		queueHandler:       queueHandler,
 		cache:              redisCache,
+		uuidGenerator:      malak.NewGoogleUUID(),
 	}
 
 	webhookHandler := &webhookHandler{
