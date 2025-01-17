@@ -355,6 +355,13 @@ func (u *updatesHandler) listPinnedUpdates(
 
 	workspace := getWorkspaceFromContext(r.Context())
 
+	opts := malak.ListUpdateOptions{
+		Paginator:   malak.PaginatorFromRequest(r),
+		WorkspaceID: workspace.ID,
+	}
+
+	span.SetAttributes(opts.Paginator.OTELAttributes()...)
+
 	updates, err := u.updateRepo.ListPinned(ctx, workspace.ID)
 	if err != nil {
 		logger.Error("could not list pinned updates",
@@ -368,5 +375,12 @@ func (u *updatesHandler) listPinnedUpdates(
 	return listUpdateResponse{
 		APIStatus: newAPIStatus(http.StatusOK, "pinned updates fetched"),
 		Updates:   updates,
+		Meta: meta{
+			Paging: pagingInfo{
+				PerPage: opts.Paginator.PerPage,
+				Page:    opts.Paginator.Page,
+				Total:   int64(len(updates)),
+			},
+		},
 	}, StatusSuccess
 }

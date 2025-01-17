@@ -201,7 +201,7 @@ func (u *updatesRepo) List(ctx context.Context,
 	}
 
 	// Get total count with same filters
-	total, err := q.Clone().
+	total, err := q.
 		Model(&updates).
 		Count(ctx)
 	if err != nil {
