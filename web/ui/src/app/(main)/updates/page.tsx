@@ -55,11 +55,11 @@ export default function Page() {
               <Button
                 type="button"
                 variant="default"
-                className="whitespace-nowrap text-foreground"
+                className="whitespace-nowrap"
                 loading={isLoading}
                 onClick={() => mutation.mutate()}
               >
-                <RiAddLine className="text-foreground" />
+                <RiAddLine />
                 New update
               </Button>
             </div>
