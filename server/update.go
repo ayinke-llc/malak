@@ -13,6 +13,7 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -85,11 +86,41 @@ func (u *updatesHandler) create(
 	update := &malak.Update{
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
-		Content:     malak.BlockContents{},
-		Reference:   u.referenceGenerator.Generate(malak.EntityTypeUpdate),
-		Status:      malak.UpdateStatusDraft,
-		Metadata:    malak.UpdateMetadata{},
-		Title:       req.Title,
+		Content: malak.BlockContents{
+			{
+				ID:   uuid.New().String(),
+				Type: "heading",
+				Props: map[string]interface{}{
+					"level":           2,
+					"textColor":       "default",
+					"textAlignment":   "left",
+					"backgroundColor": "default",
+				},
+				Content: []map[string]interface{}{
+					{
+						"text":   req.Title,
+						"type":   "text",
+						"styles": map[string]interface{}{},
+					},
+				},
+				Children: []malak.Block{},
+			},
+			{
+				ID:   uuid.New().String(),
+				Type: "paragraph",
+				Props: map[string]interface{}{
+					"textColor":       "default",
+					"textAlignment":   "left",
+					"backgroundColor": "default",
+				},
+				Content:  []map[string]interface{}{},
+				Children: []malak.Block{},
+			},
+		},
+		Reference: u.referenceGenerator.Generate(malak.EntityTypeUpdate),
+		Status:    malak.UpdateStatusDraft,
+		Metadata:  malak.UpdateMetadata{},
+		Title:     req.Title,
 	}
 
 	if err := u.updateRepo.Create(ctx, update); err != nil {
