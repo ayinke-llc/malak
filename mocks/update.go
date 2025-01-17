@@ -132,12 +132,13 @@ func (mr *MockUpdateRepositoryMockRecorder) GetStatByEmailID(arg0, arg1, arg2 an
 }
 
 // List mocks base method.
-func (m *MockUpdateRepository) List(arg0 context.Context, arg1 malak.ListUpdateOptions) ([]malak.Update, error) {
+func (m *MockUpdateRepository) List(arg0 context.Context, arg1 malak.ListUpdateOptions) ([]malak.Update, int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List", arg0, arg1)
 	ret0, _ := ret[0].([]malak.Update)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // List indicates an expected call of List.

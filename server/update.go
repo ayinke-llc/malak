@@ -183,7 +183,7 @@ func (u *updatesHandler) list(
 			attribute.String("view",
 				filterStatus.String()))...)
 
-	updates, err := u.updateRepo.List(ctx, opts)
+	updates, total, err := u.updateRepo.List(ctx, opts)
 	if err != nil {
 
 		logger.Error("could not list updates",
@@ -201,6 +201,7 @@ func (u *updatesHandler) list(
 			Paging: pagingInfo{
 				PerPage: opts.Paginator.PerPage,
 				Page:    opts.Paginator.Page,
+				Total:   total,
 			},
 		},
 	}, StatusSuccess

@@ -319,7 +319,7 @@ func generateUpdateListTestTable() []struct {
 					EXPECT().
 					List(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(nil, errors.New("could not list update"))
+					Return(nil, int64(0), errors.New("could not list update"))
 
 			},
 			expectedStatusCode: http.StatusInternalServerError,
@@ -335,7 +335,7 @@ func generateUpdateListTestTable() []struct {
 						{
 							Reference: malak.Reference("update_12345"),
 						},
-					}, nil)
+					}, int64(1), nil)
 			},
 			expectedStatusCode: http.StatusOK,
 		},

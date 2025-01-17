@@ -247,13 +247,14 @@ func TestUpdates_List(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	updates, err := updatesRepo.List(context.Background(), malak.ListUpdateOptions{
+	updates, total, err := updatesRepo.List(context.Background(), malak.ListUpdateOptions{
 		WorkspaceID: workspace.ID,
 		Status:      malak.ListUpdateFilterStatusAll,
 	})
 	require.NoError(t, err)
 
 	require.Len(t, updates, 0)
+	require.Equal(t, int64(0), total)
 
 	err = updatesRepo.Create(context.Background(), &malak.Update{
 		WorkspaceID: workspace.ID,
@@ -264,13 +265,14 @@ func TestUpdates_List(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	updates, err = updatesRepo.List(context.Background(), malak.ListUpdateOptions{
+	updates, total, err = updatesRepo.List(context.Background(), malak.ListUpdateOptions{
 		WorkspaceID: workspace.ID,
 		Status:      malak.ListUpdateFilterStatusAll,
 	})
 	require.NoError(t, err)
 
 	require.Len(t, updates, 1)
+	require.Equal(t, int64(1), total)
 }
 
 func TestUpdates_TogglePinned(t *testing.T) {
