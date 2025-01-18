@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { format } from "date-fns";
-import { RiUploadCloud2Line, RiFileCopyLine, RiCheckLine } from "@remixicon/react";
+import { RiUploadCloud2Line, RiFileCopyLine, RiCheckLine, RiArchiveLine } from "@remixicon/react";
 import UploadDeckModal from "../modal";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
@@ -22,9 +22,21 @@ import { LIST_DECKS } from "@/lib/query-constants";
 import client from "@/lib/client";
 import { useQuery } from "@tanstack/react-query";
 import type { ServerFetchDecksResponse, MalakDeck } from "@/client/Api";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function ListDecks() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [archivingId, setArchivingId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery<ServerFetchDecksResponse>({
     queryKey: [LIST_DECKS],
@@ -51,6 +63,13 @@ export default function ListDecks() {
   const truncateText = (text: string, maxLength: number) => {
     if (text.length <= maxLength) return text;
     return text.slice(0, maxLength) + "...";
+  };
+
+  const handleArchive = async (deckId: string) => {
+    setArchivingId(deckId);
+    // TODO: Implement actual archive API call
+    toast.success("Deck archived successfully");
+    setArchivingId(null);
   };
 
   const columnHelper = createColumnHelper<MalakDeck>();
@@ -130,8 +149,60 @@ export default function ListDecks() {
           );
         },
       }),
+      columnHelper.accessor((row) => row.id, {
+        id: "actions",
+        header: () => <span className="text-muted-foreground">Actions</span>,
+        cell: (info) => {
+          const deckId = info.getValue() ?? "";
+          return (
+            <div className="flex items-center gap-2">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0 h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  >
+                    <RiArchiveLine className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-background border-border">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-foreground">Archive deck?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-muted-foreground">
+                      This will archive the deck. You can always unarchive it later.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel
+                      className="bg-background border-border text-foreground hover:bg-accent hover:text-accent-foreground"
+                      disabled={archivingId === deckId}
+                    >
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-primary text-primary-foreground hover:bg-primary/90"
+                      onClick={() => handleArchive(deckId)}
+                      disabled={archivingId === deckId}
+                    >
+                      {archivingId === deckId ? (
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                          Archiving...
+                        </div>
+                      ) : (
+                        "Archive deck"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          );
+        },
+      }),
     ],
-    [copiedId]
+    [copiedId, archivingId]
   );
 
   const table = useReactTable({
