@@ -99,6 +99,20 @@ func (mr *MockDeckRepositoryMockRecorder) List(arg0, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockDeckRepository)(nil).List), arg0, arg1)
 }
 
+// ToggleArchive mocks base method.
+func (m *MockDeckRepository) ToggleArchive(arg0 context.Context, arg1 *malak.Deck) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ToggleArchive", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ToggleArchive indicates an expected call of ToggleArchive.
+func (mr *MockDeckRepositoryMockRecorder) ToggleArchive(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToggleArchive", reflect.TypeOf((*MockDeckRepository)(nil).ToggleArchive), arg0, arg1)
+}
+
 // UpdatePreferences mocks base method.
 func (m *MockDeckRepository) UpdatePreferences(arg0 context.Context, arg1 *malak.Deck) error {
 	m.ctrl.T.Helper()

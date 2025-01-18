@@ -216,7 +216,8 @@ func (d *deckHandler) Delete(
 	}
 
 	deck, err := d.deckRepo.Get(ctx, malak.FetchDeckOptions{
-		Reference: ref,
+		Reference:   ref,
+		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
 	})
 	if err != nil {
 		logger.Error("could not fetch deck", zap.Error(err))
@@ -268,7 +269,8 @@ func (d *deckHandler) fetch(
 	}
 
 	deck, err := d.deckRepo.Get(ctx, malak.FetchDeckOptions{
-		Reference: ref,
+		Reference:   ref,
+		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
 	})
 	if err != nil {
 		logger.Error("could not fetch deck", zap.Error(err))
@@ -350,7 +352,8 @@ func (d *deckHandler) updatePreferences(
 	}
 
 	deck, err := d.deckRepo.Get(ctx, malak.FetchDeckOptions{
-		Reference: ref,
+		Reference:   ref,
+		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
 	})
 	if err != nil {
 		logger.Error("could not fetch deck", zap.Error(err))
@@ -381,6 +384,62 @@ func (d *deckHandler) updatePreferences(
 
 	return fetchDeckResponse{
 		APIStatus: newAPIStatus(http.StatusOK, "Updated deck preferences"),
+		Deck:      hermes.DeRef(deck),
+	}, StatusSuccess
+}
+
+// @Summary toggle archive status of a deck
+// @Tags decks
+// @Accept  json
+// @Produce  json
+// @id toggleArchive
+// @Param reference path string required "deck unique reference.. e.g deck_"
+// @Success 200 {object} fetchDeckResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /decks/{reference}/archive [post]
+func (d *deckHandler) toggleArchive(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("toggling archive status of a deck")
+
+	ref := chi.URLParam(r, "reference")
+
+	if hermes.IsStringEmpty(ref) {
+		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
+	}
+
+	deck, err := d.deckRepo.Get(ctx, malak.FetchDeckOptions{
+		Reference:   ref,
+		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
+	})
+	if err != nil {
+		logger.Error("could not fetch deck", zap.Error(err))
+		status := http.StatusInternalServerError
+		msg := "an error occurred while fetching deck"
+
+		if errors.Is(err, malak.ErrDeckNotFound) {
+			status = http.StatusNotFound
+			msg = "deck does not exists"
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	if err := d.deckRepo.ToggleArchive(ctx, deck); err != nil {
+		logger.Error("could not toggle archive status", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not toggle archival status"),
+			StatusFailed
+	}
+
+	return fetchDeckResponse{
+		APIStatus: newAPIStatus(http.StatusOK, "Updated deck archival status"),
 		Deck:      hermes.DeRef(deck),
 	}, StatusSuccess
 }

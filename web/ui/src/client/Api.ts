@@ -77,6 +77,7 @@ export interface MalakDeck {
   created_at?: string;
   created_by?: string;
   id?: string;
+  is_archived?: boolean;
   preferences?: MalakDeckPreference;
   reference?: string;
   short_link?: string;
@@ -723,6 +724,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerFetchDeckResponse, ServerAPIStatus>({
         path: `/decks/${reference}`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags decks
+     * @name ToggleArchive
+     * @summary toggle archive status of a deck
+     * @request POST:/decks/{reference}/archive
+     */
+    toggleArchive: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerFetchDeckResponse, ServerAPIStatus>({
+        path: `/decks/${reference}/archive`,
+        method: "POST",
         format: "json",
         ...params,
       }),
