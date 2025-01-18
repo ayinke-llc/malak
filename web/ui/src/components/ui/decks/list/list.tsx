@@ -178,14 +178,18 @@ export default function ListDecks() {
                     size="sm"
                     className="shrink-0 h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                   >
-                    <RiArchiveLine className="h-4 w-4" />
+                    {info?.cell?.row?.original?.is_archived ?
+                      <RiArchiveLine className="h-4 w-4" color="red" /> :
+                      <RiArchiveLine className="h-4 w-4" />}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent className="bg-background border-border">
                   <AlertDialogHeader>
-                    <AlertDialogTitle className="text-foreground">Archive deck?</AlertDialogTitle>
+                    <AlertDialogTitle className="text-foreground">
+                      {info?.cell?.row?.original?.is_archived ? "Unarchive deck" : "Archive deck"}
+                    </AlertDialogTitle>
                     <AlertDialogDescription className="text-muted-foreground">
-                      This will archive the deck. You can always unarchive it later.
+                      This will not delete your deck.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -198,7 +202,7 @@ export default function ListDecks() {
                     <AlertDialogAction
                       className="bg-primary text-primary-foreground hover:bg-primary/90"
                       onClick={() => handleArchive(deckId)}
-                      disabled={archivingId === deckId}
+                      disabled={archiveMutation.isPending}
                     >
                       {archivingId === deckId ? (
                         <div className="flex items-center gap-2">
@@ -206,7 +210,7 @@ export default function ListDecks() {
                           Archiving...
                         </div>
                       ) : (
-                        "Archive deck"
+                        info?.cell?.row?.original?.is_archived ? "Unarchive" : "Archive"
                       )}
                     </AlertDialogAction>
                   </AlertDialogFooter>
