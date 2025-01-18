@@ -731,6 +731,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags decks
+     * @name ArchiveCreate
+     * @summary toggle archive status of a deck
+     * @request POST:/decks/{reference}/archive
+     */
+    archiveCreate: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerFetchDeckResponse, ServerAPIStatus>({
+        path: `/decks/${reference}/archive`,
+        method: "POST",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags decks
      * @name PreferencesUpdate
      * @summary update a deck preferences
      * @request PUT:/decks/{reference}/preferences

@@ -216,7 +216,8 @@ func (d *deckHandler) Delete(
 	}
 
 	deck, err := d.deckRepo.Get(ctx, malak.FetchDeckOptions{
-		Reference: ref,
+		Reference:   ref,
+		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
 	})
 	if err != nil {
 		logger.Error("could not fetch deck", zap.Error(err))
@@ -268,7 +269,8 @@ func (d *deckHandler) fetch(
 	}
 
 	deck, err := d.deckRepo.Get(ctx, malak.FetchDeckOptions{
-		Reference: ref,
+		Reference:   ref,
+		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
 	})
 	if err != nil {
 		logger.Error("could not fetch deck", zap.Error(err))
@@ -350,7 +352,8 @@ func (d *deckHandler) updatePreferences(
 	}
 
 	deck, err := d.deckRepo.Get(ctx, malak.FetchDeckOptions{
-		Reference: ref,
+		Reference:   ref,
+		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
 	})
 	if err != nil {
 		logger.Error("could not fetch deck", zap.Error(err))
@@ -412,7 +415,8 @@ func (d *deckHandler) toggleArchive(
 	}
 
 	deck, err := d.deckRepo.Get(ctx, malak.FetchDeckOptions{
-		Reference: ref,
+		Reference:   ref,
+		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
 	})
 	if err != nil {
 		logger.Error("could not fetch deck", zap.Error(err))

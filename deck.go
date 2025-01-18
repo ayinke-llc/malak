@@ -21,6 +21,8 @@ type Deck struct {
 	Title       string    `json:"title,omitempty"`
 	ShortLink   string    `json:"short_link,omitempty"`
 
+	IsArchived bool `json:"is_archived,omitempty"`
+
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 
@@ -69,7 +71,8 @@ type CreateDeckOptions struct {
 }
 
 type FetchDeckOptions struct {
-	Reference string
+	Reference   string
+	WorkspaceID uuid.UUID
 }
 
 type DeckRepository interface {

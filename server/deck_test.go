@@ -532,3 +532,107 @@ func TestDeckHandler_UpdatePreferences(t *testing.T) {
 		})
 	}
 }
+
+func generateDeckToggleArchiveTestTable() []struct {
+	name               string
+	mockFn             func(deck *malak_mocks.MockDeckRepository)
+	expectedStatusCode int
+} {
+	return []struct {
+		name               string
+		mockFn             func(deck *malak_mocks.MockDeckRepository)
+		expectedStatusCode int
+	}{
+		{
+			name:               "no reference provided",
+			mockFn:             func(deck *malak_mocks.MockDeckRepository) {},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "deck not found",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Deck{}, malak.ErrDeckNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "error fetching deck",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Deck{}, errors.New("database error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "error toggling archive status",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Deck{
+						Reference: "deck_test",
+					}, nil)
+
+				deck.EXPECT().ToggleArchive(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(errors.New("could not toggle archive status"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "successfully toggled archive status",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Deck{
+						Reference: "deck_test",
+					}, nil)
+
+				deck.EXPECT().ToggleArchive(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
+func TestDeckHandler_ToggleArchive(t *testing.T) {
+	for _, v := range generateDeckToggleArchiveTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			deckRepo := malak_mocks.NewMockDeckRepository(controller)
+			v.mockFn(deckRepo)
+
+			u := &deckHandler{
+				referenceGenerator: &mockReferenceGenerator{},
+				deckRepo:           deckRepo,
+			}
+
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodPost, "/workspaces/decks/deck_test/archive", nil)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			ctx := chi.NewRouteContext()
+			if v.name != "no reference provided" {
+				ctx.URLParams.Add("reference", "deck_test")
+			}
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
+
+			WrapMalakHTTPHandler(getLogger(t),
+				u.toggleArchive,
+				getConfig(), "decks.toggle_archive").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}

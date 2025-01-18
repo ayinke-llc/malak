@@ -95,6 +95,7 @@ func (d *decksRepo) Get(ctx context.Context, opts malak.FetchDeckOptions) (
 	err := d.inner.NewSelect().
 		Model(deck).
 		Where("deck.reference = ?", opts.Reference).
+		Where("deck.workspace_id = ?", opts.WorkspaceID).
 		Relation("DeckPreference").
 		Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -149,13 +150,13 @@ func (d *decksRepo) UpdatePreferences(ctx context.Context, deck *malak.Deck) err
 	})
 }
 
-func (u *updatesRepo) ToggleArchive(ctx context.Context,
+func (d *decksRepo) ToggleArchive(ctx context.Context,
 	deck *malak.Deck) error {
 
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
 
-	return u.inner.RunInTx(ctx, &sql.TxOptions{},
+	return d.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
 
 			_, err := tx.NewUpdate().
