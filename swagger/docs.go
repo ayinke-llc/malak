@@ -657,6 +657,7 @@ const docTemplate = `{
                     "decks"
                 ],
                 "summary": "toggle archive status of a deck",
+                "operationId": "toggleArchive",
                 "parameters": [
                     {
                         "type": "string",
@@ -1843,6 +1844,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "is_archived": {
+                    "type": "boolean"
                 },
                 "preferences": {
                     "$ref": "#/definitions/malak.DeckPreference"

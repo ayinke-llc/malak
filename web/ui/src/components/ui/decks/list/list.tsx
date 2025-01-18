@@ -20,7 +20,7 @@ import {
 } from "@tanstack/react-table";
 import { LIST_DECKS } from "@/lib/query-constants";
 import client from "@/lib/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ServerFetchDecksResponse, MalakDeck } from "@/client/Api";
 import {
   AlertDialog,
@@ -37,10 +37,27 @@ import {
 export default function ListDecks() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [archivingId, setArchivingId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery<ServerFetchDecksResponse>({
     queryKey: [LIST_DECKS],
     queryFn: () => client.decks.decksList().then(res => res.data),
+  });
+
+  const archiveMutation = useMutation({
+    mutationFn: (deckId: string) => client.decks.toggleArchive(deckId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [LIST_DECKS] });
+      toast.success("Deck archive status updated successfully");
+    },
+    onError: () => {
+      toast.error("Failed to update deck archive status", {
+        description: "Please try again.",
+      });
+    },
+    onSettled: () => {
+      setArchivingId(null);
+    },
   });
 
   const decks = useMemo(() => data?.decks ?? [], [data]);
@@ -67,9 +84,7 @@ export default function ListDecks() {
 
   const handleArchive = async (deckId: string) => {
     setArchivingId(deckId);
-    // TODO: Implement actual archive API call
-    toast.success("Deck archived successfully");
-    setArchivingId(null);
+    archiveMutation.mutate(deckId);
   };
 
   const columnHelper = createColumnHelper<MalakDeck>();
@@ -153,7 +168,7 @@ export default function ListDecks() {
         id: "actions",
         header: () => <span className="text-muted-foreground">Actions</span>,
         cell: (info) => {
-          const deckId = info.getValue() ?? "";
+          const deckId = info?.cell?.row?.original?.reference as string
           return (
             <div className="flex items-center gap-2">
               <AlertDialog>

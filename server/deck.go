@@ -392,6 +392,7 @@ func (d *deckHandler) updatePreferences(
 // @Tags decks
 // @Accept  json
 // @Produce  json
+// @id toggleArchive
 // @Param reference path string required "deck unique reference.. e.g deck_"
 // @Success 200 {object} fetchDeckResponse
 // @Failure 400 {object} APIStatus
