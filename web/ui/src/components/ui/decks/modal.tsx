@@ -61,7 +61,7 @@ export default function UploadDeckModal() {
   });
 
   const uploadMutation = useMutation({
-    mutationFn: (file: File) => client.images.uploadImage({ image_body: file }),
+    mutationFn: (file: File) => client.uploads.uploadDeck({ image_body: file }),
     onSuccess: ({ data }) => {
       setValue("pdfUrl", data.url);
       toast.success("File uploaded successfully");
@@ -150,19 +150,19 @@ export default function UploadDeckModal() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-zinc-100">Upload Company Deck</DialogTitle>
-          <DialogDescription className="text-zinc-400">
+          <DialogTitle className="text-foreground">Upload Company Deck</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Upload a PDF file for your company.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="title" className="text-zinc-100">Deck Title</Label>
+            <Label htmlFor="title" className="text-foreground">Deck Title</Label>
             <Input
               id="title"
               type="text"
               {...register("title")}
-              className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
+              className="bg-background border-input text-foreground placeholder:text-muted-foreground"
               placeholder="Enter deck title"
             />
             {errors.title && (
@@ -171,23 +171,23 @@ export default function UploadDeckModal() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="deck" className="text-zinc-100">Deck File</Label>
+            <Label htmlFor="deck" className="text-foreground">Deck File</Label>
             <div className="flex items-center justify-center w-full">
               <label
                 htmlFor="deck"
-                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer border-zinc-700 bg-zinc-800/50 hover:bg-zinc-800"
+                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer border-input bg-background/50 hover:bg-accent"
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
               >
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <RiUploadCloud2Line className="w-8 h-8 mb-3 text-zinc-400" />
+                  <RiUploadCloud2Line className="w-8 h-8 mb-3 text-muted-foreground" />
                   {selectedFile ? (
                     <div className="text-center">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <p className="mb-2 text-sm text-zinc-400">
-                              Selected: <span className="font-medium text-zinc-300">{truncateText(selectedFile.name, 40)}</span>
+                            <p className="mb-2 text-sm text-muted-foreground">
+                              Selected: <span className="font-medium text-foreground">{truncateText(selectedFile.name, 40)}</span>
                             </p>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -195,14 +195,14 @@ export default function UploadDeckModal() {
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                      <p className="text-xs text-zinc-500">Click or drag to change file</p>
+                      <p className="text-xs text-muted-foreground">Click or drag to change file</p>
                     </div>
                   ) : (
                     <>
-                      <p className="mb-2 text-sm text-zinc-400">
+                      <p className="mb-2 text-sm text-muted-foreground">
                         <span className="font-semibold">Click to upload</span> or drag and drop
                       </p>
-                      <p className="text-xs text-zinc-500">PDF files only (MAX. 100MB)</p>
+                      <p className="text-xs text-muted-foreground">PDF files only (MAX. 100MB)</p>
                     </>
                   )}
                 </div>
@@ -231,14 +231,14 @@ export default function UploadDeckModal() {
                 reset();
                 setSelectedFile(null);
               }}
-              className="text-zinc-100 hover:text-zinc-200 hover:bg-zinc-800"
+              className="text-foreground hover:text-foreground hover:bg-accent"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-zinc-100 text-zinc-900 hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Uploading..." : "Upload"}
             </Button>

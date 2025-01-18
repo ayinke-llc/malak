@@ -22,7 +22,7 @@ import (
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /images/upload [post]
+// @Router /upload/images [post]
 func (u *updatesHandler) uploadImage(
 	ctx context.Context,
 	span trace.Span,

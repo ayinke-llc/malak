@@ -12,6 +12,7 @@ import (
 	"github.com/ayinke-llc/malak"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -216,6 +217,7 @@ func TestUpdatesHandler_Create(t *testing.T) {
 			u := &updatesHandler{
 				referenceGenerator: &mockReferenceGenerator{},
 				updateRepo:         updateRepo,
+				uuidGenerator:      &mockUUIDGenerator{},
 			}
 
 			var b = bytes.NewBuffer(nil)
@@ -319,7 +321,7 @@ func generateUpdateListTestTable() []struct {
 					EXPECT().
 					List(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(nil, errors.New("could not list update"))
+					Return(nil, int64(0), errors.New("could not list update"))
 
 			},
 			expectedStatusCode: http.StatusInternalServerError,
@@ -335,7 +337,7 @@ func generateUpdateListTestTable() []struct {
 						{
 							Reference: malak.Reference("update_12345"),
 						},
-					}, nil)
+					}, int64(1), nil)
 			},
 			expectedStatusCode: http.StatusOK,
 		},
@@ -706,4 +708,10 @@ func generateUpdateTestTable() []struct {
 			expectedStatusCode: http.StatusOK,
 		},
 	}
+}
+
+type mockUUIDGenerator struct{}
+
+func (m *mockUUIDGenerator) Create() uuid.UUID {
+	return uuid.MustParse("123e4567-e89b-12d3-a456-426614174000")
 }

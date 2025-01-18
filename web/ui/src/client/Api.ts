@@ -745,14 +745,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         ...params,
       }),
   };
-  images = {
+  upload = {
     /**
      * No description
      *
      * @tags images
      * @name UploadImage
      * @summary Upload an image
-     * @request POST:/images/upload
+     * @request POST:/upload/images
      */
     uploadImage: (
       data: {
@@ -765,7 +765,35 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       params: RequestParams = {},
     ) =>
       this.request<ServerUploadImageResponse, ServerAPIStatus>({
-        path: `/images/upload`,
+        path: `/upload/images`,
+        method: "POST",
+        body: data,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+  };
+  uploads = {
+    /**
+     * No description
+     *
+     * @tags decks
+     * @name UploadDeck
+     * @summary Upload a deck
+     * @request POST:/uploads/decks
+     */
+    uploadDeck: (
+      data: {
+        /**
+         * image body
+         * @format binary
+         */
+        image_body: File;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerUploadImageResponse, ServerAPIStatus>({
+        path: `/uploads/decks`,
         method: "POST",
         body: data,
         type: ContentType.FormData,

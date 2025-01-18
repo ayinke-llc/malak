@@ -3,10 +3,13 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
+	"github.com/adelowo/gulter"
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
+	"github.com/ayinke-llc/malak/config"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/microcosm-cc/bluemonday"
@@ -17,6 +20,49 @@ import (
 type deckHandler struct {
 	deckRepo           malak.DeckRepository
 	referenceGenerator malak.ReferenceGeneratorOperation
+	cfg                config.Config
+}
+
+// @Summary Upload a deck
+// @Tags decks
+// @id uploadDeck
+// @Accept  json
+// @Produce  json
+// @Param image_body formData file true "image body"
+// @Success 200 {object} uploadImageResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /uploads/decks [post]
+func (u *deckHandler) uploadImage(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("file uploaded using Gulter")
+
+	files, err := gulter.FilesFromContextWithKey(r, "image_body")
+	if err != nil {
+		logger.Error("could not fetch gulter uploaded files", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"internal failure while fetching file from storage"), StatusFailed
+	}
+
+	// only one file we are expecting at a time
+	file := files[0]
+
+	uploadedURL := fmt.Sprintf("%s/%s/%s",
+		u.cfg.Uploader.S3.Endpoint,
+		file.FolderDestination,
+		file.UploadedFileName)
+
+	return uploadImageResponse{
+		URL:       uploadedURL,
+		APIStatus: newAPIStatus(http.StatusOK, "deck was uploaded"),
+	}, StatusSuccess
 }
 
 type createDeckRequest struct {

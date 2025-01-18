@@ -185,7 +185,7 @@ func (u *updatesRepo) Create(ctx context.Context,
 }
 
 func (u *updatesRepo) List(ctx context.Context,
-	opts malak.ListUpdateOptions) ([]malak.Update, error) {
+	opts malak.ListUpdateOptions) ([]malak.Update, int64, error) {
 
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
@@ -200,12 +200,21 @@ func (u *updatesRepo) List(ctx context.Context,
 		q = q.Where("status = ?", opts.Status)
 	}
 
-	err := q.Model(&updates).
+	// Get total count with same filters
+	total, err := q.
+		Model(&updates).
+		Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Get paginated results
+	err = q.Model(&updates).
 		Limit(int(opts.Paginator.PerPage)).
 		Offset(int(opts.Paginator.Offset())).
 		Scan(ctx)
 
-	return updates, err
+	return updates, int64(total), err
 }
 
 func (u *updatesRepo) ListPinned(ctx context.Context,
@@ -216,13 +225,16 @@ func (u *updatesRepo) ListPinned(ctx context.Context,
 
 	updates := make([]malak.Update, 0, malak.MaximumNumberOfPinnedUpdates)
 
-	return updates, u.inner.NewSelect().
-		Model(&updates).
+	q := u.inner.NewSelect().
 		Order("created_at DESC").
 		Where("workspace_id = ?", workspaceID).
-		Where("is_pinned = ?", true).
+		Where("is_pinned = ?", true)
+
+	err := q.Model(&updates).
 		Limit(malak.MaximumNumberOfPinnedUpdates).
 		Scan(ctx)
+
+	return updates, err
 }
 
 func (u *updatesRepo) Delete(ctx context.Context,

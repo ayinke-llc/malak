@@ -1,7 +1,8 @@
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
+import { useTheme } from "next-themes";
 import type {
-  MalakBlockContent,
+  MalakBlock,
   MalakUpdate,
   ServerAPIStatus,
   ServerContentUpdateRequest,
@@ -47,6 +48,8 @@ export type EditorProps = {
 };
 
 const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
+  const { theme } = useTheme();
+
   if (reference === undefined || reference === "") {
     return null;
   }
@@ -117,7 +120,7 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
 
     mutation.mutate({
       title: titleContent.text,
-      update: blocks as MalakBlockContent[],
+      update: blocks as MalakBlock[],
     });
   }, 1000);
 
@@ -143,7 +146,7 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
       </div>
       <BlockNoteView
         editor={editor}
-        theme={"dark"}
+        theme={theme as "light" | "dark"}
         editable={update?.status !== 'sent'}
         onChange={() => {
           setSaveStatus("Storing");

@@ -25,6 +25,7 @@ type updatesHandler struct {
 	cfg                config.Config
 	cache              cache.Cache
 	queueHandler       queue.QueueHandler
+	uuidGenerator      malak.UuidGenerator
 }
 
 type createUpdateContent struct {
@@ -85,11 +86,41 @@ func (u *updatesHandler) create(
 	update := &malak.Update{
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
-		Content:     malak.BlockContents{},
-		Reference:   u.referenceGenerator.Generate(malak.EntityTypeUpdate),
-		Status:      malak.UpdateStatusDraft,
-		Metadata:    malak.UpdateMetadata{},
-		Title:       req.Title,
+		Content: malak.BlockContents{
+			{
+				ID:   u.uuidGenerator.Create().String(),
+				Type: "heading",
+				Props: map[string]interface{}{
+					"level":           2,
+					"textColor":       "default",
+					"textAlignment":   "left",
+					"backgroundColor": "default",
+				},
+				Content: []map[string]interface{}{
+					{
+						"text":   req.Title,
+						"type":   "text",
+						"styles": map[string]interface{}{},
+					},
+				},
+				Children: []malak.Block{},
+			},
+			{
+				ID:   u.uuidGenerator.Create().String(),
+				Type: "paragraph",
+				Props: map[string]interface{}{
+					"textColor":       "default",
+					"textAlignment":   "left",
+					"backgroundColor": "default",
+				},
+				Content:  []map[string]interface{}{},
+				Children: []malak.Block{},
+			},
+		},
+		Reference: u.referenceGenerator.Generate(malak.EntityTypeUpdate),
+		Status:    malak.UpdateStatusDraft,
+		Metadata:  malak.UpdateMetadata{},
+		Title:     req.Title,
 	}
 
 	if err := u.updateRepo.Create(ctx, update); err != nil {
@@ -152,7 +183,7 @@ func (u *updatesHandler) list(
 			attribute.String("view",
 				filterStatus.String()))...)
 
-	updates, err := u.updateRepo.List(ctx, opts)
+	updates, total, err := u.updateRepo.List(ctx, opts)
 	if err != nil {
 
 		logger.Error("could not list updates",
@@ -170,6 +201,7 @@ func (u *updatesHandler) list(
 			Paging: pagingInfo{
 				PerPage: opts.Paginator.PerPage,
 				Page:    opts.Paginator.Page,
+				Total:   total,
 			},
 		},
 	}, StatusSuccess
@@ -323,6 +355,13 @@ func (u *updatesHandler) listPinnedUpdates(
 
 	workspace := getWorkspaceFromContext(r.Context())
 
+	opts := malak.ListUpdateOptions{
+		Paginator:   malak.PaginatorFromRequest(r),
+		WorkspaceID: workspace.ID,
+	}
+
+	span.SetAttributes(opts.Paginator.OTELAttributes()...)
+
 	updates, err := u.updateRepo.ListPinned(ctx, workspace.ID)
 	if err != nil {
 		logger.Error("could not list pinned updates",
@@ -336,5 +375,12 @@ func (u *updatesHandler) listPinnedUpdates(
 	return listUpdateResponse{
 		APIStatus: newAPIStatus(http.StatusOK, "pinned updates fetched"),
 		Updates:   updates,
+		Meta: meta{
+			Paging: pagingInfo{
+				PerPage: opts.Paginator.PerPage,
+				Page:    opts.Paginator.Page,
+				Total:   int64(len(updates)),
+			},
+		},
 	}, StatusSuccess
 }

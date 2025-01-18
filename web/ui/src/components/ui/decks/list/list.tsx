@@ -142,10 +142,10 @@ export default function ListDecks() {
 
   if (isLoading) {
     return (
-      <Card className="flex flex-col items-center justify-center py-16 px-4 bg-zinc-50/50 dark:bg-zinc-900">
+      <Card className="flex flex-col items-center justify-center py-16 px-4 bg-background">
         <div className="flex flex-col items-center justify-center text-center max-w-sm">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-500 dark:border-zinc-300 border-t-transparent" />
-          <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-300">Loading decks...</p>
+          <p className="mt-4 text-sm text-muted-foreground">Loading decks...</p>
         </div>
       </Card>
     );
@@ -153,15 +153,15 @@ export default function ListDecks() {
 
   if (decks.length === 0) {
     return (
-      <Card className="flex flex-col items-center justify-center py-16 px-4 bg-zinc-50/50 dark:bg-zinc-900">
+      <Card className="flex flex-col items-center justify-center py-16 px-4 bg-background">
         <div className="flex flex-col items-center justify-center text-center max-w-sm">
-          <div className="rounded-full bg-zinc-100 dark:bg-zinc-800 p-4">
-            <RiUploadCloud2Line className="h-8 w-8 text-zinc-500 dark:text-zinc-300" />
+          <div className="rounded-full bg-muted p-4">
+            <RiUploadCloud2Line className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="mt-6 text-lg font-medium text-zinc-900 dark:text-zinc-50">
+          <h3 className="mt-6 text-lg font-medium text-foreground">
             No decks uploaded yet
           </h3>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="mt-2 text-sm text-muted-foreground">
             Upload your company decks and PDFs to keep them organized and easily accessible in one place.
           </p>
           <div className="mt-6">

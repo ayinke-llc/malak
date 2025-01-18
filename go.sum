@@ -22,8 +22,8 @@ github.com/ThreeDotsLabs/watermill v1.3.7 h1:NV0PSTmuACVEOV4dMxRnmGXrmbz8U83LENO
 github.com/ThreeDotsLabs/watermill v1.3.7/go.mod h1:lBnrLbxOjeMRgcJbv+UiZr8Ylz8RkJ4m6i/VN/Nk+to=
 github.com/ThreeDotsLabs/watermill-redisstream v1.4.2 h1:FY6tsBcbhbJpKDOssU4bfybstqY0hQHwiZmVq9qyILQ=
 github.com/ThreeDotsLabs/watermill-redisstream v1.4.2/go.mod h1:69++855LyB+ckYDe60PiJLBcUrpckfDE2WwyzuVJRCk=
-github.com/adelowo/gulter v0.0.0-20240921153453-10ada241fef0 h1:0RAxmODHK6LNKvxp89YHgknYI8q7fqvBzlzO/s21xsY=
-github.com/adelowo/gulter v0.0.0-20240921153453-10ada241fef0/go.mod h1:65u13AaCNvxT9OjZ9t7NYXAHcDRBOUgfLihpgpNjqCs=
+github.com/adelowo/gulter v0.0.0-20250118125244-ee5e3db48073 h1:wFakW12hAz7xQa6cLWruPTeIPPdn3fZ8OxcD7P+6r7k=
+github.com/adelowo/gulter v0.0.0-20250118125244-ee5e3db48073/go.mod h1:emNdddTD8yk9NjprSHOXGqgMGk0Tj7j69gG8zyywv2M=
 github.com/ajg/form v1.5.1 h1:t9c7v8JUKu/XxOGBU0yjNpaMloxGEJhUkqFRq0ibGeU=
 github.com/ajg/form v1.5.1/go.mod h1:uL1WgH+h2mgNtvBq0339dVnzXdBETtL2LeUXaIv25UY=
 github.com/alexlast/bunzap v0.1.0 h1:GfFAuLfGGmyPAKVpEtNMzTdi4qCNi+1MzhfII7wpao8=
@@ -394,8 +394,6 @@ github.com/vmihailenco/tagparser/v2 v2.0.0 h1:y09buUbR+b5aycVFQs/g70pqKVZNBmxwAh
 github.com/vmihailenco/tagparser/v2 v2.0.0/go.mod h1:Wri+At7QHww0WTrCBeu4J6bNtoV6mEfg5OIWRZA9qds=
 github.com/voi-oss/watermill-opentelemetry v0.1.3 h1:AvVx249n1sG5ytwJ73qhTsti7Y+8J5F5/UOtyrtYjS4=
 github.com/voi-oss/watermill-opentelemetry v0.1.3/go.mod h1:/CQsSCe3Ki3UKXth6B6UlLj4zvf3i2b3t4dJJ0+HEdA=
-github.com/wneessen/go-mail v0.4.4 h1:rI8wJzPYymUpUth87vFV3k313bmnid4v+FwhBAYYLFM=
-github.com/wneessen/go-mail v0.4.4/go.mod h1:zxOlafWCP/r6FEhAaRgH4IC1vg2YXxO0Nar9u0IScZ8=
 github.com/xdg-go/pbkdf2 v1.0.0/go.mod h1:jrpuAogTd400dnrH08LKmI/xc1MbPOebTwRqcT5RDeI=
 github.com/xdg-go/scram v1.1.1/go.mod h1:RaEWvsqvNKKvBPvcKeFjrG2cJqOkHTiyTpzz23ni57g=
 github.com/xdg-go/stringprep v1.0.3/go.mod h1:W3f5j4i+9rC0kuIEJL0ky1VpHXQU3ocBgklLGvcBnW8=
@@ -472,6 +470,8 @@ golang.org/x/sync v0.0.0-20210220032951-036812b2e83c/go.mod h1:RxMgew5VJxzue5/jJ
 golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.8.0 h1:3NFvSEYkUoMifnESzZl15y791HH1qU2xm6eCJU5ZPXQ=
 golang.org/x/sync v0.8.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
+golang.org/x/sync v0.10.0 h1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=
+golang.org/x/sync v0.10.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190916202348-b4ddaad3f8a3/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=

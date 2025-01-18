@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 )
@@ -94,6 +95,7 @@ type Config struct {
 			Endpoint      string `yaml:"endpoint" mapstructure:"endpoint"`
 			LogOperations bool   `yaml:"log_operations" mapstructure:"log_operations"`
 			Bucket        string `yaml:"bucket" mapstructure:"bucket"`
+			DeckBucket    string `yaml:"deck_bucket" mapstructure:"deck_bucket"`
 			// Enabled by default but you can disable this if running
 			// your own internal Minio or something
 			UseTLS bool `yaml:"use_tls" mapstructure:"use_tls"`
@@ -155,6 +157,10 @@ func (c *Config) Validate() error {
 
 	if util.IsStringEmpty(c.Uploader.S3.Bucket) {
 		c.Uploader.S3.Bucket = "malak"
+	}
+
+	if hermes.IsStringEmpty(c.Uploader.S3.DeckBucket) {
+		c.Uploader.S3.DeckBucket = "deck"
 	}
 
 	if !c.Auth.Google.IsEnabled {
