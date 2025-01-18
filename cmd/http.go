@@ -197,7 +197,6 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			}
 
 			s3Store, err := storage.NewS3FromConfig(s3Config, storage.S3Options{
-				Bucket:       cfg.Uploader.S3.Bucket,
 				DebugMode:    cfg.Uploader.S3.LogOperations,
 				UsePathStyle: true,
 			})

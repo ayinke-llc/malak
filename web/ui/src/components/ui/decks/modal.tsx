@@ -61,7 +61,7 @@ export default function UploadDeckModal() {
   });
 
   const uploadMutation = useMutation({
-    mutationFn: (file: File) => client.images.uploadImage({ image_body: file }),
+    mutationFn: (file: File) => client.decks.uploadDeck({ image_body: file }),
     onSuccess: ({ data }) => {
       setValue("pdfUrl", data.url);
       toast.success("File uploaded successfully");

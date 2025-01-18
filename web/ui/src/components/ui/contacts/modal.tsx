@@ -49,8 +49,8 @@ const schema = yup
   })
   .required();
 
-export default function CreateContactModal({ 
-  mode = 'create', 
+export default function CreateContactModal({
+  mode = 'create',
   reference,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
@@ -178,14 +178,14 @@ export default function CreateContactModal({
     <Dialog onOpenChange={handleDialogItemOpenChange} open={isOpen}>
       {triggerButton && (
         <DialogTrigger asChild>
-          <div className="w-full text-right">
+          <div className="w-full text-right mb-4">
             <Button
               type="button"
               variant="default"
               className="whitespace-nowrap gap-1"
             >
               <RiAddLine />
-              Add User
+              New contact
             </Button>
           </div>
         </DialogTrigger>
@@ -198,7 +198,7 @@ export default function CreateContactModal({
           <DialogHeader>
             <DialogTitle>{mode === 'edit' ? 'Edit contact' : 'Add a new contact'}</DialogTitle>
             <DialogDescription className="mt-1 text-sm leading-6">
-              {mode === 'edit' 
+              {mode === 'edit'
                 ? 'Update contact information'
                 : 'Get started with connecting and building relationships with a specific investor'
               }

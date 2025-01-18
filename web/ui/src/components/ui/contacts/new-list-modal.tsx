@@ -24,6 +24,8 @@ import {
   RiEyeLine,
   RiPencilLine,
   RiDeleteBinLine,
+  RiSettings5Line,
+  RiSettings4Line,
 } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
@@ -238,14 +240,16 @@ export default function ManageListModal() {
   return (
     <Dialog open={hasOpenDialog} onOpenChange={handleDialogItemOpenChange}>
       <DialogTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="sm"
-          className="h-8 border-gray-800/50 bg-transparent text-gray-400 hover:bg-gray-800/30 hover:text-gray-300"
-        >
-          <RiEyeLine className="h-4 w-4 mr-2" />
-          Manage lists
-        </Button>
+        <div className="w-full text-right mb-4">
+          <Button
+            type="button"
+            variant="default"
+            className="whitespace-nowrap gap-1"
+          >
+            <RiSettings4Line />
+            Manage lists
+          </Button>
+        </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] bg-gray-900 border-gray-800/50">
         <DialogHeader>

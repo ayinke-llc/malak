@@ -744,6 +744,33 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags decks
+     * @name UploadDeck
+     * @summary Upload a deck
+     * @request POST:/decks/upload
+     */
+    uploadDeck: (
+      data: {
+        /**
+         * image body
+         * @format binary
+         */
+        image_body: File;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerUploadImageResponse, ServerAPIStatus>({
+        path: `/decks/upload`,
+        method: "POST",
+        body: data,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
   };
   images = {
     /**

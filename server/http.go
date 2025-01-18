@@ -252,6 +252,8 @@ func buildRoutes(
 		r.Route("/decks", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 
+			r.Use(gulterHandler.Upload(cfg.Uploader.S3.DeckBucket, "image_body"))
+
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, deckHandler.Create, cfg, "decks.add"))
 			r.Get("/",
@@ -266,7 +268,7 @@ func buildRoutes(
 
 		r.Route("/images", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
-			r.Use(gulterHandler.Upload("image_body"))
+			r.Use(gulterHandler.Upload(cfg.Uploader.S3.Bucket, "image_body"))
 
 			r.Post("/upload",
 				WrapMalakHTTPHandler(logger, updateHandler.uploadImage, cfg, "updates.image_upload"))

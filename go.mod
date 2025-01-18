@@ -5,7 +5,7 @@ go 1.23.1
 require (
 	github.com/ThreeDotsLabs/watermill v1.3.7
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.2
-	github.com/adelowo/gulter v0.0.0-20240921153453-10ada241fef0
+	github.com/adelowo/gulter v0.0.0-20250118125244-ee5e3db48073
 	github.com/alexlast/bunzap v0.1.0
 	github.com/aws/aws-sdk-go-v2 v1.31.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.36
@@ -26,6 +26,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/extra/redisotel/v9 v9.0.5
 	github.com/redis/go-redis/v9 v9.6.1
+	github.com/resend/resend-go/v2 v2.13.0
 	github.com/riandyrn/otelchi v0.9.0
 	github.com/rs/cors v1.11.0
 	github.com/sebdah/goldie/v2 v2.5.5
@@ -43,7 +44,6 @@ require (
 	github.com/uptrace/bun/driver/pgdriver v1.2.1
 	github.com/uptrace/bun/extra/bunotel v1.2.1
 	github.com/voi-oss/watermill-opentelemetry v0.1.3
-	github.com/wneessen/go-mail v0.4.4
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.53.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.53.0
 	go.opentelemetry.io/otel v1.30.0
@@ -55,7 +55,10 @@ require (
 	go.opentelemetry.io/otel/trace v1.30.0
 	go.uber.org/mock v0.4.0
 	go.uber.org/zap v1.27.0
+	golang.org/x/crypto v0.27.0
 	golang.org/x/oauth2 v0.22.0
+	golang.org/x/sync v0.10.0
+	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )
 
 require (
@@ -147,7 +150,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/redis/go-redis/extra/rediscmd/v9 v9.0.5 // indirect
-	github.com/resend/resend-go/v2 v2.13.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
@@ -174,10 +176,8 @@ require (
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.27.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/net v0.29.0 // indirect
-	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/text v0.18.0 // indirect
 	golang.org/x/tools v0.25.0 // indirect
@@ -187,7 +187,6 @@ require (
 	google.golang.org/grpc v1.66.1 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

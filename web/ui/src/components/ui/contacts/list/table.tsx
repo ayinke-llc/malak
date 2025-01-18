@@ -280,7 +280,7 @@ export default function ContactsTable() {
     <div className="w-full space-y-4 bg-background">
       <div className="flex items-center justify-between">
         <Input
-          placeholder="Filter contacts..."
+          placeholder="Filter contacts by email..."
           value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("email")?.setFilterValue(event.target.value)
