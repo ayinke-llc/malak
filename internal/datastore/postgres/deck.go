@@ -148,3 +148,22 @@ func (d *decksRepo) UpdatePreferences(ctx context.Context, deck *malak.Deck) err
 		return err
 	})
 }
+
+func (u *updatesRepo) ToggleArchive(ctx context.Context,
+	deck *malak.Deck) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return u.inner.RunInTx(ctx, &sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+
+			_, err := tx.NewUpdate().
+				Where("id = ?", deck.ID).
+				Set("is_archived = CASE WHEN is_archived = true THEN false ELSE true END").
+				Model(deck).
+				Exec(ctx)
+
+			return err
+		})
+}

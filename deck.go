@@ -78,4 +78,5 @@ type DeckRepository interface {
 	Get(context.Context, FetchDeckOptions) (*Deck, error)
 	Delete(context.Context, *Deck) error
 	UpdatePreferences(context.Context, *Deck) error
+	ToggleArchive(context.Context, *Deck) error
 }
