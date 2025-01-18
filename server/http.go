@@ -153,6 +153,7 @@ func buildRoutes(
 	deckHandler := &deckHandler{
 		referenceGenerator: referenceGenerator,
 		deckRepo:           deckRepo,
+		cfg:                cfg,
 	}
 
 	router.Use(middleware.RequestID)
@@ -266,12 +267,23 @@ func buildRoutes(
 				WrapMalakHTTPHandler(logger, deckHandler.updatePreferences, cfg, "decks.preferences.update"))
 		})
 
-		r.Route("/images", func(r chi.Router) {
+		r.Route("/uploads", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
-			r.Use(gulterHandler.Upload(cfg.Uploader.S3.Bucket, "image_body"))
 
-			r.Post("/upload",
-				WrapMalakHTTPHandler(logger, updateHandler.uploadImage, cfg, "updates.image_upload"))
+			r.Route("/decks", func(r chi.Router) {
+				r.Use(gulterHandler.Upload(cfg.Uploader.S3.DeckBucket, "image_body"))
+
+				r.Post("/",
+					WrapMalakHTTPHandler(logger, deckHandler.uploadImage, cfg, "decks.upload"))
+			})
+
+			r.Route("/images", func(r chi.Router) {
+				r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+				r.Use(gulterHandler.Upload(cfg.Uploader.S3.Bucket, "image_body"))
+
+				r.Post("/",
+					WrapMalakHTTPHandler(logger, updateHandler.uploadImage, cfg, "updates.image_upload"))
+			})
 		})
 	})
 

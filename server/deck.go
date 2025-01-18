@@ -9,6 +9,7 @@ import (
 	"github.com/adelowo/gulter"
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
+	"github.com/ayinke-llc/malak/config"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/microcosm-cc/bluemonday"
@@ -19,6 +20,7 @@ import (
 type deckHandler struct {
 	deckRepo           malak.DeckRepository
 	referenceGenerator malak.ReferenceGeneratorOperation
+	cfg                config.Config
 }
 
 // @Summary Upload a deck
@@ -32,8 +34,8 @@ type deckHandler struct {
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /decks/upload [post]
-func (u *updatesHandler) uploadImage(
+// @Router /uploads/decks [post]
+func (u *deckHandler) uploadImage(
 	ctx context.Context,
 	span trace.Span,
 	logger *zap.Logger,

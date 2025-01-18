@@ -1220,57 +1220,7 @@ paths:
       summary: update a deck preferences
       tags:
       - decks
-  /decks/upload:
-    post:
-      operationId: uploadDeck
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                image_body:
-                  description: image body
-                  format: binary
-                  type: string
-                  x-formData-name: image_body
-              required:
-              - image_body
-              type: object
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/server.uploadImageResponse'
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/server.APIStatus'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/server.APIStatus'
-          description: Unauthorized
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/server.APIStatus'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/server.APIStatus'
-          description: Internal Server Error
-      summary: Upload a deck
-      tags:
-      - decks
-  /images/upload:
+  /upload/images:
     post:
       operationId: uploadImage
       requestBody:
@@ -1320,6 +1270,56 @@ paths:
       summary: Upload an image
       tags:
       - images
+  /uploads/decks:
+    post:
+      operationId: uploadDeck
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                image_body:
+                  description: image body
+                  format: binary
+                  type: string
+                  x-formData-name: image_body
+              required:
+              - image_body
+              type: object
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.uploadImageResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: Upload a deck
+      tags:
+      - decks
   /user:
     get:
       responses:
