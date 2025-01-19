@@ -115,6 +115,8 @@ components:
           type: string
         created_by:
           type: string
+        deck_size:
+          type: integer
         id:
           type: string
         is_archived:

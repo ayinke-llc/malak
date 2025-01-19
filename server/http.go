@@ -154,6 +154,7 @@ func buildRoutes(
 		referenceGenerator: referenceGenerator,
 		deckRepo:           deckRepo,
 		cfg:                cfg,
+		cache:              redisCache,
 	}
 
 	router.Use(middleware.RequestID)

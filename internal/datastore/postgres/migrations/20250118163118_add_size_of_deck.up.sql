@@ -1,0 +1,1 @@
+ALTER TABLE decks ADD COLUMN deck_size BIGINT DEFAULT 0; 

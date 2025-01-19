@@ -1842,6 +1842,9 @@ const docTemplate = `{
                 "created_by": {
                     "type": "string"
                 },
+                "deck_size": {
+                    "type": "integer"
+                },
                 "id": {
                     "type": "string"
                 },

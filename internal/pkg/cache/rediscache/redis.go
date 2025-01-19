@@ -22,6 +22,13 @@ func New(client *redis.Client) (cache.Cache, error) {
 	}, client.Ping(context.Background()).Err()
 }
 
+func (r *redisCache) Get(ctx context.Context,
+	key string) ([]byte, error) {
+
+	cmd := r.inner.Get(ctx, makeKey(key))
+	return cmd.Bytes()
+}
+
 func (r *redisCache) Add(ctx context.Context,
 	key string, payload []byte, ttl time.Duration) error {
 	return r.inner.Set(

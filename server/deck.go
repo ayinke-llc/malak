@@ -1,15 +1,21 @@
 package server
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/adelowo/gulter"
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/cache"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/microcosm-cc/bluemonday"
@@ -20,7 +26,22 @@ import (
 type deckHandler struct {
 	deckRepo           malak.DeckRepository
 	referenceGenerator malak.ReferenceGeneratorOperation
+	cache              cache.Cache
 	cfg                config.Config
+}
+
+func hashURL(rawURL string) (string, error) {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return "", err
+	}
+
+	normalizedURL := parsedURL.String()
+
+	hasher := fnv.New64a()
+	hasher.Write([]byte(normalizedURL))
+
+	return "deck-" + fmt.Sprintf("%x", hasher.Sum64()), nil
 }
 
 // @Summary Upload a deck
@@ -58,6 +79,42 @@ func (u *deckHandler) uploadImage(
 		u.cfg.Uploader.S3.Endpoint,
 		file.FolderDestination,
 		file.UploadedFileName)
+
+	// Add the details of the file to redis
+	// So when it is being addded to a deck, you
+	// can just fetch the size directly and move on
+	// This is definitely:
+	// - better than relying on client to send the size
+	// - simpler than fetching/downloading the file when creating the deck
+	// in other to fetch the size
+	//
+	// Simple but works
+	cacheKey, err := hashURL(uploadedURL)
+	if err != nil {
+		logger.Error("could not create hash key", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"could not create cache key"), StatusFailed
+	}
+
+	var f = struct {
+		Size int64
+	}{
+		Size: file.Size,
+	}
+
+	var b = bytes.NewBuffer(nil)
+
+	if err := json.NewEncoder(b).Encode(&f); err != nil {
+		logger.Error("could not encode size", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"internal error"), StatusFailed
+	}
+
+	if err := u.cache.Add(ctx, cacheKey, b.Bytes(), time.Hour*4); err != nil {
+		logger.Error("could not add to cache", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"internal error"), StatusFailed
+	}
 
 	return uploadImageResponse{
 		URL:       uploadedURL,
@@ -122,6 +179,37 @@ func (d *deckHandler) Create(
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
+	// get the file size details
+	cacheKey, err := hashURL(req.DeckURL)
+	if err != nil {
+		logger.Error("could not fetch file details from redis", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"internal error"), StatusFailed
+	}
+
+	data, err := d.cache.Get(ctx, cacheKey)
+	if err != nil {
+		logger.Error("could not fetch cache details from redis", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"could not fetch size of file. Reupload file"), StatusFailed
+	}
+
+	var file struct {
+		Size int64
+	}
+
+	if err := json.NewDecoder(bytes.NewBuffer(data)).Decode(&file); err != nil {
+		logger.Error("could not decode file size from Redis", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"internal error while getting size of file"), StatusFailed
+	}
+
+	if file.Size <= 0 {
+		logger.Error("file size is negative", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"file size is invalid. Try uploading another file"), StatusFailed
+	}
+
 	opts := &malak.CreateDeckOptions{
 		RequireEmail:      true,
 		EnableDownloading: false,
@@ -140,6 +228,7 @@ func (d *deckHandler) Create(
 		Reference:   d.referenceGenerator.Generate(malak.EntityTypeDeck),
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
+		DeckSize:    file.Size,
 	}
 
 	if err := d.deckRepo.Create(ctx, deck, opts); err != nil {
