@@ -281,9 +281,22 @@ func (u *updatesHandler) handleReaction(
 			return
 		}
 
-		recipientStat.HasReaction = true
+		update := &malak.Update{
+			ID: recipientStat.Recipient.UpdateID,
+		}
 
-		if err := u.updateRepo.UpdateStat(ctx, nil, recipientStat); err != nil {
+		updateStat, err := u.updateRepo.Stat(ctx, update)
+		if err != nil {
+			logger.Error("could not fetch update stats by id", zap.Error(err),
+				zap.String("update_id", update.ID.String()))
+			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not find update stat"))
+			return
+		}
+
+		recipientStat.HasReaction = true
+		updateStat.TotalReactions += 1
+
+		if err := u.updateRepo.UpdateStat(ctx, updateStat, recipientStat); err != nil {
 			logger.Error("could not update stat", zap.Error(err),
 				zap.String("recipient_stat", recipientStat.ID.String()))
 			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not update reaction"))
