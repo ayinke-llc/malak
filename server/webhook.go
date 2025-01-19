@@ -56,7 +56,7 @@ func (we *webhookHandler) handleResend(
 		_, recipientStat, err := we.updateRepo.GetStatByEmailID(ctx, req.Data.EmailID, malak.UpdateRecipientLogProviderResend)
 		if err != nil {
 			logger.Error("could not fetch recipient by id", zap.Error(err),
-				zap.String("email_refernce", req.Data.EmailID))
+				zap.String("email_reference", req.Data.EmailID))
 			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not find recipient"))
 			return
 		}

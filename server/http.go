@@ -171,6 +171,10 @@ func buildRoutes(
 		r.Post("/resend", webhookHandler.handleResend(logger))
 	})
 
+	router.Route("/updates", func(r chi.Router) {
+		r.Post("/react", updateHandler.handleReaction(logger))
+	})
+
 	router.Route("/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/connect/{provider}",

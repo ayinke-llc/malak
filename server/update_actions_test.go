@@ -440,3 +440,97 @@ func TestUpdatesHandler_Pin(t *testing.T) {
 		})
 	}
 }
+
+func generateUpdateReaction() []struct {
+	name               string
+	mockFn             func(update *malak_mocks.MockUpdateRepository)
+	expectedStatusCode int
+} {
+
+	return []struct {
+		name               string
+		mockFn             func(update *malak_mocks.MockUpdateRepository)
+		expectedStatusCode int
+	}{
+		{
+			name: "recipient stat does not exists",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+				update.
+					EXPECT().
+					GetStatByEmailID(gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, nil, errors.New("oops"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "update stat failed",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+				update.
+					EXPECT().
+					GetStatByEmailID(gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, &malak.UpdateRecipientStat{}, nil)
+
+				update.EXPECT().
+					UpdateStat(gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(errors.New("could not update"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "update stat reaction",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+				update.
+					EXPECT().
+					GetStatByEmailID(gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, &malak.UpdateRecipientStat{}, nil)
+
+				update.EXPECT().
+					UpdateStat(gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
+func TestUpdatesHandler_HandleReaction(t *testing.T) {
+	for _, v := range generateUpdateReaction() {
+
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			updateRepo := malak_mocks.NewMockUpdateRepository(controller)
+
+			v.mockFn(updateRepo)
+
+			u := &updatesHandler{
+				referenceGenerator: &mockReferenceGenerator{},
+				updateRepo:         updateRepo,
+			}
+
+			var b = bytes.NewBuffer(nil)
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/", b)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			ctx := chi.NewRouteContext()
+			ctx.URLParams.Add("reference", "update_jfnkfjkf")
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
+
+			u.handleReaction(getLogger(t)).ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}

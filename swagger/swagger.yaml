@@ -1268,6 +1268,56 @@ paths:
       summary: update a deck preferences
       tags:
       - decks
+  /updates/react:
+    get:
+      operationId: reactPost
+      parameters:
+      - description: provider type
+        in: query
+        name: provider
+        required: true
+        schema:
+          type: string
+      - description: email id
+        in: query
+        name: email_id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: Fetch a specific update
+      tags:
+      - updates
   /upload/images:
     post:
       operationId: uploadImage

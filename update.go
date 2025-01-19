@@ -20,6 +20,9 @@ const (
 	MaximumNumberOfPinnedUpdates = 4
 )
 
+// ENUM(thumbs up,thumbs down)
+type ReactionStatus string
+
 // ENUM(draft,sent)
 type UpdateStatus string
 

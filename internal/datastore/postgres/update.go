@@ -78,19 +78,21 @@ func (u *updatesRepo) UpdateStat(ctx context.Context,
 
 	return u.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 
-		_, err := tx.NewUpdate().
-			Where("id = ?", stat.ID).
-			Model(stat).
-			Exec(ctx)
-		if err != nil {
-			return err
+		if stat != nil {
+			_, err := tx.NewUpdate().
+				Where("id = ?", stat.ID).
+				Model(stat).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
 		}
 
 		if recipientStat == nil {
 			return nil
 		}
 
-		_, err = tx.NewUpdate().
+		_, err := tx.NewUpdate().
 			Where("id = ?", recipientStat.ID).
 			Model(recipientStat).
 			Exec(ctx)

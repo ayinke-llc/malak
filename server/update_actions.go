@@ -237,3 +237,59 @@ func (u *updatesHandler) fetchUpdate(
 		Update:    util.DeRef(update),
 	}, StatusSuccess
 }
+
+// @Tags updates
+// @Summary Fetch a specific update
+// @Id reactPost
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Param provider query string true "provider type"
+// @Param email_id query string true "email id"
+// @Router /updates/react [get]
+// ?provider=resend&email_id=xxxx
+func (u *updatesHandler) handleReaction(
+	logger *zap.Logger,
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		ctx, span, rid := getTracer(r.Context(), r, "updates.reaction.handler", u.cfg.Otel.IsEnabled)
+		defer span.End()
+
+		logger = logger.With(zap.String("request_id", rid))
+
+		ref := chi.URLParam(r, "reference")
+
+		provider := malak.UpdateRecipientLogProvider(r.URL.Query().Get("provider"))
+		emailID := r.URL.Query().Get("email_id")
+
+		span.SetAttributes(attribute.String("id", ref))
+
+		logger = logger.With(zap.String("reference", ref))
+
+		logger.Debug("reacting to update")
+
+		_, recipientStat, err := u.updateRepo.GetStatByEmailID(ctx, emailID, provider)
+		if err != nil {
+			logger.Error("could not fetch recipient by id", zap.Error(err),
+				zap.String("email_reference", emailID))
+			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not find recipient"))
+			return
+		}
+
+		recipientStat.HasReaction = true
+
+		if err := u.updateRepo.UpdateStat(ctx, nil, recipientStat); err != nil {
+			logger.Error("could not update stat", zap.Error(err),
+				zap.String("recipient_stat", recipientStat.ID.String()))
+			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not update reaction"))
+			return
+		}
+
+		_ = render.Render(w, r, newAPIStatus(http.StatusOK, "added reaction"))
+	}
+}
