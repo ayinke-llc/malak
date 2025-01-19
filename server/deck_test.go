@@ -17,6 +17,42 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+func TestHashURL(t *testing.T) {
+	tt := []struct {
+		name     string
+		value    string
+		expected string
+		hasError bool
+	}{
+		{
+			name:     "example.com with query",
+			value:    "https://example.com/path?query=123",
+			expected: "deck-125bf3f1de0f5189",
+			hasError: false,
+		},
+		{
+			name:     "example.com",
+			value:    "https://example.com",
+			expected: "deck-837b2b5793a240b3",
+			hasError: false,
+		},
+	}
+
+	for _, v := range tt {
+		t.Run(v.name, func(t *testing.T) {
+
+			val, err := hashURL(v.value)
+			if v.hasError {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, v.expected, val)
+		})
+	}
+}
+
 func generateDeckCreateRequest() []struct {
 	name               string
 	mockFn             func(update *malak_mocks.MockDeckRepository)

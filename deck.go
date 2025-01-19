@@ -20,6 +20,7 @@ type Deck struct {
 	CreatedBy   uuid.UUID `json:"created_by,omitempty"`
 	Title       string    `json:"title,omitempty"`
 	ShortLink   string    `json:"short_link,omitempty"`
+	DeckSize    int64     `json:"deck_size,omitempty"`
 
 	IsArchived bool `json:"is_archived,omitempty"`
 
