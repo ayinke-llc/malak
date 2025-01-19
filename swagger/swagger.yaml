@@ -1270,6 +1270,7 @@ paths:
       - decks
   /updates/react:
     get:
+      operationId: reactPost
       parameters:
       - description: provider type
         in: query

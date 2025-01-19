@@ -240,6 +240,7 @@ func (u *updatesHandler) fetchUpdate(
 
 // @Tags updates
 // @Summary Fetch a specific update
+// @Id reactPost
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} APIStatus

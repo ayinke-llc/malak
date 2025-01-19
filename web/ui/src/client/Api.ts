@@ -768,11 +768,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags updates
-     * @name ReactList
+     * @name ReactPost
      * @summary Fetch a specific update
      * @request GET:/updates/react
      */
-    reactList: (
+    reactPost: (
       query: {
         /** provider type */
         provider: string;

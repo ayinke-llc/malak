@@ -777,6 +777,7 @@ const docTemplate = `{
                     "updates"
                 ],
                 "summary": "Fetch a specific update",
+                "operationId": "reactPost",
                 "parameters": [
                     {
                         "type": "string",
