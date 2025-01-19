@@ -49,6 +49,40 @@ func ParseListUpdateFilterStatus(name string) (ListUpdateFilterStatus, error) {
 }
 
 const (
+	// ReactionStatusThumbsUp is a ReactionStatus of type thumbs up.
+	ReactionStatusThumbsUp ReactionStatus = "thumbs up"
+	// ReactionStatusThumbsDown is a ReactionStatus of type thumbs down.
+	ReactionStatusThumbsDown ReactionStatus = "thumbs down"
+)
+
+var ErrInvalidReactionStatus = errors.New("not a valid ReactionStatus")
+
+// String implements the Stringer interface.
+func (x ReactionStatus) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x ReactionStatus) IsValid() bool {
+	_, err := ParseReactionStatus(string(x))
+	return err == nil
+}
+
+var _ReactionStatusValue = map[string]ReactionStatus{
+	"thumbs up":   ReactionStatusThumbsUp,
+	"thumbs down": ReactionStatusThumbsDown,
+}
+
+// ParseReactionStatus attempts to convert a string to a ReactionStatus.
+func ParseReactionStatus(name string) (ReactionStatus, error) {
+	if x, ok := _ReactionStatusValue[name]; ok {
+		return x, nil
+	}
+	return ReactionStatus(""), fmt.Errorf("%s is %w", name, ErrInvalidReactionStatus)
+}
+
+const (
 	// RecipientStatusPending is a RecipientStatus of type pending.
 	RecipientStatusPending RecipientStatus = "pending"
 	// RecipientStatusSent is a RecipientStatus of type sent.

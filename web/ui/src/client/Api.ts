@@ -763,6 +763,34 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         ...params,
       }),
   };
+  updates = {
+    /**
+     * No description
+     *
+     * @tags updates
+     * @name ReactList
+     * @summary Fetch a specific update
+     * @request GET:/updates/react
+     */
+    reactList: (
+      query: {
+        /** provider type */
+        provider: string;
+        /** email id */
+        email_id: string;
+        /** reaction type */
+        reaction: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/updates/react`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+  };
   upload = {
     /**
      * No description

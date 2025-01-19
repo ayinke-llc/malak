@@ -237,3 +237,63 @@ func (u *updatesHandler) fetchUpdate(
 		Update:    util.DeRef(update),
 	}, StatusSuccess
 }
+
+// @Tags updates
+// @Summary Fetch a specific update
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Param provider query string true "provider type"
+// @Param email_id query string true "email id"
+// @Param reaction query string true "reaction type"
+// @Router /updates/react [get]
+// ?provider=resend&email_id=xxxx&reaction=
+func (u *updatesHandler) handleReaction(
+	logger *zap.Logger,
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		ctx, span, rid := getTracer(r.Context(), r, "updates.reaction.handler", u.cfg.Otel.IsEnabled)
+		defer span.End()
+
+		logger = logger.With(zap.String("request_id", rid))
+
+		ref := chi.URLParam(r, "reference")
+
+		provider := malak.UpdateRecipientLogProvider(r.URL.Query().Get("provider"))
+		emailID := r.URL.Query().Get("email_id")
+		reaction := malak.ReactionStatus(r.URL.Query().Get("reaction"))
+
+		if !reaction.IsValid() {
+			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "invalid reaction"))
+			return
+		}
+
+		span.SetAttributes(attribute.String("id", ref))
+
+		logger = logger.With(zap.String("reference", ref))
+
+		logger.Debug("reacting to update")
+
+		_, recipientStat, err := u.updateRepo.GetStatByEmailID(ctx, emailID, provider)
+		if err != nil {
+			logger.Error("could not fetch recipient by id", zap.Error(err),
+				zap.String("email_reference", emailID))
+			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not find recipient"))
+			return
+		}
+
+		if err := u.updateRepo.UpdateStat(ctx, nil, recipientStat); err != nil {
+			logger.Error("could not update stat", zap.Error(err),
+				zap.String("recipient_stat", recipientStat.ID.String()))
+			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not update reaction"))
+			return
+		}
+
+		_ = render.Render(w, r, newAPIStatus(http.StatusOK, "added reaction"))
+	}
+}
