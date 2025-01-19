@@ -119,7 +119,12 @@ export default function ListDecks() {
       columnHelper.accessor(() => "N/A" as const, {
         id: "size",
         header: () => <span className="text-muted-foreground">Size</span>,
-        cell: (info) => <span className="text-foreground">{info.getValue()}</span>,
+        cell: (info) => {
+          const size = info?.cell?.row?.original?.deck_size as number / (1024 * 1024)
+          return (
+            <span className="text-foreground">{parseFloat(size.toFixed(2))} MB</span>
+          )
+        },
       }),
       columnHelper.accessor(
         (row) => {

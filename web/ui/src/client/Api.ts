@@ -76,6 +76,7 @@ export type MalakCustomContactMetadata = Record<string, string>;
 export interface MalakDeck {
   created_at?: string;
   created_by?: string;
+  deck_size?: number;
   id?: string;
   is_archived?: boolean;
   preferences?: MalakDeckPreference;
