@@ -792,13 +792,6 @@ const docTemplate = `{
                         "name": "email_id",
                         "in": "query",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "reaction type",
-                        "name": "reaction",
-                        "in": "query",
-                        "required": true
                     }
                 ],
                 "responses": {

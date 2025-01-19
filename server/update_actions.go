@@ -250,9 +250,8 @@ func (u *updatesHandler) fetchUpdate(
 // @Failure 500 {object} APIStatus
 // @Param provider query string true "provider type"
 // @Param email_id query string true "email id"
-// @Param reaction query string true "reaction type"
 // @Router /updates/react [get]
-// ?provider=resend&email_id=xxxx&reaction=
+// ?provider=resend&email_id=xxxx
 func (u *updatesHandler) handleReaction(
 	logger *zap.Logger,
 ) http.HandlerFunc {
@@ -267,12 +266,6 @@ func (u *updatesHandler) handleReaction(
 
 		provider := malak.UpdateRecipientLogProvider(r.URL.Query().Get("provider"))
 		emailID := r.URL.Query().Get("email_id")
-		reaction := malak.ReactionStatus(r.URL.Query().Get("reaction"))
-
-		if !reaction.IsValid() {
-			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "invalid reaction"))
-			return
-		}
 
 		span.SetAttributes(attribute.String("id", ref))
 
@@ -287,6 +280,8 @@ func (u *updatesHandler) handleReaction(
 			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not find recipient"))
 			return
 		}
+
+		recipientStat.HasReaction = true
 
 		if err := u.updateRepo.UpdateStat(ctx, nil, recipientStat); err != nil {
 			logger.Error("could not update stat", zap.Error(err),

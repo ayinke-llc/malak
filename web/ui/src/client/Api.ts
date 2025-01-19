@@ -778,8 +778,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         provider: string;
         /** email id */
         email_id: string;
-        /** reaction type */
-        reaction: string;
       },
       params: RequestParams = {},
     ) =>

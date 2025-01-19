@@ -1284,12 +1284,6 @@ paths:
         required: true
         schema:
           type: string
-      - description: reaction type
-        in: query
-        name: reaction
-        required: true
-        schema:
-          type: string
       responses:
         "200":
           content:
