@@ -11,6 +11,7 @@ import (
 	"github.com/ayinke-llc/malak"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -447,6 +448,8 @@ func generateUpdateReaction() []struct {
 	expectedStatusCode int
 } {
 
+	id := uuid.MustParse("ed3daf26-5839-4b91-bf19-64c8a6b3bb7a")
+
 	return []struct {
 		name               string
 		mockFn             func(update *malak_mocks.MockUpdateRepository)
@@ -470,7 +473,34 @@ func generateUpdateReaction() []struct {
 					EXPECT().
 					GetStatByEmailID(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(nil, &malak.UpdateRecipientStat{}, nil)
+					Return(nil, &malak.UpdateRecipientStat{
+						Recipient: &malak.UpdateRecipient{
+							UpdateID: id,
+						},
+					}, nil)
+
+				update.EXPECT().
+					Stat(gomock.Any(), gomock.Any()).
+					Return(nil, errors.New("error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "update stat updating failed",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+				update.
+					EXPECT().
+					GetStatByEmailID(gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, &malak.UpdateRecipientStat{
+						Recipient: &malak.UpdateRecipient{
+							UpdateID: id,
+						},
+					}, nil)
+
+				update.EXPECT().
+					Stat(gomock.Any(), gomock.Any()).
+					Return(&malak.UpdateStat{}, nil)
 
 				update.EXPECT().
 					UpdateStat(gomock.Any(), gomock.Any(), gomock.Any()).
@@ -485,7 +515,15 @@ func generateUpdateReaction() []struct {
 					EXPECT().
 					GetStatByEmailID(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(nil, &malak.UpdateRecipientStat{}, nil)
+					Return(nil, &malak.UpdateRecipientStat{
+						Recipient: &malak.UpdateRecipient{
+							UpdateID: id,
+						},
+					}, nil)
+
+				update.EXPECT().
+					Stat(gomock.Any(), gomock.Any()).
+					Return(&malak.UpdateStat{}, nil)
 
 				update.EXPECT().
 					UpdateStat(gomock.Any(), gomock.Any(), gomock.Any()).
