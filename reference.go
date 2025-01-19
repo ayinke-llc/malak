@@ -39,11 +39,12 @@ func NewReferenceGenerator() *ReferenceGenerator {
 }
 
 func (r *ReferenceGenerator) Generate(e EntityType) Reference {
+
+	nanoID := gonanoid.MustGenerate("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._", 10)
 	return Reference(
 		fmt.Sprintf(
 			"%s_%s",
-			e.String(),
-			gonanoid.Must()))
+			e.String(), nanoID))
 }
 
 func (r *ReferenceGenerator) ShortLink() string {
