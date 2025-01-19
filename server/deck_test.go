@@ -55,20 +55,20 @@ func TestHashURL(t *testing.T) {
 
 func generateDeckCreateRequest() []struct {
 	name               string
-	mockFn             func(update *malak_mocks.MockDeckRepository)
+	mockFn             func(update *malak_mocks.MockDeckRepository, cache *malak_mocks.MockCache)
 	expectedStatusCode int
 	req                createDeckRequest
 } {
 
 	return []struct {
 		name               string
-		mockFn             func(deck *malak_mocks.MockDeckRepository)
+		mockFn             func(deck *malak_mocks.MockDeckRepository, cache *malak_mocks.MockCache)
 		expectedStatusCode int
 		req                createDeckRequest
 	}{
 		{
 			name:               "no url provided",
-			mockFn:             func(deck *malak_mocks.MockDeckRepository) {},
+			mockFn:             func(deck *malak_mocks.MockDeckRepository, cache *malak_mocks.MockCache) {},
 			expectedStatusCode: http.StatusBadRequest,
 			req: createDeckRequest{
 				DeckURL: "",
@@ -76,15 +76,43 @@ func generateDeckCreateRequest() []struct {
 		},
 		{
 			name:               "no title provided",
-			mockFn:             func(deck *malak_mocks.MockDeckRepository) {},
+			mockFn:             func(deck *malak_mocks.MockDeckRepository, cache *malak_mocks.MockCache) {},
 			expectedStatusCode: http.StatusBadRequest,
 			req: createDeckRequest{
 				DeckURL: "https://google.com",
 			},
 		},
 		{
+			name: "file not exists in cache",
+			mockFn: func(deck *malak_mocks.MockDeckRepository, cache *malak_mocks.MockCache) {
+				cache.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Return([]byte(``), errors.New("could not fetch file"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: createDeckRequest{
+				DeckURL: "https://google.com",
+				Title:   "oops",
+			},
+		},
+		{
+			name: "file size in cache is 0",
+			mockFn: func(deck *malak_mocks.MockDeckRepository, cache *malak_mocks.MockCache) {
+				cache.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Return([]byte(`{"size: 0}`), nil)
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: createDeckRequest{
+				DeckURL: "https://google.com",
+				Title:   "oops",
+			},
+		},
+		{
 			name: "could not create deck",
-			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+			mockFn: func(deck *malak_mocks.MockDeckRepository, cache *malak_mocks.MockCache) {
+
+				cache.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Return([]byte(`{"Size": 1000000000}`), nil)
+
 				deck.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(errors.New("error occurred"))
@@ -97,7 +125,11 @@ func generateDeckCreateRequest() []struct {
 		},
 		{
 			name: "created deck successfully",
-			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+			mockFn: func(deck *malak_mocks.MockDeckRepository, cache *malak_mocks.MockCache) {
+
+				cache.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Return([]byte(`{"Size": 1000000000}`), nil)
+
 				deck.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil)
@@ -121,12 +153,15 @@ func TestDeckHandler_Create(t *testing.T) {
 			defer controller.Finish()
 
 			deckRepo := malak_mocks.NewMockDeckRepository(controller)
+			cacheRepo := malak_mocks.NewMockCache(controller)
 
-			v.mockFn(deckRepo)
+			v.mockFn(deckRepo, cacheRepo)
 
 			u := &deckHandler{
 				referenceGenerator: &mockReferenceGenerator{},
 				deckRepo:           deckRepo,
+				cfg:                getConfig(),
+				cache:              cacheRepo,
 			}
 
 			var b = bytes.NewBuffer(nil)
