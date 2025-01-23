@@ -41,6 +41,7 @@ func TestDeck_Create(t *testing.T) {
 		Title:       "fojgfnolkgj",
 		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
 		CreatedBy:   user.ID,
+		ObjectKey:   uuid.NewString(),
 	}
 
 	err = deck.Create(context.Background(), decks, opts)
@@ -82,6 +83,7 @@ func TestDeck_List(t *testing.T) {
 		CreatedBy:   user.ID,
 		Title:       "oops",
 		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+		ObjectKey:   uuid.NewString(),
 	}, &malak.CreateDeckOptions{
 		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
 	})
@@ -133,6 +135,7 @@ func TestDeck_Get(t *testing.T) {
 		CreatedBy:   user.ID,
 		Title:       "oops",
 		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+		ObjectKey:   uuid.NewString(),
 	}, &malak.CreateDeckOptions{
 		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
 	})
@@ -178,6 +181,7 @@ func TestDeck_Delete(t *testing.T) {
 		CreatedBy:   user.ID,
 		Title:       "oops",
 		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+		ObjectKey:   uuid.NewString(),
 	}, &malak.CreateDeckOptions{
 		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
 	})
@@ -232,6 +236,7 @@ func TestDeck_UpdatePreferences(t *testing.T) {
 		CreatedBy:   user.ID,
 		Title:       "oops",
 		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+		ObjectKey:   uuid.NewString(),
 	}, &malak.CreateDeckOptions{
 		Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
 		RequireEmail:      false,
@@ -290,6 +295,7 @@ func TestDeck_ToggleArchive(t *testing.T) {
 		CreatedBy:   user.ID,
 		Title:       "Test Archive Deck",
 		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+		ObjectKey:   uuid.NewString(),
 	}, &malak.CreateDeckOptions{
 		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
 	})
@@ -363,6 +369,7 @@ func TestDecks_TogglePinned(t *testing.T) {
 			ShortLink:   malak.NewReferenceGenerator().ShortLink(),
 			CreatedBy:   user.ID,
 			IsPinned:    true,
+			ObjectKey:   uuid.NewString(),
 		}
 
 		err = deck.Create(context.Background(), decks, opts)
@@ -379,6 +386,7 @@ func TestDecks_TogglePinned(t *testing.T) {
 		Title:       "fojgfnolkgj",
 		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
 		CreatedBy:   user.ID,
+		ObjectKey:   uuid.NewString(),
 	}
 
 	// create another without pinning
