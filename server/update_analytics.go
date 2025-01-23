@@ -43,7 +43,8 @@ func (u *updatesHandler) fetchUpdateAnalytics(
 	logger.Debug("Fetching analytics update")
 
 	update, err := u.updateRepo.Get(ctx, malak.FetchUpdateOptions{
-		Reference: malak.Reference(ref),
+		Reference:   malak.Reference(ref),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if errors.Is(err, malak.ErrUpdateNotFound) {
 		return newAPIStatus(http.StatusNotFound,

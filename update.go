@@ -174,9 +174,10 @@ type UpdateSchedule struct {
 }
 
 type FetchUpdateOptions struct {
-	Status    UpdateStatus
-	Reference Reference
-	ID        uuid.UUID
+	Status      UpdateStatus
+	Reference   Reference
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
 }
 
 type ListUpdateOptions struct {
