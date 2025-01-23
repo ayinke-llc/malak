@@ -327,3 +327,66 @@ func TestDeck_ToggleArchive(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, deckFromDB.IsArchived)
 }
+
+func TestDecks_TogglePinned(t *testing.T) {
+
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	userRepo := NewUserRepository(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	deck := NewDeckRepository(client)
+
+	// user from the fixtures
+	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+
+	// from workspaces.yml migration
+	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	// add 3 pinnned decks
+	for i := 0; i <= 3; i++ {
+		opts := &malak.CreateDeckOptions{
+			Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
+		}
+
+		decks := &malak.Deck{
+			WorkspaceID: workspace.ID,
+			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck),
+			Title:       "fojgfnolkgj",
+			ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+			CreatedBy:   user.ID,
+			IsPinned:    true,
+		}
+
+		err = deck.Create(context.Background(), decks, opts)
+		require.NoError(t, err)
+	}
+
+	opts := &malak.CreateDeckOptions{
+		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
+	}
+
+	decks := &malak.Deck{
+		WorkspaceID: workspace.ID,
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck),
+		Title:       "fojgfnolkgj",
+		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+		CreatedBy:   user.ID,
+	}
+
+	// create another without pinning
+	err = deck.Create(context.Background(), decks, opts)
+	require.NoError(t, err)
+
+	// cannot add a 5th pinned item
+	err = deck.TogglePinned(context.Background(), decks)
+	require.Error(t, err)
+	require.Equal(t, malak.ErrPinnedDeckCapacityExceeded, err)
+}

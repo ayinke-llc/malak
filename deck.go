@@ -24,6 +24,8 @@ type Deck struct {
 
 	IsArchived bool `json:"is_archived,omitempty"`
 
+	IsPinned bool `json:"is_pinned,omitempty"`
+
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 
@@ -83,4 +85,5 @@ type DeckRepository interface {
 	Delete(context.Context, *Deck) error
 	UpdatePreferences(context.Context, *Deck) error
 	ToggleArchive(context.Context, *Deck) error
+	TogglePinned(context.Context, *Deck) error
 }

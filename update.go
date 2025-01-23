@@ -15,6 +15,9 @@ const (
 	ErrPinnedUpdateCapacityExceeded = MalakError(
 		`you have exceeded the maximum number of pinned updates. Please unpin an update and pin this again`)
 
+	ErrPinnedDeckCapacityExceeded = MalakError(
+		`you have exceeded the maximum number of pinned updates. Please unpin an update and pin this again`)
+
 	ErrUpdateScheduleNotFound = MalakError("update schedule not found")
 
 	MaximumNumberOfPinnedUpdates = 4

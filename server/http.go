@@ -277,7 +277,7 @@ func buildRoutes(
 				WrapMalakHTTPHandler(logger, deckHandler.toggleArchive, cfg, "decks.archive"))
 
 			r.Post("/{reference}/pin",
-				WrapMalakHTTPHandler(logger, updateHandler.togglePinned, cfg, "decks.togglePinned"))
+				WrapMalakHTTPHandler(logger, deckHandler.togglePinned, cfg, "decks.togglePinned"))
 
 		})
 
