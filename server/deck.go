@@ -98,8 +98,10 @@ func (u *deckHandler) uploadImage(
 
 	var f = struct {
 		Size int64
+		Key  string
 	}{
 		Size: file.Size,
+		Key:  file.StorageKey,
 	}
 
 	var b = bytes.NewBuffer(nil)
@@ -196,6 +198,7 @@ func (d *deckHandler) Create(
 
 	var file struct {
 		Size int64
+		Key  string
 	}
 
 	if err := json.NewDecoder(bytes.NewBuffer(data)).Decode(&file); err != nil {
@@ -229,6 +232,7 @@ func (d *deckHandler) Create(
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
 		DeckSize:    file.Size,
+		ObjectKey:   file.Key,
 	}
 
 	if err := d.deckRepo.Create(ctx, deck, opts); err != nil {

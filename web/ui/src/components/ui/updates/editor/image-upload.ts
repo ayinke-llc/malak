@@ -14,7 +14,7 @@ const fileUploader = async (file: File) => {
     return "";
   }
 
-  return client.upload
+  return client.uploads
     .uploadImage(
       {
         image_body: file,

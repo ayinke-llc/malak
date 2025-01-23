@@ -26,6 +26,8 @@ type Deck struct {
 
 	IsPinned bool `json:"is_pinned,omitempty"`
 
+	ObjectKey string `json:"object_key,omitempty"`
+
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 

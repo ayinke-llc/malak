@@ -884,7 +884,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/upload/images": {
+        "/uploads/decks": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -893,10 +893,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "images"
+                    "decks"
                 ],
-                "summary": "Upload an image",
-                "operationId": "uploadImage",
+                "summary": "Upload a deck",
+                "operationId": "uploadDeck",
                 "parameters": [
                     {
                         "type": "file",
@@ -940,7 +940,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/uploads/decks": {
+        "/uploads/images": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -949,10 +949,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "decks"
+                    "images"
                 ],
-                "summary": "Upload a deck",
-                "operationId": "uploadDeck",
+                "summary": "Upload an image",
+                "operationId": "uploadImage",
                 "parameters": [
                     {
                         "type": "file",
