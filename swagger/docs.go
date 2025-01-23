@@ -1970,6 +1970,9 @@ const docTemplate = `{
                 "is_archived": {
                     "type": "boolean"
                 },
+                "is_pinned": {
+                    "type": "boolean"
+                },
                 "preferences": {
                     "$ref": "#/definitions/malak.DeckPreference"
                 },

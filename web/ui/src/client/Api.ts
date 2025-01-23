@@ -79,6 +79,7 @@ export interface MalakDeck {
   deck_size?: number;
   id?: string;
   is_archived?: boolean;
+  is_pinned?: boolean;
   preferences?: MalakDeckPreference;
   reference?: string;
   short_link?: string;
@@ -740,6 +741,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     toggleArchive: (reference: string, params: RequestParams = {}) =>
       this.request<ServerFetchDeckResponse, ServerAPIStatus>({
         path: `/decks/${reference}/archive`,
+        method: "POST",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags decks
+     * @name TogglePin
+     * @summary toggle pinned status of a deck
+     * @request POST:/decks/{reference}/pin
+     */
+    togglePin: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerFetchDeckResponse, ServerAPIStatus>({
+        path: `/decks/${reference}/pin`,
         method: "POST",
         format: "json",
         ...params,
