@@ -168,3 +168,39 @@ func (d *decksRepo) ToggleArchive(ctx context.Context,
 			return err
 		})
 }
+
+func (d *decksRepo) TogglePinned(ctx context.Context,
+	deck *malak.Deck) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return d.inner.RunInTx(ctx, &sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+
+			_, err := tx.NewUpdate().
+				Where("id = ?", deck.ID).
+				Set("is_pinned = CASE WHEN is_pinned = true THEN false ELSE true END").
+				Model(deck).
+				Exec(ctx)
+
+			if err != nil {
+				return err
+			}
+
+			count, err := tx.NewSelect().
+				Model(new(malak.Deck)).
+				Where("is_pinned = ?", true).
+				Where("workspace_id = ?", deck.WorkspaceID).
+				Count(ctx)
+			if err != nil {
+				return err
+			}
+
+			if count > malak.MaximumNumberOfPinnedUpdates {
+				return malak.ErrPinnedDeckCapacityExceeded
+			}
+
+			return nil
+		})
+}

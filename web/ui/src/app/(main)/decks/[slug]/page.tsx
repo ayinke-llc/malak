@@ -8,7 +8,7 @@ import {
   RiPushpin2Line, RiPushpin2Fill, RiExternalLinkLine
 } from "@remixicon/react";
 import { format } from "date-fns";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 import {
@@ -58,9 +58,10 @@ const settingsSchema = yup.object().shape({
 }) satisfies yup.ObjectSchema<SettingsFormData>;
 
 export default function DeckDetails({ params }: { params: { slug: string } }) {
+
   const router = useRouter();
-  const [isPinned, setIsPinned] = useState(false);
-  const [isPinning, setIsPinning] = useState(false);
+
+  const [isPinned, setIsPinned] = useState<boolean>(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: [FETCH_DECK],
@@ -75,6 +76,20 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     passwordProtection: data?.data?.deck?.preferences?.password?.enabled ?? false,
     password: data?.data?.deck?.preferences?.password?.password,
   }), [data]);
+
+  const pinMutation = useMutation({
+    mutationFn: () => {
+      return client.decks.togglePin(params.slug, {})
+    },
+    gcTime: 0,
+    onError: (err: AxiosError<ServerAPIStatus>): void => {
+      toast.error(err?.response?.data?.message || "an error occurred while updating pinned status");
+    },
+    onSuccess: (resp: AxiosResponse<ServerFetchDeckResponse>) => {
+      setIsPinned(resp.data?.deck?.is_pinned as boolean)
+      toast.success(resp.data.message)
+    },
+  });
 
   const mutation = useMutation({
     mutationFn: (data: SettingsFormData) => {
@@ -127,19 +142,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
   };
 
   const handleTogglePin = async () => {
-    setIsPinning(true);
-    try {
-      // TODO: API call to toggle pin status
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulated API call
-      setIsPinned(!isPinned);
-      toast.success(isPinned ? "Deck unpinned" : "Deck pinned", {
-        description: isPinned ? "Deck removed from pinned items" : "Deck added to pinned items",
-      });
-    } catch (error) {
-      toast.error("Failed to update pin status");
-    } finally {
-      setIsPinning(false);
-    }
+    pinMutation.mutate()
   };
 
   if (error || isLoading) {
@@ -175,11 +178,11 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
             variant="ghost"
             size="icon"
             className={`${isPinned ? 'text-blue-600 hover:text-blue-700' : 'text-muted-foreground hover:text-foreground'
-              } ${isPinning ? 'opacity-50 cursor-not-allowed' : ''}`}
+              } ${pinMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handleTogglePin}
-            disabled={isPinning}
+            disabled={pinMutation.isPending}
           >
-            {isPinning ? (
+            {pinMutation.isPending ? (
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
             ) : isPinned ? (
               <RiPushpin2Fill className="h-5 w-5" />
@@ -422,6 +425,6 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
         </Card>
       </div>
 
-    </div>
+    </div >
   );
 }
