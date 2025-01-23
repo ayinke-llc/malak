@@ -27,6 +27,7 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/ayinke-llc/malak/server"
+	"github.com/google/uuid"
 	redisotel "github.com/redis/go-redis/extra/redisotel/v9"
 	redis "github.com/redis/go-redis/v9"
 	"github.com/sethvargo/go-limiter"
@@ -221,6 +222,9 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 							Message: fmt.Sprintf("could not upload file...%s", err.Error()),
 						})
 					}
+				}),
+				gulter.WithNameFuncGenerator(func(s string) string {
+					return uuid.New().String()
 				}),
 			)
 			if err != nil {
