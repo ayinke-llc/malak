@@ -54,11 +54,11 @@ const columns: ColumnDef<MalakUpdateRecipient>[] = [
     accessorKey: "delivered",
     header: "Delivered",
     cell: ({ row }) => (
-      <div className="flex justify-center">
+      <div className="flex justify-right">
         {row.original.update_recipient_stat?.is_delivered ? (
-          <span className="text-green-500 text-xl">✓</span>
+          "✅"
         ) : (
-          <span className="text-red-500 text-xl">✗</span>
+          "❌"
         )}
       </div>
     ),
@@ -78,13 +78,8 @@ const columns: ColumnDef<MalakUpdateRecipient>[] = [
     accessorKey: "reacted",
     header: "Reacted",
     cell: ({ row }) => (
-      <div className="text-center text-xl">{row.original.update_recipient_stat?.has_reaction || "-"}</div>
+      <div className="text-left text-xl">{row.original.update_recipient_stat?.has_reaction ? "👍" : "❌"}</div>
     ),
-  },
-  {
-    accessorKey: "clicks",
-    header: "Clicks",
-    cell: () => <div className="text-center">{0}</div>,
   },
 ]
 
@@ -128,7 +123,6 @@ export default function View(
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">Update Analytics</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

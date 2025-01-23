@@ -54,8 +54,8 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
     return null;
   }
 
-  const [saveStatus, setSaveStatus] = useState<"Saved" | "Unsaved" | "Storing">(
-    "Saved",
+  const [saveStatus, setSaveStatus] = useState<"Saved" | "Unsaved" | "Storing" | "Sent">(
+    update?.status == "sent" ? "Sent" : "Saved",
   );
 
   let initialContent = defaultEditorContent(reference);
@@ -149,6 +149,9 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
         theme={theme as "light" | "dark"}
         editable={update?.status !== 'sent'}
         onChange={() => {
+          if (update?.status === "sent") {
+            return
+          }
           setSaveStatus("Storing");
           debouncedUpdates(editor.document);
           setSaveStatus("Unsaved");

@@ -20,16 +20,18 @@ func TestUpdates_Delete(t *testing.T) {
 
 	// workspaces.yml testdata
 	updateByID, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
-		ID:        id,
-		Reference: "update_NCox_gRNg",
+		ID:          id,
+		Reference:   "update_NCox_gRNg",
+		WorkspaceID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
 	})
 	require.NoError(t, err)
 
 	require.NoError(t, updatesRepo.Delete(context.Background(), updateByID))
 
 	_, err = updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
-		ID:        id,
-		Reference: "update_NCox_gRNg",
+		ID:          id,
+		Reference:   "update_NCox_gRNg",
+		WorkspaceID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
 	})
 	require.Error(t, err)
 	require.Equal(t, malak.ErrUpdateNotFound, err)
@@ -43,7 +45,8 @@ func TestUpdates_Update(t *testing.T) {
 	updatesRepo := NewUpdatesRepository(client)
 
 	update, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
-		Reference: "update_O-54dq6IR",
+		Reference:   "update_O-54dq6IR",
+		WorkspaceID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
 	})
 	require.NoError(t, err)
 
@@ -61,7 +64,8 @@ func TestUpdates_Update(t *testing.T) {
 	require.NoError(t, updatesRepo.Update(context.Background(), update))
 
 	updatedItem, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
-		Reference: "update_O-54dq6IR",
+		Reference:   "update_O-54dq6IR",
+		WorkspaceID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
 	})
 	require.NoError(t, err)
 
@@ -92,20 +96,23 @@ func TestUpdates_Get(t *testing.T) {
 	updatesRepo := NewUpdatesRepository(client)
 
 	_, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
-		Reference: "update_O-54dq6IR",
+		Reference:   "update_O-54dq6IR",
+		WorkspaceID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
 	})
 	require.NoError(t, err)
 
 	updateByID, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
-		ID:        uuid.MustParse("07b0c648-12fd-44fc-a280-946de2700e65"),
-		Reference: "update_O-54dq6IR",
+		ID:          uuid.MustParse("07b0c648-12fd-44fc-a280-946de2700e65"),
+		Reference:   "update_O-54dq6IR",
+		WorkspaceID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
 	})
 	require.NoError(t, err)
 
 	update, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
-		Status:    malak.UpdateStatusDraft,
-		ID:        uuid.MustParse("07b0c648-12fd-44fc-a280-946de2700e65"),
-		Reference: "update_O-54dq6IR",
+		Status:      malak.UpdateStatusDraft,
+		ID:          uuid.MustParse("07b0c648-12fd-44fc-a280-946de2700e65"),
+		Reference:   "update_O-54dq6IR",
+		WorkspaceID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
 	})
 	require.NoError(t, err)
 

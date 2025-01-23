@@ -308,7 +308,8 @@ func (u *updatesHandler) update(
 	}
 
 	update, err := u.updateRepo.Get(ctx, malak.FetchUpdateOptions{
-		Reference: malak.Reference(ref),
+		Reference:   malak.Reference(ref),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if errors.Is(err, malak.ErrUpdateNotFound) {
 		return newAPIStatus(http.StatusNotFound,
@@ -362,7 +363,7 @@ func (u *updatesHandler) listPinnedUpdates(
 
 	span.SetAttributes(opts.Paginator.OTELAttributes()...)
 
-	updates, err := u.updateRepo.ListPinned(ctx, workspace.ID)
+	updates, err := u.updateRepo.ListPinned(ctx, opts.WorkspaceID)
 	if err != nil {
 		logger.Error("could not list pinned updates",
 			zap.Error(err))

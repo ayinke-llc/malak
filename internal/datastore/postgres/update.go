@@ -141,7 +141,8 @@ func (u *updatesRepo) Get(ctx context.Context,
 	update := &malak.Update{}
 
 	sel := u.inner.NewSelect().Model(update).
-		Where("reference = ?", opts.Reference)
+		Where("reference = ?", opts.Reference).
+		Where("workspace_id = ?", opts.WorkspaceID)
 
 	if opts.ID != uuid.Nil {
 		sel = sel.Where("id = ?", opts.ID)

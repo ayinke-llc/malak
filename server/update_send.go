@@ -96,7 +96,8 @@ func (u *updatesHandler) previewUpdate(
 	}
 
 	update, err := u.updateRepo.Get(ctx, malak.FetchUpdateOptions{
-		Reference: malak.Reference(ref),
+		Reference:   malak.Reference(ref),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if errors.Is(err, malak.ErrUpdateNotFound) {
 		return newAPIStatus(http.StatusNotFound,
@@ -224,7 +225,8 @@ func (u *updatesHandler) sendUpdate(
 	}
 
 	update, err := u.updateRepo.Get(ctx, malak.FetchUpdateOptions{
-		Reference: malak.Reference(ref),
+		Reference:   malak.Reference(ref),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if errors.Is(err, malak.ErrUpdateNotFound) {
 		return newAPIStatus(http.StatusNotFound,

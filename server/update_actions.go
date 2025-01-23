@@ -44,7 +44,8 @@ func (u *updatesHandler) duplicate(
 	logger.Debug("Duplicating update")
 
 	update, err := u.updateRepo.Get(ctx, malak.FetchUpdateOptions{
-		Reference: malak.Reference(ref),
+		Reference:   malak.Reference(ref),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if errors.Is(err, malak.ErrUpdateNotFound) {
 		return newAPIStatus(http.StatusNotFound,
@@ -106,7 +107,8 @@ func (u *updatesHandler) delete(
 	logger.Debug("Deleting update")
 
 	update, err := u.updateRepo.Get(ctx, malak.FetchUpdateOptions{
-		Reference: malak.Reference(ref),
+		Reference:   malak.Reference(ref),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if errors.Is(err, malak.ErrUpdateNotFound) {
 		return newAPIStatus(http.StatusNotFound,
@@ -159,7 +161,8 @@ func (u *updatesHandler) togglePinned(
 	logger.Debug("Toggling update's pin status")
 
 	update, err := u.updateRepo.Get(ctx, malak.FetchUpdateOptions{
-		Reference: malak.Reference(ref),
+		Reference:   malak.Reference(ref),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if errors.Is(err, malak.ErrUpdateNotFound) {
 		return newAPIStatus(http.StatusNotFound,
@@ -219,7 +222,8 @@ func (u *updatesHandler) fetchUpdate(
 	logger.Debug("Fetching update")
 
 	update, err := u.updateRepo.Get(ctx, malak.FetchUpdateOptions{
-		Reference: malak.Reference(ref),
+		Reference:   malak.Reference(ref),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if errors.Is(err, malak.ErrUpdateNotFound) {
 		return newAPIStatus(http.StatusNotFound,
