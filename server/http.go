@@ -260,16 +260,25 @@ func buildRoutes(
 
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, deckHandler.Create, cfg, "decks.add"))
+
 			r.Get("/",
 				WrapMalakHTTPHandler(logger, deckHandler.List, cfg, "decks.list"))
+
 			r.Delete("/{reference}",
 				WrapMalakHTTPHandler(logger, deckHandler.Delete, cfg, "decks.delete"))
+
 			r.Get("/{reference}",
 				WrapMalakHTTPHandler(logger, deckHandler.fetch, cfg, "decks.retrieve"))
+
 			r.Put("/{reference}/preferences",
 				WrapMalakHTTPHandler(logger, deckHandler.updatePreferences, cfg, "decks.preferences.update"))
+
 			r.Post("/{reference}/archive",
 				WrapMalakHTTPHandler(logger, deckHandler.toggleArchive, cfg, "decks.archive"))
+
+			r.Post("/{reference}/pin",
+				WrapMalakHTTPHandler(logger, updateHandler.togglePinned, cfg, "decks.togglePinned"))
+
 		})
 
 		r.Route("/uploads", func(r chi.Router) {
