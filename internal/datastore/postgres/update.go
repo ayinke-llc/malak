@@ -337,6 +337,8 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 			}
 
 			_, err = tx.NewInsert().Model(&recipients).
+				On("CONFLICT (contact_id,update_id) DO NOTHING").
+				Returning("id").
 				Exec(ctx)
 			return err
 		})

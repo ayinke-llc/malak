@@ -1,0 +1,1 @@
+ALTER TABLE update_recipients DROP CONSTRAINT unique_contact_per_update;
