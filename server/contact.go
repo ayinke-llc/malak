@@ -508,7 +508,7 @@ func (c *contactHandler) list(
 
 	span.SetAttributes(opts.Paginator.OTELAttributes()...)
 
-	contacts, otalCount, err := c.contactRepo.List(ctx, opts)
+	contacts, totalCount, err := c.contactRepo.List(ctx, opts)
 	if err != nil {
 		logger.Error("could not list contacts",
 			zap.Error(err))
@@ -525,8 +525,57 @@ func (c *contactHandler) list(
 			Paging: pagingInfo{
 				PerPage: opts.Paginator.PerPage,
 				Page:    opts.Paginator.Page,
-				Total: otalCount,
+				Total:   totalCount,
 			},
 		},
+	}, StatusSuccess
+}
+
+// @Summary fetch a contact by reference
+// @Tags contacts
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "contact unique reference.. e.g contact_"
+// @Success 200 {object} fetchContactResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /contacts/{reference} [get]
+func (c *contactHandler) fetchContact(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("fetching a single contact")
+
+	workspace := getWorkspaceFromContext(r.Context())
+
+	reference := chi.URLParam(r, "reference")
+
+	contact, err := c.contactRepo.Get(ctx, malak.FetchContactOptions{
+		WorkspaceID: workspace.ID,
+		Reference:   malak.Reference(reference),
+	})
+	if err != nil {
+		logger.Error("could not fetch contact",
+			zap.Error(err))
+
+		var status = http.StatusInternalServerError
+		var msg = "could not fetch contact"
+
+		if errors.Is(err, malak.ErrContactNotFound) {
+			status = http.StatusNotFound
+			msg = "contact does not exists"
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	return fetchContactResponse{
+		APIStatus: newAPIStatus(http.StatusOK, "contact was retrieved"),
+		Contact:   hermes.DeRef(contact),
 	}, StatusSuccess
 }

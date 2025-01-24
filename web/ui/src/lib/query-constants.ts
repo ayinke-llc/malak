@@ -17,3 +17,4 @@ export const FETCH_SINGLE_UPDATE_ANALYTICS = 'FETCH_SINGLE_UPDATE_ANALYTICS' as 
 export const UPLOAD_DECK = "UPLOAD_DECK" as const;
 export const LIST_DECKS = 'LIST_DECKS' as const;
 export const FETCH_DECK = 'FETCH_DECK' as const;
+export const FETCH_CONTACT = 'FETCH_CONTACT' as const
