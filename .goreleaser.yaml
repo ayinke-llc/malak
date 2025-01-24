@@ -16,9 +16,10 @@ builds:
     goarch:
       - amd64
       - arm64
-
     ldflags:
-      - -s -w -X github.com/ayinke-llc/malak.Version={{.Version}} X github.com/ayinke-llc/malak.Commit={{.Commit}}
+      - -s -w
+      - -X github.com/ayinke-llc/malak.Version={{.Version}}
+      - -X github.com/ayinke-llc/malak.Commit={{.Commit}}
 
 archives:
   - format: tar.gz
