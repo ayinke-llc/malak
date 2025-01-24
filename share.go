@@ -11,13 +11,14 @@ import (
 type ContactShareItemType string
 
 type ContactShare struct {
-	ID        uuid.UUID            `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	Reference Reference            `json:"reference,omitempty"`
-	SharedBy  uuid.UUID            `json:"shared_by,omitempty"`
-	ContactID uuid.UUID            `json:"contact_id,omitempty"`
-	ItemType  ContactShareItemType `json:"item_type,omitempty"`
-	ItemID    uuid.UUID            `json:"item_id,omitempty"`
-	SharedAt  time.Time            `json:"shared_at,omitempty"`
+	ID            uuid.UUID            `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference     Reference            `json:"reference,omitempty"`
+	SharedBy      uuid.UUID            `json:"shared_by,omitempty"`
+	ContactID     uuid.UUID            `json:"contact_id,omitempty"`
+	ItemType      ContactShareItemType `json:"item_type,omitempty"`
+	ItemID        uuid.UUID            `json:"item_id,omitempty"`
+	ItemReference Reference            `json:"item_reference,omitempty"`
+	SharedAt      time.Time            `json:"shared_at,omitempty" bun:",nullzero,notnull,default:current_timestamp"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`

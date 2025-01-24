@@ -337,11 +337,12 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 				})
 
 				sharedItems = append(sharedItems, malak.ContactShare{
-					Reference: opts.Generator.Generate(malak.EntityTypeContactShare),
-					SharedBy:  opts.UserID,
-					ContactID: contact,
-					ItemType:  malak.ContactShareItemTypeUpdate,
-					ItemID:    opts.Schedule.UpdateID,
+					Reference:     opts.Generator.Generate(malak.EntityTypeContactShare),
+					SharedBy:      opts.UserID,
+					ContactID:     contact,
+					ItemType:      malak.ContactShareItemTypeUpdate,
+					ItemID:        opts.Schedule.UpdateID,
+					ItemReference: opts.UpdateReference,
 				})
 			}
 
@@ -355,6 +356,7 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 
 			_, err = tx.NewInsert().Model(&sharedItems).
 				Returning("id").
+				On("CONFLICT (item_reference,contact_id) DO NOTHING").
 				Exec(ctx)
 			return err
 		})

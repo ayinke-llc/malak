@@ -260,11 +260,12 @@ func (u *updatesHandler) sendUpdate(
 		Reference: func(et malak.EntityType) string {
 			return u.referenceGenerator.Generate(et).String()
 		},
-		Emails:      req.Emails,
-		WorkspaceID: workspace.ID,
-		Schedule:    schedule,
-		Generator:   u.referenceGenerator,
-		UserID:      user.ID,
+		Emails:          req.Emails,
+		WorkspaceID:     workspace.ID,
+		Schedule:        schedule,
+		Generator:       u.referenceGenerator,
+		UserID:          user.ID,
+		UpdateReference: update.Reference,
 	}
 
 	if err := u.updateRepo.SendUpdate(ctx, opts); err != nil {
