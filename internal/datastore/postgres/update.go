@@ -298,7 +298,6 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 
 			_, err := u.inner.NewInsert().
 				Model(&contacts).
-				// if we already have this email in this workspace
 				On("CONFLICT (email,workspace_id) DO NOTHING").
 				Returning("id").
 				Exec(ctx, &insertedContactIDs)
@@ -326,6 +325,8 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 
 			var recipients = make([]malak.UpdateRecipient, 0, len(opts.Emails))
 
+			var sharedItems = make([]malak.ContactShare, 0, len(opts.Emails))
+
 			for _, contact := range insertedContactIDs {
 				recipients = append(recipients, malak.UpdateRecipient{
 					ContactID:  contact,
@@ -334,10 +335,25 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 					Reference:  opts.Generator.Generate(malak.EntityTypeRecipient),
 					Status:     malak.RecipientStatusPending,
 				})
+
+				sharedItems = append(sharedItems, malak.ContactShare{
+					Reference: opts.Generator.Generate(malak.EntityTypeContactShare),
+					SharedBy:  opts.UserID,
+					ContactID: contact,
+					ItemType:  malak.ContactShareItemTypeUpdate,
+					ItemID:    opts.Schedule.UpdateID,
+				})
 			}
 
 			_, err = tx.NewInsert().Model(&recipients).
 				On("CONFLICT (contact_id,update_id) DO NOTHING").
+				Returning("id").
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+
+			_, err = tx.NewInsert().Model(&sharedItems).
 				Returning("id").
 				Exec(ctx)
 			return err

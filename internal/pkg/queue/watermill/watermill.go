@@ -94,7 +94,6 @@ func New(redisClient *redis.Client,
 		// Recoverer handles panics from handlers.
 		// In this case, it passes them as errors to the Retry middleware.
 		middleware.Recoverer,
-
 		// OTEL
 		wotelfloss.ExtractRemoteParentSpanContext(),
 		wotel.Trace(),

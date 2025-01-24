@@ -123,6 +123,8 @@ components:
           type: boolean
         is_pinned:
           type: boolean
+        object_key:
+          type: string
         preferences:
           $ref: '#/components/schemas/malak.DeckPreference'
         reference:
@@ -819,6 +821,49 @@ paths:
                 $ref: '#/components/schemas/server.APIStatus'
           description: Internal Server Error
       summary: Creates a new contact
+      tags:
+      - contacts
+  /contacts/{reference}:
+    get:
+      parameters:
+      - description: contact unique reference.. e.g contact_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchContactResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: fetch a contact by reference
       tags:
       - contacts
   /contacts/lists:
