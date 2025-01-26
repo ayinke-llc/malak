@@ -3,7 +3,16 @@
 [![Codecov](https://codecov.io/gh/ayinke-llc/malak/graph/badge.svg?token=J1AVNTOCVY)](https://codecov.io/gh/ayinke-llc/malak)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ayinke-llc/malak)](https://goreportcard.com/report/github.com/ayinke-llc/malak)
 
-The Opensource Investors' relationship hub. [Learn more](https://malak.vc)
+Meet Malak, an opensource performance insights management tool for startups and their investors.
+
+Angelist Raise, Carta and other tools are awesome to communicate with investors. However, these tools are very
+limited in terms of control and customization. Or can cost thousands of $ to run and still be
+limited to certain features subsets. Or have your data being used [to cross-sell to other businesses for
+their own gain](https://x.com/karrisaarinen/status/1743398553500971331)
+
+That's where Malak comes in. Self-hosted on your own infra or hosted by us.
+White-label by design. Ready to be deployed on your own domain.
+Own full control of your data and company state if you decide to selfhost.
 
 ## Features
 
@@ -16,16 +25,11 @@ The Opensource Investors' relationship hub. [Learn more](https://malak.vc)
 - Create, manage and share your decks.
 - Manage your fundraising pipeline
 
-## Tech stack
-
-### Backend
+## Built With
 
 - Golang
 - Postgresql
 - Redis
-
-### Frontend
-
 - NextJS
 - Tailwind CSS
 
