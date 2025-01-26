@@ -619,34 +619,36 @@ func (c *contactHandler) deleteContact(
 	w http.ResponseWriter,
 	r *http.Request) (render.Renderer, Status) {
 
+	logger.Debug("deleting a single contact")
+
+	workspace := getWorkspaceFromContext(r.Context())
+
 	reference := chi.URLParam(r, "reference")
 
-	logger = logger.With(zap.String("reference", reference))
-
-	logger.Debug("deleting contact list")
-
-	list, err := c.contactListRepo.Get(ctx, malak.FetchContactListOptions{
+	contact, err := c.contactRepo.Get(ctx, malak.FetchContactOptions{
+		WorkspaceID: workspace.ID,
 		Reference:   malak.Reference(reference),
-		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
-	if errors.Is(err, malak.ErrContactListNotFound) {
-		return newAPIStatus(
-			http.StatusNotFound, err.Error()), StatusFailed
-	}
-
 	if err != nil {
-		logger.
-			Error("an error occurred while fetching contact list", zap.Error(err))
-		return newAPIStatus(
-			http.StatusInternalServerError,
-			"an error occurred while fetching the contact list"), StatusFailed
+		logger.Error("could not fetch contact",
+			zap.Error(err))
+
+		var status = http.StatusInternalServerError
+		var msg = "could not fetch contact"
+
+		if errors.Is(err, malak.ErrContactNotFound) {
+			status = http.StatusNotFound
+			msg = "contact does not exists"
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
 	}
 
-	if err := c.contactListRepo.Delete(ctx, list); err != nil {
+	if err := c.contactRepo.Delete(ctx, contact); err != nil {
 		logger.Error("could not delete contact list", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "could not delete list"),
 			StatusFailed
 	}
 
-	return newAPIStatus(http.StatusCreated, "list was successfully deleted"), StatusSuccess
+	return newAPIStatus(http.StatusOK, "contact was successfully deleted"), StatusSuccess
 }
