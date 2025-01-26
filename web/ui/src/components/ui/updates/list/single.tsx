@@ -24,6 +24,7 @@ import client from "@/lib/client";
 import {
   DELETE_UPDATE,
   DUPLICATE_UPDATE,
+  LIST_UPDATES,
   TOGGLE_PINNED_STATE,
 } from "@/lib/query-constants";
 import {
@@ -32,7 +33,7 @@ import {
   RiMoreLine,
   RiPushpinLine,
 } from "@remixicon/react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError, AxiosResponse } from "axios";
 import { useRouter } from "next/navigation";
 import { usePostHog } from "posthog-js/react";
@@ -45,10 +46,12 @@ import { format } from "date-fns";
 
 const SingleUpdate = (update: MalakUpdate) => {
   const [loading, setLoading] = useState<boolean>(false);
-  const [deleted, setDeleted] = useState<boolean>(false);
   const [duplicateDialogOpen, setDuplicateDialogOpen] =
     useState<boolean>(false);
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+
+  const queryClient = useQueryClient();
 
   const router = useRouter();
 
@@ -96,8 +99,8 @@ const SingleUpdate = (update: MalakUpdate) => {
       toast.error(msg);
     },
     onSuccess: (resp: AxiosResponse<ServerAPIStatus>) => {
+      queryClient.invalidateQueries({ queryKey: [LIST_UPDATES] });
       setDeleteDialogOpen(false);
-      setDeleted(true);
       toast.success(resp.data.message);
     },
   });
@@ -124,10 +127,6 @@ const SingleUpdate = (update: MalakUpdate) => {
     },
   });
 
-  if (deleted) {
-    // essentially remove it from the list
-    return null;
-  }
 
   return (
     <>
