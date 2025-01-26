@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -9,6 +10,9 @@ import (
 	"time"
 
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/email"
+	"github.com/ayinke-llc/malak/internal/pkg/email/resend"
+	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -140,4 +144,17 @@ func setDefaults() {
 	viper.SetDefault("billing.default_plan", uuid.Nil)
 
 	viper.SetDefault("auth.google.scopes", []string{"profile", "email"})
+}
+
+func getEmailProvider(cfg config.Config) (email.Client, error) {
+	switch cfg.Email.Provider {
+	case config.EmailProviderResend:
+		return resend.New(cfg)
+
+	case config.EmailProviderSmtp:
+		return smtp.New(cfg)
+
+	default:
+		return nil, errors.New("unsupported email provider")
+	}
 }
