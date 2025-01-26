@@ -36,10 +36,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MalakContact, MalakContactShareItem } from "@/client/Api";
+import { MalakContact, MalakContactShareItem, ServerAPIStatus } from "@/client/Api";
 import { fullName } from "@/lib/custom";
 import { format, formatDistanceToNow } from "date-fns";
 import Skeleton from "../../custom/loader/skeleton";
+import { useMutation } from "@tanstack/react-query";
+import { DELETE_CONTACT } from "@/lib/query-constants";
+import client from "@/lib/client";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 type TimePeriod = 'days' | 'weeks' | 'months';
 
@@ -55,6 +60,22 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('months');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+
+  const deleteMutation = useMutation({
+    mutationKey: [DELETE_CONTACT],
+    mutationFn: async (reference: string) => client.contacts.deleteContact(reference),
+    onSuccess: () => {
+      toast.success("Contact deleted successfully");
+      router.back();
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      toast.error(err.response?.data.message ?? "An error occurred while deleting contact");
+    },
+  });
+
+  const handleDelete = async () => {
+    deleteMutation.mutate(reference)
+  };
 
   const getChartData = (period: TimePeriod) => {
     switch (period) {
@@ -90,9 +111,6 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
 
   const chartdata = getChartData(timePeriod);
 
-  const handleDelete = async () => {
-
-  };
 
   return (
     <div className="mt-6 space-y-6">
@@ -422,13 +440,13 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={isLoading}
+              disabled={deleteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isLoading ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
