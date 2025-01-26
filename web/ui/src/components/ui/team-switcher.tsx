@@ -21,10 +21,14 @@ import { Avatar } from "./custom/avatar/avatar"
 import useWorkspacesStore from "@/store/workspace"
 import { cn } from "@/lib/utils"
 import { ModalAddWorkspace } from "./navigation/ModalAddWorkspace"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export function TeamSwitcher() {
   const { isMobile } = useSidebar();
   const { current, workspaces, setCurrent } = useWorkspacesStore();
+
+  const router = useRouter();
 
   return (
     <SidebarMenu>
@@ -59,7 +63,10 @@ export function TeamSwitcher() {
             {workspaces.map((workspace, index) => (
               <DropdownMenuItem
                 key={workspace.reference}
-                onClick={() => setCurrent(workspace)}
+                onClick={() => {
+                  setCurrent(workspace)
+                  router.refresh();
+                }}
                 className="gap-2 p-2 hover:cursor-pointer"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
