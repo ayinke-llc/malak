@@ -166,7 +166,7 @@ const CreateNewContactList = ({ onCreate }: CreateNewContactListProps) => {
       <div className="flex items-center gap-2">
         <Input
           placeholder="List name"
-          className="flex-grow bg-transparent border-gray-800/50 text-gray-300 focus-visible:ring-0 focus-visible:border-gray-700"
+          className="flex-grow bg-transparent focus-visible:ring-0 focus-visible:border-gray-700"
           {...register("name")}
         />
         <Button
@@ -204,6 +204,7 @@ export default function ManageListModal() {
   const deleteMutation = useMutation({
     mutationKey: [UPDATE_CONTACT_LIST],
     mutationFn: async (reference: string) => {
+      // @ts-ignore - deleteContactList exists but TypeScript doesn't recognize it
       const response = await client.contacts.deleteContactList(reference);
       return response.data;
     },
@@ -232,7 +233,6 @@ export default function ManageListModal() {
 
   const handleDelete = (reference: string) => {
     if (reference) {
-      // @ts-ignore - deleteContactList exists but TypeScript doesn't recognize it
       deleteMutation.mutate(reference);
     }
   };
@@ -251,9 +251,9 @@ export default function ManageListModal() {
           </Button>
         </div>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] bg-gray-900 border-gray-800/50">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-gray-200">Contact lists</DialogTitle>
+          <DialogTitle>Contact lists</DialogTitle>
           <DialogDescription className="text-gray-500">
             Create and manage your contact lists.
           </DialogDescription>
@@ -286,10 +286,10 @@ export default function ManageListModal() {
                       ) : (
                         <>
                           <div>
-                            <h4 className="font-medium text-gray-200">
+                            <h4 className="font-medium">
                               {item.list.title}
                             </h4>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm">
                               {item.list.reference}
                             </p>
                           </div>
@@ -297,7 +297,7 @@ export default function ManageListModal() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-8 w-8 p-0 text-gray-500 hover:text-gray-400 hover:bg-gray-800/30"
+                              className="h-8 w-8 p-0"
                               onClick={() => item.list.id && handleEdit(item.list.id)}
                             >
                               <RiPencilLine className="h-4 w-4" />
@@ -306,7 +306,7 @@ export default function ManageListModal() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-8 w-8 p-0 text-gray-500 hover:text-red-400 hover:bg-red-500/10"
+                              className="h-8 w-8 p-0 hover:text-red-400 hover:bg-red-500/10"
                               onClick={() => item.list.reference && handleDelete(item.list.reference)}
                             >
                               <RiDeleteBinLine className="h-4 w-4" />
@@ -319,7 +319,7 @@ export default function ManageListModal() {
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-gray-500">No lists created yet</div>
+                <div className="text-sm">No lists created yet</div>
               )}
 
               {showNewListForm ? (
@@ -333,7 +333,7 @@ export default function ManageListModal() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full border-gray-800/50 bg-transparent text-gray-400 hover:bg-gray-800/30 hover:text-gray-300"
+                  className="w-full border-gray-800/50 bg-transparent hover:bg-800/30 hover:text-gray-500"
                   onClick={() => setShowNewListForm(true)}
                 >
                   <RiAddLine className="h-4 w-4 mr-2" />
