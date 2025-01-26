@@ -23,12 +23,34 @@ import { cn } from "@/lib/utils"
 import { ModalAddWorkspace } from "./navigation/ModalAddWorkspace"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
+import { ServerAPIStatus } from "@/client/Api"
+import client from "@/lib/client"
+import { SWITCH_WORKSPACE } from "@/lib/query-constants"
+import { useMutation } from "@tanstack/react-query"
+import { AxiosError, AxiosResponse } from "axios"
+import { toast } from "sonner"
 
 export function TeamSwitcher() {
   const { isMobile } = useSidebar();
   const { current, workspaces, setCurrent } = useWorkspacesStore();
 
   const router = useRouter();
+
+  const mutation = useMutation({
+    mutationKey: [SWITCH_WORKSPACE],
+    mutationFn: (reference: string) =>
+      client.workspaces.switchworkspace(reference),
+    onSuccess: ({ data }) => {
+      setCurrent(data.workspace);
+      toast.success(data.message);
+      window.location.reload();
+    },
+    onError(err: AxiosResponse<ServerAPIStatus>) {
+      toast.error(err?.data?.message);
+    },
+    retry: false,
+    gcTime: Number.POSITIVE_INFINITY,
+  });
 
   return (
     <SidebarMenu>
@@ -64,8 +86,7 @@ export function TeamSwitcher() {
               <DropdownMenuItem
                 key={workspace.reference}
                 onClick={() => {
-                  setCurrent(workspace)
-                  router.refresh();
+                  mutation.mutate(workspace?.reference as string)
                 }}
                 className="gap-2 p-2 hover:cursor-pointer"
               >
