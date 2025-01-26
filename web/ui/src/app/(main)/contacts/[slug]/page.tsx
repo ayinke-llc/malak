@@ -27,22 +27,6 @@ export default function Page() {
   return (
     <div className="pt-6">
       <section>
-        <div className="sm:flex sm:items-center sm:justify-between">
-          <div>
-            <h3
-              id="company-decks"
-              className="text-lg font-medium text-zinc-100"
-            >
-              Contact details
-            </h3>
-            <p className="text-sm text-zinc-400/80">
-              Viewing contact's details
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section>
         <ContactDetails
           reference={reference}
           shared_items={data?.data?.shared_items as MalakContactShareItem[]}
