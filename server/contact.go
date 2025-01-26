@@ -538,7 +538,7 @@ func (c *contactHandler) list(
 // @Accept  json
 // @Produce  json
 // @Param reference path string required "contact unique reference.. e.g contact_"
-// @Success 200 {object} fetchContactResponse
+// @Success 200 {object} fetchDetailedContactResponse
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus

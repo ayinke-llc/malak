@@ -88,6 +88,7 @@ func (o *contactRepo) Get(ctx context.Context,
 
 	err := q.Model(contact).
 		Relation("Lists").
+		Relation("Lists.List").
 		Scan(ctx)
 
 	if errors.Is(err, sql.ErrNoRows) {

@@ -461,7 +461,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.fetchContactResponse"
+                            "$ref": "#/definitions/server.fetchDetailedContactResponse"
                         }
                     },
                     "400": {
@@ -1969,6 +1969,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "list": {
+                    "$ref": "#/definitions/malak.ContactList"
+                },
                 "list_id": {
                     "type": "string"
                 },
@@ -2000,6 +2003,57 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "malak.ContactShareItem": {
+            "type": "object",
+            "properties": {
+                "contact_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "item_id": {
+                    "type": "string"
+                },
+                "item_reference": {
+                    "type": "string"
+                },
+                "item_type": {
+                    "$ref": "#/definitions/malak.ContactShareItemType"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "shared_at": {
+                    "type": "string"
+                },
+                "shared_by": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.ContactShareItemType": {
+            "type": "string",
+            "enum": [
+                "update",
+                "dashboard",
+                "deck"
+            ],
+            "x-enum-varnames": [
+                "ContactShareItemTypeUpdate",
+                "ContactShareItemTypeDashboard",
+                "ContactShareItemTypeDeck"
+            ]
         },
         "malak.CustomContactMetadata": {
             "type": "object",
@@ -2652,6 +2706,28 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "server.fetchDetailedContactResponse": {
+            "type": "object",
+            "required": [
+                "contact",
+                "message",
+                "shared_items"
+            ],
+            "properties": {
+                "contact": {
+                    "$ref": "#/definitions/malak.Contact"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "shared_items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.ContactShareItem"
+                    }
                 }
             }
         },

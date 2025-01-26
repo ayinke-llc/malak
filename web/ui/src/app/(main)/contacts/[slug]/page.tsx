@@ -1,5 +1,6 @@
 "use client";
 
+import { MalakContact, MalakContactShareItem } from "@/client/Api";
 import ListContacts from "@/components/ui/contacts/list/list";
 import ContactDetails from "@/components/ui/contacts/single/view";
 import client from "@/lib/client";
@@ -42,7 +43,11 @@ export default function Page() {
       </section>
 
       <section>
-        <ContactDetails reference={reference} />
+        <ContactDetails
+          reference={reference}
+          shared_items={data?.data?.shared_items as MalakContactShareItem[]}
+          contact={data?.data?.contact as MalakContact}
+        />
       </section>
     </div>
   );

@@ -121,6 +121,9 @@
 					"id": {
 						"type": "string"
 					},
+					"list": {
+						"$ref": "#/components/schemas/malak.ContactList"
+					},
 					"list_id": {
 						"type": "string"
 					},
@@ -153,6 +156,57 @@
 					}
 				},
 				"type": "object"
+			},
+			"malak.ContactShareItem": {
+				"properties": {
+					"contact_id": {
+						"type": "string"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"item_id": {
+						"type": "string"
+					},
+					"item_reference": {
+						"type": "string"
+					},
+					"item_type": {
+						"$ref": "#/components/schemas/malak.ContactShareItemType"
+					},
+					"reference": {
+						"type": "string"
+					},
+					"shared_at": {
+						"type": "string"
+					},
+					"shared_by": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"updated_at": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"malak.ContactShareItemType": {
+				"enum": [
+					"update",
+					"dashboard",
+					"deck"
+				],
+				"type": "string",
+				"x-enum-varnames": [
+					"ContactShareItemTypeUpdate",
+					"ContactShareItemTypeDashboard",
+					"ContactShareItemTypeDeck"
+				]
 			},
 			"malak.CustomContactMetadata": {
 				"additionalProperties": {
@@ -805,6 +859,28 @@
 				},
 				"required": [
 					"message"
+				],
+				"type": "object"
+			},
+			"server.fetchDetailedContactResponse": {
+				"properties": {
+					"contact": {
+						"$ref": "#/components/schemas/malak.Contact"
+					},
+					"message": {
+						"type": "string"
+					},
+					"shared_items": {
+						"items": {
+							"$ref": "#/components/schemas/malak.ContactShareItem"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"contact",
+					"message",
+					"shared_items"
 				],
 				"type": "object"
 			},
@@ -1570,7 +1646,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/server.fetchContactResponse"
+									"$ref": "#/components/schemas/server.fetchDetailedContactResponse"
 								}
 							}
 						},
