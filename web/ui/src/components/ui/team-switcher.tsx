@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import { ChevronsUpDown, Plus } from "lucide-react"
 
 import {
@@ -18,19 +17,19 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { MalakWorkspace } from "@/client/Api"
 import { Avatar } from "./custom/avatar/avatar"
 import useWorkspacesStore from "@/store/workspace"
 import { cn } from "@/lib/utils"
+import { ModalAddWorkspace } from "./navigation/ModalAddWorkspace"
 
 export function TeamSwitcher() {
-  const { isMobile } = useSidebar()
-  const { current, workspaces, setCurrent } = useWorkspacesStore()
+  const { isMobile } = useSidebar();
+  const { current, workspaces, setCurrent } = useWorkspacesStore();
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
@@ -79,11 +78,15 @@ export function TeamSwitcher() {
               <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                 <Plus className="size-4" />
               </div>
-              <div className="font-medium text-muted-foreground">Add Workspace</div>
+              <ModalAddWorkspace
+                onSelect={() => { }}
+                onOpenChange={() => { }}
+                itemName="Create workspace"
+              />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }
