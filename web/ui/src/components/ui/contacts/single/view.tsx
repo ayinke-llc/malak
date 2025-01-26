@@ -45,6 +45,7 @@ import { DELETE_CONTACT } from "@/lib/query-constants";
 import client from "@/lib/client";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
+import Link from "next/link";
 
 type TimePeriod = 'days' | 'weeks' | 'months';
 
@@ -372,7 +373,9 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
               map((item) => {
                 return (
                   <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
-                    <span className="text-sm font-medium text-foreground">{item?.title}</span>
+                    <Link href={`/updates/${item?.item_reference}`} className="text-sm font-medium text-foreground">
+                      {item?.title}
+                    </Link>
                     <span className="text-sm text-muted-foreground">
                       Sent {formatDistanceToNow(item?.shared_at as string, { addSuffix: true })}
                     </span>
