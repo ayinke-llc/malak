@@ -2,17 +2,27 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "v*.*.*"
+
 name: Build container Image
 jobs:
   deploy:
     runs-on: "ubuntu-latest"
     steps:
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=tag::$(echo ${GITHUB_SHA:8})
-
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Set image tag
+        id: set_tag
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            # Remove the leading 'v' from the tag name
+            TAG=${GITHUB_REF#refs/tags/v}
+            echo "TAG=${TAG}" >> $GITHUB_ENV
+          else
+            echo "TAG=${GITHUB_SHA::8}" >> $GITHUB_ENV
+          fi
 
       - name: Authenticate
         uses: actions-hub/docker/login@master
@@ -26,9 +36,10 @@ jobs:
           docker build \
             --build-arg VERSION=${GITHUB_SHA::8} \
             --build-arg COMMIT=${GITHUB_SHA} \
-            -t ghcr.io/${GITHUB_REPOSITORY}:${{ steps.get_version.outputs.tag }} .
+            -t ghcr.io/${GITHUB_REPOSITORY}:${{ env.TAG }} .
 
       - name: Push
         uses: actions-hub/docker@master
         with:
-          args: push ghcr.io/${GITHUB_REPOSITORY}:${{ steps.get_version.outputs.tag }}
+          args: push ghcr.io/${GITHUB_REPOSITORY}:${{ env.TAG }}
+

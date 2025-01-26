@@ -21,4 +21,3 @@ RUN go install -ldflags="-X main.Version=${VERSION} -X main.Commit=${COMMIT}" ./
 FROM gcr.io/distroless/base
 COPY --from=build-env /go/bin/cmd /
 CMD ["/cmd http"]
-
