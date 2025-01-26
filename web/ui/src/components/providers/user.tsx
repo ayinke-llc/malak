@@ -4,7 +4,7 @@ import { ServerAPIStatus } from "@/client/Api";
 import client from "@/lib/client";
 import useAuthStore from "@/store/auth";
 import useWorkspacesStore from "@/store/workspace";
-import { AxiosError, AxiosResponse } from "axios";
+import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -21,6 +21,8 @@ export default function UserProvider({
   const logout = useAuthStore((state) => state.logout);
   const isRehydrated = useAuthStore(state => state.isRehydrated);
 
+  const clear = useWorkspacesStore(state => state.clear)
+
   const { setWorkspaces, setCurrent } = useWorkspacesStore();
   const router = useRouter();
 
@@ -31,6 +33,7 @@ export default function UserProvider({
 
     if (!isAuthenticated()) {
       logout();
+      clear();
       router.push("/login");
       return;
     }
@@ -48,6 +51,7 @@ export default function UserProvider({
       (error) => {
         if (error.response && error.response.status === 401) {
           logout();
+          clear();
           router.push("/login");
         }
         return Promise.reject(error);
@@ -58,16 +62,18 @@ export default function UserProvider({
       .userList()
       .then((res) => {
         setUser(res.data.user);
+
         if (res.data.current_workspace !== undefined) {
           setCurrent(res.data.current_workspace);
         }
-        setWorkspaces(res.data.workspaces);
 
+        setWorkspaces(res.data.workspaces);
         setLoading(false);
       })
       .catch((err: AxiosError<ServerAPIStatus>) => {
-        console.log(err, token, "THERE")
         toast.error(err?.response?.data?.message)
+        logout();
+        clear();
         setLoading(true)
       });
 
