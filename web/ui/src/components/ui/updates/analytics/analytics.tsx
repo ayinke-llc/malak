@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Skeleton from "../../custom/loader/skeleton";
 import View from "./view";
-import { MalakUpdateRecipientStat, MalakUpdateStat } from "@/client/Api";
+import { MalakUpdateStat } from "@/client/Api";
 
 type Props = {
   reference: string
@@ -28,11 +28,11 @@ const Analytics = (props: Props) => {
   }
 
   // Don't render if all stats are 0 or undefined
-  const hasAnalytics = data.data.update.unique_opens || 
-                      data.data.update.total_opens || 
-                      data.data.update.total_reactions || 
-                      data.data.update.total_clicks || 
-                      (data.data.recipients && data.data.recipients.length > 0);
+  const hasAnalytics = data.data.update.unique_opens ||
+    data.data.update.total_opens ||
+    data.data.update.total_reactions ||
+    data.data.update.total_clicks ||
+    (data.data.recipients && data.data.recipients.length > 0);
 
   if (!hasAnalytics) {
     return null;
