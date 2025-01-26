@@ -579,6 +579,7 @@ func (c *contactHandler) fetchContact(
 	var g errgroup.Group
 	var sharedItems []malak.ContactShareItem
 
+	// errgroup because of analytics in the future
 	g.Go(func() error {
 		var err error
 

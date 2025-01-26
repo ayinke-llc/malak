@@ -230,6 +230,107 @@ func TestContactHandler_List(t *testing.T) {
 	}
 }
 
+func TestContactHandler_GetSingleContact(t *testing.T) {
+	for _, v := range generateContactFetchContact() {
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			contactRepo := malak_mocks.NewMockContactRepository(controller)
+			shareRepo := malak_mocks.NewMockContactShareRepository(controller)
+
+			v.mockFn(contactRepo, shareRepo)
+
+			a := &contactHandler{
+				cfg:              getConfig(),
+				contactRepo:      contactRepo,
+				contactShareRepo: shareRepo,
+			}
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodGet, "/contacts", nil)
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			WrapMalakHTTPHandler(getLogger(t), a.fetchContact, getConfig(), "contacts.fetchContact").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateContactFetchContact() []struct {
+	name               string
+	mockFn             func(contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository)
+	expectedStatusCode int
+} {
+	return []struct {
+		name               string
+		mockFn             func(contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository)
+		expectedStatusCode int
+	}{
+		{
+			name: "get contact fails because it does not exists",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository) {
+
+				contactRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, malak.ErrContactNotFound)
+
+			},
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "get contact fails because of db error",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository) {
+
+				contactRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("failed"))
+
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "getting shared items failed",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository) {
+
+				contactRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Contact{}, nil)
+
+				shareRepo.EXPECT().
+					All(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("could not fetch shared items"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "getting shared items succeeds",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository) {
+
+				contactRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Contact{}, nil)
+
+				shareRepo.EXPECT().
+					All(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]malak.ContactShareItem{}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
 func generateCreateContactTestTable() []struct {
 	name               string
 	mockFn             func(contactRepo *malak_mocks.MockContactRepository)
