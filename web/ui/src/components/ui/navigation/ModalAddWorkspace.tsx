@@ -14,6 +14,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import client from "@/lib/client";
+import { CREATE_WORKSPACE } from "@/lib/query-constants";
 import useWorkspacesStore from "@/store/workspace";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
@@ -47,16 +48,16 @@ export function ModalAddWorkspace({
 }: ModalProps) {
   const [loading, setLoading] = useState<boolean>(false);
 
-  const setWorkspace = useWorkspacesStore.getState().setCurrent;
+  const { setCurrent } = useWorkspacesStore();
 
   const router = useRouter();
 
   const mutation = useMutation({
-    mutationKey: ["create-workspace"],
+    mutationKey: [CREATE_WORKSPACE],
     mutationFn: (data: CreateWorkspaceInput) =>
       client.workspaces.workspacesCreate(data),
     onSuccess: ({ data }) => {
-      setWorkspace(data.workspace);
+      setCurrent(data.workspace);
       toast.success(data.message);
       onOpenChange(false);
       router.push("/");
@@ -88,9 +89,10 @@ export function ModalAddWorkspace({
 
   return (
     <>
-      <Dialog onOpenChange={onOpenChange}>
+      <Dialog onOpenChange={onOpenChange} modal={false}>
         <DialogTrigger className="w-full text-left">
           <DropdownMenuItem
+            className="hover:cursor-pointer"
             onSelect={(event) => {
               event.preventDefault();
               onSelect?.();

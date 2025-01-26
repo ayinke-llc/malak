@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import { ChevronsUpDown, Plus } from "lucide-react"
 
 import {
@@ -18,23 +17,43 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { MalakWorkspace } from "@/client/Api"
 import { Avatar } from "./custom/avatar/avatar"
+import useWorkspacesStore from "@/store/workspace"
+import { cn } from "@/lib/utils"
+import { ModalAddWorkspace } from "./navigation/ModalAddWorkspace"
+import { useRouter } from "next/navigation"
+import { ServerAPIStatus } from "@/client/Api"
+import client from "@/lib/client"
+import { SWITCH_WORKSPACE } from "@/lib/query-constants"
+import { useMutation } from "@tanstack/react-query"
+import { AxiosResponse } from "axios"
+import { toast } from "sonner"
 
-export function TeamSwitcher({
-  teams,
-  current,
-}: {
-  teams: MalakWorkspace[]
-  current: MalakWorkspace | null,
-}) {
-  const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+export function TeamSwitcher() {
+  const { isMobile } = useSidebar();
+  const { current, workspaces, setCurrent } = useWorkspacesStore();
+
+  const router = useRouter();
+
+  const mutation = useMutation({
+    mutationKey: [SWITCH_WORKSPACE],
+    mutationFn: (reference: string) => client.workspaces.switchworkspace(reference),
+    onSuccess: ({ data }) => {
+      setCurrent(data.workspace);
+      toast.success(data.message);
+      window.location.reload();
+    },
+    onError(err: AxiosResponse<ServerAPIStatus>) {
+      toast.error(err?.data?.message);
+    },
+    retry: false,
+    gcTime: Number.POSITIVE_INFINITY,
+  });
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
@@ -61,29 +80,39 @@ export function TeamSwitcher({
             <DropdownMenuLabel className="text-xs text-muted-foreground">
               Teams
             </DropdownMenuLabel>
-            {teams.map((team, index) => (
+            {workspaces.map((workspace, index) => (
               <DropdownMenuItem
-                key={team.reference}
-                onClick={() => setActiveTeam(team)}
-                className="gap-2 p-2"
+                key={workspace.reference}
+                onClick={() => {
+                  mutation.mutate(workspace?.reference as string)
+                }}
+                className="gap-2 p-2 hover:cursor-pointer"
+                disabled={mutation.isPending}
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <Avatar className="size-4 shrink-0" />
                 </div>
-                {team.workspace_name}
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                <span className={cn(
+                  workspace?.id == current?.id ? "font-bold" : ""
+                )}>
+                  {workspace.workspace_name}
+                </span>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 p-2">
+            <DropdownMenuItem className="gap-2 p-2 hover:cursor-pointer">
               <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                 <Plus className="size-4" />
               </div>
-              <div className="font-medium text-muted-foreground">Add Workspace</div>
+              <ModalAddWorkspace
+                onSelect={() => { }}
+                onOpenChange={() => { }}
+                itemName="Create workspace"
+              />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

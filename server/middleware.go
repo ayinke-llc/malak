@@ -93,6 +93,7 @@ func requireAuthentication(
 
 			logger = logger.With(
 				zap.String("request_id", rid),
+				zap.String("path", r.URL.Path),
 			)
 
 			token, err := tokenFromRequest(r)
