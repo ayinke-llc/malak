@@ -22,12 +22,11 @@ import useWorkspacesStore from "@/store/workspace"
 import { cn } from "@/lib/utils"
 import { ModalAddWorkspace } from "./navigation/ModalAddWorkspace"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 import { ServerAPIStatus } from "@/client/Api"
 import client from "@/lib/client"
 import { SWITCH_WORKSPACE } from "@/lib/query-constants"
 import { useMutation } from "@tanstack/react-query"
-import { AxiosError, AxiosResponse } from "axios"
+import { AxiosResponse } from "axios"
 import { toast } from "sonner"
 
 export function TeamSwitcher() {
@@ -88,6 +87,7 @@ export function TeamSwitcher() {
                   mutation.mutate(workspace?.reference as string)
                 }}
                 className="gap-2 p-2 hover:cursor-pointer"
+                disabled={mutation.isPending}
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <Avatar className="size-4 shrink-0" />
@@ -97,7 +97,6 @@ export function TeamSwitcher() {
                 )}>
                   {workspace.workspace_name}
                 </span>
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
