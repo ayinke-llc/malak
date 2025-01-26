@@ -64,7 +64,9 @@ func (o *contactRepo) Create(ctx context.Context,
 func (o *contactRepo) Get(ctx context.Context,
 	opts malak.FetchContactOptions) (*malak.Contact, error) {
 
-	contact := new(malak.Contact)
+	contact := &malak.Contact{
+		Lists: make([]malak.ContactListMapping, 0),
+	}
 
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
@@ -84,7 +86,9 @@ func (o *contactRepo) Get(ctx context.Context,
 		q = q.Where("email = ?", opts.Email.String())
 	}
 
-	err := q.Model(contact).Scan(ctx)
+	err := q.Model(contact).
+		Relation("Lists").
+		Scan(ctx)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		err = malak.ErrContactNotFound
