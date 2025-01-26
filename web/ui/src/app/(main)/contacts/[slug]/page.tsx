@@ -1,7 +1,6 @@
 "use client";
 
 import { MalakContact, MalakContactShareItem } from "@/client/Api";
-import ListContacts from "@/components/ui/contacts/list/list";
 import ContactDetails from "@/components/ui/contacts/single/view";
 import client from "@/lib/client";
 import { FETCH_CONTACT } from "@/lib/query-constants";
@@ -31,6 +30,7 @@ export default function Page() {
           reference={reference}
           shared_items={data?.data?.shared_items as MalakContactShareItem[]}
           contact={data?.data?.contact as MalakContact}
+          isLoading={isLoading}
         />
       </section>
     </div>
