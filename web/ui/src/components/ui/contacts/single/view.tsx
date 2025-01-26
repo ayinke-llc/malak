@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Mail,
@@ -37,10 +36,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
-import { MalakContact, MalakContactShareItem } from "@/client/Api";
+import { MalakContact, MalakContactShareItem, ServerAPIStatus } from "@/client/Api";
 import { fullName } from "@/lib/custom";
 import { format, formatDistanceToNow } from "date-fns";
+import Skeleton from "../../custom/loader/skeleton";
+import { useMutation } from "@tanstack/react-query";
+import { DELETE_CONTACT } from "@/lib/query-constants";
+import client from "@/lib/client";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 type TimePeriod = 'days' | 'weeks' | 'months';
 
@@ -48,17 +52,30 @@ interface ContactDetailsProps {
   reference: string;
   contact: MalakContact
   shared_items: MalakContactShareItem[]
+  isLoading: boolean
 }
 
-const ContactDetails = ({ reference, contact, shared_items }: ContactDetailsProps) => {
+const ContactDetails = ({ isLoading, reference, contact, shared_items }: ContactDetailsProps) => {
   const router = useRouter();
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('months');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const isLoading = false;
-  // TODO: Fetch contact details using the reference
+  const deleteMutation = useMutation({
+    mutationKey: [DELETE_CONTACT],
+    mutationFn: async (reference: string) => client.contacts.deleteContact(reference),
+    onSuccess: () => {
+      toast.success("Contact deleted successfully");
+      router.back();
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      toast.error(err.response?.data.message ?? "An error occurred while deleting contact");
+    },
+  });
 
+  const handleDelete = async () => {
+    deleteMutation.mutate(reference)
+  };
 
   const getChartData = (period: TimePeriod) => {
     switch (period) {
@@ -94,246 +111,248 @@ const ContactDetails = ({ reference, contact, shared_items }: ContactDetailsProp
 
   const chartdata = getChartData(timePeriod);
 
-  const handleDelete = async () => {
-
-  };
 
   return (
     <div className="mt-6 space-y-6">
-      <Card className="shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
-          <div className="space-y-1">
-            <CardTitle className="text-2xl font-bold tracking-tight text-foreground">{fullName(contact)}</CardTitle>
-            <CardDescription className="text-base text-muted-foreground">Contact Information</CardDescription>
-          </div>
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowEditModal(true)}
-              className="h-9 w-9"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="destructive"
-              size="icon"
-              onClick={() => setShowDeleteDialog(true)}
-              disabled={isLoading}
-              className="h-9 w-9"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="details" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="details" className="text-sm">Details</TabsTrigger>
-              {/* <TabsTrigger value="activity" className="text-sm">Activity</TabsTrigger>*/}
-              <TabsTrigger value="notes" className="text-sm">Notes</TabsTrigger>
-            </TabsList>
 
-            <TabsContent value="details">
-              <div className="grid gap-8 mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-6">
-                    <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-                      <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm font-semibold text-foreground mb-1">Email</p>
-                        <p className="text-sm text-muted-foreground">{contact?.email || "N/A"}</p>
+      {isLoading ? (
+        <Skeleton count={20} />
+      ) : (
+        <Card className="shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
+            <div className="space-y-1">
+              <CardTitle className="text-2xl font-bold tracking-tight text-foreground">{fullName(contact)}</CardTitle>
+              <CardDescription className="text-base text-muted-foreground">Contact Information</CardDescription>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setShowEditModal(true)}
+                className="h-9 w-9"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="destructive"
+                size="icon"
+                onClick={() => setShowDeleteDialog(true)}
+                disabled={isLoading}
+                className="h-9 w-9"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="details" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="details" className="text-sm">Details</TabsTrigger>
+                {/* <TabsTrigger value="activity" className="text-sm">Activity</TabsTrigger>*/}
+                <TabsTrigger value="notes" className="text-sm">Notes</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="details">
+                <div className="grid gap-8 mt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                      <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
+                        <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-foreground mb-1">Email</p>
+                          <p className="text-sm text-muted-foreground">{contact?.email || "N/A"}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
+                        <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-foreground mb-1">Phone</p>
+                          <p className="text-sm text-muted-foreground">{contact?.phone || "N/A"}</p>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-                      <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm font-semibold text-foreground mb-1">Phone</p>
-                        <p className="text-sm text-muted-foreground">{contact?.phone || "N/A"}</p>
+                    <div className="space-y-6">
+                      <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
+                        <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-foreground mb-1">Company</p>
+                          <p className="text-sm text-muted-foreground">{contact?.company || "N/A"}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
+                        <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-foreground mb-1">Address</p>
+                          <p className="text-sm text-muted-foreground">
+                            {contact?.city || "N/A"}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-6">
-                    <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-                      <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm font-semibold text-foreground mb-1">Company</p>
-                        <p className="text-sm text-muted-foreground">{contact?.company || "N/A"}</p>
+
+                  {contact?.lists?.length as number > 0 && (<div className="border-t pt-6">
+                    <h4 className="text-sm font-semibold text-foreground mb-4">Contact Lists</h4>
+                    <div className="flex items-start gap-3">
+                      <Users className="h-5 w-5 text-muted-foreground mt-0.5" />
+                      <div className="flex-1">
+                        <div className="flex flex-wrap gap-2">
+                          {contact?.lists?.map((list, index) => {
+                            return (
+                              <Badge variant="secondary" className="px-3 py-1" key={index}>
+                                {list?.list?.title}
+                              </Badge>
+                            )
+                          })}
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-                      <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm font-semibold text-foreground mb-1">Address</p>
-                        <p className="text-sm text-muted-foreground">
-                          {contact?.city || "N/A"}
-                        </p>
+                  </div>)}
+
+                  <div className="border-t pt-6">
+                    <h4 className="text-sm font-semibold text-foreground mb-4">Additional Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
+                        <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-foreground mb-1">Created</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(contact?.created_at as string || new Date(), "EEEE, MMMM do, yyyy")}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
+                        <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-foreground mb-1">Last Updated</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(contact?.updated_at as string || new Date(), "EEEE, MMMM do, yyyy")}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
+              </TabsContent>
 
-                {contact?.lists?.length as number > 0 && (<div className="border-t pt-6">
-                  <h4 className="text-sm font-semibold text-foreground mb-4">Contact Lists</h4>
-                  <div className="flex items-start gap-3">
-                    <Users className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div className="flex-1">
-                      <div className="flex flex-wrap gap-2">
-                        {contact?.lists?.map((list, index) => {
-                          return (
-                            <Badge variant="secondary" className="px-3 py-1" key={index}>
-                              {list?.list?.title}
-                            </Badge>
-                          )
-                        })}
+              <TabsContent value="activity">
+                <div className="space-y-10 mt-6">
+                  {/* Engagement Trend Section */}
+                  <div>
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5 text-muted-foreground" />
+                        Engagement trend
+                      </h3>
+                      <div className="inline-flex items-center rounded-md bg-muted p-1 text-muted-foreground">
+                        <Button
+                          variant={timePeriod === 'days' ? 'secondary' : 'ghost'}
+                          size="sm"
+                          className="text-xs px-3 py-1.5"
+                          onClick={() => setTimePeriod('days')}
+                        >
+                          Days
+                        </Button>
+                        <Button
+                          variant={timePeriod === 'weeks' ? 'secondary' : 'ghost'}
+                          size="sm"
+                          className="text-xs px-3 py-1.5"
+                          onClick={() => setTimePeriod('weeks')}
+                        >
+                          Weeks
+                        </Button>
+                        <Button
+                          variant={timePeriod === 'months' ? 'secondary' : 'ghost'}
+                          size="sm"
+                          className="text-xs px-3 py-1.5"
+                          onClick={() => setTimePeriod('months')}
+                        >
+                          Months
+                        </Button>
                       </div>
                     </div>
+                    <Card className="shadow-sm">
+                      <CardContent className="pl-2 pt-6">
+                        <div className="h-[250px] w-full">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={chartdata}>
+                              <XAxis
+                                dataKey="name"
+                                stroke="currentColor"
+                                fontSize={12}
+                                tickLine={false}
+                                axisLine={false}
+                                className="text-muted-foreground"
+                              />
+                              <YAxis
+                                stroke="currentColor"
+                                fontSize={12}
+                                tickLine={false}
+                                axisLine={false}
+                                tickFormatter={(value) => `${value}`}
+                                className="text-muted-foreground"
+                              />
+                              <Bar
+                                dataKey="total"
+                                fill="currentColor"
+                                radius={[4, 4, 0, 0]}
+                                className="fill-primary"
+                              />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                </div>)}
 
-                <div className="border-t pt-6">
-                  <h4 className="text-sm font-semibold text-foreground mb-4">Additional Information</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-                      <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm font-semibold text-foreground mb-1">Created</p>
-                        <p className="text-sm text-muted-foreground">
-                          {format(contact?.created_at as string || new Date(), "EEEE, MMMM do, yyyy")}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-                      <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm font-semibold text-foreground mb-1">Last Updated</p>
-                        <p className="text-sm text-muted-foreground">
-                          {format(contact?.updated_at as string || new Date(), "EEEE, MMMM do, yyyy")}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="activity">
-              <div className="space-y-10 mt-6">
-                {/* Engagement Trend Section */}
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5 text-muted-foreground" />
-                      Engagement trend
+                  {/* Recent Activity Section */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-muted-foreground" />
+                      Recent activity
                     </h3>
-                    <div className="inline-flex items-center rounded-md bg-muted p-1 text-muted-foreground">
-                      <Button
-                        variant={timePeriod === 'days' ? 'secondary' : 'ghost'}
-                        size="sm"
-                        className="text-xs px-3 py-1.5"
-                        onClick={() => setTimePeriod('days')}
-                      >
-                        Days
-                      </Button>
-                      <Button
-                        variant={timePeriod === 'weeks' ? 'secondary' : 'ghost'}
-                        size="sm"
-                        className="text-xs px-3 py-1.5"
-                        onClick={() => setTimePeriod('weeks')}
-                      >
-                        Weeks
-                      </Button>
-                      <Button
-                        variant={timePeriod === 'months' ? 'secondary' : 'ghost'}
-                        size="sm"
-                        className="text-xs px-3 py-1.5"
-                        onClick={() => setTimePeriod('months')}
-                      >
-                        Months
-                      </Button>
-                    </div>
-                  </div>
-                  <Card className="shadow-sm">
-                    <CardContent className="pl-2 pt-6">
-                      <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={chartdata}>
-                            <XAxis
-                              dataKey="name"
-                              stroke="currentColor"
-                              fontSize={12}
-                              tickLine={false}
-                              axisLine={false}
-                              className="text-muted-foreground"
-                            />
-                            <YAxis
-                              stroke="currentColor"
-                              fontSize={12}
-                              tickLine={false}
-                              axisLine={false}
-                              tickFormatter={(value) => `${value}`}
-                              className="text-muted-foreground"
-                            />
-                            <Bar
-                              dataKey="total"
-                              fill="currentColor"
-                              radius={[4, 4, 0, 0]}
-                              className="fill-primary"
-                            />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Recent Activity Section */}
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-muted-foreground" />
-                    Recent activity
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-4 p-5 rounded-lg border bg-card">
-                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                        <Users className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className="text-sm font-semibold text-foreground">Added to VIP list</p>
-                          <span className="text-sm text-muted-foreground">2 days ago</span>
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-4 p-5 rounded-lg border bg-card">
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                          <Users className="h-5 w-5 text-muted-foreground" />
                         </div>
-                        <p className="text-sm text-muted-foreground">Contact was added to the VIP contact list</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-4 p-5 rounded-lg border bg-card">
-                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                        <Mail className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className="text-sm font-semibold text-foreground">Email sent</p>
-                          <span className="text-sm text-muted-foreground">5 days ago</span>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="text-sm font-semibold text-foreground">Added to VIP list</p>
+                            <span className="text-sm text-muted-foreground">2 days ago</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">Contact was added to the VIP contact list</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">Monthly newsletter was sent to contact</p>
+                      </div>
+
+                      <div className="flex items-start gap-4 p-5 rounded-lg border bg-card">
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                          <Mail className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="text-sm font-semibold text-foreground">Email sent</p>
+                            <span className="text-sm text-muted-foreground">5 days ago</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">Monthly newsletter was sent to contact</p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </TabsContent>
+              </TabsContent>
 
-            <TabsContent value="notes">
-              <div className="mt-6">
-                <p className="text-sm text-muted-foreground">
-                  {contact?.notes || "No notes available"}
-                </p>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+              <TabsContent value="notes">
+                <div className="mt-6">
+                  <p className="text-sm text-muted-foreground">
+                    {contact?.notes || "No notes available"}
+                  </p>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Latest Shared Items Section */}
       <div className="space-y-8 mt-10">
@@ -421,13 +440,13 @@ const ContactDetails = ({ reference, contact, shared_items }: ContactDetailsProp
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={isLoading}
+              disabled={deleteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isLoading ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

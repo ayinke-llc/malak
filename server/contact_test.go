@@ -262,6 +262,93 @@ func TestContactHandler_GetSingleContact(t *testing.T) {
 	}
 }
 
+func TestContactHandler_DeleteContact(t *testing.T) {
+	for _, v := range generateDeleteContactTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			contactRepo := malak_mocks.NewMockContactRepository(controller)
+
+			v.mockFn(contactRepo)
+
+			a := &contactHandler{
+				cfg:         getConfig(),
+				contactRepo: contactRepo,
+			}
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodDelete, "/contacts", nil)
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			WrapMalakHTTPHandler(getLogger(t), a.deleteContact, getConfig(), "contacts.delete").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateDeleteContactTestTable() []struct {
+	name               string
+	mockFn             func(contactRepo *malak_mocks.MockContactRepository)
+	expectedStatusCode int
+} {
+	return []struct {
+		name               string
+		mockFn             func(contactRepo *malak_mocks.MockContactRepository)
+		expectedStatusCode int
+	}{
+		{
+			name: "contact not exists",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, malak.ErrContactNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "contact error while fetching",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("unknown error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "deleting contact fails",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Contact{}, nil)
+
+				contactRepo.EXPECT().Delete(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(errors.New("could not create contact"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "deleting contact succeeds",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Contact{}, nil)
+
+				contactRepo.EXPECT().Delete(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
 func generateContactFetchContact() []struct {
 	name               string
 	mockFn             func(contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository)

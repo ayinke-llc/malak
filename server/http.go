@@ -245,6 +245,9 @@ func buildRoutes(
 			r.Get("/{reference}",
 				WrapMalakHTTPHandler(logger, contactHandler.fetchContact, cfg, "contacts.fetch"))
 
+			r.Delete("/{reference}",
+				WrapMalakHTTPHandler(logger, contactHandler.deleteContact, cfg, "contacts.delete"))
+
 			r.Route("/lists", func(r chi.Router) {
 				r.Post("/",
 					WrapMalakHTTPHandler(logger, contactHandler.createContactList, cfg, "contacts.lists.new"))

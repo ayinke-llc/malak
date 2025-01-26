@@ -22,19 +22,6 @@ func NewContactRepository(inner *bun.DB) malak.ContactRepository {
 	}
 }
 
-// func (o *contactRepo) Update(ctx context.Context,
-// 	org *malak.Workspace) error {
-//
-// 	ctx, cancelFn := withContext(ctx)
-// 	defer cancelFn()
-//
-// 	_, err := o.inner.NewUpdate().
-// 		Where("id = ?", org.ID).
-// 		Model(org).
-// 		Exec(ctx)
-// 	return err
-// }
-
 func (o *contactRepo) Create(ctx context.Context,
 	contact *malak.Contact) error {
 
@@ -128,4 +115,37 @@ func (o *contactRepo) List(ctx context.Context,
 		Limit(int(opts.Paginator.PerPage)).
 		Offset(int(opts.Paginator.Offset())).
 		Scan(ctx)
+}
+
+func (o *contactRepo) Delete(ctx context.Context,
+	contact *malak.Contact) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return o.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		_, err := tx.NewDelete().
+			Where("contact_id = ?", contact.ID).
+			Model(new(malak.ContactListMapping)).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.NewDelete().
+			Where("contact_id = ?", contact.ID).
+			Model(new(malak.ContactShare)).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.NewDelete().
+			Where("id = ?", contact.ID).
+			Model(contact).
+			Exec(ctx)
+		return err
+	})
+
 }

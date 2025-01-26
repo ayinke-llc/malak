@@ -13,6 +13,60 @@ var (
 	workspaceID = uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526")
 )
 
+func TestContact_Delete(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	contactRepo := NewContactRepository(client)
+
+	contact := &malak.Contact{
+		Email:       malak.Email("oops@oops.com"),
+		WorkspaceID: workspaceID,
+		CreatedBy:   uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
+		OwnerID:     uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeContact),
+	}
+
+	// Test successful creation
+	err := contactRepo.Create(context.Background(), contact)
+	require.NoError(t, err)
+
+	// Verify contact was created
+	savedContact, err := contactRepo.Get(context.Background(), malak.FetchContactOptions{
+		Reference:   contact.Reference,
+		WorkspaceID: workspaceID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, contact.Email, savedContact.Email)
+	require.Equal(t, contact.WorkspaceID, savedContact.WorkspaceID)
+	require.Equal(t, contact.Reference, savedContact.Reference)
+
+	// Delete
+	err = contactRepo.Delete(context.Background(), contact)
+	require.NoError(t, err)
+
+	//  contact was deleted, it should not be found
+	_, err = contactRepo.Get(context.Background(), malak.FetchContactOptions{
+		Reference:   contact.Reference,
+		WorkspaceID: workspaceID,
+	})
+	require.Error(t, err)
+	require.Equal(t, malak.ErrContactNotFound, err)
+
+	// get contact from db
+	contact, err = contactRepo.Get(context.Background(), malak.FetchContactOptions{
+		Reference:   "contact_kCoC286IR", // contacts.yml
+		WorkspaceID: workspaceID,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, contact)
+	require.Equal(t, "contact_kCoC286IR", contact.Reference.String())
+
+	// Delete again
+	err = contactRepo.Delete(context.Background(), contact)
+	require.NoError(t, err)
+}
+
 func TestContact_Get(t *testing.T) {
 	client, teardownFunc := setupDatabase(t)
 	defer teardownFunc()
