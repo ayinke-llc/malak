@@ -12,6 +12,8 @@ type Actions = {
   setUser: (user: MalakUser) => void;
   setToken: (token: string) => void;
   logout: () => void;
+  // Flag to track rehydration
+  isRehydrated: boolean,
 };
 
 const useAuthStore = create(
@@ -27,9 +29,15 @@ const useAuthStore = create(
       setUser: (user: MalakUser) => set({ user }),
       setToken: (token: string) => set({ token }),
       logout: (): void => set({ user: null, token: null }),
+      isRehydrated: false,
     }),
     {
       name: "auth",
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.isRehydrated = true;
+        }
+      },
     },
   ),
 );

@@ -38,8 +38,7 @@ export function TeamSwitcher() {
 
   const mutation = useMutation({
     mutationKey: [SWITCH_WORKSPACE],
-    mutationFn: (reference: string) =>
-      client.workspaces.switchworkspace(reference),
+    mutationFn: (reference: string) => client.workspaces.switchworkspace(reference),
     onSuccess: ({ data }) => {
       setCurrent(data.workspace);
       toast.success(data.message);
