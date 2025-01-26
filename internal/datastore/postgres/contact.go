@@ -6,8 +6,8 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
@@ -72,7 +72,7 @@ func (o *contactRepo) Get(ctx context.Context,
 	q := o.inner.NewSelect().
 		Where("workspace_id = ?", opts.WorkspaceID)
 
-	if !util.IsStringEmpty(opts.Reference.String()) {
+	if !hermes.IsStringEmpty(opts.Reference.String()) {
 		q = q.Where("reference = ?", opts.Reference.String())
 	}
 
@@ -80,7 +80,7 @@ func (o *contactRepo) Get(ctx context.Context,
 		q = q.Where("id = ?", opts.ID)
 	}
 
-	if !util.IsStringEmpty(opts.Email.String()) {
+	if !hermes.IsStringEmpty(opts.Email.String()) {
 		q = q.Where("email = ?", opts.Email.String())
 	}
 

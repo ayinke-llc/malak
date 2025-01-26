@@ -53,15 +53,8 @@ const ContactDetails = ({ reference }: ContactDetailsProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
+  const isLoading = false;
   // TODO: Fetch contact details using the reference
-
-
-  const { data, isLoading, error } = useQuery({
-    queryKey: [FETCH_CONTACT],
-    // queryFn: () => client.contacts.,
-    retry: false,
-    gcTime: Number.POSITIVE_INFINITY,
-  });
 
 
   const getChartData = (period: TimePeriod) => {

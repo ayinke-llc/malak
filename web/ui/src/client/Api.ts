@@ -80,6 +80,7 @@ export interface MalakDeck {
   id?: string;
   is_archived?: boolean;
   is_pinned?: boolean;
+  object_key?: string;
   preferences?: MalakDeckPreference;
   reference?: string;
   short_link?: string;
@@ -582,6 +583,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags contacts
+     * @name ContactsDetail
+     * @summary fetch a contact by reference
+     * @request GET:/contacts/{reference}
+     */
+    contactsDetail: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerFetchContactResponse, ServerAPIStatus>({
+        path: `/contacts/${reference}`,
+        method: "GET",
         format: "json",
         ...params,
       }),

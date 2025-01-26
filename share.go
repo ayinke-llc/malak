@@ -1,6 +1,7 @@
 package malak
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -33,4 +34,5 @@ type ContactShareItem struct {
 }
 
 type ContactShareRepository interface {
+	All(context.Context, *Contact) ([]ContactShareItem, error)
 }

@@ -16,12 +16,14 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 type contactHandler struct {
 	cfg                config.Config
 	contactRepo        malak.ContactRepository
 	contactListRepo    malak.ContactListRepository
+	contactShareRepo   malak.ContactShareRepository
 	referenceGenerator malak.ReferenceGeneratorOperation
 }
 
@@ -574,8 +576,25 @@ func (c *contactHandler) fetchContact(
 		return newAPIStatus(status, msg), StatusFailed
 	}
 
-	return fetchContactResponse{
-		APIStatus: newAPIStatus(http.StatusOK, "contact was retrieved"),
-		Contact:   hermes.DeRef(contact),
+	var g errgroup.Group
+	var sharedItems []malak.ContactShareItem
+
+	g.Go(func() error {
+		var err error
+
+		sharedItems, err = c.contactShareRepo.All(ctx, contact)
+		return err
+	})
+
+	if err := g.Wait(); err != nil {
+		logger.Error("could not fetch contact details", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch contact details"),
+			StatusFailed
+	}
+
+	return fetchDetailedContactResponse{
+		APIStatus:   newAPIStatus(http.StatusOK, "contact was retrieved"),
+		Contact:     hermes.DeRef(contact),
+		SharedItems: sharedItems,
 	}, StatusSuccess
 }
