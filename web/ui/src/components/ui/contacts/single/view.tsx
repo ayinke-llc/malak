@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Mail,
@@ -39,7 +40,7 @@ import {
 import { toast } from "sonner";
 import { MalakContact, MalakContactShareItem } from "@/client/Api";
 import { fullName } from "@/lib/custom";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 
 type TimePeriod = 'days' | 'weeks' | 'months';
 
@@ -129,7 +130,7 @@ const ContactDetails = ({ reference, contact, shared_items }: ContactDetailsProp
           <Tabs defaultValue="details" className="w-full">
             <TabsList className="mb-4">
               <TabsTrigger value="details" className="text-sm">Details</TabsTrigger>
-              <TabsTrigger value="activity" className="text-sm">Activity</TabsTrigger>
+              {/* <TabsTrigger value="activity" className="text-sm">Activity</TabsTrigger>*/}
               <TabsTrigger value="notes" className="text-sm">Notes</TabsTrigger>
             </TabsList>
 
@@ -325,7 +326,9 @@ const ContactDetails = ({ reference, contact, shared_items }: ContactDetailsProp
 
             <TabsContent value="notes">
               <div className="mt-6">
-                <p className="text-sm text-muted-foreground">No notes available</p>
+                <p className="text-sm text-muted-foreground">
+                  {contact?.notes || "No notes available"}
+                </p>
               </div>
             </TabsContent>
           </Tabs>
@@ -345,14 +348,18 @@ const ContactDetails = ({ reference, contact, shared_items }: ContactDetailsProp
             </div>
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
-              <span className="text-sm font-medium text-foreground">December investor update</span>
-              <span className="text-sm text-muted-foreground">Sent 2 months ago</span>
-            </div>
-            <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
-              <span className="text-sm font-medium text-foreground">Duplicate of Test update</span>
-              <span className="text-sm text-muted-foreground">Sent 3 months ago</span>
-            </div>
+            {shared_items?.
+              filter((value) => value.item_type === "update").
+              map((item) => {
+                return (
+                  <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                    <span className="text-sm font-medium text-foreground">{item?.title}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Sent {formatDistanceToNow(item?.shared_at as string, { addSuffix: true })}
+                    </span>
+                  </div>
+                )
+              })}
           </div>
         </div>
 
@@ -365,10 +372,18 @@ const ContactDetails = ({ reference, contact, shared_items }: ContactDetailsProp
             </div>
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
-              <span className="text-sm font-medium text-foreground">Financial metrics</span>
-              <span className="text-sm text-muted-foreground">Shared 17 hours ago</span>
-            </div>
+            {shared_items?.
+              filter((value) => value.item_type === "dashboard").
+              map((item) => {
+                return (
+                  <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                    <span className="text-sm font-medium text-foreground">Financial metrics</span>
+                    <span className="text-sm text-muted-foreground">
+                      Sent {formatDistanceToNow(item?.shared_at as string, { addSuffix: true })}
+                    </span>
+                  </div>
+                )
+              })}
           </div>
         </div>
 
@@ -381,10 +396,16 @@ const ContactDetails = ({ reference, contact, shared_items }: ContactDetailsProp
             </div>
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
-              <span className="text-sm font-medium text-foreground">Data room example</span>
-              <span className="text-sm text-muted-foreground">Shared 4 months ago</span>
-            </div>
+            {shared_items?.
+              filter((value) => value.item_type === "deck").
+              map((item) => {
+                return (
+                  <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                    <span className="text-sm font-medium text-foreground">Data room example</span>
+                    <span className="text-sm text-muted-foreground">Shared 4 months ago</span>
+                  </div>
+                )
+              })}
           </div>
         </div>
       </div>
