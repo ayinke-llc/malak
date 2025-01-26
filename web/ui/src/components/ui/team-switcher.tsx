@@ -20,16 +20,12 @@ import {
 } from "@/components/ui/sidebar"
 import { MalakWorkspace } from "@/client/Api"
 import { Avatar } from "./custom/avatar/avatar"
+import useWorkspacesStore from "@/store/workspace"
+import { cn } from "@/lib/utils"
 
-export function TeamSwitcher({
-  teams,
-  current,
-}: {
-  teams: MalakWorkspace[]
-  current: MalakWorkspace | null,
-}) {
+export function TeamSwitcher() {
   const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+  const { current, workspaces, setCurrent } = useWorkspacesStore()
 
   return (
     <SidebarMenu>
@@ -61,21 +57,25 @@ export function TeamSwitcher({
             <DropdownMenuLabel className="text-xs text-muted-foreground">
               Teams
             </DropdownMenuLabel>
-            {teams.map((team, index) => (
+            {workspaces.map((workspace, index) => (
               <DropdownMenuItem
-                key={team.reference}
-                onClick={() => setActiveTeam(team)}
-                className="gap-2 p-2"
+                key={workspace.reference}
+                onClick={() => setCurrent(workspace)}
+                className="gap-2 p-2 hover:cursor-pointer"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <Avatar className="size-4 shrink-0" />
                 </div>
-                {team.workspace_name}
+                <span className={cn(
+                  workspace?.id == current?.id ? "font-bold" : ""
+                )}>
+                  {workspace.workspace_name}
+                </span>
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 p-2">
+            <DropdownMenuItem className="gap-2 p-2 hover:cursor-pointer">
               <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                 <Plus className="size-4" />
               </div>
