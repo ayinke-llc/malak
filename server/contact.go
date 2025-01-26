@@ -599,3 +599,54 @@ func (c *contactHandler) fetchContact(
 		SharedItems: sharedItems,
 	}, StatusSuccess
 }
+
+// @Summary delete a contact
+// @Tags contacts
+// @id deleteContact
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "contact unique reference.. e.g contact_"
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /contacts/{reference} [delete]
+func (c *contactHandler) deleteContact(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	reference := chi.URLParam(r, "reference")
+
+	logger = logger.With(zap.String("reference", reference))
+
+	logger.Debug("deleting contact list")
+
+	list, err := c.contactListRepo.Get(ctx, malak.FetchContactListOptions{
+		Reference:   malak.Reference(reference),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
+	})
+	if errors.Is(err, malak.ErrContactListNotFound) {
+		return newAPIStatus(
+			http.StatusNotFound, err.Error()), StatusFailed
+	}
+
+	if err != nil {
+		logger.
+			Error("an error occurred while fetching contact list", zap.Error(err))
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"an error occurred while fetching the contact list"), StatusFailed
+	}
+
+	if err := c.contactListRepo.Delete(ctx, list); err != nil {
+		logger.Error("could not delete contact list", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not delete list"),
+			StatusFailed
+	}
+
+	return newAPIStatus(http.StatusCreated, "list was successfully deleted"), StatusSuccess
+}

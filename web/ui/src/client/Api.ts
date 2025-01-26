@@ -618,6 +618,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags contacts
+     * @name DeleteContact
+     * @summary delete a contact
+     * @request DELETE:/contacts/{reference}
+     */
+    deleteContact: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/contacts/${reference}`,
+        method: "DELETE",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags contacts
      * @name ContactsDetail
      * @summary fetch a contact by reference
      * @request GET:/contacts/{reference}
