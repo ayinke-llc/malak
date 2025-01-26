@@ -190,13 +190,14 @@ type ListUpdateOptions struct {
 }
 
 type CreateUpdateOptions struct {
-	Reference   func(EntityType) string
-	Generator   ReferenceGeneratorOperation
-	Email       Email
-	WorkspaceID uuid.UUID
-	Emails      []Email
-	Schedule    *UpdateSchedule
-	UserID      uuid.UUID
+	Reference       func(EntityType) string
+	Generator       ReferenceGeneratorOperation
+	Email           Email
+	WorkspaceID     uuid.UUID
+	Emails          []Email
+	Schedule        *UpdateSchedule
+	UserID          uuid.UUID
+	UpdateReference Reference
 }
 
 type UpdateRepository interface {

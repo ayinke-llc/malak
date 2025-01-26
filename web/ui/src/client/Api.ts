@@ -57,6 +57,7 @@ export interface MalakContactListMapping {
   created_at?: string;
   created_by?: string;
   id?: string;
+  list?: MalakContactList;
   list_id?: string;
   reference?: string;
   updated_at?: string;
@@ -71,6 +72,26 @@ export interface MalakContactListMappingWithContact {
   reference?: string;
 }
 
+export interface MalakContactShareItem {
+  contact_id?: string;
+  created_at?: string;
+  id?: string;
+  item_id?: string;
+  item_reference?: string;
+  item_type?: MalakContactShareItemType;
+  reference?: string;
+  shared_at?: string;
+  shared_by?: string;
+  title?: string;
+  updated_at?: string;
+}
+
+export enum MalakContactShareItemType {
+  ContactShareItemTypeUpdate = "update",
+  ContactShareItemTypeDashboard = "dashboard",
+  ContactShareItemTypeDeck = "deck",
+}
+
 export type MalakCustomContactMetadata = Record<string, string>;
 
 export interface MalakDeck {
@@ -80,6 +101,7 @@ export interface MalakDeck {
   id?: string;
   is_archived?: boolean;
   is_pinned?: boolean;
+  object_key?: string;
   preferences?: MalakDeckPreference;
   reference?: string;
   short_link?: string;
@@ -319,6 +341,12 @@ export interface ServerFetchDeckResponse {
 export interface ServerFetchDecksResponse {
   decks?: MalakDeck[];
   message: string;
+}
+
+export interface ServerFetchDetailedContactResponse {
+  contact: MalakContact;
+  message: string;
+  shared_items: MalakContactShareItem[];
 }
 
 export interface ServerFetchUpdateAnalyticsResponse {
@@ -582,6 +610,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags contacts
+     * @name ContactsDetail
+     * @summary fetch a contact by reference
+     * @request GET:/contacts/{reference}
+     */
+    contactsDetail: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerFetchDetailedContactResponse, ServerAPIStatus>({
+        path: `/contacts/${reference}`,
+        method: "GET",
         format: "json",
         ...params,
       }),

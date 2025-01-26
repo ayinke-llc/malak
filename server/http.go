@@ -35,6 +35,7 @@ func New(logger *zap.Logger,
 	updateRepo malak.UpdateRepository,
 	contactListRepo malak.ContactListRepository,
 	deckRepo malak.DeckRepository,
+	shareRepo malak.ContactShareRepository,
 	mid *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
@@ -42,9 +43,10 @@ func New(logger *zap.Logger,
 
 	srv := &http.Server{
 		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
-			userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
-			contactListRepo, deckRepo,
-			googleAuthProvider, mid, gulterHandler, queueHandler, redisCache),
+			userRepo, workspaceRepo, planRepo,
+			contactRepo, updateRepo, contactListRepo,
+			deckRepo, shareRepo, googleAuthProvider, mid,
+			gulterHandler, queueHandler, redisCache),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -84,6 +86,7 @@ func buildRoutes(
 	updateRepo malak.UpdateRepository,
 	contactListRepo malak.ContactListRepository,
 	deckRepo malak.DeckRepository,
+	shareRepo malak.ContactShareRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	ratelimiterMiddleware *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
@@ -129,6 +132,7 @@ func buildRoutes(
 		contactRepo:        contactRepo,
 		referenceGenerator: referenceGenerator,
 		contactListRepo:    contactListRepo,
+		contactShareRepo:   shareRepo,
 	}
 
 	updateHandler := &updatesHandler{
@@ -238,21 +242,25 @@ func buildRoutes(
 			r.Get("/",
 				WrapMalakHTTPHandler(logger, contactHandler.list, cfg, "contacts.list"))
 
-			r.Post("/lists",
-				WrapMalakHTTPHandler(logger, contactHandler.createContactList, cfg, "contacts.lists.new"))
+			r.Get("/{reference}",
+				WrapMalakHTTPHandler(logger, contactHandler.fetchContact, cfg, "contacts.fetch"))
 
-			// fetch emails too
-			r.Get("/lists",
-				WrapMalakHTTPHandler(logger, contactHandler.fetchContactLists, cfg, "contacts.lists.fetch"))
+			r.Route("/lists", func(r chi.Router) {
+				r.Post("/",
+					WrapMalakHTTPHandler(logger, contactHandler.createContactList, cfg, "contacts.lists.new"))
 
-			r.Delete("/lists/{reference}",
-				WrapMalakHTTPHandler(logger, contactHandler.deleteContactList, cfg, "contacts.lists.delete"))
+				r.Get("/",
+					WrapMalakHTTPHandler(logger, contactHandler.fetchContactLists, cfg, "contacts.lists.fetch"))
 
-			r.Put("/lists/{reference}",
-				WrapMalakHTTPHandler(logger, contactHandler.editContactList, cfg, "contacts.lists.update"))
+				r.Delete("/{reference}",
+					WrapMalakHTTPHandler(logger, contactHandler.deleteContactList, cfg, "contacts.lists.delete"))
 
-			r.Post("/lists/{reference}",
-				WrapMalakHTTPHandler(logger, contactHandler.addUserToContactList, cfg, "contacts.lists.add"))
+				r.Put("/{reference}",
+					WrapMalakHTTPHandler(logger, contactHandler.editContactList, cfg, "contacts.lists.update"))
+
+				r.Post("/{reference}",
+					WrapMalakHTTPHandler(logger, contactHandler.addUserToContactList, cfg, "contacts.lists.add"))
+			})
 		})
 
 		r.Route("/decks", func(r chi.Router) {

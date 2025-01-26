@@ -436,6 +436,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/contacts/{reference}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "fetch a contact by reference",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "contact unique reference.. e.g contact_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchDetailedContactResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/decks": {
             "get": {
                 "consumes": [
@@ -1914,6 +1969,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "list": {
+                    "$ref": "#/definitions/malak.ContactList"
+                },
                 "list_id": {
                     "type": "string"
                 },
@@ -1946,6 +2004,57 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.ContactShareItem": {
+            "type": "object",
+            "properties": {
+                "contact_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "item_id": {
+                    "type": "string"
+                },
+                "item_reference": {
+                    "type": "string"
+                },
+                "item_type": {
+                    "$ref": "#/definitions/malak.ContactShareItemType"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "shared_at": {
+                    "type": "string"
+                },
+                "shared_by": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.ContactShareItemType": {
+            "type": "string",
+            "enum": [
+                "update",
+                "dashboard",
+                "deck"
+            ],
+            "x-enum-varnames": [
+                "ContactShareItemTypeUpdate",
+                "ContactShareItemTypeDashboard",
+                "ContactShareItemTypeDeck"
+            ]
+        },
         "malak.CustomContactMetadata": {
             "type": "object",
             "additionalProperties": {
@@ -1972,6 +2081,9 @@ const docTemplate = `{
                 },
                 "is_pinned": {
                     "type": "boolean"
+                },
+                "object_key": {
+                    "type": "string"
                 },
                 "preferences": {
                     "$ref": "#/definitions/malak.DeckPreference"
@@ -2594,6 +2706,28 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "server.fetchDetailedContactResponse": {
+            "type": "object",
+            "required": [
+                "contact",
+                "message",
+                "shared_items"
+            ],
+            "properties": {
+                "contact": {
+                    "$ref": "#/definitions/malak.Contact"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "shared_items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.ContactShareItem"
+                    }
                 }
             }
         },

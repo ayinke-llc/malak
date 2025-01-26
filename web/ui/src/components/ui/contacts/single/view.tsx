@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Mail,
@@ -23,7 +24,6 @@ import {
   FileText,
   LayoutDashboard,
   FolderOpen,
-  ChevronRight
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
@@ -38,22 +38,27 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import CreateContactModal from "@/components/ui/contacts/modal";
+import { MalakContact, MalakContactShareItem } from "@/client/Api";
+import { fullName } from "@/lib/custom";
+import { format, formatDistanceToNow } from "date-fns";
 
 type TimePeriod = 'days' | 'weeks' | 'months';
 
 interface ContactDetailsProps {
   reference: string;
+  contact: MalakContact
+  shared_items: MalakContactShareItem[]
 }
 
-const ContactDetails = ({ reference }: ContactDetailsProps) => {
+const ContactDetails = ({ reference, contact, shared_items }: ContactDetailsProps) => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('months');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
+  const isLoading = false;
   // TODO: Fetch contact details using the reference
+
 
   const getChartData = (period: TimePeriod) => {
     switch (period) {
@@ -90,20 +95,7 @@ const ContactDetails = ({ reference }: ContactDetailsProps) => {
   const chartdata = getChartData(timePeriod);
 
   const handleDelete = async () => {
-    try {
-      setIsLoading(true);
-      // TODO: API call to delete contact
-      await fetch(`/api/contacts/${reference}`, {
-        method: 'DELETE',
-      });
-      toast.success("Contact deleted successfully");
-      router.push('/contacts');
-    } catch (error) {
-      toast.error("Failed to delete contact");
-    } finally {
-      setIsLoading(false);
-      setShowDeleteDialog(false);
-    }
+
   };
 
   return (
@@ -111,7 +103,7 @@ const ContactDetails = ({ reference }: ContactDetailsProps) => {
       <Card className="shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
           <div className="space-y-1">
-            <CardTitle className="text-2xl font-bold tracking-tight text-foreground">John Doe</CardTitle>
+            <CardTitle className="text-2xl font-bold tracking-tight text-foreground">{fullName(contact)}</CardTitle>
             <CardDescription className="text-base text-muted-foreground">Contact Information</CardDescription>
           </div>
           <div className="flex gap-3">
@@ -138,7 +130,7 @@ const ContactDetails = ({ reference }: ContactDetailsProps) => {
           <Tabs defaultValue="details" className="w-full">
             <TabsList className="mb-4">
               <TabsTrigger value="details" className="text-sm">Details</TabsTrigger>
-              <TabsTrigger value="activity" className="text-sm">Activity</TabsTrigger>
+              {/* <TabsTrigger value="activity" className="text-sm">Activity</TabsTrigger>*/}
               <TabsTrigger value="notes" className="text-sm">Notes</TabsTrigger>
             </TabsList>
 
@@ -150,14 +142,14 @@ const ContactDetails = ({ reference }: ContactDetailsProps) => {
                       <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
                       <div>
                         <p className="text-sm font-semibold text-foreground mb-1">Email</p>
-                        <p className="text-sm text-muted-foreground">john.doe@example.com</p>
+                        <p className="text-sm text-muted-foreground">{contact?.email || "N/A"}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
                       <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
                       <div>
                         <p className="text-sm font-semibold text-foreground mb-1">Phone</p>
-                        <p className="text-sm text-muted-foreground">+1 (555) 123-4567</p>
+                        <p className="text-sm text-muted-foreground">{contact?.phone || "N/A"}</p>
                       </div>
                     </div>
                   </div>
@@ -166,7 +158,7 @@ const ContactDetails = ({ reference }: ContactDetailsProps) => {
                       <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
                       <div>
                         <p className="text-sm font-semibold text-foreground mb-1">Company</p>
-                        <p className="text-sm text-muted-foreground">Acme Inc.</p>
+                        <p className="text-sm text-muted-foreground">{contact?.company || "N/A"}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
@@ -174,27 +166,30 @@ const ContactDetails = ({ reference }: ContactDetailsProps) => {
                       <div>
                         <p className="text-sm font-semibold text-foreground mb-1">Address</p>
                         <p className="text-sm text-muted-foreground">
-                          123 Business Street, Suite 100<br />
-                          San Francisco, CA 94105
+                          {contact?.city || "N/A"}
                         </p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="border-t pt-6">
+                {contact?.lists?.length as number > 0 && (<div className="border-t pt-6">
                   <h4 className="text-sm font-semibold text-foreground mb-4">Contact Lists</h4>
                   <div className="flex items-start gap-3">
                     <Users className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div className="flex-1">
                       <div className="flex flex-wrap gap-2">
-                        <Badge variant="secondary" className="px-3 py-1">Customers</Badge>
-                        <Badge variant="secondary" className="px-3 py-1">VIP</Badge>
-                        <Badge variant="secondary" className="px-3 py-1">Newsletter</Badge>
+                        {contact?.lists?.map((list, index) => {
+                          return (
+                            <Badge variant="secondary" className="px-3 py-1" key={index}>
+                              {list?.list?.title}
+                            </Badge>
+                          )
+                        })}
                       </div>
                     </div>
                   </div>
-                </div>
+                </div>)}
 
                 <div className="border-t pt-6">
                   <h4 className="text-sm font-semibold text-foreground mb-4">Additional Information</h4>
@@ -203,14 +198,18 @@ const ContactDetails = ({ reference }: ContactDetailsProps) => {
                       <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
                       <div>
                         <p className="text-sm font-semibold text-foreground mb-1">Created</p>
-                        <p className="text-sm text-muted-foreground">Jan 1, 2024</p>
+                        <p className="text-sm text-muted-foreground">
+                          {format(contact?.created_at as string || new Date(), "EEEE, MMMM do, yyyy")}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
                       <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
                       <div>
                         <p className="text-sm font-semibold text-foreground mb-1">Last Updated</p>
-                        <p className="text-sm text-muted-foreground">Jan 15, 2024</p>
+                        <p className="text-sm text-muted-foreground">
+                          {format(contact?.updated_at as string || new Date(), "EEEE, MMMM do, yyyy")}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -327,7 +326,9 @@ const ContactDetails = ({ reference }: ContactDetailsProps) => {
 
             <TabsContent value="notes">
               <div className="mt-6">
-                <p className="text-sm text-muted-foreground">No notes available</p>
+                <p className="text-sm text-muted-foreground">
+                  {contact?.notes || "No notes available"}
+                </p>
               </div>
             </TabsContent>
           </Tabs>
@@ -347,14 +348,18 @@ const ContactDetails = ({ reference }: ContactDetailsProps) => {
             </div>
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
-              <span className="text-sm font-medium text-foreground">December investor update</span>
-              <span className="text-sm text-muted-foreground">Sent 2 months ago</span>
-            </div>
-            <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
-              <span className="text-sm font-medium text-foreground">Duplicate of Test update</span>
-              <span className="text-sm text-muted-foreground">Sent 3 months ago</span>
-            </div>
+            {shared_items?.
+              filter((value) => value.item_type === "update").
+              map((item) => {
+                return (
+                  <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                    <span className="text-sm font-medium text-foreground">{item?.title}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Sent {formatDistanceToNow(item?.shared_at as string, { addSuffix: true })}
+                    </span>
+                  </div>
+                )
+              })}
           </div>
         </div>
 
@@ -367,10 +372,18 @@ const ContactDetails = ({ reference }: ContactDetailsProps) => {
             </div>
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
-              <span className="text-sm font-medium text-foreground">Financial metrics</span>
-              <span className="text-sm text-muted-foreground">Shared 17 hours ago</span>
-            </div>
+            {shared_items?.
+              filter((value) => value.item_type === "dashboard").
+              map((item) => {
+                return (
+                  <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                    <span className="text-sm font-medium text-foreground">Financial metrics</span>
+                    <span className="text-sm text-muted-foreground">
+                      Sent {formatDistanceToNow(item?.shared_at as string, { addSuffix: true })}
+                    </span>
+                  </div>
+                )
+              })}
           </div>
         </div>
 
@@ -383,10 +396,16 @@ const ContactDetails = ({ reference }: ContactDetailsProps) => {
             </div>
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
-              <span className="text-sm font-medium text-foreground">Data room example</span>
-              <span className="text-sm text-muted-foreground">Shared 4 months ago</span>
-            </div>
+            {shared_items?.
+              filter((value) => value.item_type === "deck").
+              map((item) => {
+                return (
+                  <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                    <span className="text-sm font-medium text-foreground">Data room example</span>
+                    <span className="text-sm text-muted-foreground">Shared 4 months ago</span>
+                  </div>
+                )
+              })}
           </div>
         </div>
       </div>

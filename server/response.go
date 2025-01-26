@@ -60,6 +60,12 @@ type fetchContactResponse struct {
 	APIStatus
 }
 
+type fetchDetailedContactResponse struct {
+	Contact     malak.Contact            `json:"contact,omitempty" validate:"required"`
+	SharedItems []malak.ContactShareItem `json:"shared_items,omitempty" validate:"required"`
+	APIStatus
+}
+
 type createdUpdateResponse struct {
 	Update malak.Update `json:"update,omitempty" validate:"required"`
 	APIStatus

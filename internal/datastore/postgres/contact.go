@@ -6,8 +6,8 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
@@ -64,7 +64,9 @@ func (o *contactRepo) Create(ctx context.Context,
 func (o *contactRepo) Get(ctx context.Context,
 	opts malak.FetchContactOptions) (*malak.Contact, error) {
 
-	contact := new(malak.Contact)
+	contact := &malak.Contact{
+		Lists: make([]malak.ContactListMapping, 0),
+	}
 
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
@@ -72,7 +74,7 @@ func (o *contactRepo) Get(ctx context.Context,
 	q := o.inner.NewSelect().
 		Where("workspace_id = ?", opts.WorkspaceID)
 
-	if !util.IsStringEmpty(opts.Reference.String()) {
+	if !hermes.IsStringEmpty(opts.Reference.String()) {
 		q = q.Where("reference = ?", opts.Reference.String())
 	}
 
@@ -80,11 +82,14 @@ func (o *contactRepo) Get(ctx context.Context,
 		q = q.Where("id = ?", opts.ID)
 	}
 
-	if !util.IsStringEmpty(opts.Email.String()) {
+	if !hermes.IsStringEmpty(opts.Email.String()) {
 		q = q.Where("email = ?", opts.Email.String())
 	}
 
-	err := q.Model(contact).Scan(ctx)
+	err := q.Model(contact).
+		Relation("Lists").
+		Relation("Lists.List").
+		Scan(ctx)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		err = malak.ErrContactNotFound

@@ -24,3 +24,4 @@ package malak
 //go:generate mockgen -source=reference.go -destination=mocks/reference.go -package=malak_mocks
 //go:generate mockgen -source=deck.go -destination=mocks/deck.go -package=malak_mocks
 //go:generate mockgen -source=uuid.go -destination=mocks/uuid.go -package=malak_mocks
+//go:generate mockgen -source=share.go -destination=mocks/share.go -package=malak_mocks

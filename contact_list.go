@@ -31,11 +31,12 @@ type ContactList struct {
 }
 
 type ContactListMapping struct {
-	ID        uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	ContactID uuid.UUID `json:"contact_id,omitempty"`
-	ListID    uuid.UUID `json:"list_id,omitempty"`
-	Reference Reference `json:"reference,omitempty"`
-	CreatedBy uuid.UUID `json:"created_by,omitempty"`
+	ID        uuid.UUID    `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	ContactID uuid.UUID    `json:"contact_id,omitempty"`
+	ListID    uuid.UUID    `json:"list_id,omitempty"`
+	List      *ContactList `json:"list,omitempty" bun:"rel:has-one,join:list_id=id"`
+	Reference Reference    `json:"reference,omitempty"`
+	CreatedBy uuid.UUID    `json:"created_by,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
