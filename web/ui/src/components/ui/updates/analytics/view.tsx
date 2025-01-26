@@ -42,7 +42,7 @@ const columns: ColumnDef<MalakUpdateRecipient>[] = [
     accessorKey: "name",
     header: "Name",
     cell: ({ row }) => (
-      <div className='mt-3 mb-3'>
+      <div className='pl-3 mt-3 mb-3'>
         <div className="font-medium">
           {fullName(row.original.contact as MalakContact)}
         </div>
