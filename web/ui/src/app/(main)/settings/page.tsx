@@ -1,32 +1,60 @@
-import { siteConfig } from "@/app/siteConfig";
-import { Button } from "@/components/ui/button";
-import { ArrowAnimated } from "@/components/ui/icons/ArrowAnimated";
-import { TremorPlaceholder } from "@/components/ui/icons/TremorPlaceholder";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { AccountSettings } from "./account";
+import { GeneralSettings } from "./general";
+import { NotificationSettings } from "./notification";
+import { PrivacySettings } from "./privacy";
 
 export default function Settings() {
+
   return (
-    <div className="mt-4 sm:mt-6 lg:mt-10">
-      <div className="my-40 flex w-full flex-col items-center justify-center">
-        <TremorPlaceholder className="size-20 shrink-0" aria-hidden="true" />
-        <h2 className="mt-6 text-lg font-semibold sm:text-xl">
-          This feature is coming soon
-        </h2>
-        <p className="mt-3 max-w-md text-center text-gray-500">
-          Coming soon. You will be able to configure your workspace settings here
-        </p>
-        <Button className="group mt-6" variant="secondary">
-          <a
-            href={siteConfig.externalLink.blocks}
-            className="flex items-center gap-1"
-          >
-            Contact us
-            <ArrowAnimated
-              className="stroke-gray-900 dark:stroke-gray-50"
-              aria-hidden="true"
-            />
-          </a>
-        </Button>
+    <>
+      <div className="pt-6 bg-background">
+        <section>
+          <div className="sm:flex sm:items-center sm:justify-between">
+            <div>
+              <h3
+                id="company-settings"
+                className="text-lg font-medium"
+              >
+                Company Preferences
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                View and manage your company's preferences
+              </p>
+            </div>
+
+            <div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-10">
+          <Tabs defaultValue="general" className="space-y-6">
+            <TabsList className="w-full justify-start border-b pb-px mb-4">
+              <TabsTrigger value="general">General</TabsTrigger>
+              <TabsTrigger value="account">Account</TabsTrigger>
+              <TabsTrigger value="notifications">Notifications</TabsTrigger>
+              <TabsTrigger value="privacy">Privacy</TabsTrigger>
+              <TabsTrigger value="api">API Key & Webhooks</TabsTrigger>
+            </TabsList>
+            <TabsContent value="general">
+              <GeneralSettings />
+            </TabsContent>
+            <TabsContent value="account">
+              <AccountSettings />
+            </TabsContent>
+            <TabsContent value="notifications">
+              <NotificationSettings />
+            </TabsContent>
+            <TabsContent value="privacy">
+              <PrivacySettings />
+            </TabsContent>
+            <TabsContent value="api">
+              <PrivacySettings />
+            </TabsContent>
+          </Tabs>
+        </section>
       </div>
-    </div>
+    </>
   );
 }
