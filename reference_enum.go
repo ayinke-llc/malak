@@ -50,6 +50,10 @@ const (
 	EntityTypeContactShare EntityType = "contact_share"
 	// EntityTypeDashboard is a EntityType of type dashboard.
 	EntityTypeDashboard EntityType = "dashboard"
+	// EntityTypePlan is a EntityType of type plan.
+	EntityTypePlan EntityType = "plan"
+	// EntityTypePrice is a EntityType of type price.
+	EntityTypePrice EntityType = "price"
 )
 
 var ErrInvalidEntityType = errors.New("not a valid EntityType")
@@ -86,6 +90,8 @@ var _EntityTypeValue = map[string]EntityType{
 	"deck_preference": EntityTypeDeckPreference,
 	"contact_share":   EntityTypeContactShare,
 	"dashboard":       EntityTypeDashboard,
+	"plan":            EntityTypePlan,
+	"price":           EntityTypePrice,
 }
 
 // ParseEntityType attempts to convert a string to a EntityType.

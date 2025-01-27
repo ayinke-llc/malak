@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"os"
 	"sync"
@@ -16,8 +15,6 @@ import (
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
-	"github.com/ayinke-llc/malak/internal/pkg/email/resend"
-	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
 	"github.com/ayinke-llc/malak/server"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
@@ -37,19 +34,6 @@ func addCronCommand(c *cobra.Command, cfg *config.Config) {
 	cmd.AddCommand(sendScheduledUpdates(c, cfg))
 
 	c.AddCommand(cmd)
-}
-
-func getEmailProvider(cfg config.Config) (email.Client, error) {
-	switch cfg.Email.Provider {
-	case config.EmailProviderResend:
-		return resend.New(cfg)
-
-	case config.EmailProviderSmtp:
-		return smtp.New(cfg)
-
-	default:
-		return nil, errors.New("unsupported email provider")
-	}
 }
 
 // TODO(adelowo): test at scale before beta mvp release. Email rate scale and errors syncing
@@ -80,6 +64,7 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 				}
 			}
 
+			// ignoring on purpose
 			h, _ := os.Hostname()
 
 			logger = logger.With(zap.String("host", h),
@@ -118,6 +103,8 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 				logger.Fatal("could not set up database connection",
 					zap.Error(err))
 			}
+
+			defer db.Close()
 
 			var scheduledUpdates = make([]*malak.UpdateSchedule, 0)
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -9,10 +10,14 @@ import (
 	"time"
 
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/email"
+	"github.com/ayinke-llc/malak/internal/pkg/email/resend"
+	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 var (
@@ -69,6 +74,7 @@ func Execute() error {
 
 	addHTTPCommand(rootCmd, cfg)
 	addCronCommand(rootCmd, cfg)
+	addPlanCommand(rootCmd, cfg)
 
 	cmd, _, err := rootCmd.Find(os.Args[1:])
 	// default cmd if no cmd is given
@@ -140,4 +146,28 @@ func setDefaults() {
 	viper.SetDefault("billing.default_plan", uuid.Nil)
 
 	viper.SetDefault("auth.google.scopes", []string{"profile", "email"})
+}
+
+func getEmailProvider(cfg config.Config) (email.Client, error) {
+	switch cfg.Email.Provider {
+	case config.EmailProviderResend:
+		return resend.New(cfg)
+
+	case config.EmailProviderSmtp:
+		return smtp.New(cfg)
+
+	default:
+		return nil, errors.New("unsupported email provider")
+	}
+}
+
+func getLogger(cfg config.Config) (*zap.Logger, error) {
+	switch cfg.Logging.Mode {
+	case config.LogModeProd:
+		return zap.NewProduction()
+	case config.LogModeDev:
+		return zap.NewDevelopment()
+	default:
+		return zap.NewDevelopment()
+	}
 }
