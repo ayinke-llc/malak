@@ -254,11 +254,13 @@ export interface MalakWorkspace {
   reference?: string;
   /**
    * Not required
-   * Dummy values work really
+   * Dummy values work really if not using stripe
    */
   stripe_customer_id?: string;
   subscription_id?: string;
+  timezone?: string;
   updated_at?: string;
+  website?: string;
   workspace_name?: string;
 }
 

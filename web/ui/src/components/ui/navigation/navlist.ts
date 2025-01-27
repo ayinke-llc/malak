@@ -4,7 +4,12 @@ import {
   RiChatNewLine,
   RiContactsLine,
   RiHome2Line,
+  RiHomeGearFill,
+  RiHomeGearLine,
   RiLinkM,
+  RiPlug2Line,
+  RiSettings6Line,
+  RiSettingsLine,
 } from "@remixicon/react";
 
 export const links = [
@@ -37,6 +42,16 @@ export const links = [
     title: "Captable",
     url: "/captable",
     icon: RiContactsLine,
+  },
+  {
+    title: "Integrations",
+    url: "/integrations",
+    icon: RiPlug2Line
+  },
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: RiSettingsLine
   },
 ];
 
