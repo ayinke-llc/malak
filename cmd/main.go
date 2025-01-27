@@ -17,6 +17,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 var (
@@ -73,6 +74,7 @@ func Execute() error {
 
 	addHTTPCommand(rootCmd, cfg)
 	addCronCommand(rootCmd, cfg)
+	addPlanCommand(rootCmd, cfg)
 
 	cmd, _, err := rootCmd.Find(os.Args[1:])
 	// default cmd if no cmd is given
@@ -156,5 +158,16 @@ func getEmailProvider(cfg config.Config) (email.Client, error) {
 
 	default:
 		return nil, errors.New("unsupported email provider")
+	}
+}
+
+func getLogger(cfg config.Config) (*zap.Logger, error) {
+	switch cfg.Logging.Mode {
+	case config.LogModeProd:
+		return zap.NewProduction()
+	case config.LogModeDev:
+		return zap.NewDevelopment()
+	default:
+		return zap.NewDevelopment()
 	}
 }

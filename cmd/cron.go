@@ -64,6 +64,7 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 				}
 			}
 
+			// ignoring on purpose
 			h, _ := os.Hostname()
 
 			logger = logger.With(zap.String("host", h),
