@@ -70,3 +70,17 @@ func (mr *MockPlanRepositoryMockRecorder) List(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockPlanRepository)(nil).List), arg0)
 }
+
+// SetDefault mocks base method.
+func (m *MockPlanRepository) SetDefault(arg0 context.Context, arg1 *malak.Plan) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetDefault", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetDefault indicates an expected call of SetDefault.
+func (mr *MockPlanRepositoryMockRecorder) SetDefault(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDefault", reflect.TypeOf((*MockPlanRepository)(nil).SetDefault), arg0, arg1)
+}

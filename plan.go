@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	ErrPlanNotFound     = MalakError("plan does not exists")
-	ErrCounterExhausted = MalakError("no more units left")
+	ErrPlanNotFound       = MalakError("plan does not exists")
+	ErrCounterExhausted   = MalakError("no more units left")
+	ErrOnlyOneDefaultPlan = MalakError("there can only be one default plan")
 )
 
 type Counter int64
@@ -83,4 +84,5 @@ type FetchPlanOptions struct {
 type PlanRepository interface {
 	Get(context.Context, *FetchPlanOptions) (*Plan, error)
 	List(context.Context) ([]*Plan, error)
+	SetDefault(context.Context, *Plan) error
 }
