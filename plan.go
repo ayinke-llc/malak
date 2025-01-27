@@ -85,4 +85,5 @@ type PlanRepository interface {
 	Get(context.Context, *FetchPlanOptions) (*Plan, error)
 	List(context.Context) ([]*Plan, error)
 	SetDefault(context.Context, *Plan) error
+	Create(context.Context, *Plan) error
 }

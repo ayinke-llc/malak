@@ -21,6 +21,20 @@ func NewPlanRepository(db *bun.DB) *planRepo {
 	}
 }
 
+func (p *planRepo) Create(ctx context.Context,
+	plan *malak.Plan) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return p.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		_, err := tx.NewInsert().
+			Model(plan).
+			Exec(ctx)
+		return err
+	})
+}
+
 func (p *planRepo) Get(ctx context.Context, opts *malak.FetchPlanOptions) (*malak.Plan, error) {
 
 	ctx, cancelFn := withContext(ctx)

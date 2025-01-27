@@ -104,6 +104,8 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 					zap.Error(err))
 			}
 
+			defer db.Close()
+
 			var scheduledUpdates = make([]*malak.UpdateSchedule, 0)
 
 			err = db.NewSelect().Model(&scheduledUpdates).
