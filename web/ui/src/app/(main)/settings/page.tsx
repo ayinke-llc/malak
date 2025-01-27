@@ -1,8 +1,8 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { AccountSettings } from "./account";
 import { GeneralSettings } from "./general";
 import { NotificationSettings } from "./notification";
 import { PrivacySettings } from "./privacy";
+import Soon from "./soon";
 
 export default function Settings() {
 
@@ -32,7 +32,8 @@ export default function Settings() {
           <Tabs defaultValue="general" className="space-y-6">
             <TabsList className="w-full justify-start border-b pb-px mb-4">
               <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="account">Account</TabsTrigger>
+              <TabsTrigger value="billing">Billing</TabsTrigger>
+              <TabsTrigger value="team">Team</TabsTrigger>
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
               <TabsTrigger value="privacy">Privacy</TabsTrigger>
               <TabsTrigger value="api">API Key & Webhooks</TabsTrigger>
@@ -40,17 +41,20 @@ export default function Settings() {
             <TabsContent value="general">
               <GeneralSettings />
             </TabsContent>
-            <TabsContent value="account">
-              <AccountSettings />
+            <TabsContent value="billing">
+              <GeneralSettings />
+            </TabsContent>
+            <TabsContent value="team">
+              <Soon feature="your team" />
             </TabsContent>
             <TabsContent value="notifications">
-              <NotificationSettings />
+              <Soon feature="notifications" />
             </TabsContent>
             <TabsContent value="privacy">
               <PrivacySettings />
             </TabsContent>
             <TabsContent value="api">
-              <PrivacySettings />
+              <Soon feature="Api keys and webhooks" />
             </TabsContent>
           </Tabs>
         </section>
