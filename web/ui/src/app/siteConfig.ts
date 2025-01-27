@@ -1,6 +1,6 @@
 export const siteConfig = {
   name: "Malak",
-  url: "http://localhost:3000",
+  url: "https://dashboard.malak.vc",
   description: "OSS Investors' hub for founders",
   baseLinks: {
     home: "/",
@@ -9,6 +9,7 @@ export const siteConfig = {
     metrics: "/metrics",
     contacts: "/contacts",
     decks: "/decks",
+    integrations: "/integrations",
     settings: "/settings",
   },
   externalLink: {
