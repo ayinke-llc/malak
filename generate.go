@@ -7,8 +7,6 @@ package malak
 //switch swagger v2 to v3
 //go:generate go run tools/v3gen/main.go
 //
-//Add newly generated docs to docusaurus
-//go:generate cp swagger/swagger.json docs/openapi.json
 //
 // Mocks generation
 //go:generate mockgen -source=internal/pkg/socialauth/social.go -destination=internal/pkg/socialauth/mocks/social.go -package=socialauth_mocks
