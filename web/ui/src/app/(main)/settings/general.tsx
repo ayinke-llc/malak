@@ -11,10 +11,17 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select, SelectContent,
+  SelectItem, SelectTrigger,
+  SelectValue
+} from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import timezoneMap from "@/lib/timezone"
 import useWorkspacesStore from "@/store/workspace"
+import { Controller, useForm } from "react-hook-form"
+import * as yup from "yup"
+import { yupResolver } from "@hookform/resolvers/yup"
 
 export function GeneralSettings() {
   return (
@@ -63,9 +70,34 @@ export function GeneralSettings() {
   )
 }
 
-const CompanyUpdateCard = () => {
 
-  const current = useWorkspacesStore(state => state.current)
+const schema = yup.object({
+  companyName: yup.string().required("Company name is required"),
+  website: yup.string().url("Invalid URL").optional(),
+  timezone: yup.string().required("Timezone is required"),
+});
+
+type FormData = yup.InferType<typeof schema>;
+
+const CompanyUpdateCard = () => {
+  const current = useWorkspacesStore((state) => state.current);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      companyName: current?.workspace_name || "",
+      website: current?.website || "",
+      timezone: current?.timezone || "UTC",
+    },
+  });
+
+  const onSubmit = (data: FormData) => {
+    console.log("Form data submitted:", data);
+  };
 
   const getTimezoneOffset = (timezone: string) => {
     const date = new Date();
@@ -75,7 +107,7 @@ const CompanyUpdateCard = () => {
     });
     const parts = formatter.formatToParts(date);
 
-    const offsetPart = parts.find(part => part.type === "timeZoneName");
+    const offsetPart = parts.find((part) => part.type === "timeZoneName");
     if (offsetPart) {
       return offsetPart.value;
     }
@@ -89,51 +121,83 @@ const CompanyUpdateCard = () => {
         <CardDescription>Manage your account settings and preferences.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Company name:</Label>
-          <Input
-            id="name"
-            placeholder={current?.workspace_name}
-            className="mt-2"
-          />
-        </div>
-
-        <div className="flex space-x-4">
-          <div className="flex-1 space-y-2">
-            <Label htmlFor="website">Website</Label>
-            <Input
-              id="website"
-              placeholder={"https://google.com"}
-              className="mt-2"
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="space-y-2">
+            <Label htmlFor="companyName">Company name:</Label>
+            <Controller
+              name="companyName"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  id="companyName"
+                  placeholder="Enter company name"
+                  className="mt-2"
+                />
+              )}
             />
+            {errors.companyName && (
+              <p className="text-sm text-red-500">{errors.companyName.message}</p>
+            )}
           </div>
 
-          <div className="flex-1 space-y-2">
-            <Label htmlFor="timezone">Timezone</Label>
-            <Select defaultValue="GMT">
-              <SelectTrigger id="timezone">
-                <SelectValue placeholder="Select Timezone" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(timezoneMap).map(([timezone, label], idx) => (
-                  <SelectItem value={timezone} key={idx}>
-                    {`${label} (${getTimezoneOffset(timezone)})`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex space-x-4 mt-4">
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="website">Website</Label>
+              <Controller
+                name="website"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    id="website"
+                    placeholder="https://example.com"
+                    className="mt-2"
+                  />
+                )}
+              />
+              {errors.website && (
+                <p className="text-sm text-red-500">{errors.website.message}</p>
+              )}
+            </div>
+
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="timezone">Timezone</Label>
+              <Controller
+                name="timezone"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger id="timezone">
+                      <SelectValue placeholder="Select Timezone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(timezoneMap).map(([timezone, label], idx) => (
+                        <SelectItem value={timezone} key={idx}>
+                          {`${label} (${getTimezoneOffset(timezone)})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.timezone && (
+                <p className="text-sm text-red-500">{errors.timezone.message}</p>
+              )}
+            </div>
           </div>
 
-        </div>
-
+          <CardFooter className="mt-6 p-0">
+            <div className="space-x-3">
+              <Button type="submit">Save Preferences</Button>
+              <Button variant={"destructive"}>Delete Workspace</Button>
+            </div>
+          </CardFooter>
+        </form>
       </CardContent>
-      <CardFooter>
-        <div className="space-x-3">
-          <Button>Save Preferences</Button>
-          <Button variant={"destructive"}>Delete Workspace</Button>
-        </div>
-      </CardFooter>
     </Card>
-  )
-}
-
+  );
+};

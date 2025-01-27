@@ -2509,13 +2509,19 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "stripe_customer_id": {
-                    "description": "Not required\nDummy values work really",
+                    "description": "Not required\nDummy values work really if not using stripe",
                     "type": "string"
                 },
                 "subscription_id": {
                     "type": "string"
                 },
+                "timezone": {
+                    "type": "string"
+                },
                 "updated_at": {
+                    "type": "string"
+                },
+                "website": {
                     "type": "string"
                 },
                 "workspace_name": {

@@ -417,11 +417,15 @@ components:
         stripe_customer_id:
           description: |-
             Not required
-            Dummy values work really
+            Dummy values work really if not using stripe
           type: string
         subscription_id:
           type: string
+        timezone:
+          type: string
         updated_at:
+          type: string
+        website:
           type: string
         workspace_name:
           type: string
