@@ -1,60 +1,25 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
+"use client"
+
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { Button } from "@/components/ui/button"
+import useWorkspacesStore from "@/store/workspace"
 
 export function GeneralSettings() {
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle>Account Preferences</CardTitle>
-          <CardDescription>Manage your account settings and preferences.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="language">Language</Label>
-            <Select defaultValue="en">
-              <SelectTrigger id="language">
-                <SelectValue placeholder="Select Language" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="es">Spanish</SelectItem>
-                <SelectItem value="fr">French</SelectItem>
-                <SelectItem value="de">German</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="timezone">Timezone</Label>
-            <Select defaultValue="utc">
-              <SelectTrigger id="timezone">
-                <SelectValue placeholder="Select Timezone" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="utc">UTC</SelectItem>
-                <SelectItem value="est">Eastern Time</SelectItem>
-                <SelectItem value="pst">Pacific Time</SelectItem>
-                <SelectItem value="cet">Central European Time</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="dark-mode">Dark Mode</Label>
-            <Switch id="dark-mode" />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="compact-view">Compact View</Label>
-            <Switch id="compact-view" />
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button>Save Preferences</Button>
-        </CardFooter>
-      </Card>
+
+      <CompanyUpdateCard />
 
       <Card>
         <CardHeader>
@@ -94,6 +59,62 @@ export function GeneralSettings() {
         </CardFooter>
       </Card>
     </div>
+  )
+}
+
+const CompanyUpdateCard = () => {
+
+  const current = useWorkspacesStore(state => state.current)
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Company details</CardTitle>
+        <CardDescription>Manage your account settings and preferences.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">Company name:</Label>
+          <Input
+            id="name"
+            placeholder={current?.workspace_name}
+            className="mt-2"
+          />
+        </div>
+
+        <div className="flex space-x-4">
+          <div className="flex-1 space-y-2">
+            <Label htmlFor="website">Website</Label>
+            <Input
+              id="website"
+              placeholder={"https://google.com"}
+              className="mt-2"
+            />
+          </div>
+
+          <div className="flex-1 space-y-2">
+            <Label htmlFor="timezone">Timezone</Label>
+            <Select defaultValue="utc">
+              <SelectTrigger id="timezone">
+                <SelectValue placeholder="Select Timezone" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="utc">UTC</SelectItem>
+                <SelectItem value="est">Eastern Time</SelectItem>
+                <SelectItem value="pst">Pacific Time</SelectItem>
+                <SelectItem value="cet">Central European Time</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <div className="space-x-3">
+          <Button>Save Preferences</Button>
+          <Button variant={"destructive"}>Delete Workspace</Button>
+        </div>
+      </CardFooter>
+    </Card>
   )
 }
 
