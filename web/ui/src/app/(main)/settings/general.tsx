@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import timezoneMap from "@/lib/timezone"
 import useWorkspacesStore from "@/store/workspace"
 
 export function GeneralSettings() {
@@ -66,6 +67,21 @@ const CompanyUpdateCard = () => {
 
   const current = useWorkspacesStore(state => state.current)
 
+  const getTimezoneOffset = (timezone: string) => {
+    const date = new Date();
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      timeZoneName: "shortOffset",
+    });
+    const parts = formatter.formatToParts(date);
+
+    const offsetPart = parts.find(part => part.type === "timeZoneName");
+    if (offsetPart) {
+      return offsetPart.value;
+    }
+    return "UTC";
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -94,19 +110,22 @@ const CompanyUpdateCard = () => {
 
           <div className="flex-1 space-y-2">
             <Label htmlFor="timezone">Timezone</Label>
-            <Select defaultValue="utc">
+            <Select defaultValue="GMT">
               <SelectTrigger id="timezone">
                 <SelectValue placeholder="Select Timezone" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="utc">UTC</SelectItem>
-                <SelectItem value="est">Eastern Time</SelectItem>
-                <SelectItem value="pst">Pacific Time</SelectItem>
-                <SelectItem value="cet">Central European Time</SelectItem>
+                {Object.entries(timezoneMap).map(([timezone, label], idx) => (
+                  <SelectItem value={timezone} key={idx}>
+                    {`${label} (${getTimezoneOffset(timezone)})`}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
+
         </div>
+
       </CardContent>
       <CardFooter>
         <div className="space-x-3">

@@ -20,7 +20,7 @@ type Workspace struct {
 	Website       string    `json:"website,omitempty"`
 
 	// Not required
-	// Dummy values work really
+	// Dummy values work really if not using stripe
 	StripeCustomerID string `json:"stripe_customer_id,omitempty"`
 	SubscriptionID   string `json:"subscription_id,omitempty"`
 
