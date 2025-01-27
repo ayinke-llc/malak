@@ -120,6 +120,14 @@ func createPlan(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 				),
 			)
 
+			defer db.Close()
+
+			if err := form.Run(); err != nil {
+				logger.Error("could not take in data from user",
+					zap.Error(err))
+				return err
+			}
+
 			refGen := malak.NewReferenceGenerator()
 
 			ref := reference
@@ -138,17 +146,9 @@ func createPlan(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 				return err
 			}
 
-			defer db.Close()
-
-			if err := form.Run(); err != nil {
-				logger.Error("could not take in data from user",
-					zap.Error(err))
-				return err
-			}
-
 			plan := &malak.Plan{
 				PlanName:       name,
-				Reference:      reference,
+				Reference:      ref,
 				DefaultPriceID: defaultPlanIDRef,
 				Amount:         int64(amountinCents) * 100,
 				IsDefault:      isDefaultPlan,
@@ -171,12 +171,14 @@ func createPlan(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 			}
 
 			if isDefaultPlan {
+				logger.Debug("Setting plan as default")
 				if err := planRepo.SetDefault(context.Background(), plan); err != nil {
 					logger.Error("could not set plan as default", zap.Error(err))
 					return err
 				}
 			}
 
+			logger.Debug("created plan")
 			return nil
 		},
 	}
