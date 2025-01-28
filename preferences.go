@@ -30,6 +30,17 @@ type Preference struct {
 	bun.BaseModel `json:"-"`
 }
 
+func NewPreference(workspace *Workspace) *Preference {
+	return &Preference{
+		WorkspaceID: workspace.ID,
+		Communication: CommunicationPreferences{
+			EnableMarketing:      true,
+			EnableProductUpdates: true,
+		},
+		Billing: BillingPreferences{},
+	}
+}
+
 type PreferenceRepository interface {
 	Get(context.Context, *Workspace) (*Preference, error)
 	Update(context.Context, *Preference) error
