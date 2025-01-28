@@ -23,11 +23,12 @@ import { Controller, useForm } from "react-hook-form"
 import * as yup from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { toast } from "sonner"
-import { useMutation } from "@tanstack/react-query"
-import { UPDATE_WORKSPACE, UPLOAD_IMAGE } from "@/lib/query-constants"
+import { useMutation, useQuery } from "@tanstack/react-query"
+import { FETCH_PREFERENCES, UPDATE_WORKSPACE, UPLOAD_IMAGE } from "@/lib/query-constants"
 import client from "@/lib/client"
 import { ServerAPIStatus } from "@/client/Api"
 import { AxiosError } from "axios"
+import Skeleton from "@/components/ui/custom/loader/skeleton"
 
 export function GeneralSettings() {
   return (
@@ -258,18 +259,27 @@ const marketingSchema = yup.object({
 type CommunicationFormData = yup.InferType<typeof marketingSchema>;
 
 const NewsletterCard = () => {
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: [FETCH_PREFERENCES],
+    queryFn: () => client.workspaces.preferencesList(),
+  });
+
+  if (error) {
+    toast.error("error occurred while fetching communication preferences")
+  }
+
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm({
     defaultValues: {
-      marketingEmails: false,
-      productUpdates: false,
+      marketingEmails: data?.data?.preferences?.communication?.enable_marketing || false,
+      productUpdates: data?.data?.preferences?.communication?.enable_product_updates || false,
     },
     resolver: yupResolver(marketingSchema),
   });
-
 
   const mutation = useMutation({
     mutationKey: [UPDATE_WORKSPACE],
@@ -296,40 +306,44 @@ const NewsletterCard = () => {
           <CardDescription>Manage your communication preferences.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="marketing-emails">Receive Marketing Emails?</Label>
-            <Controller
-              name="marketingEmails"
-              control={control}
-              render={({ field }) => (
-                <Switch
-                  id="marketing-emails"
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
+          {isLoading ? <Skeleton count={5} /> : (
+            <>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="marketing-emails">Receive Marketing Emails?</Label>
+                <Controller
+                  name="marketingEmails"
+                  control={control}
+                  render={({ field }) => (
+                    <Switch
+                      id="marketing-emails"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
                 />
+              </div>
+              {errors.marketingEmails && (
+                <p className="text-red-500 text-sm">{errors.marketingEmails.message}</p>
               )}
-            />
-          </div>
-          {errors.marketingEmails && (
-            <p className="text-red-500 text-sm">{errors.marketingEmails.message}</p>
-          )}
 
-          <div className="flex items-center justify-between">
-            <Label htmlFor="product-updates">Product Update Notifications?</Label>
-            <Controller
-              name="productUpdates"
-              control={control}
-              render={({ field }) => (
-                <Switch
-                  id="product-updates"
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
+              <div className="flex items-center justify-between">
+                <Label htmlFor="product-updates">Product Update Notifications?</Label>
+                <Controller
+                  name="productUpdates"
+                  control={control}
+                  render={({ field }) => (
+                    <Switch
+                      id="product-updates"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
                 />
+              </div>
+              {errors.productUpdates && (
+                <p className="text-red-500 text-sm">{errors.productUpdates.message}</p>
               )}
-            />
-          </div>
-          {errors.productUpdates && (
-            <p className="text-red-500 text-sm">{errors.productUpdates.message}</p>
+            </>
           )}
         </CardContent>
         <CardFooter className="mt-6">
