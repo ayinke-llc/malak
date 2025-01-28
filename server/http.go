@@ -207,6 +207,9 @@ func buildRoutes(
 			r.Get("/preferences",
 				WrapMalakHTTPHandler(logger, workspaceHandler.getPreferences, cfg, "workspaces.preferences.get"))
 
+			r.Put("/preferences",
+				WrapMalakHTTPHandler(logger, workspaceHandler.updatePreferences, cfg, "workspaces.preferences.update"))
+
 			r.Post("/{reference}",
 				WrapMalakHTTPHandler(logger, workspaceHandler.switchCurrentWorkspaceForUser, cfg, "workspaces.switch"))
 

@@ -1307,6 +1307,61 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "update workspace preferences",
+                "parameters": [
+                    {
+                        "description": "request body to updare a workspace preference",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.updatePreferencesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.preferenceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
             }
         },
         "/workspaces/updates": {
@@ -3125,6 +3180,29 @@ const docTemplate = `{
                 },
                 "require_email": {
                     "type": "boolean"
+                }
+            }
+        },
+        "server.updatePreferencesRequest": {
+            "type": "object",
+            "required": [
+                "preferences"
+            ],
+            "properties": {
+                "preferences": {
+                    "type": "object",
+                    "required": [
+                        "billing",
+                        "newsletter"
+                    ],
+                    "properties": {
+                        "billing": {
+                            "$ref": "#/definitions/malak.BillingPreferences"
+                        },
+                        "newsletter": {
+                            "$ref": "#/definitions/malak.CommunicationPreferences"
+                        }
+                    }
                 }
             }
         },

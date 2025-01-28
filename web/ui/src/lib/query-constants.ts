@@ -22,4 +22,5 @@ export const FETCH_DECK = 'FETCH_DECK' as const;
 export const FETCH_CONTACT = 'FETCH_CONTACT' as const
 export const DELETE_CONTACT = 'DELETE_CONTACT' as const
 export const UPDATE_WORKSPACE = "UPDATE_WORKSPACE" as const
+export const UPDATE_WORKSPACE_PREFERENCES = "UPDATE_WORKSPACE_PREFERENCES" as const
 export const FETCH_PREFERENCES = "FETCH_PREFERENCES" as const

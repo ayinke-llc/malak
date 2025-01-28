@@ -24,11 +24,12 @@ import * as yup from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { toast } from "sonner"
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { FETCH_PREFERENCES, UPDATE_WORKSPACE, UPLOAD_IMAGE } from "@/lib/query-constants"
+import { FETCH_PREFERENCES, UPDATE_WORKSPACE, UPDATE_WORKSPACE_PREFERENCES, UPLOAD_IMAGE } from "@/lib/query-constants"
 import client from "@/lib/client"
 import { ServerAPIStatus } from "@/client/Api"
 import { AxiosError } from "axios"
 import Skeleton from "@/components/ui/custom/loader/skeleton"
+import { useEffect } from "react"
 
 export function GeneralSettings() {
   return (
@@ -265,34 +266,52 @@ const NewsletterCard = () => {
     queryFn: () => client.workspaces.preferencesList(),
   });
 
-  if (error) {
-    toast.error("error occurred while fetching communication preferences")
-  }
+  useEffect(() => {
+    if (error) {
+      toast.error("Error occurred while fetching communication preferences");
+    }
+  }, [error]);
 
   const {
     control,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm({
     defaultValues: {
-      marketingEmails: data?.data?.preferences?.communication?.enable_marketing || false,
-      productUpdates: data?.data?.preferences?.communication?.enable_product_updates || false,
+      marketingEmails: data?.data?.preferences?.communication?.enable_marketing as boolean,
+      productUpdates: data?.data?.preferences?.communication?.enable_product_updates as boolean,
     },
     resolver: yupResolver(marketingSchema),
   });
 
-  const mutation = useMutation({
-    mutationKey: [UPDATE_WORKSPACE],
-    mutationFn: (data: CommunicationFormData) => {
-      return client.workspaces.workspacesPartialUpdate({
+  useEffect(() => {
+    if (data?.data?.preferences?.communication) {
+      reset({
+        marketingEmails: data.data.preferences.communication.enable_marketing,
+        productUpdates: data.data.preferences.communication.enable_product_updates,
+      });
+    }
+  }, [data, reset]);
 
+  const mutation = useMutation({
+    mutationKey: [UPDATE_WORKSPACE_PREFERENCES],
+    mutationFn: (data: CommunicationFormData) => {
+      return client.workspaces.preferencesUpdate({
+        preferences: {
+          billing: {},
+          newsletter: {
+            enable_marketing: data.marketingEmails,
+            enable_product_updates: data.productUpdates,
+          }
+        }
       })
     },
     onSuccess: ({ data }) => {
       toast.success(data.message);
     },
     onError(err: AxiosError<ServerAPIStatus>) {
-      toast.error(err.response?.data.message || "An error occurred while updating workspace");
+      toast.error(err.response?.data.message || "An error occurred while updating workspace preferences");
     },
   });
 

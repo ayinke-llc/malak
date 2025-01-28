@@ -431,6 +431,13 @@ export interface ServerUpdateDeckPreferencesRequest {
   require_email?: boolean;
 }
 
+export interface ServerUpdatePreferencesRequest {
+  preferences: {
+    billing: MalakBillingPreferences;
+    newsletter: MalakCommunicationPreferences;
+  };
+}
+
 export interface ServerUpdateWorkspaceRequest {
   logo?: string;
   timezone?: string;
@@ -1036,6 +1043,24 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerPreferenceResponse, ServerAPIStatus>({
         path: `/workspaces/preferences`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags workspace
+     * @name PreferencesUpdate
+     * @summary update workspace preferences
+     * @request PUT:/workspaces/preferences
+     */
+    preferencesUpdate: (data: ServerUpdatePreferencesRequest, params: RequestParams = {}) =>
+      this.request<ServerPreferenceResponse, ServerAPIStatus>({
+        path: `/workspaces/preferences`,
+        method: "PUT",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

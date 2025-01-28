@@ -759,6 +759,21 @@ components:
         require_email:
           type: boolean
       type: object
+    server.updatePreferencesRequest:
+      properties:
+        preferences:
+          properties:
+            billing:
+              $ref: '#/components/schemas/malak.BillingPreferences'
+            newsletter:
+              $ref: '#/components/schemas/malak.CommunicationPreferences'
+          required:
+          - billing
+          - newsletter
+          type: object
+      required:
+      - preferences
+      type: object
     server.updateWorkspaceRequest:
       properties:
         logo:
@@ -1865,6 +1880,49 @@ paths:
                 $ref: '#/components/schemas/server.APIStatus'
           description: Internal Server Error
       summary: fetch workspace preferences
+      tags:
+      - workspace
+    put:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.updatePreferencesRequest'
+        description: request body to updare a workspace preference
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.preferenceResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: update workspace preferences
       tags:
       - workspace
   /workspaces/updates:

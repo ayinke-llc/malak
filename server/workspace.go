@@ -329,70 +329,76 @@ func (wo *workspaceHandler) getPreferences(
 	}, StatusSuccess
 }
 
-//
-// type updatePreferencesRequest struct {
-// 	Preferences struct {
-// 		Billing    server.BillingPreferences    `json:"billing,omitempty"`
-// 		Newsletter server.NewsletterPreferences `json:"newsletter,omitempty"`
-// 	} `json:"preferences,omitempty"`
-// }
-//
-// func (u *updatePreferencesRequest) Make(current *server.Preference) *server.Preference {
-// 	if current.Billing.Email.String() != u.Preferences.Billing.Email.String() {
-// 		current.Billing.Email = u.Preferences.Billing.Email
-// 	}
-//
-// 	if current.Newsletter.SendEmail != u.Preferences.Newsletter.SendEmail {
-// 		current.Newsletter.SendEmail = u.Preferences.Newsletter.SendEmail
-// 	}
-//
-// 	return current
-// }
-//
-// func (wo *workspaceHandler) updatePreferences(w http.ResponseWriter, r *http.Request) {
-// 	ctx, span, rid := getTracer(r.Context(), r, "updatePreferences")
-//
-// 	user := getUser(r.Context())
-//
-// 	workspace := getWorkspace(r.Context())
-//
-// 	logger := wo.logger.WithField("request_id", rid).
-// 		WithField("method", "updatePreferences").
-// 		WithField("user", user.ID).
-// 		WithField("workspace_id = ?", workspace.ID)
-//
-// 	defer span.End()
-//
-// 	logger.Debug("Updating workspace preferences")
-//
-// 	req := new(updatePreferencesRequest)
-//
-// 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
-// 		span.SetStatus(codes.Error, "could not decode request body")
-//
-// 		_ = render.Render(w, r, newAPIError(http.StatusBadRequest, "invalid request body"))
-// 		return
-// 	}
-//
-// 	preferences, err := wo.preferencesRepo.Get(ctx, workspace)
-// 	if err != nil {
-// 		logger.WithError(err).Error("could not fetch preferences")
-// 		span.RecordError(err)
-// 		span.SetStatus(codes.Error, "could not fetch preferences")
-// 		_ = render.Render(w, r, newAPIError(http.StatusBadRequest,
-// 			"could not fetch preferences"))
-// 		return
-// 	}
-//
-// 	pref := req.Make(preferences)
-//
-// 	if err := wo.preferencesRepo.Update(ctx, pref); err != nil {
-// 		logger.WithError(err).Error("could not update preferences")
-// 		span.SetStatus(codes.Error, "could not update preferences")
-// 		_ = render.Render(w, r, newAPIError(http.StatusInternalServerError, "could not update preferences"))
-// 		return
-// 	}
-//
-// 	span.SetStatus(codes.Ok, "successfully updated preferences")
-// 	_ = render.Render(w, r, newPreferenceResponse(preferences))
-// }
+type updatePreferencesRequest struct {
+	Preferences struct {
+		Billing    malak.BillingPreferences       `json:"billing,omitempty" validate:"required"`
+		Newsletter malak.CommunicationPreferences `json:"newsletter,omitempty" validate:"required"`
+	} `json:"preferences,omitempty" validate:"required"`
+	GenericRequest
+}
+
+func (u *updatePreferencesRequest) Validate() error { return nil }
+
+func (u *updatePreferencesRequest) Make(current *malak.Preference) *malak.Preference {
+
+	if u.Preferences.Newsletter.EnableMarketing != current.Communication.EnableMarketing {
+		current.Communication.EnableMarketing = u.Preferences.Newsletter.EnableMarketing
+	}
+
+	if u.Preferences.Newsletter.EnableProductUpdates != current.Communication.EnableProductUpdates {
+		current.Communication.EnableProductUpdates = u.Preferences.Newsletter.EnableProductUpdates
+	}
+
+	return current
+}
+
+// @Summary update workspace preferences
+// @Tags workspace
+// @Accept  json
+// @Produce  json
+// @Param message body updatePreferencesRequest true "request body to updare a workspace preference"
+// @Success 200 {object} preferenceResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/preferences [put]
+func (wo *workspaceHandler) updatePreferences(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("Updating workspace preferences")
+
+	req := new(updatePreferencesRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	workspace := getWorkspaceFromContext(ctx)
+
+	preferences, err := wo.preferenceRepo.Get(ctx, workspace)
+	if err != nil {
+		logger.Error("could not fetch preferences", zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "could not fetch preferences"), StatusFailed
+	}
+
+	pref := req.Make(preferences)
+
+	if err := wo.preferenceRepo.Update(ctx, pref); err != nil {
+		logger.Error("could not update preferences", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not update preferences"), StatusFailed
+	}
+
+	return &preferenceResponse{
+		Preferences: preferences,
+		APIStatus:   newAPIStatus(http.StatusOK, "workspace preferences updated"),
+	}, StatusSuccess
+}
