@@ -1,5 +1,6 @@
 "use client"
 
+import { ServerAPIStatus } from "@/client/Api"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -9,6 +10,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card"
+import Skeleton from "@/components/ui/custom/loader/skeleton"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -17,19 +19,20 @@ import {
   SelectValue
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import client from "@/lib/client"
+import {
+  FETCH_PREFERENCES, UPDATE_WORKSPACE,
+  UPDATE_WORKSPACE_PREFERENCES, UPLOAD_IMAGE
+} from "@/lib/query-constants"
 import timezoneMap from "@/lib/timezone"
 import useWorkspacesStore from "@/store/workspace"
-import { Controller, useForm } from "react-hook-form"
-import * as yup from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
-import { toast } from "sonner"
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { FETCH_PREFERENCES, UPDATE_WORKSPACE, UPDATE_WORKSPACE_PREFERENCES, UPLOAD_IMAGE } from "@/lib/query-constants"
-import client from "@/lib/client"
-import { ServerAPIStatus } from "@/client/Api"
 import { AxiosError } from "axios"
-import Skeleton from "@/components/ui/custom/loader/skeleton"
 import { useEffect } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { toast } from "sonner"
+import * as yup from "yup"
 
 export function GeneralSettings() {
   return (

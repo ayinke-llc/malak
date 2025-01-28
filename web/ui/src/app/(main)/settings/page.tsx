@@ -1,7 +1,5 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { GeneralSettings } from "./general";
-import { NotificationSettings } from "./notification";
-import { PrivacySettings } from "./privacy";
 import Soon from "./soon";
 
 export default function Settings() {
@@ -34,8 +32,6 @@ export default function Settings() {
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="billing">Billing</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
-              <TabsTrigger value="notifications">Notifications</TabsTrigger>
-              <TabsTrigger value="privacy">Privacy</TabsTrigger>
               <TabsTrigger value="api">API Key</TabsTrigger>
               <TabsTrigger value="webhook">Webhooks</TabsTrigger>
             </TabsList>
@@ -43,16 +39,10 @@ export default function Settings() {
               <GeneralSettings />
             </TabsContent>
             <TabsContent value="billing">
-              <GeneralSettings />
+              <Soon feature="billing" />
             </TabsContent>
             <TabsContent value="team">
               <Soon feature="your team" />
-            </TabsContent>
-            <TabsContent value="notifications">
-              <Soon feature="notifications" />
-            </TabsContent>
-            <TabsContent value="privacy">
-              <PrivacySettings />
             </TabsContent>
             <TabsContent value="api">
               <Soon feature="Api keys" />
