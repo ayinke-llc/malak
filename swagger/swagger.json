@@ -597,6 +597,9 @@
 					"id": {
 						"type": "string"
 					},
+					"logo_url": {
+						"type": "string"
+					},
 					"metadata": {
 						"$ref": "#/components/schemas/malak.PlanMetadata"
 					},
@@ -1063,6 +1066,9 @@
 			},
 			"server.updateWorkspaceRequest": {
 				"properties": {
+					"logo": {
+						"type": "string"
+					},
 					"timezone": {
 						"type": "string"
 					},

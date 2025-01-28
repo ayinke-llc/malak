@@ -249,6 +249,7 @@ export interface MalakUserRole {
 export interface MalakWorkspace {
   created_at?: string;
   id?: string;
+  logo_url?: string;
   metadata?: MalakPlanMetadata;
   plan_id?: string;
   reference?: string;
@@ -408,6 +409,7 @@ export interface ServerUpdateDeckPreferencesRequest {
 }
 
 export interface ServerUpdateWorkspaceRequest {
+  logo?: string;
   timezone?: string;
   website?: string;
   workspace_name?: string;

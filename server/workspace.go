@@ -169,19 +169,33 @@ type updateWorkspaceRequest struct {
 	Timezone      *string `json:"timezone,omitempty"`
 	WorkspaceName *string `json:"workspace_name,omitempty"`
 	Website       *string `json:"website,omitempty"`
+	Logo          *string `json:"logo,omitempty"`
 
 	GenericRequest
 }
 
 func (u *updateWorkspaceRequest) Validate() error {
+
 	timezone := strings.TrimSpace(hermes.DeRef(u.Timezone))
 	website := strings.TrimSpace(hermes.DeRef(u.Website))
 	workspaceName := strings.TrimSpace(hermes.DeRef(u.WorkspaceName))
+	logo := strings.TrimSpace(hermes.DeRef(u.Logo))
 
 	if !hermes.IsStringEmpty(timezone) {
 		_, err := time.LoadLocation(timezone)
 		if err != nil {
 			return errors.New("invalid or unsupported timezone")
+		}
+	}
+
+	if !hermes.IsStringEmpty(logo) {
+		isValid, err := malak.IsImageFromURL(logo)
+		if err != nil {
+			return err
+		}
+
+		if !isValid {
+			return errors.New("logo is not a valid image url")
 		}
 	}
 
@@ -247,6 +261,7 @@ func (wo *workspaceHandler) updateWorkspace(
 	timezone := strings.TrimSpace(hermes.DeRef(req.Timezone))
 	website := strings.TrimSpace(hermes.DeRef(req.Website))
 	workspaceName := strings.TrimSpace(hermes.DeRef(req.WorkspaceName))
+	logo := strings.TrimSpace(hermes.DeRef(req.Logo))
 
 	if !hermes.IsStringEmpty(timezone) {
 		workspace.Timezone = timezone
@@ -258,6 +273,10 @@ func (wo *workspaceHandler) updateWorkspace(
 
 	if !hermes.IsStringEmpty(workspaceName) {
 		workspace.WorkspaceName = workspaceName
+	}
+
+	if !hermes.IsStringEmpty(logo) {
+		workspace.LogoURL = logo
 	}
 
 	if err := wo.workspaceRepo.Update(ctx, workspace); err != nil {

@@ -2554,6 +2554,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "logo_url": {
+                    "type": "string"
+                },
                 "metadata": {
                     "$ref": "#/definitions/malak.PlanMetadata"
                 },
@@ -3020,6 +3023,9 @@ const docTemplate = `{
         "server.updateWorkspaceRequest": {
             "type": "object",
             "properties": {
+                "logo": {
+                    "type": "string"
+                },
                 "timezone": {
                     "type": "string"
                 },

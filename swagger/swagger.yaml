@@ -408,6 +408,8 @@ components:
           type: string
         id:
           type: string
+        logo_url:
+          type: string
         metadata:
           $ref: '#/components/schemas/malak.PlanMetadata'
         plan_id:
@@ -717,6 +719,8 @@ components:
       type: object
     server.updateWorkspaceRequest:
       properties:
+        logo:
+          type: string
         timezone:
           type: string
         website:

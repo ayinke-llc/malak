@@ -80,7 +80,20 @@ const schema = yup.object({
   companyName: yup.string().required("Company name is required"),
   website: yup.string().url("Invalid URL").optional(),
   timezone: yup.string().required("Timezone is required"),
-  image: yup.string().url("Invalid image URL").optional(),
+  image: yup.string().optional().test(
+    "is-valid-url",
+    "Invalid URL",
+    (value) => {
+      if (!value) return true; // Optional field, allow empty values
+      try {
+        const url = new URL(value);
+        // Allow URLs with localhost
+        return !!url && (url.hostname === "localhost" || /^[a-zA-Z0-9.-]+$/.test(url.hostname));
+      } catch {
+        return false;
+      }
+    }
+  )
 });
 
 type FormData = yup.InferType<typeof schema>;
@@ -96,6 +109,7 @@ const CompanyUpdateCard = () => {
         workspace_name: data.companyName,
         timezone: data.timezone,
         website: data.website,
+        logo: data.image,
       })
     },
     onSuccess: ({ data }) => {
@@ -117,7 +131,6 @@ const CompanyUpdateCard = () => {
       toast.error(err?.response?.data?.message || "an error occurred while uploading your logo");
     }
   });
-
 
   const onFileChange = async (file: File | null) => {
     if (file) {
@@ -235,7 +248,7 @@ const CompanyUpdateCard = () => {
           </div>
 
           <div className="space-y-2 mt-4">
-            <Label htmlFor="image">Upload Logo</Label>
+            <Label htmlFor="image">Company Logo</Label>
             <Controller
               name="image"
               control={control}
