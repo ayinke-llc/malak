@@ -36,7 +36,8 @@ export default function Settings() {
               <TabsTrigger value="team">Team</TabsTrigger>
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
               <TabsTrigger value="privacy">Privacy</TabsTrigger>
-              <TabsTrigger value="api">API Key & Webhooks</TabsTrigger>
+              <TabsTrigger value="api">API Key</TabsTrigger>
+              <TabsTrigger value="webhook">Webhooks</TabsTrigger>
             </TabsList>
             <TabsContent value="general">
               <GeneralSettings />
@@ -54,7 +55,10 @@ export default function Settings() {
               <PrivacySettings />
             </TabsContent>
             <TabsContent value="api">
-              <Soon feature="Api keys and webhooks" />
+              <Soon feature="Api keys" />
+            </TabsContent>
+            <TabsContent value="webhook">
+              <Soon feature="webhooks" />
             </TabsContent>
           </Tabs>
         </section>

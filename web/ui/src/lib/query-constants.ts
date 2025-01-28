@@ -16,6 +16,7 @@ export const SEND_UPDATE = "SEND_UPDATE" as const;
 export const LIST_PINNED_UPDATES = 'LIST_PINNED_UPDATES' as const;
 export const FETCH_SINGLE_UPDATE_ANALYTICS = 'FETCH_SINGLE_UPDATE_ANALYTICS' as const;
 export const UPLOAD_DECK = "UPLOAD_DECK" as const;
+export const UPLOAD_IMAGE = "UPLOAD_IMAGE" as const;
 export const LIST_DECKS = 'LIST_DECKS' as const;
 export const FETCH_DECK = 'FETCH_DECK' as const;
 export const FETCH_CONTACT = 'FETCH_CONTACT' as const

@@ -24,7 +24,7 @@ import * as yup from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { toast } from "sonner"
 import { useMutation } from "@tanstack/react-query"
-import { UPDATE_WORKSPACE } from "@/lib/query-constants"
+import { UPDATE_WORKSPACE, UPLOAD_IMAGE } from "@/lib/query-constants"
 import client from "@/lib/client"
 import { ServerAPIStatus } from "@/client/Api"
 import { AxiosError } from "axios"
@@ -80,6 +80,7 @@ const schema = yup.object({
   companyName: yup.string().required("Company name is required"),
   website: yup.string().url("Invalid URL").optional(),
   timezone: yup.string().required("Timezone is required"),
+  image: yup.string().url("Invalid image URL").optional(),
 });
 
 type FormData = yup.InferType<typeof schema>;
@@ -101,15 +102,34 @@ const CompanyUpdateCard = () => {
       toast.success(data.message);
     },
     onError(err: AxiosError<ServerAPIStatus>) {
-      console.log(err)
-      toast.error(err.response?.data.message ?? "An error occurred while updating workspace");
+      toast.error(err.response?.data.message || "An error occurred while updating workspace");
     },
   });
+
+  const uploadMutation = useMutation({
+    mutationKey: [UPLOAD_IMAGE],
+    mutationFn: (file: File) => client.uploads.uploadImage({ image_body: file }),
+    onSuccess: ({ data }) => {
+      setValue("image", data.url);
+      toast.success("logo uploaded successfully");
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err?.response?.data?.message || "an error occurred while uploading your logo");
+    }
+  });
+
+
+  const onFileChange = async (file: File | null) => {
+    if (file) {
+      uploadMutation.mutate(file)
+    }
+  };
 
   const {
     control,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<FormData>({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -136,6 +156,7 @@ const CompanyUpdateCard = () => {
 
     return "UTC";
   };
+
 
   return (
     <Card>
@@ -211,6 +232,34 @@ const CompanyUpdateCard = () => {
                 <p className="text-sm text-red-500">{errors.timezone.message}</p>
               )}
             </div>
+          </div>
+
+          <div className="space-y-2 mt-4">
+            <Label htmlFor="image">Upload Logo</Label>
+            <Controller
+              name="image"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <Input
+                    type="file"
+                    id="image"
+                    accept="image/png, image/jpeg"
+                    onChange={(e) => onFileChange(e.target.files?.[0] || null)}
+                  />
+                  {field.value && (
+                    <img
+                      src={field.value}
+                      alt="Uploaded Preview"
+                      className="mt-2 w-32 h-32 object-cover rounded"
+                    />
+                  )}
+                </div>
+              )}
+            />
+            {errors.image && (
+              <p className="text-sm text-red-500">{errors.image.message}</p>
+            )}
           </div>
 
           <CardFooter className="mt-6 p-0">

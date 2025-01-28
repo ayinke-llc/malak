@@ -18,6 +18,7 @@ type Workspace struct {
 	Reference     string    `json:"reference,omitempty"`
 	Timezone      string    `json:"timezone,omitempty"`
 	Website       string    `json:"website,omitempty"`
+	LogoURL       string    `json:"logo_url,omitempty"`
 
 	// Not required
 	// Dummy values work really if not using stripe
