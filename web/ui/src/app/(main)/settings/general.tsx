@@ -250,27 +250,94 @@ const CompanyUpdateCard = () => {
   );
 };
 
+const marketingSchema = yup.object({
+  marketingEmails: yup.boolean().required("This field is required."),
+  productUpdates: yup.boolean().required("This field is required."),
+});
+
+type CommunicationFormData = yup.InferType<typeof marketingSchema>;
+
 const NewsletterCard = () => {
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      marketingEmails: false,
+      productUpdates: false,
+    },
+    resolver: yupResolver(marketingSchema),
+  });
+
+
+  const mutation = useMutation({
+    mutationKey: [UPDATE_WORKSPACE],
+    mutationFn: (data: CommunicationFormData) => {
+      return client.workspaces.workspacesPartialUpdate({
+
+      })
+    },
+    onSuccess: ({ data }) => {
+      toast.success(data.message);
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      toast.error(err.response?.data.message || "An error occurred while updating workspace");
+    },
+  });
+
+  const onSubmit = (data: CommunicationFormData) => mutation.mutate(data)
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Communication Settings</CardTitle>
-        <CardDescription>Manage your communication preferences.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="marketing-emails">Receive Marketing Emails?</Label>
-          <Switch id="marketing-emails" />
-        </div>
-        <div className="flex items-center justify-between">
-          <Label htmlFor="product-updates">Product Update Notifications?</Label>
-          <Switch id="product-updates" />
-        </div>
-      </CardContent>
-      <CardFooter className="mt-6">
-        <Button>Update Communication Settings</Button>
-      </CardFooter>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <CardHeader>
+          <CardTitle>Communication Settings</CardTitle>
+          <CardDescription>Manage your communication preferences.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="marketing-emails">Receive Marketing Emails?</Label>
+            <Controller
+              name="marketingEmails"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="marketing-emails"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+          </div>
+          {errors.marketingEmails && (
+            <p className="text-red-500 text-sm">{errors.marketingEmails.message}</p>
+          )}
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="product-updates">Product Update Notifications?</Label>
+            <Controller
+              name="productUpdates"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="product-updates"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+          </div>
+          {errors.productUpdates && (
+            <p className="text-red-500 text-sm">{errors.productUpdates.message}</p>
+          )}
+        </CardContent>
+        <CardFooter className="mt-6">
+          <Button type="submit">Update Communication Settings</Button>
+        </CardFooter>
+      </form>
     </Card>
-  )
-}
+  );
+};
+
+export default NewsletterCard;

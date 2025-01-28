@@ -1263,6 +1263,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/workspaces/preferences": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "fetch workspace preferences",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.preferenceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/workspaces/updates": {
             "get": {
                 "consumes": [
@@ -1957,6 +2003,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "malak.BillingPreferences": {
+            "type": "object",
+            "properties": {
+                "finance_email": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.Block": {
             "type": "object",
             "properties": {
@@ -1976,6 +2030,17 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string"
+                }
+            }
+        },
+        "malak.CommunicationPreferences": {
+            "type": "object",
+            "properties": {
+                "enable_marketing": {
+                    "type": "boolean"
+                },
+                "enable_product_updates": {
+                    "type": "boolean"
                 }
             }
         },
@@ -2284,6 +2349,29 @@ const docTemplate = `{
                             "type": "integer"
                         }
                     }
+                }
+            }
+        },
+        "malak.Preference": {
+            "type": "object",
+            "properties": {
+                "billing": {
+                    "$ref": "#/definitions/malak.BillingPreferences"
+                },
+                "communication": {
+                    "$ref": "#/definitions/malak.CommunicationPreferences"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
                 }
             }
         },
@@ -2737,6 +2825,7 @@ const docTemplate = `{
         "server.fetchContactListResponse": {
             "type": "object",
             "required": [
+                "list",
                 "message"
             ],
             "properties": {
@@ -2799,6 +2888,7 @@ const docTemplate = `{
         "server.fetchDeckResponse": {
             "type": "object",
             "required": [
+                "deck",
                 "message"
             ],
             "properties": {
@@ -2813,6 +2903,7 @@ const docTemplate = `{
         "server.fetchDecksResponse": {
             "type": "object",
             "required": [
+                "decks",
                 "message"
             ],
             "properties": {
@@ -2852,7 +2943,9 @@ const docTemplate = `{
         "server.fetchUpdateAnalyticsResponse": {
             "type": "object",
             "required": [
-                "message"
+                "message",
+                "recipients",
+                "update"
             ],
             "properties": {
                 "message": {
@@ -2970,6 +3063,21 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "server.preferenceResponse": {
+            "type": "object",
+            "required": [
+                "message",
+                "preferences"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "preferences": {
+                    "$ref": "#/definitions/malak.Preference"
                 }
             }
         },

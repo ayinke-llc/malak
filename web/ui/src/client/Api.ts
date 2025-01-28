@@ -9,12 +9,21 @@
  * ---------------------------------------------------------------
  */
 
+export interface MalakBillingPreferences {
+  finance_email?: string;
+}
+
 export interface MalakBlock {
   children?: MalakBlock[];
   content?: any;
   id?: string;
   props?: Record<string, any>;
   type?: string;
+}
+
+export interface MalakCommunicationPreferences {
+  enable_marketing?: boolean;
+  enable_product_updates?: boolean;
 }
 
 export interface MalakContact {
@@ -137,6 +146,15 @@ export interface MalakPlanMetadata {
     enabled?: boolean;
     size?: number;
   };
+}
+
+export interface MalakPreference {
+  billing?: MalakBillingPreferences;
+  communication?: MalakCommunicationPreferences;
+  created_at?: string;
+  id?: string;
+  updated_at?: string;
+  workspace_id?: string;
 }
 
 export enum MalakRecipientStatus {
@@ -319,7 +337,7 @@ export interface ServerCreatedUserResponse {
 }
 
 export interface ServerFetchContactListResponse {
-  list?: MalakContactList;
+  list: MalakContactList;
   message: string;
 }
 
@@ -337,12 +355,12 @@ export interface ServerFetchContactResponse {
 }
 
 export interface ServerFetchDeckResponse {
-  deck?: MalakDeck;
+  deck: MalakDeck;
   message: string;
 }
 
 export interface ServerFetchDecksResponse {
-  decks?: MalakDeck[];
+  decks: MalakDeck[];
   message: string;
 }
 
@@ -354,8 +372,8 @@ export interface ServerFetchDetailedContactResponse {
 
 export interface ServerFetchUpdateAnalyticsResponse {
   message: string;
-  recipients?: MalakUpdateRecipient[];
-  update?: MalakUpdateStat;
+  recipients: MalakUpdateRecipient[];
+  update: MalakUpdateStat;
 }
 
 export interface ServerFetchUpdateReponse {
@@ -388,6 +406,11 @@ export interface ServerPagingInfo {
   page: number;
   per_page: number;
   total: number;
+}
+
+export interface ServerPreferenceResponse {
+  message: string;
+  preferences: MalakPreference;
 }
 
 export interface ServerPreviewUpdateRequest {
@@ -997,6 +1020,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerFetchWorkspaceResponse, ServerAPIStatus>({
         path: `/workspaces/${reference}`,
         method: "POST",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags workspace
+     * @name PreferencesList
+     * @summary fetch workspace preferences
+     * @request GET:/workspaces/preferences
+     */
+    preferencesList: (params: RequestParams = {}) =>
+      this.request<ServerPreferenceResponse, ServerAPIStatus>({
+        path: `/workspaces/preferences`,
+        method: "GET",
         format: "json",
         ...params,
       }),

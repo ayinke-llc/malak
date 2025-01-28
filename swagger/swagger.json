@@ -1,6 +1,14 @@
 {
 	"components": {
 		"schemas": {
+			"malak.BillingPreferences": {
+				"properties": {
+					"finance_email": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
 			"malak.Block": {
 				"properties": {
 					"children": {
@@ -19,6 +27,17 @@
 					},
 					"type": {
 						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"malak.CommunicationPreferences": {
+				"properties": {
+					"enable_marketing": {
+						"type": "boolean"
+					},
+					"enable_product_updates": {
+						"type": "boolean"
 					}
 				},
 				"type": "object"
@@ -327,6 +346,29 @@
 							}
 						},
 						"type": "object"
+					}
+				},
+				"type": "object"
+			},
+			"malak.Preference": {
+				"properties": {
+					"billing": {
+						"$ref": "#/components/schemas/malak.BillingPreferences"
+					},
+					"communication": {
+						"$ref": "#/components/schemas/malak.CommunicationPreferences"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"updated_at": {
+						"type": "string"
+					},
+					"workspace_id": {
+						"type": "string"
 					}
 				},
 				"type": "object"
@@ -788,6 +830,7 @@
 					}
 				},
 				"required": [
+					"list",
 					"message"
 				],
 				"type": "object"
@@ -850,6 +893,7 @@
 					}
 				},
 				"required": [
+					"deck",
 					"message"
 				],
 				"type": "object"
@@ -867,6 +911,7 @@
 					}
 				},
 				"required": [
+					"decks",
 					"message"
 				],
 				"type": "object"
@@ -909,7 +954,9 @@
 					}
 				},
 				"required": [
-					"message"
+					"message",
+					"recipients",
+					"update"
 				],
 				"type": "object"
 			},
@@ -1014,6 +1061,21 @@
 					"page",
 					"per_page",
 					"total"
+				],
+				"type": "object"
+			},
+			"server.preferenceResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"preferences": {
+						"$ref": "#/components/schemas/malak.Preference"
+					}
+				},
+				"required": [
+					"message",
+					"preferences"
 				],
 				"type": "object"
 			},
@@ -2732,6 +2794,66 @@
 					}
 				},
 				"summary": "Create a new workspace",
+				"tags": [
+					"workspace"
+				]
+			}
+		},
+		"/workspaces/preferences": {
+			"get": {
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.preferenceResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "fetch workspace preferences",
 				"tags": [
 					"workspace"
 				]
