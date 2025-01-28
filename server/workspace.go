@@ -4,8 +4,11 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/url"
 	"strings"
+	"time"
 
+	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
@@ -159,5 +162,114 @@ func (wo *workspaceHandler) switchCurrentWorkspaceForUser(
 	return fetchWorkspaceResponse{
 		Workspace: util.DeRef(workspace),
 		APIStatus: newAPIStatus(http.StatusOK, "user's default workspace updated"),
+	}, StatusSuccess
+}
+
+type updateWorkspaceRequest struct {
+	Timezone      *string `json:"timezone,omitempty"`
+	WorkspaceName *string `json:"workspace_name,omitempty"`
+	Website       *string `json:"website,omitempty"`
+
+	GenericRequest
+}
+
+func (u *updateWorkspaceRequest) Validate() error {
+	timezone := strings.TrimSpace(hermes.DeRef(u.Timezone))
+	website := strings.TrimSpace(hermes.DeRef(u.Website))
+	workspaceName := strings.TrimSpace(hermes.DeRef(u.WorkspaceName))
+
+	if !hermes.IsStringEmpty(timezone) {
+		_, err := time.LoadLocation(timezone)
+		if err != nil {
+			return errors.New("invalid or unsupported timezone")
+		}
+	}
+
+	if !hermes.IsStringEmpty(website) {
+		_, err := url.Parse(website)
+		if err != nil {
+			return errors.New("invalid website")
+		}
+	}
+
+	if !hermes.IsStringEmpty(workspaceName) {
+
+		if util.IsStringEmpty(workspaceName) {
+			return errors.New("please provide workspace name")
+		}
+
+		if len(workspaceName) < 5 {
+			return errors.New("workspace name must be a minimum of 5 characters")
+		}
+	}
+
+	return nil
+}
+
+// @Summary update workspace details
+// @Tags workspace
+// @Accept  json
+// @Produce  json
+// @Param message body updateWorkspaceRequest true "request body to create a workspace"
+// @Success 200 {object} fetchWorkspaceResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces [patch]
+func (wo *workspaceHandler) updateWorkspace(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	ref := chi.URLParam(r, "reference")
+
+	span.SetAttributes(attribute.String("reference", ref))
+
+	logger = logger.With(zap.String("reference", ref))
+
+	logger.Debug("updating workspace")
+
+	req := new(updateWorkspaceRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	workspace := getWorkspaceFromContext(ctx)
+
+	timezone := strings.TrimSpace(hermes.DeRef(req.Timezone))
+	website := strings.TrimSpace(hermes.DeRef(req.Website))
+	workspaceName := strings.TrimSpace(hermes.DeRef(req.WorkspaceName))
+
+	if !hermes.IsStringEmpty(timezone) {
+		workspace.Timezone = timezone
+	}
+
+	if !hermes.IsStringEmpty(website) {
+		workspace.Website = website
+	}
+
+	if !hermes.IsStringEmpty(workspaceName) {
+		workspace.WorkspaceName = workspaceName
+	}
+
+	if err := wo.workspaceRepo.Update(ctx, workspace); err != nil {
+		logger.Error("could not update workspace",
+			zap.Error(err))
+
+		return newAPIStatus(http.StatusInternalServerError,
+			"could not update workspace"), StatusFailed
+	}
+
+	return fetchWorkspaceResponse{
+		Workspace: util.DeRef(workspace),
+		APIStatus: newAPIStatus(http.StatusOK, "workspace updated"),
 	}, StatusSuccess
 }

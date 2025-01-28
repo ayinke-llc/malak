@@ -1206,6 +1206,61 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "update workspace details",
+                "parameters": [
+                    {
+                        "description": "request body to create a workspace",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.updateWorkspaceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchWorkspaceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
             }
         },
         "/workspaces/updates": {
@@ -2959,6 +3014,20 @@ const docTemplate = `{
                 },
                 "require_email": {
                     "type": "boolean"
+                }
+            }
+        },
+        "server.updateWorkspaceRequest": {
+            "type": "object",
+            "properties": {
+                "timezone": {
+                    "type": "string"
+                },
+                "website": {
+                    "type": "string"
+                },
+                "workspace_name": {
+                    "type": "string"
                 }
             }
         },

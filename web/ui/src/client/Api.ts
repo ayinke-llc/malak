@@ -407,6 +407,12 @@ export interface ServerUpdateDeckPreferencesRequest {
   require_email?: boolean;
 }
 
+export interface ServerUpdateWorkspaceRequest {
+  timezone?: string;
+  website?: string;
+  workspace_name?: string;
+}
+
 export interface ServerUploadImageResponse {
   message: string;
   url: string;
@@ -941,6 +947,24 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
   };
   workspaces = {
+    /**
+     * No description
+     *
+     * @tags workspace
+     * @name WorkspacesPartialUpdate
+     * @summary update workspace details
+     * @request PATCH:/workspaces
+     */
+    workspacesPartialUpdate: (data: ServerUpdateWorkspaceRequest, params: RequestParams = {}) =>
+      this.request<ServerFetchWorkspaceResponse, ServerAPIStatus>({
+        path: `/workspaces`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *

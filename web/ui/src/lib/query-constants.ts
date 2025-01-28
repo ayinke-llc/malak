@@ -20,3 +20,4 @@ export const LIST_DECKS = 'LIST_DECKS' as const;
 export const FETCH_DECK = 'FETCH_DECK' as const;
 export const FETCH_CONTACT = 'FETCH_CONTACT' as const
 export const DELETE_CONTACT = 'DELETE_CONTACT' as const
+export const UPDATE_WORKSPACE = "UPDATE_WORKSPACE" as const

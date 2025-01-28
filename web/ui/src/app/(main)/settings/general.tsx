@@ -22,6 +22,12 @@ import useWorkspacesStore from "@/store/workspace"
 import { Controller, useForm } from "react-hook-form"
 import * as yup from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
+import { toast } from "sonner"
+import { useMutation } from "@tanstack/react-query"
+import { UPDATE_WORKSPACE } from "@/lib/query-constants"
+import client from "@/lib/client"
+import { ServerAPIStatus } from "@/client/Api"
+import { AxiosError } from "axios"
 
 export function GeneralSettings() {
   return (
@@ -70,7 +76,6 @@ export function GeneralSettings() {
   )
 }
 
-
 const schema = yup.object({
   companyName: yup.string().required("Company name is required"),
   website: yup.string().url("Invalid URL").optional(),
@@ -80,7 +85,26 @@ const schema = yup.object({
 type FormData = yup.InferType<typeof schema>;
 
 const CompanyUpdateCard = () => {
+
   const current = useWorkspacesStore((state) => state.current);
+
+  const mutation = useMutation({
+    mutationKey: [UPDATE_WORKSPACE],
+    mutationFn: (data: FormData) => {
+      return client.workspaces.workspacesPartialUpdate({
+        workspace_name: data.companyName,
+        timezone: data.timezone,
+        website: data.website,
+      })
+    },
+    onSuccess: ({ data }) => {
+      toast.success(data.message);
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      console.log(err)
+      toast.error(err.response?.data.message ?? "An error occurred while updating workspace");
+    },
+  });
 
   const {
     control,
@@ -95,9 +119,7 @@ const CompanyUpdateCard = () => {
     },
   });
 
-  const onSubmit = (data: FormData) => {
-    console.log("Form data submitted:", data);
-  };
+  const onSubmit = (data: FormData) => mutation.mutate(data)
 
   const getTimezoneOffset = (timezone: string) => {
     const date = new Date();
@@ -111,6 +133,7 @@ const CompanyUpdateCard = () => {
     if (offsetPart) {
       return offsetPart.value;
     }
+
     return "UTC";
   };
 
