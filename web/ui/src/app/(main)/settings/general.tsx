@@ -149,6 +149,7 @@ const CompanyUpdateCard = () => {
       companyName: current?.workspace_name || "",
       website: current?.website || "",
       timezone: current?.timezone || "UTC",
+      image: current?.logo_url || ""
     },
   });
 
