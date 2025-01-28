@@ -209,10 +209,6 @@ func (u *updateWorkspaceRequest) Validate() error {
 
 	if !hermes.IsStringEmpty(workspaceName) {
 
-		if util.IsStringEmpty(workspaceName) {
-			return errors.New("please provide workspace name")
-		}
-
 		if len(workspaceName) < 5 {
 			return errors.New("workspace name must be a minimum of 5 characters")
 		}
