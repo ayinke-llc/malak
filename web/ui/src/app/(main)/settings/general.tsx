@@ -32,46 +32,8 @@ import { AxiosError } from "axios"
 export function GeneralSettings() {
   return (
     <div className="grid gap-6 md:grid-cols-2">
-
       <CompanyUpdateCard />
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Communication Settings</CardTitle>
-          <CardDescription>Manage your communication preferences.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email-frequency">Email Frequency</Label>
-            <Select defaultValue="weekly">
-              <SelectTrigger id="email-frequency">
-                <SelectValue placeholder="Select Email Frequency" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="never">Never</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="newsletter">Newsletter Subscription</Label>
-            <Input id="newsletter" type="email" placeholder="Enter your email" />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="marketing-emails">Receive Marketing Emails</Label>
-            <Switch id="marketing-emails" />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="product-updates">Product Update Notifications</Label>
-            <Switch id="product-updates" />
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button>Update Communication Settings</Button>
-        </CardFooter>
-      </Card>
+      <NewsletterCard />
     </div>
   )
 }
@@ -287,3 +249,28 @@ const CompanyUpdateCard = () => {
     </Card>
   );
 };
+
+const NewsletterCard = () => {
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Communication Settings</CardTitle>
+        <CardDescription>Manage your communication preferences.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="marketing-emails">Receive Marketing Emails?</Label>
+          <Switch id="marketing-emails" />
+        </div>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="product-updates">Product Update Notifications?</Label>
+          <Switch id="product-updates" />
+        </div>
+      </CardContent>
+      <CardFooter className="mt-6">
+        <Button>Update Communication Settings</Button>
+      </CardFooter>
+    </Card>
+  )
+}
