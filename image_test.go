@@ -19,6 +19,11 @@ func TestIsImageFromURL(t *testing.T) {
 			endpoint: "",
 		},
 		{
+			name:     "bad url",
+			hasError: true,
+			endpoint: "http://localhost:44000",
+		},
+		{
 			name:     "google.com",
 			hasError: true,
 			endpoint: "https://google.com",

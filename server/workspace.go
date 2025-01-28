@@ -315,7 +315,7 @@ func (wo *workspaceHandler) getPreferences(
 	preferences, err := wo.preferenceRepo.Get(ctx, workspace)
 	if err != nil {
 		logger.Error("could not fetch preferences", zap.Error(err))
-		return newAPIStatus(http.StatusBadRequest,
+		return newAPIStatus(http.StatusInternalServerError,
 			"could not fetch preferences"), StatusFailed
 	}
 

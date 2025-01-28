@@ -155,6 +155,78 @@ func TestWorkspaceHandler_Update(t *testing.T) {
 	}
 }
 
+func TestWorkspaceHandler_GetPreferences(t *testing.T) {
+	for _, v := range generateWorkspacePreferencesTestTable() {
+
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			prefRepo := malak_mocks.NewMockPreferenceRepository(controller)
+
+			v.mockFn(prefRepo)
+
+			a := &workspaceHandler{
+				cfg:            getConfig(),
+				preferenceRepo: prefRepo,
+				referenceGenerationFunc: func(e malak.EntityType) string {
+					return "workspace_tt7-YieIgz"
+				},
+			}
+
+			var b = bytes.NewBuffer(nil)
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/", b)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			WrapMalakHTTPHandler(getLogger(t),
+				a.getPreferences, getConfig(), "workspaces.update").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateWorkspacePreferencesTestTable() []struct {
+	name               string
+	mockFn             func(preferencesRepo *malak_mocks.MockPreferenceRepository)
+	expectedStatusCode int
+} {
+
+	return []struct {
+		name               string
+		mockFn             func(preferencesRepo *malak_mocks.MockPreferenceRepository)
+		expectedStatusCode int
+	}{
+		{
+			name: "could not fetch workspace preferences",
+			mockFn: func(preferencesRepo *malak_mocks.MockPreferenceRepository) {
+				preferencesRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("could not fetch preferences"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "fetched workspace preferences",
+			mockFn: func(preferencesRepo *malak_mocks.MockPreferenceRepository) {
+				preferencesRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Preference{}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
 func generateWorkspaceUpdateTestTable() []struct {
 	name               string
 	mockFn             func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository)
