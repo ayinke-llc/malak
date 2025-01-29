@@ -102,9 +102,9 @@ func (o *workspaceRepo) Create(ctx context.Context,
 
 		integrations := make([]*malak.Integration, 0)
 
-		_, err = tx.NewSelect().
+		err = tx.NewSelect().
 			Model(&integrations).
-			Exec(ctx)
+			Scan(ctx)
 		if err != nil {
 			return err
 		}
@@ -123,6 +123,7 @@ func (o *workspaceRepo) Create(ctx context.Context,
 		}
 
 		_, err = tx.NewInsert().Model(&workspaceIntegrations).
+			On("CONFLICT (workspace_id,integration_id) DO NOTHING").
 			Exec(ctx)
 		if err != nil {
 			return err

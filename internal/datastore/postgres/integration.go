@@ -29,6 +29,36 @@ func (i *integrationRepo) Create(ctx context.Context,
 			_, err := tx.NewInsert().
 				Model(integration).
 				Exec(ctx)
+			if err != nil {
+				return err
+			}
+
+			workspaces := make([]*malak.Workspace, 0)
+
+			err = tx.NewSelect().
+				Model(&workspaces).
+				Scan(ctx)
+			if err != nil {
+				return err
+			}
+
+			var workspaceIntegrations = make([]*malak.WorkspaceIntegration, 0, len(workspaces))
+
+			gen := malak.NewReferenceGenerator()
+
+			for _, workspace := range workspaces {
+				workspaceIntegrations = append(workspaceIntegrations, &malak.WorkspaceIntegration{
+					WorkspaceID:   workspace.ID,
+					Reference:     gen.Generate(malak.EntityTypeWorkspaceIntegration),
+					IntegrationID: integration.ID,
+					IsEnabled:     false,
+				})
+			}
+
+			_, err = tx.NewInsert().
+				Model(&workspaceIntegrations).
+				On("CONFLICT (workspace_id,integration_id) DO NOTHING").
+				Exec(ctx)
 			return err
 		})
 }

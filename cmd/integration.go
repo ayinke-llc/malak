@@ -78,16 +78,7 @@ func createIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 								return errors.New("please provide the url to your logo")
 							}
 
-							valid, err := malak.IsImageFromURL(str)
-							if err != nil {
-								return errors.New("integration name cannot be more than 30")
-							}
-
-							if valid {
-								return nil
-							}
-
-							return errors.New("integration name cannot be more than 30")
+							return nil
 						}),
 
 					huh.NewInput().
@@ -119,6 +110,15 @@ func createIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 			}
 
 			logger.Debug("creating a new integration")
+
+			valid, err := malak.IsImageFromURL(logoURL)
+			if err != nil {
+				return errors.New("integration name cannot be more than 30")
+			}
+
+			if !valid {
+				return errors.New("please provide a valid logo url")
+			}
 
 			integration := &malak.Integration{
 				Reference:       malak.NewReferenceGenerator().Generate(malak.EntityTypeIntegration),

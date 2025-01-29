@@ -1,0 +1,1 @@
+ALTER TABLE workspace_integrations DROP CONSTRAINT unique_integration_per_workspace;

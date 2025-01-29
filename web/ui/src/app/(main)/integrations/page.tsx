@@ -2,21 +2,20 @@
 
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Github,
-  Slack,
-  Twitter,
-  Figma,
-  NotebookIcon as Notion,
-  DropletIcon as Dropbox,
-  Trello,
-  Linkedin,
   DollarSign,
-  ChartBar,
+  ChartBar
 } from "lucide-react";
 import {
   Dialog,
@@ -27,7 +26,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/components/ui/tooltip";
 
 export default function Integrations() {
   const [integrations, setIntegrations] = useState(initialIntegrations)
@@ -37,7 +41,7 @@ export default function Integrations() {
     const updatedIntegrations = [...integrations]
     updatedIntegrations[index].status = "Connected"
     setIntegrations(updatedIntegrations)
-    setApiKey("") // Clear API key after connecting
+    setApiKey("")
   }
 
   const handleDisconnect = (index: number) => {
@@ -73,7 +77,7 @@ export default function Integrations() {
           <div className="sm:flex sm:items-center sm:justify-between">
             <div>
               <h3
-                id="company-decks"
+                id="integrations"
                 className="text-lg font-medium"
               >
                 Available Integrations
