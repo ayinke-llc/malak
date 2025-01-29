@@ -76,7 +76,7 @@ export default function Integrations() {
           {isLoading ? <Skeleton count={10} /> : (
             <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-6">
               {data?.data?.integrations.map((integration, index) => (
-                <Card key={index}>
+                <Card key={index} className="drop-shadow-lg shadow-lg">
                   <CardHeader className="flex flex-row items-center gap-4">
                     <img className="w-8 h-8 rounded-md"
                       src={integration?.integration?.logo_url} />
@@ -92,10 +92,13 @@ export default function Integrations() {
                     </div>
                   </CardContent>
                   <CardFooter className="flex justify-end items-end">
-                    <Switch />
-                    <Button variant="ghost" size="icon">
+                    <Switch
+                      checked={integration?.is_enabled}
+                      disabled={!integration?.integration?.is_enabled} />
+
+                    {integration?.is_enabled && <Button variant="ghost" size="icon">
                       <RiSettings4Line className="h-4 w-4" />
-                    </Button>
+                    </Button>}
                   </CardFooter>
                 </Card>
               ))}
