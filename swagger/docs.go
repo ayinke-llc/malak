@@ -2828,23 +2828,20 @@ const docTemplate = `{
         "malak.WorkspaceIntegration": {
             "type": "object",
             "properties": {
-                "Integration": {
-                    "$ref": "#/definitions/malak.Integration"
-                },
                 "created_at": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
+                "integration": {
+                    "$ref": "#/definitions/malak.Integration"
+                },
                 "integration_id": {
                     "type": "string"
                 },
                 "is_enabled": {
                     "type": "boolean"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/malak.WorkspaceIntegrationMetadata"
                 },
                 "reference": {
                     "type": "string"
@@ -2856,9 +2853,6 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        },
-        "malak.WorkspaceIntegrationMetadata": {
-            "type": "object"
         },
         "server.APIStatus": {
             "type": "object",

@@ -1,7 +1,6 @@
 "use client"
 
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -11,46 +10,30 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  DollarSign,
-  ChartBar
-} from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from "@/components/ui/tooltip";
+import client from "@/lib/client";
+import { LIST_INTEGRATIONS } from "@/lib/query-constants";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import Skeleton from "@/components/ui/custom/loader/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { RiSettings4Line } from "@remixicon/react";
 
 export default function Integrations() {
-  const [integrations, setIntegrations] = useState(initialIntegrations)
-  const [apiKey, setApiKey] = useState("")
 
-  const handleConnect = (index: number) => {
-    const updatedIntegrations = [...integrations]
-    updatedIntegrations[index].status = "Connected"
-    setIntegrations(updatedIntegrations)
-    setApiKey("")
-  }
+  const { data, isLoading, error } = useQuery({
+    queryKey: [LIST_INTEGRATIONS],
+    queryFn: () => client.workspaces.integrationsList(),
+  });
 
-  const handleDisconnect = (index: number) => {
-    const updatedIntegrations = [...integrations]
-    updatedIntegrations[index].status = "Available"
-    setIntegrations(updatedIntegrations)
-  }
+  useEffect(() => {
+    if (error) {
+      toast.error("Error occurred while fetching communication preferences");
+    }
+  }, [error]);
 
-  const getStatusBadge = (status: IntegrationStatus) => {
+
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "Connected":
         return <Badge>Connected</Badge>
@@ -61,7 +44,7 @@ export default function Integrations() {
     }
   }
 
-  const getConnectionTypeBadge = (type: ConnectionType) => {
+  const getConnectionTypeBadge = (type: string) => {
     switch (type) {
       case "OAuth2":
         return <Badge variant="default">OAuth2</Badge>
@@ -90,170 +73,36 @@ export default function Integrations() {
         </section>
 
         <section className="mt-10">
-          <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-6">
-            {integrations.map((integration, index) => (
-              <Card key={index} className={integration.status === "Coming Soon" ? "opacity-70" : ""}>
-                <CardHeader className="flex flex-row items-center gap-4">
-                  <integration.icon className="w-8 h-8" />
-                  <div>
-                    <CardTitle>{integration.name}</CardTitle>
-                    <CardDescription>{integration.description}</CardDescription>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-2">
-                    {getStatusBadge(integration.status)}
-                    {getConnectionTypeBadge(integration.connectionType)}
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  {integration.status === "Connected" && (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" className="w-full">
-                          Disconnect
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Deactivate {integration.name} Integration</DialogTitle>
-                          <DialogDescription>
-                            Are you sure you want to deactivate the {integration.name} integration? This action will remove
-                            all associated data and settings.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                          <Button variant="outline" onClick={() => { }}>
-                            Cancel
-                          </Button>
-                          <Button variant="destructive" onClick={() => handleDisconnect(index)}>
-                            Deactivate
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  )}
-                  {integration.status === "Available" && (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button className="w-full">Connect</Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Connect to {integration.name}</DialogTitle>
-                          <DialogDescription>
-                            {integration.connectionType === "OAuth2"
-                              ? "Click the button below to authorize the connection."
-                              : "Enter your API key to connect."}
-                          </DialogDescription>
-                        </DialogHeader>
-                        {integration.connectionType === "OAuth2" ? (
-                          <Button onClick={() => handleConnect(index)}>Authorize with {integration.name}</Button>
-                        ) : (
-                          <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="api-key" className="text-right">
-                                API Key
-                              </Label>
-                              <div className="col-span-3 space-y-2">
-                                <Input
-                                  id="api-key"
-                                  value={apiKey}
-                                  onChange={(e) => setApiKey(e.target.value)}
-                                  className="col-span-3"
-                                />
-                                <p className="text-sm text-muted-foreground">
-                                  Your API key is securely encrypted and stored.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        <DialogFooter>
-                          {integration.connectionType === "API Key" && (
-                            <Button onClick={() => handleConnect(index)}>Connect</Button>
-                          )}
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  )}
-                  {integration.status === "Coming Soon" && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button disabled className="w-full">
-                            Coming Soon
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>This integration is not available yet. Stay tuned!</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+          {isLoading ? <Skeleton count={10} /> : (
+            <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-6">
+              {data?.data?.integrations.map((integration, index) => (
+                <Card key={index}>
+                  <CardHeader className="flex flex-row items-center gap-4">
+                    <img className="w-8 h-8 rounded-md"
+                      src={integration?.integration?.logo_url} />
+                    <div>
+                      <CardTitle>{integration?.integration?.integration_name}</CardTitle>
+                      <CardDescription className="mt-2">{integration?.integration?.description}</CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex gap-2">
+                      {getStatusBadge("")}
+                      {getConnectionTypeBadge("")}
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex justify-end items-end">
+                    <Switch />
+                    <Button variant="ghost" size="icon">
+                      <RiSettings4Line className="h-4 w-4" />
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </>
   );
 }
-
-type IntegrationStatus = "Connected" | "Available" | "Coming Soon"
-type ConnectionType = "OAuth2" | "API Key"
-
-interface Integration {
-  name: string
-  description: string
-  icon: React.ElementType
-  status: IntegrationStatus
-  connectionType: ConnectionType
-}
-
-// Mock data for integrations
-const initialIntegrations: Integration[] = [
-  {
-    name: "Brex",
-    description: "Connect your Brex accounts and show your investors your up to date balances in a single click",
-    icon: DollarSign,
-    status: "Connected",
-    connectionType: "OAuth2",
-  },
-  {
-    name: "Stripe",
-    description: "Connect your financial account and display your balances and payouts",
-    icon: DollarSign,
-    status: "Available",
-    connectionType: "OAuth2",
-  },
-  {
-    name: "Mercury",
-    description: "Connect your Mercury accounts and show your investors your up to date balances in a single click",
-    icon: DollarSign,
-    status: "Available",
-    connectionType: "OAuth2",
-  },
-  {
-    name: "Mono",
-    description: "Connect your Nigerian bank accounts and show your investors your up to date balances in a single click",
-    icon: DollarSign,
-    status: "Available",
-    connectionType: "OAuth2",
-  },
-  {
-    name: "Google analytics",
-    description: "Show your website metrics in one click in your investors' update",
-    icon: ChartBar,
-    status: "Connected",
-    connectionType: "OAuth2",
-  },
-  {
-    name: "Quickbooks",
-    description: "Show your receivables in a single click",
-    icon: DollarSign,
-    status: "Available",
-    connectionType: "OAuth2",
-  }
-]

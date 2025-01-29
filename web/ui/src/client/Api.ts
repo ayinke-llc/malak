@@ -304,18 +304,15 @@ export interface MalakWorkspace {
 }
 
 export interface MalakWorkspaceIntegration {
-  Integration?: MalakIntegration;
   created_at?: string;
   id?: string;
+  integration?: MalakIntegration;
   integration_id?: string;
   is_enabled?: boolean;
-  metadata?: MalakWorkspaceIntegrationMetadata;
   reference?: string;
   updated_at?: string;
   workspace_id?: string;
 }
-
-export type MalakWorkspaceIntegrationMetadata = object;
 
 export interface ServerAPIStatus {
   message: string;

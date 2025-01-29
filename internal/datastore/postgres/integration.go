@@ -72,10 +72,12 @@ func (i *integrationRepo) List(ctx context.Context,
 
 	integrations := make([]malak.WorkspaceIntegration, 0)
 
-	err := i.inner.NewSelect().Model(integrations).
-		Relation("Integration").
+	err := i.inner.NewSelect().
+		Model(&integrations).
 		Where("workspace_id = ?", workspace.ID).
+		Relation("Integration").
 		Scan(ctx)
+
 	if errors.Is(err, sql.ErrNoRows) {
 		return integrations, nil
 	}

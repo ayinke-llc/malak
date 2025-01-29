@@ -15,7 +15,7 @@ type IntegrationMetadata struct {
 }
 
 type Integration struct {
-	ID              uuid.UUID       `bun:"type:uuid,default:uuid_generate_v4()" json:"id,omitempty"`
+	ID              uuid.UUID       `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 	IntegrationName string          `json:"integration_name,omitempty"`
 	Reference       Reference       `json:"reference,omitempty"`
 	Description     string          `json:"description,omitempty"`
@@ -36,20 +36,17 @@ type WorkspaceIntegrationMetadata struct {
 }
 
 type WorkspaceIntegration struct {
-	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4()" json:"id,omitempty"`
-	Reference   Reference `json:"reference,omitempty"`
-	WorkspaceID uuid.UUID `json:"workspace_id,omitempty"`
-
+	ID            uuid.UUID    `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference     Reference    `json:"reference,omitempty"`
+	WorkspaceID   uuid.UUID    `json:"workspace_id,omitempty"`
 	IntegrationID uuid.UUID    `json:"integration_id,omitempty"`
-	Integration   *Integration `json:"Integration,omitempty" bun:"rel:has-one,join:integration_id=id"`
+	Integration   *Integration `bun:"rel:belongs-to,join:integration_id=id" json:"integration,omitempty"`
 
 	IsEnabled bool `json:"is_enabled,omitempty"`
 
-	Metadata WorkspaceIntegrationMetadata `json:"metadata,omitempty" bson:"metadata"`
-
-	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
-	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`
-	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" bson:"deleted_at"`
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
 
 	bun.BaseModel `json:"-"`
 }

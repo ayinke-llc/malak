@@ -494,26 +494,22 @@ components:
       type: object
     malak.WorkspaceIntegration:
       properties:
-        Integration:
-          $ref: '#/components/schemas/malak.Integration'
         created_at:
           type: string
         id:
           type: string
+        integration:
+          $ref: '#/components/schemas/malak.Integration'
         integration_id:
           type: string
         is_enabled:
           type: boolean
-        metadata:
-          $ref: '#/components/schemas/malak.WorkspaceIntegrationMetadata'
         reference:
           type: string
         updated_at:
           type: string
         workspace_id:
           type: string
-      type: object
-    malak.WorkspaceIntegrationMetadata:
       type: object
     server.APIStatus:
       properties:

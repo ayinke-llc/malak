@@ -107,6 +107,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			deckRepo := postgres.NewDeckRepository(db)
 			shareRepo := postgres.NewShareRepository(db)
 			preferenceRepo := postgres.NewPreferenceRepository(db)
+			integrationRepo := postgres.NewIntegrationRepo(db)
 
 			googleAuthProvider := socialauth.NewGoogle(*cfg)
 
@@ -245,8 +246,8 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				tokenManager, googleAuthProvider,
 				userRepo, workspaceRepo, planRepo, contactRepo,
 				updateRepo, contactlistRepo, deckRepo, shareRepo,
-				preferenceRepo, mid, gulterHandler, queueHandler,
-				redisCache)
+				preferenceRepo, integrationRepo, mid, gulterHandler,
+				queueHandler, redisCache)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {
