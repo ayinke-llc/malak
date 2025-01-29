@@ -54,6 +54,10 @@ const (
 	EntityTypePlan EntityType = "plan"
 	// EntityTypePrice is a EntityType of type price.
 	EntityTypePrice EntityType = "price"
+	// EntityTypeIntegration is a EntityType of type integration.
+	EntityTypeIntegration EntityType = "integration"
+	// EntityTypeWorkspaceIntegration is a EntityType of type workspace_integration.
+	EntityTypeWorkspaceIntegration EntityType = "workspace_integration"
 )
 
 var ErrInvalidEntityType = errors.New("not a valid EntityType")
@@ -71,27 +75,29 @@ func (x EntityType) IsValid() bool {
 }
 
 var _EntityTypeValue = map[string]EntityType{
-	"workspace":       EntityTypeWorkspace,
-	"invoice":         EntityTypeInvoice,
-	"team":            EntityTypeTeam,
-	"invite":          EntityTypeInvite,
-	"contact":         EntityTypeContact,
-	"update":          EntityTypeUpdate,
-	"link":            EntityTypeLink,
-	"room":            EntityTypeRoom,
-	"recipient":       EntityTypeRecipient,
-	"schedule":        EntityTypeSchedule,
-	"list":            EntityTypeList,
-	"list_email":      EntityTypeListEmail,
-	"update_stat":     EntityTypeUpdateStat,
-	"recipient_stat":  EntityTypeRecipientStat,
-	"recipient_log":   EntityTypeRecipientLog,
-	"deck":            EntityTypeDeck,
-	"deck_preference": EntityTypeDeckPreference,
-	"contact_share":   EntityTypeContactShare,
-	"dashboard":       EntityTypeDashboard,
-	"plan":            EntityTypePlan,
-	"price":           EntityTypePrice,
+	"workspace":             EntityTypeWorkspace,
+	"invoice":               EntityTypeInvoice,
+	"team":                  EntityTypeTeam,
+	"invite":                EntityTypeInvite,
+	"contact":               EntityTypeContact,
+	"update":                EntityTypeUpdate,
+	"link":                  EntityTypeLink,
+	"room":                  EntityTypeRoom,
+	"recipient":             EntityTypeRecipient,
+	"schedule":              EntityTypeSchedule,
+	"list":                  EntityTypeList,
+	"list_email":            EntityTypeListEmail,
+	"update_stat":           EntityTypeUpdateStat,
+	"recipient_stat":        EntityTypeRecipientStat,
+	"recipient_log":         EntityTypeRecipientLog,
+	"deck":                  EntityTypeDeck,
+	"deck_preference":       EntityTypeDeckPreference,
+	"contact_share":         EntityTypeContactShare,
+	"dashboard":             EntityTypeDashboard,
+	"plan":                  EntityTypePlan,
+	"price":                 EntityTypePrice,
+	"integration":           EntityTypeIntegration,
+	"workspace_integration": EntityTypeWorkspaceIntegration,
 }
 
 // ParseEntityType attempts to convert a string to a EntityType.
