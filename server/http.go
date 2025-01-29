@@ -36,6 +36,7 @@ func New(logger *zap.Logger,
 	contactListRepo malak.ContactListRepository,
 	deckRepo malak.DeckRepository,
 	shareRepo malak.ContactShareRepository,
+	preferenceRepo malak.PreferenceRepository,
 	mid *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
@@ -45,8 +46,9 @@ func New(logger *zap.Logger,
 		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
 			userRepo, workspaceRepo, planRepo,
 			contactRepo, updateRepo, contactListRepo,
-			deckRepo, shareRepo, googleAuthProvider, mid,
-			gulterHandler, queueHandler, redisCache),
+			deckRepo, shareRepo, preferenceRepo,
+			googleAuthProvider, mid, gulterHandler,
+			queueHandler, redisCache),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -87,6 +89,7 @@ func buildRoutes(
 	contactListRepo malak.ContactListRepository,
 	deckRepo malak.DeckRepository,
 	shareRepo malak.ContactShareRepository,
+	preferenceRepo malak.PreferenceRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	ratelimiterMiddleware *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
@@ -124,6 +127,7 @@ func buildRoutes(
 		cfg:                     cfg,
 		userRepo:                userRepo,
 		planRepo:                planRepo,
+		preferenceRepo:          preferenceRepo,
 		referenceGenerationFunc: malak.GenerateReference,
 	}
 
@@ -193,8 +197,18 @@ func buildRoutes(
 
 		r.Route("/workspaces", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, workspaceHandler.createWorkspace, cfg, "workspaces.new"))
+
+			r.Patch("/",
+				WrapMalakHTTPHandler(logger, workspaceHandler.updateWorkspace, cfg, "workspaces.update"))
+
+			r.Get("/preferences",
+				WrapMalakHTTPHandler(logger, workspaceHandler.getPreferences, cfg, "workspaces.preferences.get"))
+
+			r.Put("/preferences",
+				WrapMalakHTTPHandler(logger, workspaceHandler.updatePreferences, cfg, "workspaces.preferences.update"))
 
 			r.Post("/{reference}",
 				WrapMalakHTTPHandler(logger, workspaceHandler.switchCurrentWorkspaceForUser, cfg, "workspaces.switch"))

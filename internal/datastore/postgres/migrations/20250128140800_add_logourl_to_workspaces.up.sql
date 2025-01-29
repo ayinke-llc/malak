@@ -1,0 +1,1 @@
+ALTER TABLE workspaces ADD COLUMN logo_url TEXT DEFAULT '' NOT NULL;

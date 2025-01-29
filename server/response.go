@@ -89,7 +89,7 @@ type fetchUpdateReponse struct {
 
 type fetchContactListResponse struct {
 	APIStatus
-	List malak.ContactList `json:"list,omitempty"`
+	List malak.ContactList `json:"list,omitempty" validate:"required"`
 }
 
 type fetchContactListsResponse struct {
@@ -102,22 +102,27 @@ type fetchContactListsResponse struct {
 
 type fetchUpdateAnalyticsResponse struct {
 	APIStatus
-	Update     malak.UpdateStat        `json:"update,omitempty"`
-	Recipients []malak.UpdateRecipient `json:"recipients,omitempty"`
+	Update     malak.UpdateStat        `json:"update,omitempty" validate:"required"`
+	Recipients []malak.UpdateRecipient `json:"recipients,omitempty" validate:"required"`
 }
 
 type fetchDeckResponse struct {
-	Deck malak.Deck `json:"deck,omitempty"`
+	Deck malak.Deck `json:"deck,omitempty" validate:"required"`
 	APIStatus
 }
 
 type fetchDecksResponse struct {
-	Decks []malak.Deck `json:"decks,omitempty"`
+	Decks []malak.Deck `json:"decks,omitempty" validate:"required"`
 	APIStatus
 }
 
 type listContactsResponse struct {
 	Contacts []malak.Contact `json:"contacts,omitempty" validate:"required"`
 	Meta     meta            `json:"meta,omitempty" validate:"required"`
+	APIStatus
+}
+
+type preferenceResponse struct {
+	Preferences *malak.Preference `json:"preferences,omitempty" validate:"required"`
 	APIStatus
 }

@@ -1,6 +1,14 @@
 {
 	"components": {
 		"schemas": {
+			"malak.BillingPreferences": {
+				"properties": {
+					"finance_email": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
 			"malak.Block": {
 				"properties": {
 					"children": {
@@ -19,6 +27,17 @@
 					},
 					"type": {
 						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"malak.CommunicationPreferences": {
+				"properties": {
+					"enable_marketing": {
+						"type": "boolean"
+					},
+					"enable_product_updates": {
+						"type": "boolean"
 					}
 				},
 				"type": "object"
@@ -331,6 +350,29 @@
 				},
 				"type": "object"
 			},
+			"malak.Preference": {
+				"properties": {
+					"billing": {
+						"$ref": "#/components/schemas/malak.BillingPreferences"
+					},
+					"communication": {
+						"$ref": "#/components/schemas/malak.CommunicationPreferences"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"updated_at": {
+						"type": "string"
+					},
+					"workspace_id": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
 			"malak.RecipientStatus": {
 				"enum": [
 					"pending",
@@ -597,6 +639,9 @@
 					"id": {
 						"type": "string"
 					},
+					"logo_url": {
+						"type": "string"
+					},
 					"metadata": {
 						"$ref": "#/components/schemas/malak.PlanMetadata"
 					},
@@ -607,13 +652,19 @@
 						"type": "string"
 					},
 					"stripe_customer_id": {
-						"description": "Not required\nDummy values work really",
+						"description": "Not required\nDummy values work really if not using stripe",
 						"type": "string"
 					},
 					"subscription_id": {
 						"type": "string"
 					},
+					"timezone": {
+						"type": "string"
+					},
 					"updated_at": {
+						"type": "string"
+					},
+					"website": {
 						"type": "string"
 					},
 					"workspace_name": {
@@ -779,6 +830,7 @@
 					}
 				},
 				"required": [
+					"list",
 					"message"
 				],
 				"type": "object"
@@ -841,6 +893,7 @@
 					}
 				},
 				"required": [
+					"deck",
 					"message"
 				],
 				"type": "object"
@@ -858,6 +911,7 @@
 					}
 				},
 				"required": [
+					"decks",
 					"message"
 				],
 				"type": "object"
@@ -900,7 +954,9 @@
 					}
 				},
 				"required": [
-					"message"
+					"message",
+					"recipients",
+					"update"
 				],
 				"type": "object"
 			},
@@ -1008,6 +1064,21 @@
 				],
 				"type": "object"
 			},
+			"server.preferenceResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"preferences": {
+						"$ref": "#/components/schemas/malak.Preference"
+					}
+				},
+				"required": [
+					"message",
+					"preferences"
+				],
+				"type": "object"
+			},
 			"server.previewUpdateRequest": {
 				"properties": {
 					"email": {
@@ -1051,6 +1122,46 @@
 					},
 					"require_email": {
 						"type": "boolean"
+					}
+				},
+				"type": "object"
+			},
+			"server.updatePreferencesRequest": {
+				"properties": {
+					"preferences": {
+						"properties": {
+							"billing": {
+								"$ref": "#/components/schemas/malak.BillingPreferences"
+							},
+							"newsletter": {
+								"$ref": "#/components/schemas/malak.CommunicationPreferences"
+							}
+						},
+						"required": [
+							"billing",
+							"newsletter"
+						],
+						"type": "object"
+					}
+				},
+				"required": [
+					"preferences"
+				],
+				"type": "object"
+			},
+			"server.updateWorkspaceRequest": {
+				"properties": {
+					"logo": {
+						"type": "string"
+					},
+					"timezone": {
+						"type": "string"
+					},
+					"website": {
+						"type": "string"
+					},
+					"workspace_name": {
+						"type": "string"
 					}
 				},
 				"type": "object"
@@ -2570,6 +2681,76 @@
 			}
 		},
 		"/workspaces": {
+			"patch": {
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.updateWorkspaceRequest"
+							}
+						}
+					},
+					"description": "request body to create a workspace",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.fetchWorkspaceResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "update workspace details",
+				"tags": [
+					"workspace"
+				]
+			},
 			"post": {
 				"requestBody": {
 					"content": {
@@ -2636,6 +2817,136 @@
 					}
 				},
 				"summary": "Create a new workspace",
+				"tags": [
+					"workspace"
+				]
+			}
+		},
+		"/workspaces/preferences": {
+			"get": {
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.preferenceResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "fetch workspace preferences",
+				"tags": [
+					"workspace"
+				]
+			},
+			"put": {
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.updatePreferencesRequest"
+							}
+						}
+					},
+					"description": "request body to updare a workspace preference",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.preferenceResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "update workspace preferences",
 				"tags": [
 					"workspace"
 				]

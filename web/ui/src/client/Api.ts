@@ -9,12 +9,21 @@
  * ---------------------------------------------------------------
  */
 
+export interface MalakBillingPreferences {
+  finance_email?: string;
+}
+
 export interface MalakBlock {
   children?: MalakBlock[];
   content?: any;
   id?: string;
   props?: Record<string, any>;
   type?: string;
+}
+
+export interface MalakCommunicationPreferences {
+  enable_marketing?: boolean;
+  enable_product_updates?: boolean;
 }
 
 export interface MalakContact {
@@ -139,6 +148,15 @@ export interface MalakPlanMetadata {
   };
 }
 
+export interface MalakPreference {
+  billing?: MalakBillingPreferences;
+  communication?: MalakCommunicationPreferences;
+  created_at?: string;
+  id?: string;
+  updated_at?: string;
+  workspace_id?: string;
+}
+
 export enum MalakRecipientStatus {
   RecipientStatusPending = "pending",
   RecipientStatusSent = "sent",
@@ -249,16 +267,19 @@ export interface MalakUserRole {
 export interface MalakWorkspace {
   created_at?: string;
   id?: string;
+  logo_url?: string;
   metadata?: MalakPlanMetadata;
   plan_id?: string;
   reference?: string;
   /**
    * Not required
-   * Dummy values work really
+   * Dummy values work really if not using stripe
    */
   stripe_customer_id?: string;
   subscription_id?: string;
+  timezone?: string;
   updated_at?: string;
+  website?: string;
   workspace_name?: string;
 }
 
@@ -316,7 +337,7 @@ export interface ServerCreatedUserResponse {
 }
 
 export interface ServerFetchContactListResponse {
-  list?: MalakContactList;
+  list: MalakContactList;
   message: string;
 }
 
@@ -334,12 +355,12 @@ export interface ServerFetchContactResponse {
 }
 
 export interface ServerFetchDeckResponse {
-  deck?: MalakDeck;
+  deck: MalakDeck;
   message: string;
 }
 
 export interface ServerFetchDecksResponse {
-  decks?: MalakDeck[];
+  decks: MalakDeck[];
   message: string;
 }
 
@@ -351,8 +372,8 @@ export interface ServerFetchDetailedContactResponse {
 
 export interface ServerFetchUpdateAnalyticsResponse {
   message: string;
-  recipients?: MalakUpdateRecipient[];
-  update?: MalakUpdateStat;
+  recipients: MalakUpdateRecipient[];
+  update: MalakUpdateStat;
 }
 
 export interface ServerFetchUpdateReponse {
@@ -387,6 +408,11 @@ export interface ServerPagingInfo {
   total: number;
 }
 
+export interface ServerPreferenceResponse {
+  message: string;
+  preferences: MalakPreference;
+}
+
 export interface ServerPreviewUpdateRequest {
   email: string;
 }
@@ -403,6 +429,20 @@ export interface ServerUpdateDeckPreferencesRequest {
     value?: string;
   };
   require_email?: boolean;
+}
+
+export interface ServerUpdatePreferencesRequest {
+  preferences: {
+    billing: MalakBillingPreferences;
+    newsletter: MalakCommunicationPreferences;
+  };
+}
+
+export interface ServerUpdateWorkspaceRequest {
+  logo?: string;
+  timezone?: string;
+  website?: string;
+  workspace_name?: string;
 }
 
 export interface ServerUploadImageResponse {
@@ -943,6 +983,24 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags workspace
+     * @name WorkspacesPartialUpdate
+     * @summary update workspace details
+     * @request PATCH:/workspaces
+     */
+    workspacesPartialUpdate: (data: ServerUpdateWorkspaceRequest, params: RequestParams = {}) =>
+      this.request<ServerFetchWorkspaceResponse, ServerAPIStatus>({
+        path: `/workspaces`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags workspace
      * @name WorkspacesCreate
      * @summary Create a new workspace
      * @request POST:/workspaces
@@ -969,6 +1027,40 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerFetchWorkspaceResponse, ServerAPIStatus>({
         path: `/workspaces/${reference}`,
         method: "POST",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags workspace
+     * @name PreferencesList
+     * @summary fetch workspace preferences
+     * @request GET:/workspaces/preferences
+     */
+    preferencesList: (params: RequestParams = {}) =>
+      this.request<ServerPreferenceResponse, ServerAPIStatus>({
+        path: `/workspaces/preferences`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags workspace
+     * @name PreferencesUpdate
+     * @summary update workspace preferences
+     * @request PUT:/workspaces/preferences
+     */
+    preferencesUpdate: (data: ServerUpdatePreferencesRequest, params: RequestParams = {}) =>
+      this.request<ServerPreferenceResponse, ServerAPIStatus>({
+        path: `/workspaces/preferences`,
+        method: "PUT",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

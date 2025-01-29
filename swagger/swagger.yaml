@@ -1,5 +1,10 @@
 components:
   schemas:
+    malak.BillingPreferences:
+      properties:
+        finance_email:
+          type: string
+      type: object
     malak.Block:
       properties:
         children:
@@ -14,6 +19,13 @@ components:
           type: object
         type:
           type: string
+      type: object
+    malak.CommunicationPreferences:
+      properties:
+        enable_marketing:
+          type: boolean
+        enable_product_updates:
+          type: boolean
       type: object
     malak.Contact:
       properties:
@@ -222,6 +234,21 @@ components:
               type: integer
           type: object
       type: object
+    malak.Preference:
+      properties:
+        billing:
+          $ref: '#/components/schemas/malak.BillingPreferences'
+        communication:
+          $ref: '#/components/schemas/malak.CommunicationPreferences'
+        created_at:
+          type: string
+        id:
+          type: string
+        updated_at:
+          type: string
+        workspace_id:
+          type: string
+      type: object
     malak.RecipientStatus:
       enum:
       - pending
@@ -408,6 +435,8 @@ components:
           type: string
         id:
           type: string
+        logo_url:
+          type: string
         metadata:
           $ref: '#/components/schemas/malak.PlanMetadata'
         plan_id:
@@ -417,11 +446,15 @@ components:
         stripe_customer_id:
           description: |-
             Not required
-            Dummy values work really
+            Dummy values work really if not using stripe
           type: string
         subscription_id:
           type: string
+        timezone:
+          type: string
         updated_at:
+          type: string
+        website:
           type: string
         workspace_name:
           type: string
@@ -529,6 +562,7 @@ components:
         message:
           type: string
       required:
+      - list
       - message
       type: object
     server.fetchContactListsResponse:
@@ -570,6 +604,7 @@ components:
         message:
           type: string
       required:
+      - deck
       - message
       type: object
     server.fetchDecksResponse:
@@ -581,6 +616,7 @@ components:
         message:
           type: string
       required:
+      - decks
       - message
       type: object
     server.fetchDetailedContactResponse:
@@ -610,6 +646,8 @@ components:
           $ref: '#/components/schemas/malak.UpdateStat'
       required:
       - message
+      - recipients
+      - update
       type: object
     server.fetchUpdateReponse:
       properties:
@@ -681,6 +719,16 @@ components:
       - per_page
       - total
       type: object
+    server.preferenceResponse:
+      properties:
+        message:
+          type: string
+        preferences:
+          $ref: '#/components/schemas/malak.Preference'
+      required:
+      - message
+      - preferences
+      type: object
     server.previewUpdateRequest:
       properties:
         email:
@@ -710,6 +758,32 @@ components:
           type: object
         require_email:
           type: boolean
+      type: object
+    server.updatePreferencesRequest:
+      properties:
+        preferences:
+          properties:
+            billing:
+              $ref: '#/components/schemas/malak.BillingPreferences'
+            newsletter:
+              $ref: '#/components/schemas/malak.CommunicationPreferences'
+          required:
+          - billing
+          - newsletter
+          type: object
+      required:
+      - preferences
+      type: object
+    server.updateWorkspaceRequest:
+      properties:
+        logo:
+          type: string
+        timezone:
+          type: string
+        website:
+          type: string
+        workspace_name:
+          type: string
       type: object
     server.uploadImageResponse:
       properties:
@@ -1642,6 +1716,49 @@ paths:
       tags:
       - user
   /workspaces:
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.updateWorkspaceRequest'
+        description: request body to create a workspace
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchWorkspaceResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: update workspace details
+      tags:
+      - workspace
     post:
       requestBody:
         content:
@@ -1727,6 +1844,85 @@ paths:
                 $ref: '#/components/schemas/server.APIStatus'
           description: Internal Server Error
       summary: Switch current workspace
+      tags:
+      - workspace
+  /workspaces/preferences:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.preferenceResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: fetch workspace preferences
+      tags:
+      - workspace
+    put:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.updatePreferencesRequest'
+        description: request body to updare a workspace preference
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.preferenceResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: update workspace preferences
       tags:
       - workspace
   /workspaces/updates:

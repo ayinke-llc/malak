@@ -27,7 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { LIST_DECKS } from "@/lib/query-constants";
+import { LIST_DECKS, UPLOAD_DECK, UPLOAD_IMAGE } from "@/lib/query-constants";
 
 type FormData = {
   title: string;
@@ -61,6 +61,7 @@ export default function UploadDeckModal() {
   });
 
   const uploadMutation = useMutation({
+    mutationKey: [UPLOAD_DECK],
     mutationFn: (file: File) => client.uploads.uploadDeck({ image_body: file }),
     onSuccess: ({ data }) => {
       setValue("pdfUrl", data.url);

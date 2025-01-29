@@ -106,6 +106,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			contactlistRepo := postgres.NewContactListRepository(db)
 			deckRepo := postgres.NewDeckRepository(db)
 			shareRepo := postgres.NewShareRepository(db)
+			preferenceRepo := postgres.NewPreferenceRepository(db)
 
 			googleAuthProvider := socialauth.NewGoogle(*cfg)
 
@@ -242,9 +243,10 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			srv, cleanupSrv := server.New(logger,
 				util.DeRef(cfg), db,
 				tokenManager, googleAuthProvider,
-				userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
-				contactlistRepo, deckRepo, shareRepo,
-				mid, gulterHandler, queueHandler, redisCache)
+				userRepo, workspaceRepo, planRepo, contactRepo,
+				updateRepo, contactlistRepo, deckRepo, shareRepo,
+				preferenceRepo, mid, gulterHandler, queueHandler,
+				redisCache)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {

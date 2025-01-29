@@ -5,7 +5,7 @@ import client from "@/lib/client";
 import useAuthStore from "@/store/auth";
 import useWorkspacesStore from "@/store/workspace";
 import { AxiosError } from "axios";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -21,19 +21,20 @@ export default function UserProvider({
   const logout = useAuthStore((state) => state.logout);
   const isRehydrated = useAuthStore(state => state.isRehydrated);
 
-  const clear = useWorkspacesStore(state => state.clear)
+  const clear = useWorkspacesStore(state => state.clear);
 
   const { setWorkspaces, setCurrent } = useWorkspacesStore();
   const router = useRouter();
 
   useEffect(() => {
     if (!isRehydrated) {
-      return
+      return;
     }
 
     if (!isAuthenticated()) {
       logout();
       clear();
+      setLoading(false); // Set loading to false before redirecting
       router.push("/login");
       return;
     }
@@ -52,6 +53,7 @@ export default function UserProvider({
         if (error.response && error.response.status === 401) {
           logout();
           clear();
+          setLoading(false); // Set loading to false before redirecting
           router.push("/login");
         }
         return Promise.reject(error);
@@ -71,10 +73,11 @@ export default function UserProvider({
         setLoading(false);
       })
       .catch((err: AxiosError<ServerAPIStatus>) => {
-        toast.error(err?.response?.data?.message)
+        toast.error(err?.response?.data?.message);
         logout();
         clear();
-        setLoading(true)
+        setLoading(false); // Ensure loading is false before redirecting
+        router.push("/login");
       });
 
     return () => {
@@ -83,10 +86,10 @@ export default function UserProvider({
     };
   }, [token, isRehydrated]);
 
-
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return children;
 }
+

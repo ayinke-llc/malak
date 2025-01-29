@@ -4,8 +4,11 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/url"
 	"strings"
+	"time"
 
+	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
@@ -21,6 +24,7 @@ type workspaceHandler struct {
 	userRepo                malak.UserRepository
 	workspaceRepo           malak.WorkspaceRepository
 	planRepo                malak.PlanRepository
+	preferenceRepo          malak.PreferenceRepository
 	referenceGenerationFunc func(e malak.EntityType) string
 }
 
@@ -159,5 +163,238 @@ func (wo *workspaceHandler) switchCurrentWorkspaceForUser(
 	return fetchWorkspaceResponse{
 		Workspace: util.DeRef(workspace),
 		APIStatus: newAPIStatus(http.StatusOK, "user's default workspace updated"),
+	}, StatusSuccess
+}
+
+type updateWorkspaceRequest struct {
+	Timezone      *string `json:"timezone,omitempty"`
+	WorkspaceName *string `json:"workspace_name,omitempty"`
+	Website       *string `json:"website,omitempty"`
+	Logo          *string `json:"logo,omitempty"`
+
+	GenericRequest
+}
+
+func (u *updateWorkspaceRequest) Validate() error {
+
+	timezone := strings.TrimSpace(hermes.DeRef(u.Timezone))
+	website := strings.TrimSpace(hermes.DeRef(u.Website))
+	workspaceName := strings.TrimSpace(hermes.DeRef(u.WorkspaceName))
+	logo := strings.TrimSpace(hermes.DeRef(u.Logo))
+
+	if !hermes.IsStringEmpty(timezone) {
+		_, err := time.LoadLocation(timezone)
+		if err != nil {
+			return errors.New("invalid or unsupported timezone")
+		}
+	}
+
+	if !hermes.IsStringEmpty(logo) {
+		isValid, err := malak.IsImageFromURL(logo)
+		if err != nil {
+			return err
+		}
+
+		if !isValid {
+			return errors.New("logo is not a valid image url")
+		}
+	}
+
+	if !hermes.IsStringEmpty(website) {
+		_, err := url.Parse(website)
+		if err != nil {
+			return errors.New("invalid website")
+		}
+	}
+
+	if !hermes.IsStringEmpty(workspaceName) {
+
+		if len(workspaceName) < 5 {
+			return errors.New("workspace name must be a minimum of 5 characters")
+		}
+	}
+
+	return nil
+}
+
+// @Summary update workspace details
+// @Tags workspace
+// @Accept  json
+// @Produce  json
+// @Param message body updateWorkspaceRequest true "request body to create a workspace"
+// @Success 200 {object} fetchWorkspaceResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces [patch]
+func (wo *workspaceHandler) updateWorkspace(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	ref := chi.URLParam(r, "reference")
+
+	span.SetAttributes(attribute.String("reference", ref))
+
+	logger = logger.With(zap.String("reference", ref))
+
+	logger.Debug("updating workspace")
+
+	req := new(updateWorkspaceRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	workspace := getWorkspaceFromContext(ctx)
+
+	timezone := strings.TrimSpace(hermes.DeRef(req.Timezone))
+	website := strings.TrimSpace(hermes.DeRef(req.Website))
+	workspaceName := strings.TrimSpace(hermes.DeRef(req.WorkspaceName))
+	logo := strings.TrimSpace(hermes.DeRef(req.Logo))
+
+	if !hermes.IsStringEmpty(timezone) {
+		workspace.Timezone = timezone
+	}
+
+	if !hermes.IsStringEmpty(website) {
+		workspace.Website = website
+	}
+
+	if !hermes.IsStringEmpty(workspaceName) {
+		workspace.WorkspaceName = workspaceName
+	}
+
+	if !hermes.IsStringEmpty(logo) {
+		workspace.LogoURL = logo
+	}
+
+	if err := wo.workspaceRepo.Update(ctx, workspace); err != nil {
+		logger.Error("could not update workspace",
+			zap.Error(err))
+
+		return newAPIStatus(http.StatusInternalServerError,
+			"could not update workspace"), StatusFailed
+	}
+
+	return fetchWorkspaceResponse{
+		Workspace: util.DeRef(workspace),
+		APIStatus: newAPIStatus(http.StatusOK, "workspace updated"),
+	}, StatusSuccess
+}
+
+// @Summary fetch workspace preferences
+// @Tags workspace
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} preferenceResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/preferences [get]
+func (wo *workspaceHandler) getPreferences(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request,
+) (render.Renderer, Status) {
+
+	logger.Debug("fetching workspace preferences")
+
+	workspace := getWorkspaceFromContext(ctx)
+
+	preferences, err := wo.preferenceRepo.Get(ctx, workspace)
+	if err != nil {
+		logger.Error("could not fetch preferences", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"could not fetch preferences"), StatusFailed
+	}
+
+	return &preferenceResponse{
+		Preferences: preferences,
+		APIStatus:   newAPIStatus(http.StatusOK, "workspace preferences retrieved"),
+	}, StatusSuccess
+}
+
+type updatePreferencesRequest struct {
+	Preferences struct {
+		Billing    malak.BillingPreferences       `json:"billing,omitempty" validate:"required"`
+		Newsletter malak.CommunicationPreferences `json:"newsletter,omitempty" validate:"required"`
+	} `json:"preferences,omitempty" validate:"required"`
+	GenericRequest
+}
+
+func (u *updatePreferencesRequest) Validate() error { return nil }
+
+func (u *updatePreferencesRequest) Make(current *malak.Preference) *malak.Preference {
+
+	if u.Preferences.Newsletter.EnableMarketing != current.Communication.EnableMarketing {
+		current.Communication.EnableMarketing = u.Preferences.Newsletter.EnableMarketing
+	}
+
+	if u.Preferences.Newsletter.EnableProductUpdates != current.Communication.EnableProductUpdates {
+		current.Communication.EnableProductUpdates = u.Preferences.Newsletter.EnableProductUpdates
+	}
+
+	return current
+}
+
+// @Summary update workspace preferences
+// @Tags workspace
+// @Accept  json
+// @Produce  json
+// @Param message body updatePreferencesRequest true "request body to updare a workspace preference"
+// @Success 200 {object} preferenceResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/preferences [put]
+func (wo *workspaceHandler) updatePreferences(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("Updating workspace preferences")
+
+	req := new(updatePreferencesRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	workspace := getWorkspaceFromContext(ctx)
+
+	preferences, err := wo.preferenceRepo.Get(ctx, workspace)
+	if err != nil {
+		logger.Error("could not fetch preferences", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch preferences"), StatusFailed
+	}
+
+	pref := req.Make(preferences)
+
+	if err := wo.preferenceRepo.Update(ctx, pref); err != nil {
+		logger.Error("could not update preferences", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not update preferences"), StatusFailed
+	}
+
+	return &preferenceResponse{
+		Preferences: preferences,
+		APIStatus:   newAPIStatus(http.StatusOK, "workspace preferences updated"),
 	}, StatusSuccess
 }

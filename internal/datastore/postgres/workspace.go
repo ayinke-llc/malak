@@ -47,6 +47,13 @@ func (o *workspaceRepo) Create(ctx context.Context,
 			return err
 		}
 
+		_, err = tx.NewInsert().
+			Model(malak.NewPreference(opts.Workspace)).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
 		if len(opts.User.Roles) == 0 {
 			opts.User.Metadata.CurrentWorkspace = opts.Workspace.ID
 			if _, err := tx.NewUpdate().
