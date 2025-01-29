@@ -1,6 +1,7 @@
 package malak
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -54,4 +55,11 @@ type WorkspaceIntegration struct {
 }
 
 type IntegrationRepository interface {
+	Create(context.Context, *Integration) error
+
+	// ListSystem(context.Context) ([]Integration, error)
+	// DisableSystem(context.Context, *Integration) error
+	//
+	// List(context.Context, *Workspace) error
+	// Disable(context.Context, *Workspace, *Integration) error
 }

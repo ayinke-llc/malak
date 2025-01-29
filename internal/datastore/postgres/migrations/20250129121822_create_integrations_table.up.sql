@@ -15,7 +15,7 @@ CREATE TABLE integrations (
   deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-ALTER TABLE integrations ADD CONSTRAINT integrations_reference_check_key CHECK (reference ~ 'integrations_[a-zA-Z0-9._]+');
+ALTER TABLE integrations ADD CONSTRAINT integration_reference_check_key CHECK (reference ~ 'integration_[a-zA-Z0-9._]+');
 
 CREATE TABLE workspace_integrations (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -31,4 +31,4 @@ CREATE TABLE workspace_integrations (
   deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-ALTER TABLE workspace_integrations ADD CONSTRAINT workspace_integrations_reference_check_key CHECK (reference ~ 'workspace_integrations_[a-zA-Z0-9._]+');
+ALTER TABLE workspace_integrations ADD CONSTRAINT workspace_integration_reference_check_key CHECK (reference ~ 'workspace_integration_[a-zA-Z0-9._]+');
