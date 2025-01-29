@@ -195,6 +195,123 @@ func TestWorkspaceHandler_GetPreferences(t *testing.T) {
 	}
 }
 
+func TestWorkspaceHandler_UpdatePreferences(t *testing.T) {
+	for _, v := range generateWorkspacePreferencesUpdateTestTable() {
+
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			prefRepo := malak_mocks.NewMockPreferenceRepository(controller)
+
+			v.mockFn(prefRepo)
+
+			a := &workspaceHandler{
+				cfg:            getConfig(),
+				preferenceRepo: prefRepo,
+				referenceGenerationFunc: func(e malak.EntityType) string {
+					return "workspace_tt7-YieIgz"
+				},
+			}
+
+			var b = bytes.NewBuffer(nil)
+
+			require.NoError(t, json.NewEncoder(b).Encode(&v.req))
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/", b)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			WrapMalakHTTPHandler(getLogger(t),
+				a.updatePreferences, getConfig(), "workspaces.update").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateWorkspacePreferencesUpdateTestTable() []struct {
+	name               string
+	mockFn             func(preferencesRepo *malak_mocks.MockPreferenceRepository)
+	expectedStatusCode int
+	req                updatePreferencesRequest
+} {
+
+	return []struct {
+		name               string
+		mockFn             func(preferencesRepo *malak_mocks.MockPreferenceRepository)
+		expectedStatusCode int
+		req                updatePreferencesRequest
+	}{
+		{
+			name: "could not fetch workspace preferences",
+			mockFn: func(preferencesRepo *malak_mocks.MockPreferenceRepository) {
+				preferencesRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("could not fetch preferences"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "update fails",
+			mockFn: func(preferencesRepo *malak_mocks.MockPreferenceRepository) {
+				preferencesRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Preference{}, nil)
+
+				preferencesRepo.EXPECT().Update(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(errors.New("updating prefernces failed"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "update succeeds",
+			mockFn: func(preferencesRepo *malak_mocks.MockPreferenceRepository) {
+				preferencesRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Preference{}, nil)
+
+				preferencesRepo.EXPECT().Update(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "update succeeds with request data",
+			mockFn: func(preferencesRepo *malak_mocks.MockPreferenceRepository) {
+				preferencesRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Preference{}, nil)
+
+				preferencesRepo.EXPECT().Update(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+			req: updatePreferencesRequest{
+				Preferences: struct {
+					Billing    malak.BillingPreferences       "json:\"billing,omitempty\" validate:\"required\""
+					Newsletter malak.CommunicationPreferences "json:\"newsletter,omitempty\" validate:\"required\""
+				}{
+					Newsletter: malak.CommunicationPreferences{
+						EnableMarketing:      true,
+						EnableProductUpdates: true,
+					},
+				},
+			},
+		},
+	}
+}
+
 func generateWorkspacePreferencesTestTable() []struct {
 	name               string
 	mockFn             func(preferencesRepo *malak_mocks.MockPreferenceRepository)

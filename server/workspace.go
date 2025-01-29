@@ -383,7 +383,7 @@ func (wo *workspaceHandler) updatePreferences(
 	preferences, err := wo.preferenceRepo.Get(ctx, workspace)
 	if err != nil {
 		logger.Error("could not fetch preferences", zap.Error(err))
-		return newAPIStatus(http.StatusBadRequest, "could not fetch preferences"), StatusFailed
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch preferences"), StatusFailed
 	}
 
 	pref := req.Make(preferences)
