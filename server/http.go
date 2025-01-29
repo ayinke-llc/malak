@@ -78,7 +78,7 @@ func (rw *responseWriter) WriteHeader(code int) {
 
 func buildRoutes(
 	logger *zap.Logger,
-	db *bun.DB,
+	_ *bun.DB,
 	cfg config.Config,
 	jwtTokenManager jwttoken.JWTokenManager,
 	userRepo malak.UserRepository,
@@ -212,6 +212,11 @@ func buildRoutes(
 
 			r.Post("/{reference}",
 				WrapMalakHTTPHandler(logger, workspaceHandler.switchCurrentWorkspaceForUser, cfg, "workspaces.switch"))
+
+			r.Route("/integrations", func(r chi.Router) {
+				r.Get("/",
+					WrapMalakHTTPHandler(logger, workspaceHandler.getIntegrations, cfg, "workspaces.integrations.list"))
+			})
 
 			r.Route("/updates", func(r chi.Router) {
 

@@ -36,11 +36,14 @@ type WorkspaceIntegrationMetadata struct {
 }
 
 type WorkspaceIntegration struct {
-	ID            uuid.UUID `bun:"type:uuid,default:uuid_generate_v4()" json:"id,omitempty"`
-	Reference     Reference `json:"reference,omitempty"`
-	WorkspaceID   uuid.UUID `json:"workspace_id,omitempty"`
-	IntegrationID uuid.UUID `json:"integration_id,omitempty"`
-	IsEnabled     bool      `json:"is_enabled,omitempty"`
+	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4()" json:"id,omitempty"`
+	Reference   Reference `json:"reference,omitempty"`
+	WorkspaceID uuid.UUID `json:"workspace_id,omitempty"`
+
+	IntegrationID uuid.UUID    `json:"integration_id,omitempty"`
+	Integration   *Integration `json:"Integration,omitempty" bun:"rel:has-one,join:integration_id=id"`
+
+	IsEnabled bool `json:"is_enabled,omitempty"`
 
 	Metadata WorkspaceIntegrationMetadata `json:"metadata,omitempty" bson:"metadata"`
 
@@ -54,9 +57,6 @@ type WorkspaceIntegration struct {
 type IntegrationRepository interface {
 	Create(context.Context, *Integration) error
 
-	// ListSystem(context.Context) ([]Integration, error)
-	// DisableSystem(context.Context, *Integration) error
-	//
-	// List(context.Context, *Workspace) error
+	List(context.Context, *Workspace) ([]WorkspaceIntegration, error)
 	// Disable(context.Context, *Workspace, *Integration) error
 }

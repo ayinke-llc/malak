@@ -10,6 +10,10 @@
 package malak_mocks
 
 import (
+	context "context"
+	reflect "reflect"
+
+	malak "github.com/ayinke-llc/malak"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -35,4 +39,33 @@ func NewMockIntegrationRepository(ctrl *gomock.Controller) *MockIntegrationRepos
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockIntegrationRepository) EXPECT() *MockIntegrationRepositoryMockRecorder {
 	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockIntegrationRepository) Create(arg0 context.Context, arg1 *malak.Integration) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockIntegrationRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockIntegrationRepository)(nil).Create), arg0, arg1)
+}
+
+// List mocks base method.
+func (m *MockIntegrationRepository) List(arg0 context.Context, arg1 *malak.Workspace) ([]malak.WorkspaceIntegration, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", arg0, arg1)
+	ret0, _ := ret[0].([]malak.WorkspaceIntegration)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// List indicates an expected call of List.
+func (mr *MockIntegrationRepositoryMockRecorder) List(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockIntegrationRepository)(nil).List), arg0, arg1)
 }

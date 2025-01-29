@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/uptrace/bun"
@@ -61,4 +62,23 @@ func (i *integrationRepo) Create(ctx context.Context,
 				Exec(ctx)
 			return err
 		})
+}
+
+func (i *integrationRepo) List(ctx context.Context,
+	workspace *malak.Workspace) ([]malak.WorkspaceIntegration, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	integrations := make([]malak.WorkspaceIntegration, 0)
+
+	err := i.inner.NewSelect().Model(integrations).
+		Relation("Integration").
+		Where("workspace_id = ?", workspace.ID).
+		Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		return integrations, nil
+	}
+
+	return integrations, err
 }

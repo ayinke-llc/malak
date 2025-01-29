@@ -1263,6 +1263,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/workspaces/integrations": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "fetch workspace preferences",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.listIntegrationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/workspaces/preferences": {
             "get": {
                 "consumes": [
@@ -2372,6 +2418,55 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.Integration": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "integration_name": {
+                    "type": "string"
+                },
+                "integration_type": {
+                    "$ref": "#/definitions/malak.IntegrationType"
+                },
+                "is_enabled": {
+                    "type": "boolean"
+                },
+                "logo_url": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/malak.IntegrationMetadata"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.IntegrationMetadata": {
+            "type": "object"
+        },
+        "malak.IntegrationType": {
+            "type": "string",
+            "enum": [
+                "oauth2",
+                "api_key"
+            ],
+            "x-enum-varnames": [
+                "IntegrationTypeOauth2",
+                "IntegrationTypeApiKey"
+            ]
+        },
         "malak.PasswordDeckPreferences": {
             "type": "object",
             "properties": {
@@ -2730,6 +2825,41 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.WorkspaceIntegration": {
+            "type": "object",
+            "properties": {
+                "Integration": {
+                    "$ref": "#/definitions/malak.Integration"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "integration_id": {
+                    "type": "string"
+                },
+                "is_enabled": {
+                    "type": "boolean"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/malak.WorkspaceIntegrationMetadata"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.WorkspaceIntegrationMetadata": {
+            "type": "object"
+        },
         "server.APIStatus": {
             "type": "object",
             "required": [
@@ -3066,6 +3196,24 @@ const docTemplate = `{
                 },
                 "meta": {
                     "$ref": "#/definitions/server.meta"
+                }
+            }
+        },
+        "server.listIntegrationResponse": {
+            "type": "object",
+            "required": [
+                "integrations",
+                "message"
+            ],
+            "properties": {
+                "integrations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.WorkspaceIntegration"
+                    }
+                },
+                "message": {
+                    "type": "string"
                 }
             }
         },
