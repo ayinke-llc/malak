@@ -34,6 +34,7 @@ func createIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 
 			var (
 				name                 string
+				logoURL              string
 				description          string
 				isEnabledIntegration bool
 
@@ -70,6 +71,26 @@ func createIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 						}),
 
 					huh.NewInput().
+						Title("Logo url?").
+						Value(&logoURL).
+						Validate(func(str string) error {
+							if hermes.IsStringEmpty(str) {
+								return errors.New("please provide the url to your logo")
+							}
+
+							valid, err := malak.IsImageFromURL(str)
+							if err != nil {
+								return errors.New("integration name cannot be more than 30")
+							}
+
+							if valid {
+								return nil
+							}
+
+							return errors.New("integration name cannot be more than 30")
+						}),
+
+					huh.NewInput().
 						Title("Write a description for this integration?").
 						CharLimit(300).
 						Value(&description),
@@ -79,7 +100,6 @@ func createIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 						Options(
 							huh.NewOption("oauth2", malak.IntegrationTypeOauth2),
 							huh.NewOption("api key", malak.IntegrationTypeApiKey),
-							huh.NewOption("malak ( internal )", malak.IntegrationTypeMalak),
 						).
 						Value(&integrationType),
 
@@ -107,6 +127,7 @@ func createIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 				Metadata:        malak.IntegrationMetadata{},
 				IntegrationType: integrationType,
 				IntegrationName: name,
+				LogoURL:         logoURL,
 			}
 
 			integrationRepo := postgres.NewIntegrationRepo(db)

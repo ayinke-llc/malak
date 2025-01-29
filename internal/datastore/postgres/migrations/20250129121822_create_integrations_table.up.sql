@@ -1,4 +1,4 @@
-CREATE TYPE integration_connection_type AS ENUM('oauth2', 'api_key', 'malak');
+CREATE TYPE integration_connection_type AS ENUM('oauth2', 'api_key');
 
 CREATE TABLE integrations (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),

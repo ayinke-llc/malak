@@ -1,0 +1,1 @@
+ALTER TABLE integrations ADD COLUMN logo_url TEXT UNIQUE NOT NULL;

@@ -8,11 +8,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-// ENUM(malak,oauth2,api_key)
-//
-// malak is  the native integration type that allows you submit data via API
-// api_key is when an integration does not support oauth2 and you have to share a
-// read only token
+// ENUM(oauth2,api_key)
 type IntegrationType string
 
 type IntegrationMetadata struct {
@@ -25,6 +21,7 @@ type Integration struct {
 	Description     string          `json:"description,omitempty"`
 	IsEnabled       bool            `json:"is_enabled,omitempty"`
 	IntegrationType IntegrationType `json:"integration_type,omitempty"`
+	LogoURL         string          `json:"logo_url,omitempty"`
 
 	Metadata IntegrationMetadata `json:"metadata,omitempty" bson:"metadata"`
 

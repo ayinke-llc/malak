@@ -12,8 +12,6 @@ import (
 )
 
 const (
-	// IntegrationTypeMalak is a IntegrationType of type malak.
-	IntegrationTypeMalak IntegrationType = "malak"
 	// IntegrationTypeOauth2 is a IntegrationType of type oauth2.
 	IntegrationTypeOauth2 IntegrationType = "oauth2"
 	// IntegrationTypeApiKey is a IntegrationType of type api_key.
@@ -35,7 +33,6 @@ func (x IntegrationType) IsValid() bool {
 }
 
 var _IntegrationTypeValue = map[string]IntegrationType{
-	"malak":   IntegrationTypeMalak,
 	"oauth2":  IntegrationTypeOauth2,
 	"api_key": IntegrationTypeApiKey,
 }
