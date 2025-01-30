@@ -35,50 +35,6 @@ func (o *workspaceRepo) Update(ctx context.Context,
 	return err
 }
 
-func (o *workspaceRepo) Create(ctx context.Context,
-	opts *malak.CreateWorkspaceOptions) error {
-
-	ctx, cancelFn := withContext(ctx)
-	defer cancelFn()
-
-	return o.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
-		_, err := tx.NewInsert().Model(opts.Workspace).Exec(ctx)
-		if err != nil {
-			return err
-		}
-
-		_, err = tx.NewInsert().
-			Model(malak.NewPreference(opts.Workspace)).
-			Exec(ctx)
-		if err != nil {
-			return err
-		}
-
-		if len(opts.User.Roles) == 0 {
-			opts.User.Metadata.CurrentWorkspace = opts.Workspace.ID
-			if _, err := tx.NewUpdate().
-				Model(opts.User).
-				Where("id = ?", opts.User.ID).
-				Exec(ctx); err != nil {
-				return err
-			}
-		}
-
-		var roles malak.UserRoles
-
-		roles = append(roles, &malak.UserRole{
-			WorkspaceID: opts.Workspace.ID,
-			Role:        malak.RoleAdmin,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-			UserID:      opts.User.ID,
-		})
-
-		_, err = tx.NewInsert().Model(&roles).Exec(ctx)
-		return err
-	})
-}
-
 func (o *workspaceRepo) Get(ctx context.Context,
 	opts *malak.FindWorkspaceOptions) (*malak.Workspace, error) {
 	workspace := new(malak.Workspace)
@@ -123,4 +79,81 @@ func (o *workspaceRepo) List(ctx context.Context, user *malak.User) (
 		Join(`JOIN roles as role on "role".workspace_id = "workspace".id`).
 		Where("role.user_id = ?", user.ID).
 		Scan(ctx)
+}
+
+func (o *workspaceRepo) Create(ctx context.Context,
+	opts *malak.CreateWorkspaceOptions) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return o.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		_, err := tx.NewInsert().Model(opts.Workspace).Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.NewInsert().
+			Model(malak.NewPreference(opts.Workspace)).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		integrations := make([]*malak.Integration, 0)
+
+		err = tx.NewSelect().
+			Model(&integrations).
+			Scan(ctx)
+		if err != nil {
+			return err
+		}
+
+		if len(integrations) > 0 {
+
+			var workspaceIntegrations = make([]*malak.WorkspaceIntegration, 0, len(integrations))
+
+			gen := malak.NewReferenceGenerator()
+
+			for _, integration := range integrations {
+				workspaceIntegrations = append(workspaceIntegrations, &malak.WorkspaceIntegration{
+					WorkspaceID:   opts.Workspace.ID,
+					Reference:     gen.Generate(malak.EntityTypeWorkspaceIntegration),
+					IntegrationID: integration.ID,
+					IsEnabled:     false,
+				})
+			}
+
+			_, err = tx.NewInsert().
+				Model(&workspaceIntegrations).
+				On("CONFLICT (workspace_id,integration_id) DO NOTHING").
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+
+		if len(opts.User.Roles) == 0 {
+			opts.User.Metadata.CurrentWorkspace = opts.Workspace.ID
+			if _, err := tx.NewUpdate().
+				Model(opts.User).
+				Where("id = ?", opts.User.ID).
+				Exec(ctx); err != nil {
+				return err
+			}
+		}
+
+		var roles malak.UserRoles
+
+		roles = append(roles, &malak.UserRole{
+			WorkspaceID: opts.Workspace.ID,
+			Role:        malak.RoleAdmin,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			UserID:      opts.User.ID,
+		})
+
+		_, err = tx.NewInsert().Model(&roles).Exec(ctx)
+		return err
+	})
 }

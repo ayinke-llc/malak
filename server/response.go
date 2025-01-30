@@ -126,3 +126,8 @@ type preferenceResponse struct {
 	Preferences *malak.Preference `json:"preferences,omitempty" validate:"required"`
 	APIStatus
 }
+
+type listIntegrationResponse struct {
+	Integrations []malak.WorkspaceIntegration `json:"integrations,omitempty" validate:"required"`
+	APIStatus
+}

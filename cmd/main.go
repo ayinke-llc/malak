@@ -15,7 +15,6 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
@@ -75,14 +74,7 @@ func Execute() error {
 	addHTTPCommand(rootCmd, cfg)
 	addCronCommand(rootCmd, cfg)
 	addPlanCommand(rootCmd, cfg)
-
-	cmd, _, err := rootCmd.Find(os.Args[1:])
-	// default cmd if no cmd is given
-	// default to http
-	if err == nil && cmd.Use == rootCmd.Use && cmd.Flags().Parse(os.Args[1:]) != pflag.ErrHelp {
-		args := append([]string{"http"}, os.Args[1:]...)
-		rootCmd.SetArgs(args)
-	}
+	addIntegrationCommand(rootCmd, cfg)
 
 	return rootCmd.Execute()
 }

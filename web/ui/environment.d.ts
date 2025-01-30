@@ -12,6 +12,9 @@ declare global {
       NEXT_PUBLIC_MALAK_POSTHOG_HOST: string;
       NEXT_PUBLIC_SENTRY_DSN?: string;
       NEXT_PUBLIC_DECKS_DOMAIN: string,
+
+      // Integrations
+      NEXT_PUBLIC_INTEGRATION_STRIPE_CLIENT_ID: string
     }
   }
 }

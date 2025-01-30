@@ -133,6 +133,26 @@ export interface MalakDeckPreference {
   workspace_id?: string;
 }
 
+export interface MalakIntegration {
+  created_at?: string;
+  description?: string;
+  id?: string;
+  integration_name?: string;
+  integration_type?: MalakIntegrationType;
+  is_enabled?: boolean;
+  logo_url?: string;
+  metadata?: MalakIntegrationMetadata;
+  reference?: string;
+  updated_at?: string;
+}
+
+export type MalakIntegrationMetadata = object;
+
+export enum MalakIntegrationType {
+  IntegrationTypeOauth2 = "oauth2",
+  IntegrationTypeApiKey = "api_key",
+}
+
 export interface MalakPasswordDeckPreferences {
   enabled?: boolean;
   password?: string;
@@ -283,6 +303,17 @@ export interface MalakWorkspace {
   workspace_name?: string;
 }
 
+export interface MalakWorkspaceIntegration {
+  created_at?: string;
+  id?: string;
+  integration?: MalakIntegration;
+  integration_id?: string;
+  is_enabled?: boolean;
+  reference?: string;
+  updated_at?: string;
+  workspace_id?: string;
+}
+
 export interface ServerAPIStatus {
   message: string;
 }
@@ -390,6 +421,11 @@ export interface ServerListContactsResponse {
   contacts: MalakContact[];
   message: string;
   meta: ServerMeta;
+}
+
+export interface ServerListIntegrationResponse {
+  integrations: MalakWorkspaceIntegration[];
+  message: string;
 }
 
 export interface ServerListUpdateResponse {
@@ -1027,6 +1063,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerFetchWorkspaceResponse, ServerAPIStatus>({
         path: `/workspaces/${reference}`,
         method: "POST",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags workspace
+     * @name IntegrationsList
+     * @summary fetch workspace preferences
+     * @request GET:/workspaces/integrations
+     */
+    integrationsList: (params: RequestParams = {}) =>
+      this.request<ServerListIntegrationResponse, ServerAPIStatus>({
+        path: `/workspaces/integrations`,
+        method: "GET",
         format: "json",
         ...params,
       }),

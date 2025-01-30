@@ -25,6 +25,7 @@ type workspaceHandler struct {
 	workspaceRepo           malak.WorkspaceRepository
 	planRepo                malak.PlanRepository
 	preferenceRepo          malak.PreferenceRepository
+	integrationRepo         malak.IntegrationRepository
 	referenceGenerationFunc func(e malak.EntityType) string
 }
 

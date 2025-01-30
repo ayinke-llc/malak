@@ -212,6 +212,39 @@ components:
         workspace_id:
           type: string
       type: object
+    malak.Integration:
+      properties:
+        created_at:
+          type: string
+        description:
+          type: string
+        id:
+          type: string
+        integration_name:
+          type: string
+        integration_type:
+          $ref: '#/components/schemas/malak.IntegrationType'
+        is_enabled:
+          type: boolean
+        logo_url:
+          type: string
+        metadata:
+          $ref: '#/components/schemas/malak.IntegrationMetadata'
+        reference:
+          type: string
+        updated_at:
+          type: string
+      type: object
+    malak.IntegrationMetadata:
+      type: object
+    malak.IntegrationType:
+      enum:
+      - oauth2
+      - api_key
+      type: string
+      x-enum-varnames:
+      - IntegrationTypeOauth2
+      - IntegrationTypeApiKey
     malak.PasswordDeckPreferences:
       properties:
         enabled:
@@ -459,6 +492,25 @@ components:
         workspace_name:
           type: string
       type: object
+    malak.WorkspaceIntegration:
+      properties:
+        created_at:
+          type: string
+        id:
+          type: string
+        integration:
+          $ref: '#/components/schemas/malak.Integration'
+        integration_id:
+          type: string
+        is_enabled:
+          type: boolean
+        reference:
+          type: string
+        updated_at:
+          type: string
+        workspace_id:
+          type: string
+      type: object
     server.APIStatus:
       properties:
         message:
@@ -683,6 +735,18 @@ components:
       - contacts
       - message
       - meta
+      type: object
+    server.listIntegrationResponse:
+      properties:
+        integrations:
+          items:
+            $ref: '#/components/schemas/malak.WorkspaceIntegration'
+          type: array
+        message:
+          type: string
+      required:
+      - integrations
+      - message
       type: object
     server.listUpdateResponse:
       properties:
@@ -1844,6 +1908,42 @@ paths:
                 $ref: '#/components/schemas/server.APIStatus'
           description: Internal Server Error
       summary: Switch current workspace
+      tags:
+      - workspace
+  /workspaces/integrations:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.listIntegrationResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: fetch workspace preferences
       tags:
       - workspace
   /workspaces/preferences:

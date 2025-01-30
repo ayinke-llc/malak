@@ -95,7 +95,7 @@ func createPlan(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 						Value(&defaultPlanID),
 
 					huh.NewConfirm().
-						Title("Default plan").
+						Title("Default plan?").
 						Description("should this plan be the default one for new users?").
 						Value(&isDefaultPlan),
 				),
