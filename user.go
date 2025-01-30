@@ -69,6 +69,16 @@ type User struct {
 
 func (u *User) HasWorkspace() bool { return u.Metadata.CurrentWorkspace != uuid.Nil }
 
+func (u *User) CanAccessWorkspace(id uuid.UUID) bool {
+	for _, role := range u.Roles {
+		if role.WorkspaceID.String() == id.String() {
+			return true
+		}
+	}
+
+	return false
+}
+
 type FindUserOptions struct {
 	Email Email `json:"email,omitempty"`
 	ID    uuid.UUID

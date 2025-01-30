@@ -13,6 +13,7 @@ import (
 	"github.com/ayinke-llc/malak"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
@@ -27,6 +28,9 @@ func getLogger(t *testing.T) *zap.Logger {
 }
 
 func TestWorkspaceHandler_SwitchWorkspace(t *testing.T) {
+
+	workspaceID := uuid.MustParse("8ce0f580-4d6d-429e-9d0e-a78eb99f62c2")
+
 	for _, v := range generateWorkspaceSwitchTable() {
 
 		t.Run(v.name, func(t *testing.T) {
@@ -55,18 +59,90 @@ func TestWorkspaceHandler_SwitchWorkspace(t *testing.T) {
 
 			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{
 				Metadata: &malak.UserMetadata{},
+				Roles: malak.UserRoles{
+					{
+						WorkspaceID: workspaceID,
+						Role:        malak.RoleAdmin,
+					},
+				},
+			}))
+
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{
+				ID: workspaceID,
 			}))
 
 			ctx := chi.NewRouteContext()
 			ctx.URLParams.Add("provider", "reference")
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
 
-			WrapMalakHTTPHandler(getLogger(t), a.switchCurrentWorkspaceForUser, getConfig(), "workspaces.switch").
+			WrapMalakHTTPHandler(getLogger(t),
+				a.switchCurrentWorkspaceForUser, getConfig(),
+				"workspaces.switch").
 				ServeHTTP(rr, req)
 
 			require.Equal(t, v.expectedStatusCode, rr.Code)
 			verifyMatch(t, rr)
 		})
+	}
+}
+
+func generateWorkspaceSwitchTable() []struct {
+	name               string
+	mockFn             func(workspaceRepo *malak_mocks.MockWorkspaceRepository, userRepo *malak_mocks.MockUserRepository)
+	expectedStatusCode int
+} {
+
+	return []struct {
+		name               string
+		mockFn             func(workspaceRepo *malak_mocks.MockWorkspaceRepository, userRepo *malak_mocks.MockUserRepository)
+		expectedStatusCode int
+	}{
+		{
+			name: "could not find reference",
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, usr *malak_mocks.MockUserRepository) {
+				workspaceRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("could not find workspace"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "no access to workspace",
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, userRepo *malak_mocks.MockUserRepository) {
+				workspaceRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).Return(&malak.Workspace{
+					ID: uuid.New(),
+				}, nil)
+			},
+			expectedStatusCode: http.StatusForbidden,
+		},
+		{
+			name: "could not update user repo",
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, userRepo *malak_mocks.MockUserRepository) {
+				workspaceRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).Return(&malak.Workspace{
+					ID: uuid.MustParse("8ce0f580-4d6d-429e-9d0e-a78eb99f62c2"),
+				}, nil)
+
+				userRepo.EXPECT().Update(gomock.Any(), gomock.Any()).
+					Times(1).Return(errors.New("could not update"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "updated current workspace",
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, userRepo *malak_mocks.MockUserRepository) {
+				workspaceRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).Return(&malak.Workspace{
+					ID: uuid.MustParse("8ce0f580-4d6d-429e-9d0e-a78eb99f62c2"),
+				}, nil)
+
+				userRepo.EXPECT().Update(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
 	}
 }
 
@@ -599,52 +675,6 @@ func generateWorkspaceTestTable() []struct {
 			req: createWorkspaceRequest{
 				Name: "workspance name",
 			},
-		},
-	}
-}
-
-func generateWorkspaceSwitchTable() []struct {
-	name               string
-	mockFn             func(workspaceRepo *malak_mocks.MockWorkspaceRepository, userRepo *malak_mocks.MockUserRepository)
-	expectedStatusCode int
-} {
-
-	return []struct {
-		name               string
-		mockFn             func(workspaceRepo *malak_mocks.MockWorkspaceRepository, userRepo *malak_mocks.MockUserRepository)
-		expectedStatusCode int
-	}{
-		{
-			name: "could not find reference",
-			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, usr *malak_mocks.MockUserRepository) {
-				workspaceRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
-					Times(1).
-					Return(nil, errors.New("could not find workspace"))
-			},
-			expectedStatusCode: http.StatusInternalServerError,
-		},
-		{
-			name: "could not update user repo",
-			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, userRepo *malak_mocks.MockUserRepository) {
-				workspaceRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
-					Times(1).Return(&malak.Workspace{}, nil)
-
-				userRepo.EXPECT().Update(gomock.Any(), gomock.Any()).
-					Times(1).Return(errors.New("could not update"))
-			},
-			expectedStatusCode: http.StatusInternalServerError,
-		},
-		{
-			name: "updated current workspace",
-			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, userRepo *malak_mocks.MockUserRepository) {
-				workspaceRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
-					Times(1).Return(&malak.Workspace{}, nil)
-
-				userRepo.EXPECT().Update(gomock.Any(), gomock.Any()).
-					Times(1).
-					Return(nil)
-			},
-			expectedStatusCode: http.StatusOK,
 		},
 	}
 }
