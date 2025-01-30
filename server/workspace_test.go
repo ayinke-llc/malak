@@ -237,6 +237,82 @@ func TestWorkspaceHandler_UpdatePreferences(t *testing.T) {
 	}
 }
 
+func TestWorkspaceHandler_getIntegrations(t *testing.T) {
+	for _, v := range generateWorkspaceGetIntegrationsTestTable() {
+
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			integrationRepo := malak_mocks.NewMockIntegrationRepository(controller)
+
+			v.mockFn(integrationRepo)
+
+			a := &workspaceHandler{
+				cfg:             getConfig(),
+				integrationRepo: integrationRepo,
+				referenceGenerationFunc: func(e malak.EntityType) string {
+					return "workspace_tt7-YieIgz"
+				},
+			}
+
+			var b = bytes.NewBuffer(nil)
+
+			require.NoError(t, json.NewEncoder(b).Encode(&v.req))
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/", b)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			WrapMalakHTTPHandler(getLogger(t),
+				a.getIntegrations, getConfig(), "workspaces.list.integrations").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateWorkspaceGetIntegrationsTestTable() []struct {
+	name               string
+	mockFn             func(integrationRepo *malak_mocks.MockIntegrationRepository)
+	expectedStatusCode int
+	req                updatePreferencesRequest
+} {
+
+	return []struct {
+		name               string
+		mockFn             func(integrationRepo *malak_mocks.MockIntegrationRepository)
+		expectedStatusCode int
+		req                updatePreferencesRequest
+	}{
+		{
+			name: "could not fetch workspace integrations",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository) {
+				integrationRepo.EXPECT().List(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("could not fetch integrations"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "listed integrations successfully",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository) {
+				integrationRepo.EXPECT().List(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]malak.WorkspaceIntegration{}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
 func generateWorkspacePreferencesUpdateTestTable() []struct {
 	name               string
 	mockFn             func(preferencesRepo *malak_mocks.MockPreferenceRepository)
