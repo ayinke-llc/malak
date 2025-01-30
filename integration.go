@@ -2,6 +2,7 @@ package malak
 
 import (
 	"context"
+	"io"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,6 +13,7 @@ import (
 type IntegrationType string
 
 type IntegrationMetadata struct {
+	Endpoint string `json:"endpoint,omitempty"`
 }
 
 type Integration struct {
@@ -53,7 +55,10 @@ type WorkspaceIntegration struct {
 
 type IntegrationRepository interface {
 	Create(context.Context, *Integration) error
-
 	List(context.Context, *Workspace) ([]WorkspaceIntegration, error)
-	// Disable(context.Context, *Workspace, *Integration) error
+}
+
+type IntegrationProvider interface {
+	Name() string
+	io.Closer
 }
