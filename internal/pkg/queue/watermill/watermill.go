@@ -16,6 +16,7 @@ import (
 	wotelfloss "github.com/dentech-floss/watermill-opentelemetry-go-extra/pkg/opentelemetry"
 	"github.com/garsue/watermillzap"
 	redis "github.com/redis/go-redis/v9"
+	"github.com/stripe/stripe-go/v81/client"
 	wotel "github.com/voi-oss/watermill-opentelemetry/pkg/opentelemetry"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
@@ -35,6 +36,7 @@ type WatermillClient struct {
 	contactRepo   malak.ContactRepository
 	cfg           config.Config
 	emailClient   email.Client
+	stripeClient  *client.API
 }
 
 func New(redisClient *redis.Client,

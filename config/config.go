@@ -70,8 +70,7 @@ type Config struct {
 
 	Billing struct {
 		Stripe struct {
-			APIKey    string `yaml:"api_key" mapstructure:"api_key"`
-			APISecret string `yaml:"api_secret" mapstructure:"api_secret"`
+			APIKey string `yaml:"api_key" mapstructure:"api_key"`
 		} `yaml:"stripe" mapstructure:"stripe"`
 
 		// If stripe is not enabled, then fake ids can be used in the

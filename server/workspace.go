@@ -14,6 +14,7 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/stripe/stripe-go/v81/client"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -27,6 +28,7 @@ type workspaceHandler struct {
 	preferenceRepo          malak.PreferenceRepository
 	integrationRepo         malak.IntegrationRepository
 	referenceGenerationFunc func(e malak.EntityType) string
+	stripeClient            *client.API
 }
 
 type createWorkspaceRequest struct {

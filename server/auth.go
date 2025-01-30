@@ -13,6 +13,7 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/stripe/stripe-go/v81/client"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -27,6 +28,7 @@ type authHandler struct {
 	userRepo      malak.UserRepository
 	workspaceRepo malak.WorkspaceRepository
 	tokenManager  jwttoken.JWTokenManager
+	stripeClient  *client.API
 }
 
 type authenticateUserRequest struct {
