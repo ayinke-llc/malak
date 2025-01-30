@@ -151,6 +151,11 @@ func (wo *workspaceHandler) switchCurrentWorkspaceForUser(
 			"could not fetch the workspace by reference to switch to"), StatusFailed
 	}
 
+	if !user.CanAccessWorkspace(workspace.ID) {
+		return newAPIStatus(http.StatusForbidden,
+			"You can only join workspaces you are a member of"), StatusFailed
+	}
+
 	user.Metadata.CurrentWorkspace = workspace.ID
 
 	if err := wo.userRepo.Update(ctx, user); err != nil {
