@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/tooltip";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import client from "@/lib/client";
-import { useRouter } from "next/navigation";
 import { FETCH_DECK } from "@/lib/query-constants";
 import { DECKS_DOMAIN } from "@/lib/config";
 import DeleteDeck from "@/components/ui/decks/details/delete";
@@ -58,8 +57,6 @@ const settingsSchema = yup.object().shape({
 }) satisfies yup.ObjectSchema<SettingsFormData>;
 
 export default function DeckDetails({ params }: { params: { slug: string } }) {
-
-  const router = useRouter();
 
   const [isPinned, setIsPinned] = useState<boolean>(false);
 
@@ -424,7 +421,6 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
           </div>
         </Card>
       </div>
-
     </div >
   );
 }

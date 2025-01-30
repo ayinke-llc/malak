@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { DECKS_DOMAIN } from "@/lib/config";
 
 export default function ListDecks() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -129,7 +130,7 @@ export default function ListDecks() {
       columnHelper.accessor(
         (row) => {
           const shortLink = row.short_link ?? "";
-          return `${window.location.origin}/d/${shortLink}`;
+          return `${DECKS_DOMAIN}/${shortLink}`
         },
         {
           id: "url",
