@@ -38,12 +38,32 @@ func (c Counter) TakeN(n int64) error {
 
 type PlanMetadata struct {
 	Team struct {
-		Size    Counter `json:"size,omitempty"`
-		Enabled bool    `json:"enabled,omitempty"`
+		Size Counter `json:"size,omitempty"`
 	} `json:"team,omitempty"`
+
 	Deck struct {
-		Count Counter `json:"count,omitempty"`
+		AutoTerminateLink bool `json:"auto_terminate_link,omitempty"`
+		CustomDomain      bool `json:"custom_domain,omitempty"`
 	} `json:"deck,omitempty"`
+
+	Updates struct {
+		MaxRecipients Counter `json:"max_recipients,omitempty"`
+		CustomDomain  bool    `json:"custom_domain,omitempty"`
+	} `json:"updates,omitempty"`
+
+	Integrations struct {
+		AvailableForUse Counter `json:"available_for_use,omitempty"`
+	} `json:"integrations,omitempty"`
+
+	Dashboard struct {
+		ShareDashboardViaLink bool `json:"share_dashboard_via_link,omitempty"`
+		EmbedDashboard        bool `json:"embed_dashboard,omitempty"`
+	} `json:"dashboard,omitempty"`
+
+	DataRoom struct {
+		Size         Counter `json:"size,omitempty"`
+		ShareViaLink bool    `json:"share_via_link,omitempty"`
+	} `json:"data_room,omitempty"`
 }
 
 type Plan struct {
