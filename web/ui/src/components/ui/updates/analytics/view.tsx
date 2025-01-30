@@ -10,8 +10,7 @@ import {
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle
+  CardHeader
 } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -92,10 +91,7 @@ export default function View(
   { update, recipientStats }: Props
 ) {
 
-  const [showAll, setShowAll] = useState(false)
-
   const tableContainerRef = useRef<HTMLDivElement>(null)
-  const [tableHeight, setTableHeight] = useState(400) // Default height
 
   const progressPercentage = (update?.unique_opens as number / (update?.total_opens as number)) * 100
 
@@ -113,12 +109,6 @@ export default function View(
     estimateSize: () => 50, // Adjust this value based on your row height
     overscan: 5,
   })
-
-  useEffect(() => {
-    if (tableContainerRef.current) {
-      setTableHeight(tableContainerRef.current.offsetHeight)
-    }
-  }, [showAll])
 
   return (
     <Card className="w-full">
@@ -173,7 +163,7 @@ export default function View(
         <div
           className="rounded-md border"
           ref={tableContainerRef}
-          style={{ height: showAll ? 'auto' : '700px', overflowY: 'auto' }}
+          style={{ height: 'auto', overflowY: 'auto' }}
         >
           <Table>
             <TableHeader>

@@ -142,6 +142,14 @@ func (o *contactRepo) Delete(ctx context.Context,
 		}
 
 		_, err = tx.NewDelete().
+			Where("contact_id = ?", contact.ID).
+			Model(new(malak.UpdateRecipient)).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.NewDelete().
 			Where("id = ?", contact.ID).
 			Model(contact).
 			Exec(ctx)
