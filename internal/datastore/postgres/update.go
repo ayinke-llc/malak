@@ -354,6 +354,17 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 				return err
 			}
 
+			count, err := tx.NewSelect().Model(new(malak.UpdateRecipient)).
+				Where("update_id = ?", opts.Schedule.UpdateID).
+				Count(ctx)
+			if err != nil {
+				return err
+			}
+
+			if err := opts.Plan.Metadata.Updates.MaxRecipients.TakeN(int64(count)); err != nil {
+				return err
+			}
+
 			_, err = tx.NewInsert().Model(&sharedItems).
 				Returning("id").
 				On("CONFLICT (item_reference,contact_id) DO NOTHING").

@@ -33,6 +33,10 @@ func (c Counter) TakeN(n int64) error {
 	}
 
 	c -= Counter(n)
+	if c < 0 {
+		return ErrCounterExhausted
+	}
+
 	return nil
 }
 

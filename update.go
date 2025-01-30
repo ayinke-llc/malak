@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	ErrUpdateNotFound = MalakError("update not exists")
+	ErrUpdateNotFound                  = MalakError("update not exists")
+	ErrUpdateRecipientCapacityExceeded = MalakError("you have reached the max number of recipients per update")
 
 	ErrPinnedUpdateNotExists        = MalakError("update not pinned")
 	ErrPinnedUpdateCapacityExceeded = MalakError(
@@ -198,6 +199,7 @@ type CreateUpdateOptions struct {
 	Schedule        *UpdateSchedule
 	UserID          uuid.UUID
 	UpdateReference Reference
+	Plan            *Plan
 }
 
 type UpdateRepository interface {

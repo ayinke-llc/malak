@@ -134,9 +134,16 @@ func (u *updatesHandler) previewUpdate(
 	}
 
 	if err := u.updateRepo.SendUpdate(ctx, opts); err != nil {
+		var msg = "could not send update to recipients"
+		var status = http.StatusInternalServerError
+
+		if errors.Is(err, malak.ErrCounterExhausted) {
+			msg = err.Error()
+			status = http.StatusPaymentRequired
+		}
+
 		logger.Error("could not create schedule update", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError,
-			"could not send update"), StatusFailed
+		return newAPIStatus(status, msg), StatusFailed
 	}
 
 	span.SetAttributes(
