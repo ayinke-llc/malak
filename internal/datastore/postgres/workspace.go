@@ -109,24 +109,28 @@ func (o *workspaceRepo) Create(ctx context.Context,
 			return err
 		}
 
-		var workspaceIntegrations = make([]*malak.WorkspaceIntegration, 0, len(integrations))
+		if len(integrations) > 0 {
 
-		gen := malak.NewReferenceGenerator()
+			var workspaceIntegrations = make([]*malak.WorkspaceIntegration, 0, len(integrations))
 
-		for _, integration := range integrations {
-			workspaceIntegrations = append(workspaceIntegrations, &malak.WorkspaceIntegration{
-				WorkspaceID:   opts.Workspace.ID,
-				Reference:     gen.Generate(malak.EntityTypeWorkspaceIntegration),
-				IntegrationID: integration.ID,
-				IsEnabled:     false,
-			})
-		}
+			gen := malak.NewReferenceGenerator()
 
-		_, err = tx.NewInsert().Model(&workspaceIntegrations).
-			On("CONFLICT (workspace_id,integration_id) DO NOTHING").
-			Exec(ctx)
-		if err != nil {
-			return err
+			for _, integration := range integrations {
+				workspaceIntegrations = append(workspaceIntegrations, &malak.WorkspaceIntegration{
+					WorkspaceID:   opts.Workspace.ID,
+					Reference:     gen.Generate(malak.EntityTypeWorkspaceIntegration),
+					IntegrationID: integration.ID,
+					IsEnabled:     false,
+				})
+			}
+
+			_, err = tx.NewInsert().
+				Model(&workspaceIntegrations).
+				On("CONFLICT (workspace_id,integration_id) DO NOTHING").
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
 		}
 
 		if len(opts.User.Roles) == 0 {
