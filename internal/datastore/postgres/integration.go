@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"errors"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/uptrace/bun"
@@ -72,15 +71,9 @@ func (i *integrationRepo) List(ctx context.Context,
 
 	integrations := make([]malak.WorkspaceIntegration, 0)
 
-	err := i.inner.NewSelect().
+	return integrations, i.inner.NewSelect().
 		Model(&integrations).
 		Where("workspace_id = ?", workspace.ID).
 		Relation("Integration").
 		Scan(ctx)
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return integrations, nil
-	}
-
-	return integrations, err
 }
