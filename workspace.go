@@ -8,22 +8,26 @@ import (
 	"github.com/uptrace/bun"
 )
 
-var ErrWorkspaceNotFound = MalakError("workspace not found")
+var (
+	ErrWorkspaceNotFound = MalakError("workspace not found")
+)
 
 type Workspace struct {
 	ID uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 
-	WorkspaceName string    `json:"workspace_name,omitempty"`
-	PlanID        uuid.UUID `json:"plan_id,omitempty"`
-	Reference     string    `json:"reference,omitempty"`
-	Timezone      string    `json:"timezone,omitempty"`
-	Website       string    `json:"website,omitempty"`
-	LogoURL       string    `json:"logo_url,omitempty"`
+	WorkspaceName string `json:"workspace_name,omitempty"`
+	Reference     string `json:"reference,omitempty"`
+	Timezone      string `json:"timezone,omitempty"`
+	Website       string `json:"website,omitempty"`
+	LogoURL       string `json:"logo_url,omitempty"`
 
 	// Not required
 	// Dummy values work really if not using stripe
 	StripeCustomerID string `json:"stripe_customer_id,omitempty"`
 	SubscriptionID   string `json:"subscription_id,omitempty"`
+
+	PlanID uuid.UUID `json:"plan_id,omitempty"`
+	Plan   *Plan     `json:"plan,omitempty" bun:"rel:belongs-to,join:plan_id=id"`
 
 	Metadata PlanMetadata `json:"metadata,omitempty"`
 

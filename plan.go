@@ -47,7 +47,7 @@ type PlanMetadata struct {
 }
 
 type Plan struct {
-	ID uuid.UUID `bun:"type:uuid,default:uuid_generate_v4()" json:"id,omitempty"`
+	ID uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 
 	PlanName string `json:"plan_name,omitempty"`
 
