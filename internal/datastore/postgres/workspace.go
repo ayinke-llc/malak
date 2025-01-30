@@ -42,21 +42,22 @@ func (o *workspaceRepo) Get(ctx context.Context,
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
 
-	q := o.inner.NewSelect()
+	q := o.inner.NewSelect().
+		Model(workspace)
 
 	if !util.IsStringEmpty(opts.StripeCustomerID) {
 		q = q.Where("stripe_customer_id = ?", opts.StripeCustomerID)
 	}
 
 	if !util.IsStringEmpty(opts.Reference.String()) {
-		q = q.Where("reference = ?", opts.Reference)
+		q = q.Where("workspace.reference = ?", opts.Reference)
 	}
 
 	if opts.ID != uuid.Nil {
-		q = q.Where("id = ?", opts.ID)
+		q = q.Where("workspace.id = ?", opts.ID)
 	}
 
-	err := q.Model(workspace).
+	err := q.Relation("Plan").
 		Scan(ctx)
 
 	if errors.Is(err, sql.ErrNoRows) {

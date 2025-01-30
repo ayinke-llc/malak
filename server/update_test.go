@@ -682,7 +682,7 @@ func generateUpdateTestTable() []struct {
 			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
-			name: "error during update creation",
+			name: "error during update sending",
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.EXPECT().Get(gomock.Any(), gomock.Any()).Return(&malak.Update{}, nil)
 				update.EXPECT().SendUpdate(gomock.Any(), gomock.Any()).Return(errors.New("oops"))
@@ -695,7 +695,21 @@ func generateUpdateTestTable() []struct {
 			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
-			name: "successful update creation",
+			name: "update sending reached max recipients",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+				update.EXPECT().Get(gomock.Any(), gomock.Any()).Return(&malak.Update{}, nil)
+				update.EXPECT().SendUpdate(gomock.Any(), gomock.Any()).
+					Return(malak.ErrCounterExhausted)
+			},
+			req: sendUpdateRequest{
+				Emails: []malak.Email{
+					"oops@oops.com",
+				},
+			},
+			expectedStatusCode: http.StatusPaymentRequired,
+		},
+		{
+			name: "successful update sending",
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.EXPECT().Get(gomock.Any(), gomock.Any()).Return(&malak.Update{}, nil)
 				update.EXPECT().SendUpdate(gomock.Any(), gomock.Any()).Return(nil)

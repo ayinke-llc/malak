@@ -388,6 +388,7 @@ func TestUpdates_SendUpdate(t *testing.T) {
 			UpdateID:    update.ID,
 		},
 		WorkspaceID: workspace.ID,
+		Plan:        workspace.Plan,
 	})
 	require.NoError(t, err)
 }

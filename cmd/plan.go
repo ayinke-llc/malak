@@ -154,11 +154,9 @@ func createPlan(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 				IsDefault:      isDefaultPlan,
 				Metadata: malak.PlanMetadata{
 					Team: struct {
-						Size    malak.Counter "json:\"size,omitempty\""
-						Enabled bool          "json:\"enabled,omitempty\""
+						Size malak.Counter "json:\"size,omitempty\""
 					}{
-						Size:    malak.Counter(teamCount),
-						Enabled: true,
+						Size: malak.Counter(teamCount),
 					},
 				},
 			}

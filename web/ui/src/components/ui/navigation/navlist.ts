@@ -1,15 +1,12 @@
 import {
   RiArchiveStackLine,
   RiBook3Line,
-  RiChatNewLine,
   RiContactsLine,
   RiHome2Line,
-  RiHomeGearFill,
-  RiHomeGearLine,
-  RiLinkM,
+  RiMoneyDollarCircleLine,
+  RiPieChartLine,
   RiPlug2Line,
-  RiSettings6Line,
-  RiSettingsLine,
+  RiSettingsLine
 } from "@remixicon/react";
 
 export const links = [
@@ -36,12 +33,12 @@ export const links = [
   {
     title: "Fundraising",
     url: "/fundraising",
-    icon: RiContactsLine,
+    icon: RiMoneyDollarCircleLine,
   },
   {
     title: "Captable",
     url: "/captable",
-    icon: RiContactsLine,
+    icon: RiPieChartLine,
   },
   {
     title: "Integrations",
@@ -54,22 +51,3 @@ export const links = [
     icon: RiSettingsLine
   },
 ];
-
-export const shortcuts = [
-  {
-    title: "Analytics of your last update",
-    url: "#",
-    icon: RiLinkM,
-  },
-  {
-    title: "Fundraising",
-    url: "#",
-    icon: RiLinkM,
-  },
-  {
-    title: "Captable",
-    url: "#",
-    icon: RiLinkM,
-  },
-] as const;
-
