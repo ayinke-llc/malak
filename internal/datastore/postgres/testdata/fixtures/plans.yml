@@ -4,7 +4,8 @@
   plan_name: Core
   default_price_id: price_1PvJSMIuzgc0GUapiNyXBEaH
   amount: 40
-  metadata: "{}"
+  metadata: >-
+    {"updates" : {"max_recipients" : 10}}
   created_at: "2024-09-04 13:46:35.612449+00"
   updated_at: "2024-09-04 13:46:35.612449+00"
   deleted_at: null
@@ -13,7 +14,8 @@
   plan_name: Scale
   default_price_id: price_1PvJT8Iuzgc0GUapIRBpxCyJ
   amount: 99
-  metadata: "{}"
+  metadata: >-
+    {"updates" : {"max_recipients" : 10}}
   created_at: "2024-09-04 13:46:35.612449+00"
   updated_at: "2024-09-04 13:46:35.612449+00"
   deleted_at: null
