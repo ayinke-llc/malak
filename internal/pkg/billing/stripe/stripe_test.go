@@ -30,6 +30,7 @@ func setupStripeClient() (billing.Client, error) {
 			}{
 				APIKey: os.Getenv("STRIPE_SECRET"),
 			},
+			TrialDays: 14,
 		},
 	}
 
