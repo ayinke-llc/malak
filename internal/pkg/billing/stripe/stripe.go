@@ -40,6 +40,7 @@ func New(cfg config.Config) (billing.Client, error) {
 
 	return &stripeClient{
 		stripeClient: stripeLib,
+		cfg:          cfg,
 	}, nil
 }
 
@@ -106,10 +107,7 @@ func (s *stripeClient) AddPlanToCustomer(ctx context.Context,
 				Price: hermes.Ref(opts.Workspace.Plan.DefaultPriceID),
 			},
 		},
-	}
-
-	if s.cfg.Billing.TrialDays > 0 {
-		createSubscriptionOptions.TrialPeriodDays = hermes.Ref(int64(s.cfg.Billing.TrialDays))
+		TrialPeriodDays: hermes.Ref(int64(s.cfg.Billing.TrialDays)),
 	}
 
 	sub, err := s.stripeClient.Subscriptions.New(createSubscriptionOptions)

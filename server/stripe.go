@@ -49,6 +49,7 @@ func (s *stripeHandler) handleWebhook(w http.ResponseWriter, r *http.Request) {
 	ev, err := webhook.ConstructEvent(payload, r.Header.Get("Stripe-Signature"),
 		s.cfg.Billing.Stripe.WebhookSecret)
 	if err != nil {
+		logger.Error("could not verify webhook", zap.Error(err))
 		w.WriteHeader(http.StatusBadRequest) // Return a 400 error on a bad signature
 		return
 	}

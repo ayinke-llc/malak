@@ -188,6 +188,9 @@ func (c *Config) Validate() error {
 		return errors.New("email provider is not currently supported")
 	}
 
+	// trial days is required. We do not want to
+	// somehow enforce users to provide a payment method/card
+	// before they can get into the app
 	if c.Billing.TrialDays < 0 {
 		return errors.New("trial days must be 0 or greater than 0")
 	}
