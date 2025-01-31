@@ -20,7 +20,7 @@ func TestRequireWorkspaceValidSubscription(t *testing.T) {
 		req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
 
 		requireWorkspaceValidSubscription(getConfig())(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			json.NewEncoder(w).Encode("{}")
+			require.NoError(t, json.NewEncoder(w).Encode("{}"))
 		})).ServeHTTP(rr, req)
 
 		require.Equal(t, http.StatusPaymentRequired, rr.Code)
@@ -38,7 +38,7 @@ func TestRequireWorkspaceValidSubscription(t *testing.T) {
 		}))
 
 		requireWorkspaceValidSubscription(getConfig())(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			json.NewEncoder(w).Encode("{}")
+			require.NoError(t, json.NewEncoder(w).Encode("{}"))
 		})).ServeHTTP(rr, req)
 
 		require.Equal(t, http.StatusOK, rr.Code)
