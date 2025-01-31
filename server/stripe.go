@@ -197,13 +197,16 @@ func (s *stripeHandler) addInvoice(
 		return
 	}
 
-	if workspace.Plan.Reference != req.Lines.Data[0].Plan.Product {
-
+	plan, err := s.planRepo.Get(ctx, &malak.FetchPlanOptions{
+		Reference: req.Lines.Data[0].Plan.Product,
+	})
+	if err != nil {
 		span.RecordError(errors.New("plan reference not match"))
 		span.SetStatus(codes.Error, "plan reference not match")
 
 		logger.
 			Error("could not fetch plan",
+				zap.Error(err),
 				zap.String("workspace_id", workspace.ID.String()),
 				zap.String("plan_id", workspace.PlanID.String()))
 
@@ -211,7 +214,10 @@ func (s *stripeHandler) addInvoice(
 		return
 	}
 
-	if err := s.workRepo.MarkActive(ctx, workspace); err != nil {
+	workspace.PlanID = plan.ID
+	workspace.IsSubscriptionActive = true
+
+	if err := s.workRepo.Update(ctx, workspace); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 

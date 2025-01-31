@@ -23,14 +23,16 @@ func NewWorkspaceRepository(inner *bun.DB) malak.WorkspaceRepository {
 }
 
 func (o *workspaceRepo) Update(ctx context.Context,
-	org *malak.Workspace) error {
+	workspace *malak.Workspace) error {
 
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
 
+	workspace.UpdatedAt = time.Now()
+
 	_, err := o.inner.NewUpdate().
-		Where("id = ?", org.ID).
-		Model(org).
+		Where("id = ?", workspace.ID).
+		Model(workspace).
 		Exec(ctx)
 	return err
 }
@@ -79,6 +81,7 @@ func (o *workspaceRepo) List(ctx context.Context, user *malak.User) (
 		Model(&workspaces).
 		Join(`JOIN roles as role on "role".workspace_id = "workspace".id`).
 		Where("role.user_id = ?", user.ID).
+		Order("created_at DESC").
 		Scan(ctx)
 }
 
