@@ -9,7 +9,6 @@ import (
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
-	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
@@ -28,7 +27,6 @@ type authHandler struct {
 	userRepo      malak.UserRepository
 	workspaceRepo malak.WorkspaceRepository
 	tokenManager  jwttoken.JWTokenManager
-	queue         queue.QueueHandler
 }
 
 type authenticateUserRequest struct {

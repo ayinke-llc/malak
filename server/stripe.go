@@ -108,12 +108,12 @@ func (s *stripeHandler) handleWebhook(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *stripeHandler) createFreeTrialSubscription(ctx context.Context,
-	span trace.Span, w http.ResponseWriter,
+	_ trace.Span, w http.ResponseWriter,
 	r *http.Request, req *CustomerCreatedEvent,
 	logger *zap.Logger,
 ) {
 
-	ctx, span = tracer.Start(ctx, "createFreeTrialSubscription")
+	ctx, span := tracer.Start(ctx, "createFreeTrialSubscription")
 	defer span.End()
 
 	logger = logger.With(zap.String("method", "createSubcriptionForCustomer"))
@@ -171,9 +171,13 @@ func (s *stripeHandler) createFreeTrialSubscription(ctx context.Context,
 }
 
 func (s *stripeHandler) addInvoice(
-	ctx context.Context, span trace.Span, w http.ResponseWriter,
+	ctx context.Context, _ trace.Span, w http.ResponseWriter,
 	r *http.Request, req *Invoice, logger *zap.Logger,
 ) {
+
+	ctx, span := tracer.Start(ctx, "addInvoice")
+	defer span.End()
+
 	logger = logger.With(zap.String("method", "addInvoice"))
 
 	logger.Debug("handling paid invoice")
