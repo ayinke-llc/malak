@@ -25,6 +25,8 @@ import (
 	"golang.org/x/oauth2"
 )
 
+var webhookSecret = "wh_sec"
+
 func verifyMatch(t *testing.T, v interface{}) {
 	g := goldie.New(t, goldie.WithFixtureDir("./testdata"))
 
@@ -50,6 +52,22 @@ func getConfig() config.Config {
 			IsEnabled bool   "yaml:\"is_enabled\" mapstructure:\"is_enabled\""
 		}{
 			IsEnabled: false,
+		},
+		Billing: struct {
+			Stripe struct {
+				APIKey        string "yaml:\"api_key\" mapstructure:\"api_key\""
+				WebhookSecret string "yaml:\"webhook_secret\" mapstructure:\"webhook_secret\""
+			} "yaml:\"stripe\" mapstructure:\"stripe\""
+			IsEnabled            bool   "yaml:\"is_enabled\" mapstructure:\"is_enabled\""
+			TrialDays            int64  "yaml:\"trial_days\" mapstructure:\"trial_days\""
+			DefaultPlanReference string "yaml:\"default_plan_reference\" mapstructure:\"default_plan_reference\""
+		}{
+			Stripe: struct {
+				APIKey        string "yaml:\"api_key\" mapstructure:\"api_key\""
+				WebhookSecret string "yaml:\"webhook_secret\" mapstructure:\"webhook_secret\""
+			}{
+				WebhookSecret: webhookSecret,
+			},
 		},
 		Auth: struct {
 			Google struct {

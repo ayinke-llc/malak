@@ -19,6 +19,9 @@ import (
 	"go.uber.org/zap"
 )
 
+var workspaceID = uuid.MustParse("8ce0f580-4d6d-429e-9d0e-a78eb99f62c2")
+var planID = uuid.MustParse("8ce0f580-4d6d-429e-9d0e-a78eb99f62c2")
+
 func getLogger(t *testing.T) *zap.Logger {
 
 	logger, err := zap.NewDevelopment()
@@ -28,8 +31,6 @@ func getLogger(t *testing.T) *zap.Logger {
 }
 
 func TestWorkspaceHandler_SwitchWorkspace(t *testing.T) {
-
-	workspaceID := uuid.MustParse("8ce0f580-4d6d-429e-9d0e-a78eb99f62c2")
 
 	for _, v := range generateWorkspaceSwitchTable() {
 
