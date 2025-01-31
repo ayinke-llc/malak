@@ -35,4 +35,5 @@ func ToPayload(m any) []byte {
 
 type BillingCreateCustomerOptions struct {
 	Workspace *malak.Workspace
+	Email     malak.Email
 }

@@ -112,6 +112,7 @@ func (wo *workspaceHandler) createWorkspace(
 
 	opts := &queue.BillingCreateCustomerOptions{
 		Workspace: workspace,
+		Email:     user.Email,
 	}
 
 	if err := wo.queueClient.Add(ctx, queue.QueueTopicBillingCreateCustomer, opts); err != nil {

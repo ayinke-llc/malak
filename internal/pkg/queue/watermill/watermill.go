@@ -175,7 +175,8 @@ func (t *WatermillClient) createStripeCustomer(msg *message.Message) error {
 	logger.Debug("creating stripe customer")
 
 	params := &stripe.CustomerParams{
-		Name: hermes.Ref(opts.Workspace.WorkspaceName),
+		Name:  hermes.Ref(opts.Workspace.WorkspaceName),
+		Email: hermes.Ref(opts.Email.String()),
 	}
 
 	customer, err := t.stripeClient.Customers.New(params)
