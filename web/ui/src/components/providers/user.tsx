@@ -5,7 +5,7 @@ import client from "@/lib/client";
 import useAuthStore from "@/store/auth";
 import useWorkspacesStore from "@/store/workspace";
 import { AxiosError } from "axios";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -50,14 +50,22 @@ export default function UserProvider({
     const responseInterceptor = client.instance.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response && error.response.status === 401) {
-          logout();
-          clear();
-          setLoading(false); // Set loading to false before redirecting
-          router.push("/login");
+
+        if (error.response) {
+          if (error.response.status === 401) {
+            logout();
+            clear();
+            setLoading(false); // Set loading to false before redirecting
+            router.push("/login");
+          }
+
+          if (error.response.status === 402) {
+            router.push("/settings?tab=billing");
+          }
         }
+
         return Promise.reject(error);
-      },
+      }
     );
 
     client.user
@@ -73,6 +81,13 @@ export default function UserProvider({
         setLoading(false);
       })
       .catch((err: AxiosError<ServerAPIStatus>) => {
+
+        if (err?.response?.status === 402) {
+          setLoading(false)
+          router.push("/settings?tab=billing");
+          return
+        }
+
         toast.error(err?.response?.data?.message);
         logout();
         clear();

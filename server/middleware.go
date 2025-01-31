@@ -87,6 +87,13 @@ func requireWorkspaceValidSubscription(
 			ctx, span, _ := getTracer(r.Context(), r, "middleware.requireWorkspaceValidSubscription", cfg.Otel.IsEnabled)
 			defer span.End()
 
+			if r.URL.Path == "/workspaces/billing" ||
+				r.URL.Path == "/workspaces" ||
+				r.URL.Path == "/user" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			workspace := getWorkspaceFromContext(ctx)
 			if !workspace.IsSubscriptionActive {
 				_ = render.Render(w, r, newAPIStatus(http.StatusPaymentRequired,

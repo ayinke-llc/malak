@@ -140,7 +140,7 @@ func (u *updatesHandler) previewUpdate(
 
 		if errors.Is(err, malak.ErrCounterExhausted) {
 			msg = err.Error()
-			status = http.StatusPaymentRequired
+			status = http.StatusForbidden
 		}
 
 		logger.Error("could not create peview schedule update", zap.Error(err))
@@ -283,7 +283,7 @@ func (u *updatesHandler) sendUpdate(
 
 		if errors.Is(err, malak.ErrCounterExhausted) {
 			msg = err.Error()
-			status = http.StatusPaymentRequired
+			status = http.StatusForbidden
 		}
 
 		logger.Error("could not create peview schedule update", zap.Error(err))

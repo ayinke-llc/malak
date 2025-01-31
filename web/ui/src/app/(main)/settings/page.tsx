@@ -1,3 +1,5 @@
+"use client"
+
 import {
   Tabs, TabsList,
   TabsTrigger, TabsContent
@@ -5,8 +7,25 @@ import {
 import { GeneralSettings } from "./general";
 import Soon from "./soon";
 import { BillingPage } from "./billing";
+import { useSearchParams } from "next/navigation";
 
 export default function Settings() {
+
+  const searchParams = useSearchParams();
+
+  const getDefaultValue = (): string => {
+    const value = searchParams.get("tab")
+
+    if (!value) {
+      return "general"
+    }
+
+    if (["general", "billing", "team", "webhook", "api"].includes(value.toLowerCase())) {
+      return value.toLowerCase()
+    }
+
+    return "general"
+  }
 
   return (
     <>
@@ -31,7 +50,7 @@ export default function Settings() {
         </section>
 
         <section className="mt-10">
-          <Tabs defaultValue="general" className="space-y-6">
+          <Tabs defaultValue={getDefaultValue()} className="space-y-6">
             <TabsList className="w-full justify-start border-b pb-px mb-4">
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="billing">Billing</TabsTrigger>

@@ -16,7 +16,8 @@ import { ServerAPIStatus } from "@/client/Api"
 import { AxiosError } from "axios"
 import { toast } from "sonner"
 import useWorkspacesStore from "@/store/workspace"
-import { RiExternalLinkLine, RiMailSendLine } from "@remixicon/react"
+import { RiAlertLine, RiExternalLinkLine, RiMailSendLine } from "@remixicon/react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export function BillingPage() {
 
@@ -46,12 +47,26 @@ export function BillingPage() {
           <CardDescription>Manage your subscription and get support</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {!current?.is_subscription_active && (
+            <Alert variant="destructive">
+              <RiAlertLine className="h-4 w-4" />
+              <AlertTitle>No active subscription</AlertTitle>
+              <AlertDescription>
+                You currently don't have an active subscription. Subscribe to access premium features.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-4">
             <div className="flex flex-col space-y-2">
               <h3 className="text-lg font-semibold">Current Plan</h3>
               <p className="text-sm text-muted-foreground">
-                You are currently on the
-                <span className="font-semibold"> {current?.plan?.plan_name}  </span>plan.
+                {current?.is_subscription_active ? (
+                  <p>You are currently on the
+                    <span className="font-semibold"> {current?.plan?.plan_name}</span>plan.</p>
+                ) : (
+                  <span>You don't have an active subscription.</span>
+                )}
               </p>
             </div>
             <Separator className="mb-5" />
