@@ -151,16 +151,12 @@ func (t *WatermillClient) Close() error { return t.publisher.Close() }
 
 func (t *WatermillClient) createStripeCustomer(msg *message.Message) error {
 
-	if !t.cfg.Billing.IsEnabled {
-		return nil
-	}
-
-	var opts queue.BillingCreateCustomerOptions
-
 	ctx, span := tracer.Start(context.Background(),
 		"createStripeCustomer")
 
 	defer span.End()
+
+	var opts queue.BillingCreateCustomerOptions
 
 	if err := json.NewDecoder(bytes.NewBuffer(msg.Payload)).
 		Decode(&opts); err != nil {
@@ -171,6 +167,21 @@ func (t *WatermillClient) createStripeCustomer(msg *message.Message) error {
 		zap.String("workspace_id", opts.Workspace.ID.String()))
 
 	logger.Debug("creating stripe customer")
+
+	if !t.cfg.Billing.IsEnabled {
+
+		opts.Workspace.IsSubscriptionActive = true
+
+		if err := t.workspaceRepo.Update(ctx, opts.Workspace); err != nil {
+			logger.Error("could not update workspace with non stripe billing provider",
+				zap.Error(err))
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "could not update workspace")
+			return err
+		}
+
+		return nil
+	}
 
 	params := &billing.CreateCustomerOptions{
 		Email: opts.Email,
