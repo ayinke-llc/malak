@@ -211,12 +211,14 @@ func buildRoutes(
 
 		r.Route("/user", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
 			r.Get("/",
 				WrapMalakHTTPHandler(logger, auth.fetchCurrentUser, cfg, "Auth.fetchCurrentUser"))
 		})
 
 		r.Route("/workspaces", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
 
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, workspaceHandler.createWorkspace, cfg, "workspaces.new"))
@@ -278,6 +280,7 @@ func buildRoutes(
 
 		r.Route("/contacts", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, contactHandler.Create, cfg, "contacts.create"))
 
@@ -310,6 +313,7 @@ func buildRoutes(
 
 		r.Route("/decks", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
 
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, deckHandler.Create, cfg, "decks.add"))
