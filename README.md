@@ -32,6 +32,7 @@ Own full control of your data and company state if you decide to selfhost.
 - Redis
 - NextJS
 - Tailwind CSS
+- Stripe ( optional )
 
 ## FAQs
 
