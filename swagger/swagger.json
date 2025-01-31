@@ -770,11 +770,14 @@
 					"id": {
 						"type": "string"
 					},
+					"is_subscription_active": {
+						"type": "boolean"
+					},
 					"logo_url": {
 						"type": "string"
 					},
 					"metadata": {
-						"$ref": "#/components/schemas/malak.PlanMetadata"
+						"$ref": "#/components/schemas/malak.WorkspaceMetadata"
 					},
 					"plan": {
 						"$ref": "#/components/schemas/malak.Plan"
@@ -834,6 +837,9 @@
 						"type": "string"
 					}
 				},
+				"type": "object"
+			},
+			"malak.WorkspaceMetadata": {
 				"type": "object"
 			},
 			"server.APIStatus": {

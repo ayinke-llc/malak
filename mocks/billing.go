@@ -41,6 +41,21 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// AddPlanToCustomer mocks base method.
+func (m *MockClient) AddPlanToCustomer(arg0 context.Context, arg1 *billing.AddPlanToCustomerOptions) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddPlanToCustomer", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddPlanToCustomer indicates an expected call of AddPlanToCustomer.
+func (mr *MockClientMockRecorder) AddPlanToCustomer(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPlanToCustomer", reflect.TypeOf((*MockClient)(nil).AddPlanToCustomer), arg0, arg1)
+}
+
 // CreateCustomer mocks base method.
 func (m *MockClient) CreateCustomer(arg0 context.Context, arg1 *billing.CreateCustomerOptions) (string, error) {
 	m.ctrl.T.Helper()

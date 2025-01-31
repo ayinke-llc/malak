@@ -328,8 +328,9 @@ export interface MalakUserRole {
 export interface MalakWorkspace {
   created_at?: string;
   id?: string;
+  is_subscription_active?: boolean;
   logo_url?: string;
-  metadata?: MalakPlanMetadata;
+  metadata?: MalakWorkspaceMetadata;
   plan?: MalakPlan;
   plan_id?: string;
   reference?: string;
@@ -355,6 +356,8 @@ export interface MalakWorkspaceIntegration {
   updated_at?: string;
   workspace_id?: string;
 }
+
+export type MalakWorkspaceMetadata = object;
 
 export interface ServerAPIStatus {
   message: string;

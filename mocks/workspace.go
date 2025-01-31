@@ -85,6 +85,34 @@ func (mr *MockWorkspaceRepositoryMockRecorder) List(arg0, arg1 any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockWorkspaceRepository)(nil).List), arg0, arg1)
 }
 
+// MarkActive mocks base method.
+func (m *MockWorkspaceRepository) MarkActive(arg0 context.Context, arg1 *malak.Workspace) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MarkActive", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MarkActive indicates an expected call of MarkActive.
+func (mr *MockWorkspaceRepositoryMockRecorder) MarkActive(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkActive", reflect.TypeOf((*MockWorkspaceRepository)(nil).MarkActive), arg0, arg1)
+}
+
+// MarkInActive mocks base method.
+func (m *MockWorkspaceRepository) MarkInActive(arg0 context.Context, arg1 *malak.Workspace) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MarkInActive", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MarkInActive indicates an expected call of MarkInActive.
+func (mr *MockWorkspaceRepositoryMockRecorder) MarkInActive(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkInActive", reflect.TypeOf((*MockWorkspaceRepository)(nil).MarkInActive), arg0, arg1)
+}
+
 // Update mocks base method.
 func (m *MockWorkspaceRepository) Update(arg0 context.Context, arg1 *malak.Workspace) error {
 	m.ctrl.T.Helper()

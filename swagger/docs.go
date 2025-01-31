@@ -2974,11 +2974,14 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "is_subscription_active": {
+                    "type": "boolean"
+                },
                 "logo_url": {
                     "type": "string"
                 },
                 "metadata": {
-                    "$ref": "#/definitions/malak.PlanMetadata"
+                    "$ref": "#/definitions/malak.WorkspaceMetadata"
                 },
                 "plan": {
                     "$ref": "#/definitions/malak.Plan"
@@ -3038,6 +3041,9 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "malak.WorkspaceMetadata": {
+            "type": "object"
         },
         "server.APIStatus": {
             "type": "object",
