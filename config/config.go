@@ -70,13 +70,16 @@ type Config struct {
 
 	Billing struct {
 		Stripe struct {
-			APIKey string `yaml:"api_key" mapstructure:"api_key"`
+			APIKey        string `yaml:"api_key" mapstructure:"api_key"`
+			WebhookSecret string `yaml:"webhook_secret" mapstructure:"webhook_secret"`
 		} `yaml:"stripe" mapstructure:"stripe"`
 
 		// If stripe is not enabled, then fake ids can be used in the
 		// plans table really
 		// Ideally self hosted users will want to disable this
 		IsEnabled bool `yaml:"is_enabled" mapstructure:"is_enabled"`
+
+		TrialDays int64 `yaml:"trial_days" mapstructure:"trial_days"`
 
 		// Newly created workspaces will have this plan automatically
 		// applied upon creation
@@ -183,6 +186,10 @@ func (c *Config) Validate() error {
 
 	if !c.Email.Provider.IsValid() {
 		return errors.New("email provider is not currently supported")
+	}
+
+	if c.Billing.TrialDays < 0 {
+		return errors.New("trial days must be 0 or greater than 0")
 	}
 
 	return nil

@@ -814,14 +814,30 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags contacts
+     * @name DeleteContactList
+     * @summary delete a contact list
+     * @request DELETE:/contacts/lists/{reference}
+     */
+    deleteContactList: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/contacts/lists/${reference}`,
+        method: "DELETE",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags contacts
      * @name AddEmailToContactList
      * @summary add a new contact to a list
-     * @request DELETE:/contacts/lists/{reference}
+     * @request POST:/contacts/lists/{reference}
      */
     addEmailToContactList: (reference: string, data: ServerAddContactToListRequest, params: RequestParams = {}) =>
       this.request<ServerAPIStatus, ServerAPIStatus>({
         path: `/contacts/lists/${reference}`,
-        method: "DELETE",
+        method: "POST",
         body: data,
         type: ContentType.Json,
         format: "json",

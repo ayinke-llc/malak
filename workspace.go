@@ -12,6 +12,9 @@ var (
 	ErrWorkspaceNotFound = MalakError("workspace not found")
 )
 
+type WorkspaceMetadata struct {
+}
+
 type Workspace struct {
 	ID uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 
@@ -29,7 +32,7 @@ type Workspace struct {
 	PlanID uuid.UUID `json:"plan_id,omitempty"`
 	Plan   *Plan     `json:"plan,omitempty" bun:"rel:belongs-to,join:plan_id=id"`
 
-	Metadata PlanMetadata `json:"metadata,omitempty"`
+	Metadata WorkspaceMetadata `json:"metadata,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`
@@ -43,7 +46,7 @@ func NewWorkspace(name string, u *User,
 	return &Workspace{
 		WorkspaceName: name,
 		Reference:     reference,
-		Metadata:      plan.Metadata,
+		Metadata:      WorkspaceMetadata{},
 		PlanID:        plan.ID,
 	}
 }

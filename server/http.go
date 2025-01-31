@@ -166,6 +166,17 @@ func buildRoutes(
 		contactRepo:        contactRepo,
 	}
 
+	stripeHan := &stripeHandler{
+		user:            userRepo,
+		planRepo:        planRepo,
+		logger:          logger,
+		billingClient:   billingClient,
+		workRepo:        workspaceRepo,
+		preferencesRepo: preferenceRepo,
+		taskQueue:       queueHandler,
+		cfg:             cfg,
+	}
+
 	deckHandler := &deckHandler{
 		referenceGenerator: referenceGenerator,
 		deckRepo:           deckRepo,
@@ -185,6 +196,7 @@ func buildRoutes(
 
 	router.Route("/hooks", func(r chi.Router) {
 		r.Post("/resend", webhookHandler.handleResend(logger))
+		r.Post("/stripe", stripeHan.handleWebhook)
 	})
 
 	router.Route("/updates", func(r chi.Router) {
