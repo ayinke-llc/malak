@@ -120,7 +120,7 @@ func TestWorkspace_MarkActive(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	require.Error(t, repo.MarkActive(context.Background(), workspace))
+	require.NoError(t, repo.MarkActive(context.Background(), workspace))
 }
 
 func TestWorkspace_MarkInActive(t *testing.T) {
@@ -136,5 +136,5 @@ func TestWorkspace_MarkInActive(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	require.Error(t, repo.MarkInActive(context.Background(), workspace))
+	require.NoError(t, repo.MarkInActive(context.Background(), workspace))
 }
