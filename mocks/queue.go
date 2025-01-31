@@ -13,7 +13,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	queue "github.com/ayinke-llc/malak/internal/pkg/queue"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -42,7 +41,7 @@ func (m *MockQueueHandler) EXPECT() *MockQueueHandlerMockRecorder {
 }
 
 // Add mocks base method.
-func (m *MockQueueHandler) Add(arg0 context.Context, arg1 string, arg2 *queue.Message) error {
+func (m *MockQueueHandler) Add(arg0 context.Context, arg1 string, arg2 any) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Add", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)

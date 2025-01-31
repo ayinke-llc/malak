@@ -18,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	awsCreds "github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/pkg/cache/rediscache"
@@ -35,6 +36,8 @@ import (
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/sethvargo/go-limiter/noopstore"
 	"github.com/spf13/cobra"
+	"github.com/stripe/stripe-go/v81"
+	"github.com/stripe/stripe-go/v81/client"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
 )
@@ -147,8 +150,20 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 					zap.Error(err))
 			}
 
-			queueHandler, err := watermillqueue.New(redisClient, *cfg, logger,
-				emailClient, userRepo, workspaceRepo, updateRepo, contactRepo)
+			stripeLib := &client.API{}
+
+			config := &stripe.BackendConfig{
+				MaxNetworkRetries: stripe.Int64(0), // Zero retries
+			}
+
+			stripeLib.Init(cfg.Billing.Stripe.APIKey, &stripe.Backends{
+				API: stripe.GetBackendWithConfig(stripe.APIBackend, config),
+			})
+
+			queueHandler, err := watermillqueue.New(
+				redisClient, hermes.DeRef(cfg),
+				logger, emailClient, userRepo, workspaceRepo,
+				updateRepo, contactRepo, stripeLib)
 			if err != nil {
 				logger.Fatal("could not set up watermill queue", zap.Error(err))
 			}

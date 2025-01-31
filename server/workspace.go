@@ -11,6 +11,7 @@ import (
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -29,6 +30,7 @@ type workspaceHandler struct {
 	integrationRepo         malak.IntegrationRepository
 	referenceGenerationFunc func(e malak.EntityType) string
 	stripeClient            *client.API
+	queueClient             queue.QueueHandler
 }
 
 type createWorkspaceRequest struct {
@@ -106,6 +108,21 @@ func (wo *workspaceHandler) createWorkspace(
 			zap.String("plan_reference", wo.cfg.Billing.DefaultPlanReference))
 		return newAPIStatus(http.StatusInternalServerError,
 			"could not create workspace"), StatusFailed
+	}
+
+	opts := &queue.BillingCreateCustomerOptions{
+		Workspace: workspace,
+	}
+
+	if err := wo.queueClient.Add(ctx, queue.QueueTopicBillingCreateCustomer, opts); err != nil {
+		// aware of logic here. no error sent to client as
+		// 1. this would rarely fail
+		// 2. in the event, it fails, it is not a fatal error and can be sorted
+		// out by contacting support usually, or we can even make a slack bot/cli that fixes this
+		// 3. given 2, it's fine but if it comes up often, then we should fail
+		// the request instead
+		logger.Error("an error occurred while adding user to queue to create stripe customer",
+			zap.Error(err))
 	}
 
 	return fetchWorkspaceResponse{

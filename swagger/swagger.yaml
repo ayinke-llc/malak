@@ -236,6 +236,9 @@ components:
           type: string
       type: object
     malak.IntegrationMetadata:
+      properties:
+        endpoint:
+          type: string
       type: object
     malak.IntegrationType:
       enum:
@@ -252,18 +255,75 @@ components:
         password:
           type: string
       type: object
+    malak.Plan:
+      properties:
+        amount:
+          description: Defaults to zero
+          type: integer
+        created_at:
+          type: string
+        default_price_id:
+          description: Stripe default price id. Again not needed if not using Stripe
+          type: string
+        id:
+          type: string
+        is_default:
+          description: |-
+            IsDefault if this is the default plan for the user to get signed up to
+            on sign up
+
+            Better to keep this here than to use config
+          type: boolean
+        metadata:
+          $ref: '#/components/schemas/malak.PlanMetadata'
+        plan_name:
+          type: string
+        reference:
+          description: |-
+            Can use a fake id really
+            As this only matters if you turn on Stripe
+          type: string
+        updated_at:
+          type: string
+      type: object
     malak.PlanMetadata:
       properties:
+        dashboard:
+          properties:
+            embed_dashboard:
+              type: boolean
+            share_dashboard_via_link:
+              type: boolean
+          type: object
+        data_room:
+          properties:
+            share_via_link:
+              type: boolean
+            size:
+              type: integer
+          type: object
         deck:
           properties:
-            count:
+            auto_terminate_link:
+              type: boolean
+            custom_domain:
+              type: boolean
+          type: object
+        integrations:
+          properties:
+            available_for_use:
               type: integer
           type: object
         team:
           properties:
-            enabled:
-              type: boolean
             size:
+              type: integer
+          type: object
+        updates:
+          properties:
+            custom_domain:
+              type: boolean
+            max_recipients:
               type: integer
           type: object
       type: object
@@ -472,6 +532,8 @@ components:
           type: string
         metadata:
           $ref: '#/components/schemas/malak.PlanMetadata'
+        plan:
+          $ref: '#/components/schemas/malak.Plan'
         plan_id:
           type: string
         reference:

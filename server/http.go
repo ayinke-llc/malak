@@ -132,6 +132,7 @@ func buildRoutes(
 		preferenceRepo:          preferenceRepo,
 		integrationRepo:         integrationRepo,
 		referenceGenerationFunc: malak.GenerateReference,
+		queueClient:             queueHandler,
 	}
 
 	contactHandler := &contactHandler{

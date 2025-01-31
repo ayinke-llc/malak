@@ -2454,7 +2454,12 @@ const docTemplate = `{
             }
         },
         "malak.IntegrationMetadata": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "endpoint": {
+                    "type": "string"
+                }
+            }
         },
         "malak.IntegrationType": {
             "type": "string",
@@ -2478,13 +2483,82 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.Plan": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "Defaults to zero",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "default_price_id": {
+                    "description": "Stripe default price id. Again not needed if not using Stripe",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_default": {
+                    "description": "IsDefault if this is the default plan for the user to get signed up to\non sign up\n\nBetter to keep this here than to use config",
+                    "type": "boolean"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/malak.PlanMetadata"
+                },
+                "plan_name": {
+                    "type": "string"
+                },
+                "reference": {
+                    "description": "Can use a fake id really\nAs this only matters if you turn on Stripe",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.PlanMetadata": {
             "type": "object",
             "properties": {
+                "dashboard": {
+                    "type": "object",
+                    "properties": {
+                        "embed_dashboard": {
+                            "type": "boolean"
+                        },
+                        "share_dashboard_via_link": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "data_room": {
+                    "type": "object",
+                    "properties": {
+                        "share_via_link": {
+                            "type": "boolean"
+                        },
+                        "size": {
+                            "type": "integer"
+                        }
+                    }
+                },
                 "deck": {
                     "type": "object",
                     "properties": {
-                        "count": {
+                        "auto_terminate_link": {
+                            "type": "boolean"
+                        },
+                        "custom_domain": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "integrations": {
+                    "type": "object",
+                    "properties": {
+                        "available_for_use": {
                             "type": "integer"
                         }
                     }
@@ -2492,10 +2566,18 @@ const docTemplate = `{
                 "team": {
                     "type": "object",
                     "properties": {
-                        "enabled": {
+                        "size": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "updates": {
+                    "type": "object",
+                    "properties": {
+                        "custom_domain": {
                             "type": "boolean"
                         },
-                        "size": {
+                        "max_recipients": {
                             "type": "integer"
                         }
                     }
@@ -2797,6 +2879,9 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "$ref": "#/definitions/malak.PlanMetadata"
+                },
+                "plan": {
+                    "$ref": "#/definitions/malak.Plan"
                 },
                 "plan_id": {
                     "type": "string"
