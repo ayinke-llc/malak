@@ -131,3 +131,8 @@ type listIntegrationResponse struct {
 	Integrations []malak.WorkspaceIntegration `json:"integrations,omitempty" validate:"required"`
 	APIStatus
 }
+
+type fetchBillingPortalResponse struct {
+	Link string `json:"link,omitempty" validate:"required"`
+	APIStatus
+}

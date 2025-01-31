@@ -262,7 +262,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				userRepo, workspaceRepo, planRepo, contactRepo,
 				updateRepo, contactlistRepo, deckRepo, shareRepo,
 				preferenceRepo, integrationRepo, mid, gulterHandler,
-				queueHandler, redisCache)
+				queueHandler, redisCache, stripeLib)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {

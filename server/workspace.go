@@ -15,6 +15,7 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/stripe/stripe-go/v81"
 	"github.com/stripe/stripe-go/v81/client"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -422,5 +423,41 @@ func (wo *workspaceHandler) updatePreferences(
 	return &preferenceResponse{
 		Preferences: preferences,
 		APIStatus:   newAPIStatus(http.StatusOK, "workspace preferences updated"),
+	}, StatusSuccess
+}
+
+// @Summary get billing portal
+// @Tags billing
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} fetchBillingPortal
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/billing [post]
+func (wo *workspaceHandler) getBillingPortal(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("fetching billing portal")
+
+	workspace := getWorkspaceFromContext(ctx)
+
+	billingSession, err := wo.stripeClient.BillingPortalSessions.New(&stripe.BillingPortalSessionParams{
+		Customer: &workspace.StripeCustomerID,
+	})
+	if err != nil {
+		logger.Error("could not create billing portal", zap.Error(err))
+		return newAPIStatus(http.StatusFailedDependency, "could not create billing portal link"),
+			StatusFailed
+	}
+
+	return &fetchBillingPortalResponse{
+		APIStatus: newAPIStatus(http.StatusOK, "Billing portal link created"),
+		Link:      billingSession.URL,
 	}, StatusSuccess
 }

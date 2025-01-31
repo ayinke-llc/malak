@@ -1,6 +1,10 @@
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Tabs, TabsList,
+  TabsTrigger, TabsContent
+} from "@/components/ui/tabs";
 import { GeneralSettings } from "./general";
 import Soon from "./soon";
+import { BillingPage } from "./billing";
 
 export default function Settings() {
 
@@ -39,7 +43,7 @@ export default function Settings() {
               <GeneralSettings />
             </TabsContent>
             <TabsContent value="billing">
-              <Soon feature="billing" />
+              <BillingPage />
             </TabsContent>
             <TabsContent value="team">
               <Soon feature="your team" />

@@ -193,6 +193,8 @@ func (t *WatermillClient) createStripeCustomer(msg *message.Message) error {
 	if err := t.workspaceRepo.Update(ctx, opts.Workspace); err != nil {
 		logger.Error("could not update workspace with stripe customer id",
 			zap.Error(err))
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not update workspace")
 		return err
 	}
 

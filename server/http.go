@@ -18,6 +18,7 @@ import (
 	"github.com/riandyrn/otelchi"
 	"github.com/rs/cors"
 	"github.com/sethvargo/go-limiter/httplimit"
+	"github.com/stripe/stripe-go/v81/client"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"github.com/uptrace/bun"
 	"go.uber.org/zap"
@@ -41,7 +42,7 @@ func New(logger *zap.Logger,
 	mid *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
-	redisCache cache.Cache) (*http.Server, func()) {
+	redisCache cache.Cache, stripeClient *client.API) (*http.Server, func()) {
 
 	srv := &http.Server{
 		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
@@ -49,7 +50,7 @@ func New(logger *zap.Logger,
 			contactRepo, updateRepo, contactListRepo,
 			deckRepo, shareRepo, preferenceRepo, integrationRepo,
 			googleAuthProvider, mid, gulterHandler,
-			queueHandler, redisCache),
+			queueHandler, redisCache, stripeClient),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -97,6 +98,7 @@ func buildRoutes(
 	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
 	redisCache cache.Cache,
+	stripeClient *client.API,
 ) http.Handler {
 
 	if cfg.HTTP.Swagger.UIEnabled {
@@ -133,6 +135,7 @@ func buildRoutes(
 		integrationRepo:         integrationRepo,
 		referenceGenerationFunc: malak.GenerateReference,
 		queueClient:             queueHandler,
+		stripeClient:            stripeClient,
 	}
 
 	contactHandler := &contactHandler{
@@ -213,6 +216,9 @@ func buildRoutes(
 
 			r.Put("/preferences",
 				WrapMalakHTTPHandler(logger, workspaceHandler.updatePreferences, cfg, "workspaces.preferences.update"))
+
+			r.Post("/billing",
+				WrapMalakHTTPHandler(logger, workspaceHandler.getBillingPortal, cfg, "workspaces.billing.portal"))
 
 			r.Post("/{reference}",
 				WrapMalakHTTPHandler(logger, workspaceHandler.switchCurrentWorkspaceForUser, cfg, "workspaces.switch"))
