@@ -11,12 +11,11 @@ import (
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/billing"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/stripe/stripe-go/v81"
-	"github.com/stripe/stripe-go/v81/client"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -30,7 +29,7 @@ type workspaceHandler struct {
 	preferenceRepo          malak.PreferenceRepository
 	integrationRepo         malak.IntegrationRepository
 	referenceGenerationFunc func(e malak.EntityType) string
-	stripeClient            *client.API
+	billingClient           billing.Client
 	queueClient             queue.QueueHandler
 }
 
@@ -123,7 +122,7 @@ func (wo *workspaceHandler) createWorkspace(
 		// out by contacting support usually, or we can even make a slack bot/cli that fixes this
 		// 3. given 2, it's fine but if it comes up often, then we should fail
 		// the request instead
-		logger.Error("an error occurred while adding user to queue to create stripe customer",
+		logger.Error("an error occurred while adding user to queue to create billing customer",
 			zap.Error(err))
 	}
 
@@ -447,8 +446,8 @@ func (wo *workspaceHandler) getBillingPortal(
 
 	workspace := getWorkspaceFromContext(ctx)
 
-	billingSession, err := wo.stripeClient.BillingPortalSessions.New(&stripe.BillingPortalSessionParams{
-		Customer: &workspace.StripeCustomerID,
+	billingSessionURL, err := wo.billingClient.Portal(ctx, &billing.CreateBillingPortalOptions{
+		CustomerID: workspace.StripeCustomerID,
 	})
 	if err != nil {
 		logger.Error("could not create billing portal", zap.Error(err))
@@ -458,6 +457,6 @@ func (wo *workspaceHandler) getBillingPortal(
 
 	return &fetchBillingPortalResponse{
 		APIStatus: newAPIStatus(http.StatusOK, "Billing portal link created"),
-		Link:      billingSession.URL,
+		Link:      billingSessionURL,
 	}, StatusSuccess
 }

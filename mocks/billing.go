@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	billing "github.com/ayinke-llc/malak/internal/pkg/billing"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -41,31 +42,31 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // CreateCustomer mocks base method.
-func (m *MockClient) CreateCustomer(arg0 context.Context) (string, error) {
+func (m *MockClient) CreateCustomer(arg0 context.Context, arg1 *billing.CreateCustomerOptions) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateCustomer", arg0)
+	ret := m.ctrl.Call(m, "CreateCustomer", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateCustomer indicates an expected call of CreateCustomer.
-func (mr *MockClientMockRecorder) CreateCustomer(arg0 any) *gomock.Call {
+func (mr *MockClientMockRecorder) CreateCustomer(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCustomer", reflect.TypeOf((*MockClient)(nil).CreateCustomer), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCustomer", reflect.TypeOf((*MockClient)(nil).CreateCustomer), arg0, arg1)
 }
 
 // Portal mocks base method.
-func (m *MockClient) Portal(arg0 context.Context) (string, error) {
+func (m *MockClient) Portal(arg0 context.Context, arg1 *billing.CreateBillingPortalOptions) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Portal", arg0)
+	ret := m.ctrl.Call(m, "Portal", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Portal indicates an expected call of Portal.
-func (mr *MockClientMockRecorder) Portal(arg0 any) *gomock.Call {
+func (mr *MockClientMockRecorder) Portal(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Portal", reflect.TypeOf((*MockClient)(nil).Portal), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Portal", reflect.TypeOf((*MockClient)(nil).Portal), arg0, arg1)
 }

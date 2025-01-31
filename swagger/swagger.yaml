@@ -1260,6 +1260,49 @@ paths:
       - contacts
   /contacts/lists/{reference}:
     delete:
+      operationId: deleteContactList
+      parameters:
+      - description: list unique reference.. e.g list_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: delete a contact list
+      tags:
+      - contacts
+    post:
       operationId: addEmailToContactList
       parameters:
       - description: list unique reference.. e.g list_

@@ -11,17 +11,15 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
-	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/billing"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	wotelfloss "github.com/dentech-floss/watermill-opentelemetry-go-extra/pkg/opentelemetry"
 	"github.com/garsue/watermillzap"
 	"github.com/google/uuid"
 	redis "github.com/redis/go-redis/v9"
-	"github.com/stripe/stripe-go/v81"
-	"github.com/stripe/stripe-go/v81/client"
 	wotel "github.com/voi-oss/watermill-opentelemetry/pkg/opentelemetry"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
@@ -42,7 +40,7 @@ type WatermillClient struct {
 	contactRepo   malak.ContactRepository
 	cfg           config.Config
 	emailClient   email.Client
-	stripeClient  *client.API
+	billingClient billing.Client
 }
 
 func New(redisClient *redis.Client,
@@ -53,7 +51,7 @@ func New(redisClient *redis.Client,
 	workspaceRepo malak.WorkspaceRepository,
 	updateRepo malak.UpdateRepository,
 	contactRepo malak.ContactRepository,
-	stripeClient *client.API) (queue.QueueHandler, error) {
+	billingClient billing.Client) (queue.QueueHandler, error) {
 
 	p, err := redisstream.NewPublisher(
 		redisstream.PublisherConfig{
@@ -119,7 +117,7 @@ func New(redisClient *redis.Client,
 		updateRepo:    updateRepo,
 		contactRepo:   contactRepo,
 		emailClient:   emailClient,
-		stripeClient:  stripeClient,
+		billingClient: billingClient,
 	}
 
 	t.setUpRoutes(router, subscriber)
@@ -174,12 +172,12 @@ func (t *WatermillClient) createStripeCustomer(msg *message.Message) error {
 
 	logger.Debug("creating stripe customer")
 
-	params := &stripe.CustomerParams{
-		Name:  hermes.Ref(opts.Workspace.WorkspaceName),
-		Email: hermes.Ref(opts.Email.String()),
+	params := &billing.CreateCustomerOptions{
+		Email: opts.Email,
+		Name:  opts.Workspace.WorkspaceName,
 	}
 
-	customer, err := t.stripeClient.Customers.New(params)
+	customerID, err := t.billingClient.CreateCustomer(ctx, params)
 	if err != nil {
 		logger.Error("could not create new customer for this workspace",
 			zap.Error(err))
@@ -189,7 +187,7 @@ func (t *WatermillClient) createStripeCustomer(msg *message.Message) error {
 		return err
 	}
 
-	opts.Workspace.StripeCustomerID = customer.ID
+	opts.Workspace.StripeCustomerID = customerID
 	if err := t.workspaceRepo.Update(ctx, opts.Workspace); err != nil {
 		logger.Error("could not update workspace with stripe customer id",
 			zap.Error(err))

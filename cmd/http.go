@@ -21,6 +21,7 @@ import (
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
+	"github.com/ayinke-llc/malak/internal/pkg/billing/stripe"
 	"github.com/ayinke-llc/malak/internal/pkg/cache/rediscache"
 	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
@@ -36,8 +37,6 @@ import (
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/sethvargo/go-limiter/noopstore"
 	"github.com/spf13/cobra"
-	"github.com/stripe/stripe-go/v81"
-	"github.com/stripe/stripe-go/v81/client"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
 )
@@ -150,20 +149,16 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 					zap.Error(err))
 			}
 
-			stripeLib := &client.API{}
-
-			config := &stripe.BackendConfig{
-				MaxNetworkRetries: stripe.Int64(0), // Zero retries
+			billingClient, err := stripe.New(hermes.DeRef(cfg))
+			if err != nil {
+				logger.Fatal("could not set up stripe client",
+					zap.Error(err))
 			}
-
-			stripeLib.Init(cfg.Billing.Stripe.APIKey, &stripe.Backends{
-				API: stripe.GetBackendWithConfig(stripe.APIBackend, config),
-			})
 
 			queueHandler, err := watermillqueue.New(
 				redisClient, hermes.DeRef(cfg),
 				logger, emailClient, userRepo, workspaceRepo,
-				updateRepo, contactRepo, stripeLib)
+				updateRepo, contactRepo, billingClient)
 			if err != nil {
 				logger.Fatal("could not set up watermill queue", zap.Error(err))
 			}
@@ -262,7 +257,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				userRepo, workspaceRepo, planRepo, contactRepo,
 				updateRepo, contactlistRepo, deckRepo, shareRepo,
 				preferenceRepo, integrationRepo, mid, gulterHandler,
-				queueHandler, redisCache, stripeLib)
+				queueHandler, redisCache, billingClient)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {
