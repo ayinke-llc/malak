@@ -706,7 +706,7 @@ func generateUpdateTestTable() []struct {
 					"oops@oops.com",
 				},
 			},
-			expectedStatusCode: http.StatusPaymentRequired,
+			expectedStatusCode: http.StatusForbidden,
 		},
 		{
 			name: "successful update sending",

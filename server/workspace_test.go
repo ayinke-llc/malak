@@ -19,6 +19,9 @@ import (
 	"go.uber.org/zap"
 )
 
+var workspaceID = uuid.MustParse("8ce0f580-4d6d-429e-9d0e-a78eb99f62c2")
+var _ = uuid.MustParse("8ce0f580-4d6d-429e-9d0e-a78eb99f62c2")
+
 func getLogger(t *testing.T) *zap.Logger {
 
 	logger, err := zap.NewDevelopment()
@@ -29,8 +32,6 @@ func getLogger(t *testing.T) *zap.Logger {
 
 func TestWorkspaceHandler_SwitchWorkspace(t *testing.T) {
 
-	workspaceID := uuid.MustParse("8ce0f580-4d6d-429e-9d0e-a78eb99f62c2")
-
 	for _, v := range generateWorkspaceSwitchTable() {
 
 		t.Run(v.name, func(t *testing.T) {
@@ -40,6 +41,7 @@ func TestWorkspaceHandler_SwitchWorkspace(t *testing.T) {
 
 			workspaceRepo := malak_mocks.NewMockWorkspaceRepository(controller)
 			userRepo := malak_mocks.NewMockUserRepository(controller)
+			queueRepo := malak_mocks.NewMockQueueHandler(controller)
 
 			v.mockFn(workspaceRepo, userRepo)
 
@@ -47,6 +49,7 @@ func TestWorkspaceHandler_SwitchWorkspace(t *testing.T) {
 				cfg:           getConfig(),
 				workspaceRepo: workspaceRepo,
 				userRepo:      userRepo,
+				queueClient:   queueRepo,
 				referenceGenerationFunc: func(e malak.EntityType) string {
 					return "workspace_tt7-YieIgz"
 				},
@@ -156,13 +159,15 @@ func TestWorkspaceHandler_Create(t *testing.T) {
 
 			workspaceRepo := malak_mocks.NewMockWorkspaceRepository(controller)
 			planRepo := malak_mocks.NewMockPlanRepository(controller)
+			queueRepo := malak_mocks.NewMockQueueHandler(controller)
 
-			v.mockFn(workspaceRepo, planRepo)
+			v.mockFn(workspaceRepo, planRepo, queueRepo)
 
 			a := &workspaceHandler{
 				cfg:           getConfig(),
 				workspaceRepo: workspaceRepo,
 				planRepo:      planRepo,
+				queueClient:   queueRepo,
 				referenceGenerationFunc: func(e malak.EntityType) string {
 					return "workspace_tt7-YieIgz"
 				},
@@ -198,6 +203,7 @@ func TestWorkspaceHandler_Update(t *testing.T) {
 
 			workspaceRepo := malak_mocks.NewMockWorkspaceRepository(controller)
 			planRepo := malak_mocks.NewMockPlanRepository(controller)
+			queueRepo := malak_mocks.NewMockQueueHandler(controller)
 
 			v.mockFn(workspaceRepo, planRepo)
 
@@ -205,6 +211,7 @@ func TestWorkspaceHandler_Update(t *testing.T) {
 				cfg:           getConfig(),
 				workspaceRepo: workspaceRepo,
 				planRepo:      planRepo,
+				queueClient:   queueRepo,
 				referenceGenerationFunc: func(e malak.EntityType) string {
 					return "workspace_tt7-YieIgz"
 				},
@@ -240,12 +247,14 @@ func TestWorkspaceHandler_GetPreferences(t *testing.T) {
 			defer controller.Finish()
 
 			prefRepo := malak_mocks.NewMockPreferenceRepository(controller)
+			queueRepo := malak_mocks.NewMockQueueHandler(controller)
 
 			v.mockFn(prefRepo)
 
 			a := &workspaceHandler{
 				cfg:            getConfig(),
 				preferenceRepo: prefRepo,
+				queueClient:    queueRepo,
 				referenceGenerationFunc: func(e malak.EntityType) string {
 					return "workspace_tt7-YieIgz"
 				},
@@ -280,12 +289,14 @@ func TestWorkspaceHandler_UpdatePreferences(t *testing.T) {
 			defer controller.Finish()
 
 			prefRepo := malak_mocks.NewMockPreferenceRepository(controller)
+			queueRepo := malak_mocks.NewMockQueueHandler(controller)
 
 			v.mockFn(prefRepo)
 
 			a := &workspaceHandler{
 				cfg:            getConfig(),
 				preferenceRepo: prefRepo,
+				queueClient:    queueRepo,
 				referenceGenerationFunc: func(e malak.EntityType) string {
 					return "workspace_tt7-YieIgz"
 				},
@@ -322,11 +333,13 @@ func TestWorkspaceHandler_getIntegrations(t *testing.T) {
 			defer controller.Finish()
 
 			integrationRepo := malak_mocks.NewMockIntegrationRepository(controller)
+			queueRepo := malak_mocks.NewMockQueueHandler(controller)
 
 			v.mockFn(integrationRepo)
 
 			a := &workspaceHandler{
 				cfg:             getConfig(),
+				queueClient:     queueRepo,
 				integrationRepo: integrationRepo,
 				referenceGenerationFunc: func(e malak.EntityType) string {
 					return "workspace_tt7-YieIgz"
@@ -352,6 +365,89 @@ func TestWorkspaceHandler_getIntegrations(t *testing.T) {
 			require.Equal(t, v.expectedStatusCode, rr.Code)
 			verifyMatch(t, rr)
 		})
+	}
+}
+
+func TestWorkspaceHandler_getBillingPortal(t *testing.T) {
+	for _, v := range generateWorkspaceGetBillingPortalTestTable() {
+
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			integrationRepo := malak_mocks.NewMockIntegrationRepository(controller)
+			queueRepo := malak_mocks.NewMockQueueHandler(controller)
+			billingClient := malak_mocks.NewMockClient(controller)
+
+			v.mockFn(billingClient)
+
+			a := &workspaceHandler{
+				cfg:             getConfig(),
+				queueClient:     queueRepo,
+				integrationRepo: integrationRepo,
+				billingClient:   billingClient,
+				referenceGenerationFunc: func(e malak.EntityType) string {
+					return "workspace_tt7-YieIgz"
+				},
+			}
+
+			var b = bytes.NewBuffer(nil)
+
+			require.NoError(t, json.NewEncoder(b).Encode(&v.req))
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/", b)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			WrapMalakHTTPHandler(getLogger(t),
+				a.getBillingPortal, getConfig(), "workspaces.list.billing").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateWorkspaceGetBillingPortalTestTable() []struct {
+	name               string
+	mockFn             func(billingClient *malak_mocks.MockClient)
+	expectedStatusCode int
+	req                updatePreferencesRequest
+} {
+
+	return []struct {
+		name               string
+		mockFn             func(billingClient *malak_mocks.MockClient)
+		expectedStatusCode int
+		req                updatePreferencesRequest
+	}{
+		{
+			name: "could not fetch billing portal url",
+			mockFn: func(billingClient *malak_mocks.MockClient) {
+				billingClient.EXPECT().
+					Portal(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return("", errors.New("failed"))
+
+			},
+			expectedStatusCode: http.StatusFailedDependency,
+		},
+		{
+			name: "fectched billing portal successfully",
+			mockFn: func(billingClient *malak_mocks.MockClient) {
+				billingClient.EXPECT().
+					Portal(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return("https://stripe.com", nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
 	}
 }
 
@@ -601,20 +697,20 @@ func generateWorkspaceUpdateTestTable() []struct {
 
 func generateWorkspaceTestTable() []struct {
 	name               string
-	mockFn             func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository)
+	mockFn             func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository, queueRepo *malak_mocks.MockQueueHandler)
 	expectedStatusCode int
 	req                createWorkspaceRequest
 } {
 
 	return []struct {
 		name               string
-		mockFn             func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository)
+		mockFn             func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository, queueRepo *malak_mocks.MockQueueHandler)
 		expectedStatusCode int
 		req                createWorkspaceRequest
 	}{
 		{
 			name: "no name provided",
-			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository) {
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository, queueRepo *malak_mocks.MockQueueHandler) {
 
 			},
 			expectedStatusCode: http.StatusBadRequest,
@@ -624,7 +720,7 @@ func generateWorkspaceTestTable() []struct {
 		},
 		{
 			name: "invalid name provided",
-			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository) {
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository, queueRepo *malak_mocks.MockQueueHandler) {
 
 			},
 			expectedStatusCode: http.StatusBadRequest,
@@ -634,7 +730,7 @@ func generateWorkspaceTestTable() []struct {
 		},
 		{
 			name: "could not fetch plan",
-			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository) {
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository, queueRepo *malak_mocks.MockQueueHandler) {
 				planRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil, errors.New("could not fetch plan"))
@@ -646,7 +742,7 @@ func generateWorkspaceTestTable() []struct {
 		},
 		{
 			name: "could not create workspace",
-			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository) {
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository, queueRepo *malak_mocks.MockQueueHandler) {
 				planRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(&malak.Plan{}, nil)
@@ -661,8 +757,34 @@ func generateWorkspaceTestTable() []struct {
 			},
 		},
 		{
+			name: "created workspace but queue error",
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository, queueRepo *malak_mocks.MockQueueHandler) {
+				queueRepo.EXPECT().
+					Add(gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(errors.New("COUld not add to queue"))
+
+				planRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Plan{}, nil)
+
+				workspaceRepo.EXPECT().Create(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusCreated,
+			req: createWorkspaceRequest{
+				Name: "workspance name",
+			},
+		},
+		{
 			name: "created workspace",
-			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository) {
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository, queueRepo *malak_mocks.MockQueueHandler) {
+				queueRepo.EXPECT().
+					Add(gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+
 				planRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(&malak.Plan{}, nil)

@@ -236,6 +236,9 @@ components:
           type: string
       type: object
     malak.IntegrationMetadata:
+      properties:
+        endpoint:
+          type: string
       type: object
     malak.IntegrationType:
       enum:
@@ -252,18 +255,75 @@ components:
         password:
           type: string
       type: object
+    malak.Plan:
+      properties:
+        amount:
+          description: Defaults to zero
+          type: integer
+        created_at:
+          type: string
+        default_price_id:
+          description: Stripe default price id. Again not needed if not using Stripe
+          type: string
+        id:
+          type: string
+        is_default:
+          description: |-
+            IsDefault if this is the default plan for the user to get signed up to
+            on sign up
+
+            Better to keep this here than to use config
+          type: boolean
+        metadata:
+          $ref: '#/components/schemas/malak.PlanMetadata'
+        plan_name:
+          type: string
+        reference:
+          description: |-
+            Can use a fake id really
+            As this only matters if you turn on Stripe
+          type: string
+        updated_at:
+          type: string
+      type: object
     malak.PlanMetadata:
       properties:
+        dashboard:
+          properties:
+            embed_dashboard:
+              type: boolean
+            share_dashboard_via_link:
+              type: boolean
+          type: object
+        data_room:
+          properties:
+            share_via_link:
+              type: boolean
+            size:
+              type: integer
+          type: object
         deck:
           properties:
-            count:
+            auto_terminate_link:
+              type: boolean
+            custom_domain:
+              type: boolean
+          type: object
+        integrations:
+          properties:
+            available_for_use:
               type: integer
           type: object
         team:
           properties:
-            enabled:
-              type: boolean
             size:
+              type: integer
+          type: object
+        updates:
+          properties:
+            custom_domain:
+              type: boolean
+            max_recipients:
               type: integer
           type: object
       type: object
@@ -468,10 +528,14 @@ components:
           type: string
         id:
           type: string
+        is_subscription_active:
+          type: boolean
         logo_url:
           type: string
         metadata:
-          $ref: '#/components/schemas/malak.PlanMetadata'
+          $ref: '#/components/schemas/malak.WorkspaceMetadata'
+        plan:
+          $ref: '#/components/schemas/malak.Plan'
         plan_id:
           type: string
         reference:
@@ -510,6 +574,8 @@ components:
           type: string
         workspace_id:
           type: string
+      type: object
+    malak.WorkspaceMetadata:
       type: object
     server.APIStatus:
       properties:
@@ -606,6 +672,16 @@ components:
       - token
       - user
       - workspaces
+      type: object
+    server.fetchBillingPortalResponse:
+      properties:
+        link:
+          type: string
+        message:
+          type: string
+      required:
+      - link
+      - message
       type: object
     server.fetchContactListResponse:
       properties:
@@ -1188,6 +1264,49 @@ paths:
       - contacts
   /contacts/lists/{reference}:
     delete:
+      operationId: deleteContactList
+      parameters:
+      - description: list unique reference.. e.g list_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: delete a contact list
+      tags:
+      - contacts
+    post:
       operationId: addEmailToContactList
       parameters:
       - description: list unique reference.. e.g list_
@@ -1910,6 +2029,42 @@ paths:
       summary: Switch current workspace
       tags:
       - workspace
+  /workspaces/billing:
+    post:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchBillingPortalResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: get billing portal
+      tags:
+      - billing
   /workspaces/integrations:
     get:
       responses:

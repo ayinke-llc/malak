@@ -69,3 +69,55 @@ func (mr *MockIntegrationRepositoryMockRecorder) List(arg0, arg1 any) *gomock.Ca
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockIntegrationRepository)(nil).List), arg0, arg1)
 }
+
+// MockIntegrationProvider is a mock of IntegrationProvider interface.
+type MockIntegrationProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockIntegrationProviderMockRecorder
+	isgomock struct{}
+}
+
+// MockIntegrationProviderMockRecorder is the mock recorder for MockIntegrationProvider.
+type MockIntegrationProviderMockRecorder struct {
+	mock *MockIntegrationProvider
+}
+
+// NewMockIntegrationProvider creates a new mock instance.
+func NewMockIntegrationProvider(ctrl *gomock.Controller) *MockIntegrationProvider {
+	mock := &MockIntegrationProvider{ctrl: ctrl}
+	mock.recorder = &MockIntegrationProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockIntegrationProvider) EXPECT() *MockIntegrationProviderMockRecorder {
+	return m.recorder
+}
+
+// Close mocks base method.
+func (m *MockIntegrationProvider) Close() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Close")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Close indicates an expected call of Close.
+func (mr *MockIntegrationProviderMockRecorder) Close() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockIntegrationProvider)(nil).Close))
+}
+
+// Name mocks base method.
+func (m *MockIntegrationProvider) Name() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Name")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Name indicates an expected call of Name.
+func (mr *MockIntegrationProviderMockRecorder) Name() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Name", reflect.TypeOf((*MockIntegrationProvider)(nil).Name))
+}

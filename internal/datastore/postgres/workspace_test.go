@@ -106,3 +106,35 @@ func TestWorkspace_List(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, workspaces, 2)
 }
+
+func TestWorkspace_MarkActive(t *testing.T) {
+
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	repo := NewWorkspaceRepository(client)
+
+	// from workspaces.yml migration
+	workspace, err := repo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, repo.MarkActive(context.Background(), workspace))
+}
+
+func TestWorkspace_MarkInActive(t *testing.T) {
+
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	repo := NewWorkspaceRepository(client)
+
+	// from workspaces.yml migration
+	workspace, err := repo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, repo.MarkInActive(context.Background(), workspace))
+}

@@ -407,7 +407,7 @@ func (c *addContactToListRequest) Validate() error {
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /contacts/lists/{reference} [delete]
+// @Router /contacts/lists/{reference} [post]
 func (c *contactHandler) addUserToContactList(
 	ctx context.Context,
 	span trace.Span,

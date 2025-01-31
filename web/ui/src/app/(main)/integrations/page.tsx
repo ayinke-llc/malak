@@ -39,7 +39,7 @@ export default function Integrations() {
       case MalakIntegrationType.IntegrationTypeOauth2:
         return <Badge variant="default">OAuth2</Badge>
       case MalakIntegrationType.IntegrationTypeApiKey:
-        return <Badge variant="secondary">API Key</Badge>
+        return <Badge variant="default">API Key</Badge>
     }
   }
 

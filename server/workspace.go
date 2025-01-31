@@ -11,6 +11,8 @@ import (
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/billing"
+	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -27,6 +29,8 @@ type workspaceHandler struct {
 	preferenceRepo          malak.PreferenceRepository
 	integrationRepo         malak.IntegrationRepository
 	referenceGenerationFunc func(e malak.EntityType) string
+	billingClient           billing.Client
+	queueClient             queue.QueueHandler
 }
 
 type createWorkspaceRequest struct {
@@ -104,6 +108,22 @@ func (wo *workspaceHandler) createWorkspace(
 			zap.String("plan_reference", wo.cfg.Billing.DefaultPlanReference))
 		return newAPIStatus(http.StatusInternalServerError,
 			"could not create workspace"), StatusFailed
+	}
+
+	opts := &queue.BillingCreateCustomerOptions{
+		Workspace: workspace,
+		Email:     user.Email,
+	}
+
+	if err := wo.queueClient.Add(ctx, queue.QueueTopicBillingCreateCustomer, opts); err != nil {
+		// aware of logic here. no error sent to client as
+		// 1. this would rarely fail
+		// 2. in the event, it fails, it is not a fatal error and can be sorted
+		// out by contacting support usually, or we can even make a slack bot/cli that fixes this
+		// 3. given 2, it's fine but if it comes up often, then we should fail
+		// the request instead
+		logger.Error("an error occurred while adding user to queue to create billing customer",
+			zap.Error(err))
 	}
 
 	return fetchWorkspaceResponse{
@@ -402,5 +422,41 @@ func (wo *workspaceHandler) updatePreferences(
 	return &preferenceResponse{
 		Preferences: preferences,
 		APIStatus:   newAPIStatus(http.StatusOK, "workspace preferences updated"),
+	}, StatusSuccess
+}
+
+// @Summary get billing portal
+// @Tags billing
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} fetchBillingPortalResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/billing [post]
+func (wo *workspaceHandler) getBillingPortal(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("fetching billing portal")
+
+	workspace := getWorkspaceFromContext(ctx)
+
+	billingSessionURL, err := wo.billingClient.Portal(ctx, &billing.CreateBillingPortalOptions{
+		CustomerID: workspace.StripeCustomerID,
+	})
+	if err != nil {
+		logger.Error("could not create billing portal", zap.Error(err))
+		return newAPIStatus(http.StatusFailedDependency, "could not create billing portal link"),
+			StatusFailed
+	}
+
+	return &fetchBillingPortalResponse{
+		APIStatus: newAPIStatus(http.StatusOK, "Billing portal link created"),
+		Link:      billingSessionURL,
 	}, StatusSuccess
 }

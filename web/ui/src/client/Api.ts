@@ -146,7 +146,9 @@ export interface MalakIntegration {
   updated_at?: string;
 }
 
-export type MalakIntegrationMetadata = object;
+export interface MalakIntegrationMetadata {
+  endpoint?: string;
+}
 
 export enum MalakIntegrationType {
   IntegrationTypeOauth2 = "oauth2",
@@ -158,13 +160,52 @@ export interface MalakPasswordDeckPreferences {
   password?: string;
 }
 
+export interface MalakPlan {
+  /** Defaults to zero */
+  amount?: number;
+  created_at?: string;
+  /** Stripe default price id. Again not needed if not using Stripe */
+  default_price_id?: string;
+  id?: string;
+  /**
+   * IsDefault if this is the default plan for the user to get signed up to
+   * on sign up
+   *
+   * Better to keep this here than to use config
+   */
+  is_default?: boolean;
+  metadata?: MalakPlanMetadata;
+  plan_name?: string;
+  /**
+   * Can use a fake id really
+   * As this only matters if you turn on Stripe
+   */
+  reference?: string;
+  updated_at?: string;
+}
+
 export interface MalakPlanMetadata {
+  dashboard?: {
+    embed_dashboard?: boolean;
+    share_dashboard_via_link?: boolean;
+  };
+  data_room?: {
+    share_via_link?: boolean;
+    size?: number;
+  };
   deck?: {
-    count?: number;
+    auto_terminate_link?: boolean;
+    custom_domain?: boolean;
+  };
+  integrations?: {
+    available_for_use?: number;
   };
   team?: {
-    enabled?: boolean;
     size?: number;
+  };
+  updates?: {
+    custom_domain?: boolean;
+    max_recipients?: number;
   };
 }
 
@@ -287,8 +328,10 @@ export interface MalakUserRole {
 export interface MalakWorkspace {
   created_at?: string;
   id?: string;
+  is_subscription_active?: boolean;
   logo_url?: string;
-  metadata?: MalakPlanMetadata;
+  metadata?: MalakWorkspaceMetadata;
+  plan?: MalakPlan;
   plan_id?: string;
   reference?: string;
   /**
@@ -313,6 +356,8 @@ export interface MalakWorkspaceIntegration {
   updated_at?: string;
   workspace_id?: string;
 }
+
+export type MalakWorkspaceMetadata = object;
 
 export interface ServerAPIStatus {
   message: string;
@@ -365,6 +410,11 @@ export interface ServerCreatedUserResponse {
   token: string;
   user: MalakUser;
   workspaces: MalakWorkspace[];
+}
+
+export interface ServerFetchBillingPortalResponse {
+  link: string;
+  message: string;
 }
 
 export interface ServerFetchContactListResponse {
@@ -767,14 +817,30 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags contacts
+     * @name DeleteContactList
+     * @summary delete a contact list
+     * @request DELETE:/contacts/lists/{reference}
+     */
+    deleteContactList: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/contacts/lists/${reference}`,
+        method: "DELETE",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags contacts
      * @name AddEmailToContactList
      * @summary add a new contact to a list
-     * @request DELETE:/contacts/lists/{reference}
+     * @request POST:/contacts/lists/{reference}
      */
     addEmailToContactList: (reference: string, data: ServerAddContactToListRequest, params: RequestParams = {}) =>
       this.request<ServerAPIStatus, ServerAPIStatus>({
         path: `/contacts/lists/${reference}`,
-        method: "DELETE",
+        method: "POST",
         body: data,
         type: ContentType.Json,
         format: "json",
@@ -1062,6 +1128,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     switchworkspace: (reference: string, params: RequestParams = {}) =>
       this.request<ServerFetchWorkspaceResponse, ServerAPIStatus>({
         path: `/workspaces/${reference}`,
+        method: "POST",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags billing
+     * @name BillingCreate
+     * @summary get billing portal
+     * @request POST:/workspaces/billing
+     */
+    billingCreate: (params: RequestParams = {}) =>
+      this.request<ServerFetchBillingPortalResponse, ServerAPIStatus>({
+        path: `/workspaces/billing`,
         method: "POST",
         format: "json",
         ...params,

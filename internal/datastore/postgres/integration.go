@@ -74,6 +74,7 @@ func (i *integrationRepo) List(ctx context.Context,
 	return integrations, i.inner.NewSelect().
 		Model(&integrations).
 		Where("workspace_id = ?", workspace.ID).
+		Order("created_at ASC").
 		Relation("Integration").
 		Scan(ctx)
 }

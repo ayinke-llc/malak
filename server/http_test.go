@@ -43,7 +43,9 @@ func TestServer_New(t *testing.T) {
 			&httplimit.Middleware{},
 			&gulter.Gulter{},
 			malak_mocks.NewMockQueueHandler(controller),
-			malak_mocks.NewMockCache(controller))
+			malak_mocks.NewMockCache(controller),
+			malak_mocks.NewMockClient(controller),
+		)
 
 		closeFn()
 
@@ -81,7 +83,8 @@ func TestServer_New(t *testing.T) {
 			&httplimit.Middleware{},
 			&gulter.Gulter{},
 			malak_mocks.NewMockQueueHandler(controller),
-			malak_mocks.NewMockCache(controller))
+			malak_mocks.NewMockCache(controller),
+			malak_mocks.NewMockClient(controller))
 
 		closeFn()
 

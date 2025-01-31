@@ -372,7 +372,7 @@ const docTemplate = `{
                     }
                 }
             },
-            "delete": {
+            "post": {
                 "consumes": [
                     "application/json"
                 ],
@@ -394,6 +394,60 @@ const docTemplate = `{
                             "$ref": "#/definitions/server.addContactToListRequest"
                         }
                     },
+                    {
+                        "type": "string",
+                        "description": "list unique reference.. e.g list_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "delete a contact list",
+                "operationId": "deleteContactList",
+                "parameters": [
                     {
                         "type": "string",
                         "description": "list unique reference.. e.g list_",
@@ -1234,6 +1288,52 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/server.fetchWorkspaceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/workspaces/billing": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billing"
+                ],
+                "summary": "get billing portal",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchBillingPortalResponse"
                         }
                     },
                     "400": {
@@ -2454,7 +2554,12 @@ const docTemplate = `{
             }
         },
         "malak.IntegrationMetadata": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "endpoint": {
+                    "type": "string"
+                }
+            }
         },
         "malak.IntegrationType": {
             "type": "string",
@@ -2478,13 +2583,82 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.Plan": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "Defaults to zero",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "default_price_id": {
+                    "description": "Stripe default price id. Again not needed if not using Stripe",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_default": {
+                    "description": "IsDefault if this is the default plan for the user to get signed up to\non sign up\n\nBetter to keep this here than to use config",
+                    "type": "boolean"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/malak.PlanMetadata"
+                },
+                "plan_name": {
+                    "type": "string"
+                },
+                "reference": {
+                    "description": "Can use a fake id really\nAs this only matters if you turn on Stripe",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.PlanMetadata": {
             "type": "object",
             "properties": {
+                "dashboard": {
+                    "type": "object",
+                    "properties": {
+                        "embed_dashboard": {
+                            "type": "boolean"
+                        },
+                        "share_dashboard_via_link": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "data_room": {
+                    "type": "object",
+                    "properties": {
+                        "share_via_link": {
+                            "type": "boolean"
+                        },
+                        "size": {
+                            "type": "integer"
+                        }
+                    }
+                },
                 "deck": {
                     "type": "object",
                     "properties": {
-                        "count": {
+                        "auto_terminate_link": {
+                            "type": "boolean"
+                        },
+                        "custom_domain": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "integrations": {
+                    "type": "object",
+                    "properties": {
+                        "available_for_use": {
                             "type": "integer"
                         }
                     }
@@ -2492,10 +2666,18 @@ const docTemplate = `{
                 "team": {
                     "type": "object",
                     "properties": {
-                        "enabled": {
+                        "size": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "updates": {
+                    "type": "object",
+                    "properties": {
+                        "custom_domain": {
                             "type": "boolean"
                         },
-                        "size": {
+                        "max_recipients": {
                             "type": "integer"
                         }
                     }
@@ -2792,11 +2974,17 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "is_subscription_active": {
+                    "type": "boolean"
+                },
                 "logo_url": {
                     "type": "string"
                 },
                 "metadata": {
-                    "$ref": "#/definitions/malak.PlanMetadata"
+                    "$ref": "#/definitions/malak.WorkspaceMetadata"
+                },
+                "plan": {
+                    "$ref": "#/definitions/malak.Plan"
                 },
                 "plan_id": {
                     "type": "string"
@@ -2853,6 +3041,9 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "malak.WorkspaceMetadata": {
+            "type": "object"
         },
         "server.APIStatus": {
             "type": "object",
@@ -2998,6 +3189,21 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/malak.Workspace"
                     }
+                }
+            }
+        },
+        "server.fetchBillingPortalResponse": {
+            "type": "object",
+            "required": [
+                "link",
+                "message"
+            ],
+            "properties": {
+                "link": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
                 }
             }
         },

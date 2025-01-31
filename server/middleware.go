@@ -78,6 +78,34 @@ func getIP(r *http.Request) string {
 	return r.RemoteAddr
 }
 
+func requireWorkspaceValidSubscription(
+	cfg config.Config,
+) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			ctx, span, _ := getTracer(r.Context(), r, "middleware.requireWorkspaceValidSubscription", cfg.Otel.IsEnabled)
+			defer span.End()
+
+			if r.URL.Path == "/v1/workspaces/billing" ||
+				r.URL.Path == "/v1/workspaces" ||
+				r.URL.Path == "/v1/user" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			workspace := getWorkspaceFromContext(ctx)
+			if !workspace.IsSubscriptionActive {
+				_ = render.Render(w, r, newAPIStatus(http.StatusPaymentRequired,
+					"workspace is not active. You need an active subscription"))
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func requireAuthentication(
 	logger *zap.Logger,
 	jwtManager jwttoken.JWTokenManager,

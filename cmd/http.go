@@ -18,8 +18,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	awsCreds "github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
+	"github.com/ayinke-llc/malak/internal/pkg/billing/stripe"
 	"github.com/ayinke-llc/malak/internal/pkg/cache/rediscache"
 	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
@@ -147,8 +149,16 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 					zap.Error(err))
 			}
 
-			queueHandler, err := watermillqueue.New(redisClient, *cfg, logger,
-				emailClient, userRepo, workspaceRepo, updateRepo, contactRepo)
+			billingClient, err := stripe.New(hermes.DeRef(cfg))
+			if err != nil {
+				logger.Fatal("could not set up stripe client",
+					zap.Error(err))
+			}
+
+			queueHandler, err := watermillqueue.New(
+				redisClient, hermes.DeRef(cfg),
+				logger, emailClient, userRepo, workspaceRepo,
+				updateRepo, contactRepo, billingClient)
 			if err != nil {
 				logger.Fatal("could not set up watermill queue", zap.Error(err))
 			}
@@ -247,7 +257,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				userRepo, workspaceRepo, planRepo, contactRepo,
 				updateRepo, contactlistRepo, deckRepo, shareRepo,
 				preferenceRepo, integrationRepo, mid, gulterHandler,
-				queueHandler, redisCache)
+				queueHandler, redisCache, billingClient)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {

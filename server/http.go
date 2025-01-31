@@ -8,6 +8,7 @@ import (
 	"github.com/adelowo/gulter"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/billing"
 	"github.com/ayinke-llc/malak/internal/pkg/cache"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
@@ -41,7 +42,8 @@ func New(logger *zap.Logger,
 	mid *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
-	redisCache cache.Cache) (*http.Server, func()) {
+	redisCache cache.Cache,
+	billingClient billing.Client) (*http.Server, func()) {
 
 	srv := &http.Server{
 		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
@@ -49,7 +51,7 @@ func New(logger *zap.Logger,
 			contactRepo, updateRepo, contactListRepo,
 			deckRepo, shareRepo, preferenceRepo, integrationRepo,
 			googleAuthProvider, mid, gulterHandler,
-			queueHandler, redisCache),
+			queueHandler, redisCache, billingClient),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -97,6 +99,7 @@ func buildRoutes(
 	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
 	redisCache cache.Cache,
+	billingClient billing.Client,
 ) http.Handler {
 
 	if cfg.HTTP.Swagger.UIEnabled {
@@ -132,6 +135,8 @@ func buildRoutes(
 		preferenceRepo:          preferenceRepo,
 		integrationRepo:         integrationRepo,
 		referenceGenerationFunc: malak.GenerateReference,
+		queueClient:             queueHandler,
+		billingClient:           billingClient,
 	}
 
 	contactHandler := &contactHandler{
@@ -161,6 +166,17 @@ func buildRoutes(
 		contactRepo:        contactRepo,
 	}
 
+	stripeHan := &stripeHandler{
+		user:            userRepo,
+		planRepo:        planRepo,
+		logger:          logger,
+		billingClient:   billingClient,
+		workRepo:        workspaceRepo,
+		preferencesRepo: preferenceRepo,
+		taskQueue:       queueHandler,
+		cfg:             cfg,
+	}
+
 	deckHandler := &deckHandler{
 		referenceGenerator: referenceGenerator,
 		deckRepo:           deckRepo,
@@ -180,6 +196,7 @@ func buildRoutes(
 
 	router.Route("/hooks", func(r chi.Router) {
 		r.Post("/resend", webhookHandler.handleResend(logger))
+		r.Post("/stripe", stripeHan.handleWebhook)
 	})
 
 	router.Route("/updates", func(r chi.Router) {
@@ -194,12 +211,14 @@ func buildRoutes(
 
 		r.Route("/user", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
 			r.Get("/",
 				WrapMalakHTTPHandler(logger, auth.fetchCurrentUser, cfg, "Auth.fetchCurrentUser"))
 		})
 
 		r.Route("/workspaces", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
 
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, workspaceHandler.createWorkspace, cfg, "workspaces.new"))
@@ -212,6 +231,9 @@ func buildRoutes(
 
 			r.Put("/preferences",
 				WrapMalakHTTPHandler(logger, workspaceHandler.updatePreferences, cfg, "workspaces.preferences.update"))
+
+			r.Post("/billing",
+				WrapMalakHTTPHandler(logger, workspaceHandler.getBillingPortal, cfg, "workspaces.billing.portal"))
 
 			r.Post("/{reference}",
 				WrapMalakHTTPHandler(logger, workspaceHandler.switchCurrentWorkspaceForUser, cfg, "workspaces.switch"))
@@ -258,6 +280,7 @@ func buildRoutes(
 
 		r.Route("/contacts", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, contactHandler.Create, cfg, "contacts.create"))
 
@@ -290,6 +313,7 @@ func buildRoutes(
 
 		r.Route("/decks", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
 
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, deckHandler.Create, cfg, "decks.add"))
