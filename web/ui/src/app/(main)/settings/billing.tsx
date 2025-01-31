@@ -52,7 +52,7 @@ export function BillingPage() {
               <RiAlertLine className="h-4 w-4" />
               <AlertTitle>No active subscription</AlertTitle>
               <AlertDescription>
-                You currently don't have an active subscription. Subscribe to access premium features.
+                You currently don't have an active subscription. Subscribe to get access to Malak
               </AlertDescription>
             </Alert>
           )}
