@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 
@@ -81,15 +82,15 @@ func (s *stripeHandler) handleWebhook(w http.ResponseWriter, r *http.Request) {
 	// s.sendTrialExpiringEmail(ctx, span, w, r, req, logger)
 	//
 	case "invoice.paid":
-	// if invoice paid, activate the subscription
-	// req := new(Invoice)
-	//
-	// if err := json.Unmarshal(ev.Data.Raw, req); err != nil {
-	// 	_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, err.Error()))
-	// 	return
-	// }
-	//
-	// s.addInvoice(ctx, span, w, r, req, logger)
+		// if invoice paid, activate the subscription
+		req := new(Invoice)
+
+		if err := json.Unmarshal(ev.Data.Raw, req); err != nil {
+			_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, err.Error()))
+			return
+		}
+
+		s.addInvoice(ctx, span, w, r, req, logger)
 	case "customer.created":
 		// creating a new customer will always add a free trial immediately
 
@@ -163,6 +164,60 @@ func (s *stripeHandler) createFreeTrialSubscription(ctx context.Context,
 				zap.String("subscription_id", subID))
 
 		_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not update subscription on workspace"))
+		return
+	}
+
+	_ = render.Render(w, r, newAPIStatus(http.StatusOK, ""))
+}
+
+func (s *stripeHandler) addInvoice(
+	ctx context.Context, span trace.Span, w http.ResponseWriter,
+	r *http.Request, req *Invoice, logger *zap.Logger,
+) {
+	logger = logger.With(zap.String("method", "addInvoice"))
+
+	logger.Debug("handling paid invoice")
+
+	workspace, err := s.workRepo.Get(ctx, &malak.FindWorkspaceOptions{
+		StripeCustomerID: req.Customer,
+	})
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+
+		logger.
+			Error("could not find workspace by stripe customer ID",
+				zap.Error(err), zap.String("stripe_customer_id", req.Customer))
+
+		_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not find workspace"))
+		return
+	}
+
+	if workspace.Plan.Reference != req.Lines.Data[0].Plan.Product {
+
+		span.RecordError(errors.New("plan reference not match"))
+		span.SetStatus(codes.Error, "plan reference not match")
+
+		logger.
+			Error("could not fetch plan",
+				zap.String("workspace_id", workspace.ID.String()),
+				zap.String("plan_id", workspace.PlanID.String()))
+
+		_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not fetch plan"))
+		return
+	}
+
+	if err := s.workRepo.MarkActive(ctx, workspace); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+
+		logger.
+			Error("could not mark subscription as active",
+				zap.Error(err),
+				zap.String("workspace_id", workspace.ID.String()),
+				zap.String("subscription_id", workspace.SubscriptionID))
+
+		_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not update subscription"))
 		return
 	}
 

@@ -158,3 +158,34 @@ func (o *workspaceRepo) Create(ctx context.Context,
 		return err
 	})
 }
+
+func (w *workspaceRepo) MarkActive(ctx context.Context,
+	workspace *malak.Workspace) error {
+	return w.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		workspace.IsSubscriptionActive = true
+		workspace.UpdatedAt = time.Now()
+
+		_, err := tx.NewUpdate().Model(workspace).
+			Where("id = ?", workspace.ID).
+			Column("is_subscription_active", "updated_at").
+			Exec(ctx)
+
+		return err
+	})
+}
+
+func (w *workspaceRepo) MarkInActive(ctx context.Context,
+	workspace *malak.Workspace) error {
+	return w.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		workspace.IsSubscriptionActive = false
+		workspace.UpdatedAt = time.Now()
+
+		_, err := tx.NewUpdate().Model(workspace).
+			Where("id = ?", workspace.ID).
+			Column("is_subscription_active", "updated_at").
+			Exec(ctx)
+		return err
+	})
+}

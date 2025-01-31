@@ -26,8 +26,9 @@ type Workspace struct {
 
 	// Not required
 	// Dummy values work really if not using stripe
-	StripeCustomerID string `json:"stripe_customer_id,omitempty"`
-	SubscriptionID   string `json:"subscription_id,omitempty"`
+	StripeCustomerID     string `json:"stripe_customer_id,omitempty"`
+	SubscriptionID       string `json:"subscription_id,omitempty"`
+	IsSubscriptionActive bool   `json:"is_subscription_active,omitempty"`
 
 	PlanID uuid.UUID `json:"plan_id,omitempty"`
 	Plan   *Plan     `json:"plan,omitempty" bun:"rel:belongs-to,join:plan_id=id"`
@@ -67,6 +68,6 @@ type WorkspaceRepository interface {
 	Get(context.Context, *FindWorkspaceOptions) (*Workspace, error)
 	Update(context.Context, *Workspace) error
 	List(context.Context, *User) ([]Workspace, error)
-	// MarkInActive(context.Context, *Workspace) error
-	// MarkActive(context.Context, *Workspace) error
+	MarkInActive(context.Context, *Workspace) error
+	MarkActive(context.Context, *Workspace) error
 }
