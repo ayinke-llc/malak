@@ -57,7 +57,8 @@ func TestCreate_Integration(t *testing.T) {
 
 	subscriptionID, err := stripeClient.AddPlanToCustomer(context.Background(), &billing.AddPlanToCustomerOptions{
 		Workspace: &malak.Workspace{
-			ID: uuid.New(),
+			ID:               uuid.New(),
+			StripeCustomerID: customerID,
 			Plan: &malak.Plan{
 				DefaultPriceID: "price_1PvJSMIuzgc0GUapiNyXBEaH",
 			},

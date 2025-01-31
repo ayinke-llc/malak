@@ -368,6 +368,89 @@ func TestWorkspaceHandler_getIntegrations(t *testing.T) {
 	}
 }
 
+func TestWorkspaceHandler_getBillingPortal(t *testing.T) {
+	for _, v := range generateWorkspaceGetBillingPortalTestTable() {
+
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			integrationRepo := malak_mocks.NewMockIntegrationRepository(controller)
+			queueRepo := malak_mocks.NewMockQueueHandler(controller)
+			billingClient := malak_mocks.NewMockClient(controller)
+
+			v.mockFn(billingClient)
+
+			a := &workspaceHandler{
+				cfg:             getConfig(),
+				queueClient:     queueRepo,
+				integrationRepo: integrationRepo,
+				billingClient:   billingClient,
+				referenceGenerationFunc: func(e malak.EntityType) string {
+					return "workspace_tt7-YieIgz"
+				},
+			}
+
+			var b = bytes.NewBuffer(nil)
+
+			require.NoError(t, json.NewEncoder(b).Encode(&v.req))
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/", b)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			WrapMalakHTTPHandler(getLogger(t),
+				a.getBillingPortal, getConfig(), "workspaces.list.billing").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateWorkspaceGetBillingPortalTestTable() []struct {
+	name               string
+	mockFn             func(billingClient *malak_mocks.MockClient)
+	expectedStatusCode int
+	req                updatePreferencesRequest
+} {
+
+	return []struct {
+		name               string
+		mockFn             func(billingClient *malak_mocks.MockClient)
+		expectedStatusCode int
+		req                updatePreferencesRequest
+	}{
+		{
+			name: "could not fetch billing portal url",
+			mockFn: func(billingClient *malak_mocks.MockClient) {
+				billingClient.EXPECT().
+					Portal(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return("", errors.New("failed"))
+
+			},
+			expectedStatusCode: http.StatusFailedDependency,
+		},
+		{
+			name: "fectched billing portal successfully",
+			mockFn: func(billingClient *malak_mocks.MockClient) {
+				billingClient.EXPECT().
+					Portal(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return("https://stripe.com", nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
 func generateWorkspaceGetIntegrationsTestTable() []struct {
 	name               string
 	mockFn             func(integrationRepo *malak_mocks.MockIntegrationRepository)
@@ -669,6 +752,27 @@ func generateWorkspaceTestTable() []struct {
 					Return(errors.New("oops"))
 			},
 			expectedStatusCode: http.StatusInternalServerError,
+			req: createWorkspaceRequest{
+				Name: "workspance name",
+			},
+		},
+		{
+			name: "created workspace but queue error",
+			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository, queueRepo *malak_mocks.MockQueueHandler) {
+				queueRepo.EXPECT().
+					Add(gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(errors.New("COUld not add to queue"))
+
+				planRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Plan{}, nil)
+
+				workspaceRepo.EXPECT().Create(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusCreated,
 			req: createWorkspaceRequest{
 				Name: "workspance name",
 			},
