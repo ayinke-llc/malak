@@ -143,7 +143,7 @@ func (wo *workspaceHandler) createWorkspace(
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /workspaces/{reference} [post]
+// @Router /workspaces/switch/{reference} [post]
 func (wo *workspaceHandler) switchCurrentWorkspaceForUser(
 	ctx context.Context,
 	span trace.Span,

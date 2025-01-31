@@ -235,7 +235,7 @@ func buildRoutes(
 			r.Post("/billing",
 				WrapMalakHTTPHandler(logger, workspaceHandler.getBillingPortal, cfg, "workspaces.billing.portal"))
 
-			r.Post("/{reference}",
+			r.Post("/switch/{reference}",
 				WrapMalakHTTPHandler(logger, workspaceHandler.switchCurrentWorkspaceForUser, cfg, "workspaces.switch"))
 
 			r.Route("/integrations", func(r chi.Router) {

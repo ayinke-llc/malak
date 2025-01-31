@@ -1985,50 +1985,6 @@ paths:
       summary: Create a new workspace
       tags:
       - workspace
-  /workspaces/{reference}:
-    post:
-      operationId: switchworkspace
-      parameters:
-      - description: Workspace unique reference.. e.g update_
-        in: path
-        name: reference
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/server.fetchWorkspaceResponse'
-          description: OK
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/server.APIStatus'
-          description: Bad Request
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/server.APIStatus'
-          description: Unauthorized
-        "404":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/server.APIStatus'
-          description: Not Found
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/server.APIStatus'
-          description: Internal Server Error
-      summary: Switch current workspace
-      tags:
-      - workspace
   /workspaces/billing:
     post:
       responses:
@@ -2178,6 +2134,50 @@ paths:
                 $ref: '#/components/schemas/server.APIStatus'
           description: Internal Server Error
       summary: update workspace preferences
+      tags:
+      - workspace
+  /workspaces/switch/{reference}:
+    post:
+      operationId: switchworkspace
+      parameters:
+      - description: Workspace unique reference.. e.g update_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchWorkspaceResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: Switch current workspace
       tags:
       - workspace
   /workspaces/updates:

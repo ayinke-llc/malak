@@ -1120,22 +1120,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
      * No description
      *
-     * @tags workspace
-     * @name Switchworkspace
-     * @summary Switch current workspace
-     * @request POST:/workspaces/{reference}
-     */
-    switchworkspace: (reference: string, params: RequestParams = {}) =>
-      this.request<ServerFetchWorkspaceResponse, ServerAPIStatus>({
-        path: `/workspaces/${reference}`,
-        method: "POST",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
      * @tags billing
      * @name BillingCreate
      * @summary get billing portal
@@ -1195,6 +1179,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "PUT",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags workspace
+     * @name Switchworkspace
+     * @summary Switch current workspace
+     * @request POST:/workspaces/switch/{reference}
+     */
+    switchworkspace: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerFetchWorkspaceResponse, ServerAPIStatus>({
+        path: `/workspaces/switch/${reference}`,
+        method: "POST",
         format: "json",
         ...params,
       }),
