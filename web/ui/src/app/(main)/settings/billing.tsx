@@ -1,8 +1,11 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent, CardDescription,
+  CardHeader, CardTitle
+} from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ExternalLink, MailIcon } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { SUPPORT_EMAIL } from "@/lib/config"
 import { useMutation } from "@tanstack/react-query"
@@ -12,10 +15,13 @@ import { FETCH_BILLING_PORTAL_URL } from "@/lib/query-constants"
 import { ServerAPIStatus } from "@/client/Api"
 import { AxiosError } from "axios"
 import { toast } from "sonner"
+import useWorkspacesStore from "@/store/workspace"
+import { RiExternalLinkLine, RiMailSendLine } from "@remixicon/react"
 
 export function BillingPage() {
 
   const router = useRouter()
+  const current = useWorkspacesStore(state => state.current)
 
   const mutation = useMutation({
     mutationKey: [FETCH_BILLING_PORTAL_URL],
@@ -43,18 +49,21 @@ export function BillingPage() {
           <div className="space-y-4">
             <div className="flex flex-col space-y-2">
               <h3 className="text-lg font-semibold">Current Plan</h3>
-              <p className="text-sm text-muted-foreground">You are currently on the Pro plan.</p>
+              <p className="text-sm text-muted-foreground">
+                You are currently on the
+                <span className="font-semibold"> {current?.plan?.plan_name}  </span>plan.
+              </p>
             </div>
             <Separator className="mb-5" />
             <div className="flex flex-col space-y-2">
               <h3 className="text-lg font-semibold">Billing Portal</h3>
-              <p className="text-sm text-muted-foreground">View your invoices and update payment method.</p>
+              <p className="text-sm text-muted-foreground">View your invoices and manage your payment method.</p>
               <Button onClick={handleBillingPortal}
                 variant="outline"
                 loading={mutation.isPending}
                 className="w-full sm:w-auto">
                 Go to Billing Portal
-                <ExternalLink className="ml-2 h-4 w-4" />
+                <RiExternalLinkLine className="ml-2 h-4 w-4" />
               </Button>
             </div>
             <Separator className="mb-5" />
@@ -67,7 +76,7 @@ export function BillingPage() {
                 <a href={`mailto:${SUPPORT_EMAIL}`}>
                   <span className="flex items-center">
                     Contact Support
-                    <MailIcon className="ml-2 h-4 w-4" />
+                    <RiMailSendLine className="ml-2 h-4 w-4" />
                   </span>
                 </a>
               </Button>
