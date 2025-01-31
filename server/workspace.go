@@ -430,7 +430,7 @@ func (wo *workspaceHandler) updatePreferences(
 // @Tags billing
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} fetchBillingPortal
+// @Success 200 {object} fetchBillingPortalResponse
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus

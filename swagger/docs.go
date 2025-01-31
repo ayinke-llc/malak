@@ -1279,7 +1279,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.fetchBillingPortal"
+                            "$ref": "#/definitions/server.fetchBillingPortalResponse"
                         }
                     },
                     "400": {
@@ -3132,13 +3132,17 @@ const docTemplate = `{
                 }
             }
         },
-        "server.fetchBillingPortal": {
+        "server.fetchBillingPortalResponse": {
             "type": "object",
             "required": [
-                "link"
+                "link",
+                "message"
             ],
             "properties": {
                 "link": {
+                    "type": "string"
+                },
+                "message": {
                     "type": "string"
                 }
             }

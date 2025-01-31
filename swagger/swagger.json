@@ -983,14 +983,18 @@
 				],
 				"type": "object"
 			},
-			"server.fetchBillingPortal": {
+			"server.fetchBillingPortalResponse": {
 				"properties": {
 					"link": {
+						"type": "string"
+					},
+					"message": {
 						"type": "string"
 					}
 				},
 				"required": [
-					"link"
+					"link",
+					"message"
 				],
 				"type": "object"
 			},
@@ -3021,7 +3025,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/server.fetchBillingPortal"
+									"$ref": "#/components/schemas/server.fetchBillingPortalResponse"
 								}
 							}
 						},

@@ -409,8 +409,9 @@ export interface ServerCreatedUserResponse {
   workspaces: MalakWorkspace[];
 }
 
-export interface ServerFetchBillingPortal {
+export interface ServerFetchBillingPortalResponse {
   link: string;
+  message: string;
 }
 
 export interface ServerFetchContactListResponse {
@@ -1122,7 +1123,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/workspaces/billing
      */
     billingCreate: (params: RequestParams = {}) =>
-      this.request<ServerFetchBillingPortal, ServerAPIStatus>({
+      this.request<ServerFetchBillingPortalResponse, ServerAPIStatus>({
         path: `/workspaces/billing`,
         method: "POST",
         format: "json",

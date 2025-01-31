@@ -669,12 +669,15 @@ components:
       - user
       - workspaces
       type: object
-    server.fetchBillingPortal:
+    server.fetchBillingPortalResponse:
       properties:
         link:
           type: string
+        message:
+          type: string
       required:
       - link
+      - message
       type: object
     server.fetchContactListResponse:
       properties:
@@ -1986,7 +1989,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/server.fetchBillingPortal'
+                $ref: '#/components/schemas/server.fetchBillingPortalResponse'
           description: OK
         "400":
           content:
