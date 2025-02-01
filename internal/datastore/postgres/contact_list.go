@@ -96,9 +96,7 @@ func (c *contactListRepo) List(ctx context.Context,
             WHERE workspace_id = ? AND deleted_at IS NULL ORDER BY created_at DESC
         )
         SELECT 
-            json_agg(
-                list_data
-            )::text as lists,
+	          COALESCE(json_agg(list_data)::text, '[]') as lists,
             COALESCE(
                 json_agg(
                     DISTINCT jsonb_build_object(
