@@ -46,6 +46,7 @@ import client from "@/lib/client";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import Link from "next/link";
+import { EditContactDialog } from "./form";
 
 type TimePeriod = 'days' | 'weeks' | 'months';
 
@@ -126,14 +127,7 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
               <CardDescription className="text-base text-muted-foreground">Contact Information</CardDescription>
             </div>
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setShowEditModal(true)}
-                className="h-9 w-9"
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
+              <EditContactDialog />
               <Button
                 variant="destructive"
                 size="icon"
