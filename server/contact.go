@@ -750,7 +750,6 @@ func (c *contactHandler) editContact(
 	w http.ResponseWriter,
 	r *http.Request) (render.Renderer, Status) {
 
-	user := getUserFromContext(ctx)
 	workspace := getWorkspaceFromContext(ctx)
 
 	reference := chi.URLParam(r, "reference")

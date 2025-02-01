@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/ayinke-llc/malak"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-faker/faker/v4"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -289,6 +291,265 @@ func TestContactHandler_DeleteContact(t *testing.T) {
 			require.Equal(t, v.expectedStatusCode, rr.Code)
 			verifyMatch(t, rr)
 		})
+	}
+}
+
+func TestContactHandler_Edit(t *testing.T) {
+	for _, v := range generateEditContactTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+			contactRepo := malak_mocks.NewMockContactRepository(controller)
+			v.mockFn(contactRepo)
+			a := &contactHandler{
+				cfg:                getConfig(),
+				contactRepo:        contactRepo,
+				referenceGenerator: &mockReferenceGenerator{},
+			}
+			var b = bytes.NewBuffer(nil)
+			require.NoError(t, json.NewEncoder(b).Encode(&v.req))
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodPost, "/", b)
+			req.Header.Add("Content-Type", "application/json")
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+			WrapMalakHTTPHandler(getLogger(t), a.editContact, getConfig(), "contacts.edit").
+				ServeHTTP(rr, req)
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateEditContactTestTable() []struct {
+	name               string
+	mockFn             func(contactRepo *malak_mocks.MockContactRepository)
+	expectedStatusCode int
+	req                editContactRequest
+} {
+	return []struct {
+		name               string
+		mockFn             func(contactRepo *malak_mocks.MockContactRepository)
+		expectedStatusCode int
+		req                editContactRequest
+	}{
+		{
+			name: "first name too short",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: editContactRequest{
+				FirstName: "abc",
+			},
+		},
+		{
+			name: "first name too long",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: editContactRequest{
+				FirstName: strings.Repeat(faker.Name(), 50),
+			},
+		},
+		{
+			name: "last name too short",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: editContactRequest{
+				FirstName: faker.Name(),
+				LastName:  "abc",
+			},
+		},
+		{
+			name: "last name too long",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: editContactRequest{
+				FirstName: faker.Name(),
+				LastName:  strings.Repeat(faker.Name(), 1000),
+			},
+		},
+		{
+			name: "company name too short",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: editContactRequest{
+				FirstName: faker.Name(),
+				LastName:  faker.Name(),
+				Company:   "abc",
+			},
+		},
+		{
+			name: "company name too long",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: editContactRequest{
+				FirstName: faker.Name(),
+				LastName:  faker.Name(),
+				Company:   strings.Repeat(faker.Name(), 100),
+			},
+		},
+		{
+			name: "address too short",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: editContactRequest{
+				FirstName: faker.Name(),
+				LastName:  faker.Name(),
+				Company:   faker.Name(),
+				Address:   "abc",
+			},
+		},
+		{
+			name: "address too long",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: editContactRequest{
+				FirstName: faker.Name(),
+				LastName:  faker.Name(),
+				Company:   faker.Name(),
+				Address:   strings.Repeat(faker.Name(), 1000),
+			},
+		},
+		{
+			name: "notes too long",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: editContactRequest{
+				FirstName: faker.Name(),
+				LastName:  faker.Name(),
+				Company:   faker.Name(),
+				Address:   faker.Name(),
+				Notes:     strings.Repeat(faker.Name(), 1000),
+			},
+		},
+		{
+			name: "notes too short",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: editContactRequest{
+				FirstName: faker.Name(),
+				LastName:  faker.Name(),
+				Company:   faker.Name(),
+				Address:   faker.Name(),
+				Notes:     "abc",
+			},
+		},
+		{
+			name: "could not fetch contact due to db error",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("could not fetch from db"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: editContactRequest{
+				FirstName: faker.Name(),
+				LastName:  faker.Name(),
+				Company:   faker.Name(),
+				Address:   faker.Name(),
+				Notes:     faker.Sentence(),
+			},
+		},
+		{
+			name: "could not fetch contact because contact does not exists",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, malak.ErrContactNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+			req: editContactRequest{
+				FirstName: faker.Name(),
+				LastName:  faker.Name(),
+				Company:   faker.Name(),
+				Address:   faker.Name(),
+				Notes:     faker.Sentence(),
+			},
+		},
+		{
+			name: "updating contact fails at db level",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Contact{}, nil)
+
+				contactRepo.EXPECT().
+					Update(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(errors.New("could not update"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: editContactRequest{
+				FirstName: faker.Name(),
+				LastName:  faker.Name(),
+				Company:   faker.Name(),
+				Address:   faker.Name(),
+				Notes:     faker.Sentence(),
+			},
+		},
+		{
+			name: "updating contact succeeds",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Contact{}, nil)
+
+				contactRepo.EXPECT().
+					Update(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+			req: editContactRequest{
+				FirstName: faker.Name(),
+				LastName:  faker.Name(),
+				Company:   faker.Name(),
+				Address:   faker.Name(),
+				Notes:     faker.Sentence(),
+			},
+		},
+		{
+			name: "updating contact succeeds with partial data",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Contact{}, nil)
+
+				contactRepo.EXPECT().
+					Update(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+			req: editContactRequest{
+				Address: faker.Name(),
+				Notes:   faker.Sentence(),
+			},
+		},
+		{
+			name: "updating contact succeeds even without any data in request",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Contact{}, nil)
+
+				contactRepo.EXPECT().
+					Update(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+			req:                editContactRequest{},
+		},
 	}
 }
 
