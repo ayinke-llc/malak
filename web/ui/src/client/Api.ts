@@ -27,6 +27,7 @@ export interface MalakCommunicationPreferences {
 }
 
 export interface MalakContact {
+  /** Legacy lmao. should be address but migrations bit ugh :)) */
   city?: string;
   company?: string;
   created_at?: string;
@@ -412,6 +413,14 @@ export interface ServerCreatedUserResponse {
   workspaces: MalakWorkspace[];
 }
 
+export interface ServerEditContactRequest {
+  address: string;
+  company: string;
+  first_name?: string;
+  last_name?: string;
+  notes: string;
+}
+
 export interface ServerFetchBillingPortalResponse {
   link: string;
   message: string;
@@ -768,6 +777,24 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerFetchDetailedContactResponse, ServerAPIStatus>({
         path: `/contacts/${reference}`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags contacts
+     * @name ContactsUpdate
+     * @summary edit a contact
+     * @request PUT:/contacts/{reference}
+     */
+    contactsUpdate: (reference: string, data: ServerEditContactRequest, params: RequestParams = {}) =>
+      this.request<ServerFetchContactResponse, ServerAPIStatus>({
+        path: `/contacts/${reference}`,
+        method: "PUT",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

@@ -14,7 +14,7 @@ export default function Page() {
   const reference = params.slug as string;
 
   const { data, error, isLoading } = useQuery({
-    queryKey: [FETCH_CONTACT],
+    queryKey: [FETCH_CONTACT, reference],
     queryFn: () => client.contacts.contactsDetail(reference),
   });
 

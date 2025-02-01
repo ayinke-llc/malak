@@ -32,6 +32,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export function NavUser({
   user,
@@ -44,6 +46,7 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const { theme, setTheme } = useTheme()
+  const router = useRouter()
 
   return (
     <SidebarMenu>
@@ -85,24 +88,9 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/settings?tab=billing")}>
                 <CreditCard />
                 Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

@@ -30,6 +30,7 @@ components:
     malak.Contact:
       properties:
         city:
+          description: Legacy lmao. should be address but migrations bit ugh :))
           type: string
         company:
           type: string
@@ -673,6 +674,23 @@ components:
       - user
       - workspaces
       type: object
+    server.editContactRequest:
+      properties:
+        address:
+          type: string
+        company:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        notes:
+          type: string
+      required:
+      - address
+      - company
+      - notes
+      type: object
     server.fetchBillingPortalResponse:
       properties:
         link:
@@ -1173,6 +1191,56 @@ paths:
                 $ref: '#/components/schemas/server.APIStatus'
           description: Internal Server Error
       summary: fetch a contact by reference
+      tags:
+      - contacts
+    put:
+      parameters:
+      - description: contact unique reference.. e.g contact_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.editContactRequest'
+        description: contact request body
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchContactResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: edit a contact
       tags:
       - contacts
   /contacts/lists:

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
@@ -20,6 +21,21 @@ func NewContactRepository(inner *bun.DB) malak.ContactRepository {
 	return &contactRepo{
 		inner: inner,
 	}
+}
+
+func (o *contactRepo) Update(ctx context.Context,
+	contact *malak.Contact) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	contact.UpdatedAt = time.Now()
+
+	_, err := o.inner.NewUpdate().
+		Where("id = ?", contact.ID).
+		Model(contact).
+		Exec(ctx)
+	return err
 }
 
 func (o *contactRepo) Create(ctx context.Context,
