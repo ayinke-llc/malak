@@ -27,7 +27,7 @@ func addMigrateCommand(c *cobra.Command, cfg *config.Config) {
 
 			logger.Debug("Migrating the database to the latest version")
 
-			d, err := iofs.New(malak.Migrations, "testdata/migrations")
+			d, err := iofs.New(malak.Migrations, "internal/datastore/postgres/migrations")
 			if err != nil {
 				logger.Error("could not set up embedded migrations", zap.Error(err))
 				return err
