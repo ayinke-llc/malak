@@ -26,10 +26,12 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Avatar } from "./custom/avatar/avatar"
 import { ModalAddWorkspace } from "./navigation/ModalAddWorkspace"
+import { useState } from "react"
 
 export function TeamSwitcher() {
   const { isMobile } = useSidebar();
   const { current, workspaces, setCurrent } = useWorkspacesStore();
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
 
   const router = useRouter();
 
@@ -51,7 +53,10 @@ export function TeamSwitcher() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu modal={false}>
+        <DropdownMenu modal={false}
+          open={isDropdownOpen}
+          onOpenChange={setDropdownOpen}
+        >
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
@@ -111,16 +116,11 @@ export function TeamSwitcher() {
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="gap-2 p-2 hover:cursor-pointer" asChild>
-              <>
-                <div className="flex size-6 items-center justify-center rounded-md border bg-background">
-                  <Plus className="size-4" />
-                </div>
-                <ModalAddWorkspace
-                  onSelect={() => { }}
-                  onOpenChange={() => { }}
-                  itemName="Create workspace"
-                />
-              </>
+              <ModalAddWorkspace
+                onSelect={() => { }}
+                onOpenChange={() => { }}
+                itemName="Create workspace"
+              />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -19,6 +19,7 @@ import client from "@/lib/client";
 import { CREATE_WORKSPACE } from "@/lib/query-constants";
 import useWorkspacesStore from "@/store/workspace";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { RiAddBoxLine, RiAddLargeLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
@@ -50,7 +51,7 @@ export function ModalAddWorkspace({
 }: ModalProps) {
   const [loading, setLoading] = useState<boolean>(false);
 
-  const { setCurrent } = useWorkspacesStore();
+  const appendWorkspace = useWorkspacesStore(state => state.appendWorkspaceAfterCreation)
 
   const [open, setOpen] = useState(false);
 
@@ -66,10 +67,9 @@ export function ModalAddWorkspace({
     mutationFn: (data: CreateWorkspaceInput) =>
       client.workspaces.workspacesCreate(data),
     onSuccess: ({ data }) => {
-      setCurrent(data.workspace);
+      appendWorkspace((data.workspace))
       toast.success(data.message);
       onOpenChange(false);
-      router.push("/");
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message;
@@ -107,6 +107,9 @@ export function ModalAddWorkspace({
               onSelect?.();
             }}
           >
+            <div className="flex size-6 items-center justify-center rounded-md border bg-background">
+              <RiAddLargeLine className="size-4" />
+            </div>
             {itemName}
           </DropdownMenuItem>
         </DialogTrigger>
