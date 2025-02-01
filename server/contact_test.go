@@ -489,11 +489,11 @@ func generateEditContactTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 			req: editContactRequest{
-				FirstName: faker.Name(),
-				LastName:  faker.Name(),
-				Company:   faker.Name(),
-				Address:   faker.Name(),
-				Notes:     faker.Sentence(),
+				FirstName: "first name",
+				LastName:  "last name",
+				Company:   "malak inc",
+				Address:   "240 Delaware",
+				Notes:     "here is my random note",
 			},
 		},
 		{
@@ -510,11 +510,11 @@ func generateEditContactTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusOK,
 			req: editContactRequest{
-				FirstName: faker.Name(),
-				LastName:  faker.Name(),
-				Company:   faker.Name(),
-				Address:   faker.Name(),
-				Notes:     faker.Sentence(),
+				FirstName: "first name",
+				LastName:  "last name",
+				Company:   "malak inc",
+				Address:   "240 Delaware",
+				Notes:     "here is my random note",
 			},
 		},
 		{
@@ -531,8 +531,8 @@ func generateEditContactTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusOK,
 			req: editContactRequest{
-				Address: faker.Name(),
-				Notes:   faker.Sentence(),
+				Address: "240 Delaware",
+				Notes:   "here is my random note",
 			},
 		},
 		{

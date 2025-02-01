@@ -18,16 +18,20 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { RiPencilLine } from "@remixicon/react"
-import useWorkspacesStore from "@/store/workspace"
-import { MalakContact } from "@/client/Api"
+import { MalakContact, ServerAPIStatus } from "@/client/Api"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { FETCH_CONTACT, UPDATE_CONTACT } from "@/lib/query-constants"
+import { toast } from "sonner"
+import client from "@/lib/client"
+import { AxiosError } from "axios"
 
 const schema = yup.object().shape({
   company: yup.string().min(5).max(100),
-  notes: yup.string().min(5).max(3000),
+  notes: yup.string().min(5).max(2000),
   phone: yup.string(),
   first_name: yup.string(),
   last_name: yup.string(),
-  address: yup.string().min(5).max(300),
+  address: yup.string().min(5).max(225),
 })
 
 type FormData = yup.InferType<typeof schema>;
@@ -35,17 +39,39 @@ type FormData = yup.InferType<typeof schema>;
 export function EditContactDialog({ contact }: { contact: MalakContact }) {
   const [open, setOpen] = useState(false)
 
+  const queryClient = useQueryClient();
+
   if (!contact) {
     return null
   }
 
-  const current = useWorkspacesStore(state => state.current)
+  const mutation = useMutation({
+    mutationKey: [UPDATE_CONTACT, contact?.reference as string],
+    mutationFn: (data: FormData) => {
+      return client.contacts.contactsUpdate(contact?.reference as string, {
+        address: data.address || "",
+        company: data.company || "",
+        notes: data.notes || "",
+        first_name: data.first_name || "",
+        last_name: data.last_name || "",
+      })
+    },
+    onSuccess: () => {
+      toast.success("updated contact successfully");
+
+      queryClient.invalidateQueries({
+        queryKey: [FETCH_CONTACT, contact?.reference as string]
+      })
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err?.response?.data?.message || "an error occurred while updating contact");
+    }
+  });
 
   const {
     control,
     handleSubmit,
     formState: { errors },
-    setValue,
   } = useForm<FormData>({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -58,11 +84,7 @@ export function EditContactDialog({ contact }: { contact: MalakContact }) {
     },
   });
 
-  function onSubmit(values: FormData) {
-    // Simulate form submission
-    console.log(values)
-    setOpen(false)
-  }
+  const onSubmit = (values: FormData) => mutation.mutate(values)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
