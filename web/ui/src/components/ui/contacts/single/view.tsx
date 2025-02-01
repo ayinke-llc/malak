@@ -127,7 +127,7 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
               <CardDescription className="text-base text-muted-foreground">Contact Information</CardDescription>
             </div>
             <div className="flex gap-3">
-              <EditContactDialog />
+              <EditContactDialog contact={contact} />
               <Button
                 variant="destructive"
                 size="icon"
