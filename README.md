@@ -43,8 +43,6 @@ Own full control of your data and company state if you decide to selfhost.
 
 ## Self-hosting
 
-### Frontend
-
 ### Migrations
 
 ```sh
@@ -72,6 +70,49 @@ Plans are extremely important in Malak. Even though you are self hosting
 and not taking payments, you can still limit certain features for users
 on your instance. Every company/workspace must be have a plan.
 
+At the very minimum, your configuration needs to look like this:
+
+> [!IMPORTANT]
+> You can also use environment values to configure this in cloud environments
+> using the syntax `MALAK_`. So for `auth.google.client_id`, you can use `MALAK_AUTH_GOOGLE_CLIENT_ID`
+
+Your `config.yml` below:
+
+```yml
+auth:
+  google:
+    client_id: "GOOGLE_CLIENT_ID"
+    client_secret: "GOOGLE_CLIENT_SECRET"
+    redirect_uri: "GOOGLE_REDIRECT_URI"
+    is_enabled: true
+
+  jwt:
+    key: YOUR_SECRET_KEY
+
+uploader:
+  s3:
+    access_key: YOUR_ACCESS_KEY
+    access_secret: YOUR_SECRET_KEY
+    region: lagos-1
+    endpoint: http://localhost:9000
+    use_tls: false
+
+email:
+  provider: smtp # OR resend
+  sender: email@yourdomain
+  sender_name: Malak
+  resend:
+    api_key: RESEND_API_KEY
+  smtp:
+    host: localhost
+    password: random
+    username: random
+    use_tls: false
+    port: 9125
+```
+
+You can view a complete list of all available configuration here.
+
 #### Listing plans
 
 ```sh
@@ -88,6 +129,20 @@ malak plans create
 
 ```sh
 malak plans set-default plan_id
+```
+
+### Frontend
+
+```env
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=
+NEXT_PUBLIC_MALAK_POSTHOG_KEY=
+NEXT_PUBLIC_MALAK_ENABLE_POSTHOG=
+NEXT_PUBLIC_MALAK_POSTHOG_HOST=
+NEXT_PUBLIC_MALAK_TERMS_CONDITION_LINK=
+NEXT_PUBLIC_MALAK_PRIVACY_POLICY_LINK=
+NEXT_PUBLIC_SENTRY_DSN=
+NEXT_PUBLIC_DECKS_DOMAIN=https://deck.yourdowmain
+NEXT_PUBLIC_SUPPORT_EMAIL=support@yourdomain
 ```
 
 ## FAQs
