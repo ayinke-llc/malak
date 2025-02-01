@@ -2,7 +2,7 @@ tidy_dependencies:
 	go mod tidy
 
 migrate:
-	migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://malak:malak@localhost:9432/malak?sslmode=disable" up
+	go run cmd/*.go migrate
 
 migrate-down:
 	migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://malak:malak@localhost:9432/malak?sslmode=disable" down

@@ -16,7 +16,7 @@ import (
 func addIntegrationCommand(c *cobra.Command, cfg *config.Config) {
 
 	cmd := &cobra.Command{
-		Use:   "integration",
+		Use:   "integrations",
 		Short: "Manage your system wide integrations",
 	}
 

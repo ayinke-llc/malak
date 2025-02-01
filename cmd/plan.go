@@ -20,7 +20,8 @@ import (
 func addPlanCommand(c *cobra.Command, cfg *config.Config) {
 
 	cmd := &cobra.Command{
-		Use: "plan",
+		Use:   "plans",
+		Short: "Manage your plans",
 	}
 
 	cmd.AddCommand(listPlans(c, cfg))

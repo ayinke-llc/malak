@@ -24,7 +24,7 @@ Own full control of your data and company state if you decide to selfhost.
 ## Features
 
 > [!NOTE]
-> Hosted version available by mid March
+> Hosted version available by mid March :)
 
 - 100% Opensource. Own your own data, metrics, and story
 - Send investors' updates to anyone via email
@@ -51,8 +51,11 @@ Own full control of your data and company state if you decide to selfhost.
 malak migrate
 ```
 
-> [!WARNING]
-> Everytime you upgrade the backend or re-download the binary/docker image, it makes sense to run the migrations again
+> [!IMPORTANT]
+> Everytime you upgrade the backend or re-download the binary/docker image,
+> it makes sense to run the migrations again as migrations are usually added to
+> support newer
+> features or enhance existing ones
 
 ### Backend
 
@@ -64,6 +67,28 @@ where `version` can be the version you want. The version can be in two formats:
 
 - semver version number e.g: `docker pull ghcr.io/ayinke-llc/malak:0.4.2`
 - commit hash e.g: `docker pull ghcr.io/ayinke-llc/malak:101a434d`
+
+Plans are extremely important in Malak. Even though you are self hosting
+and not taking payments, you can still limit certain features for users
+on your instance. Every company/workspace must be have a plan.
+
+#### Listing plans
+
+```sh
+malak plans list
+```
+
+#### Create a new plan
+
+```sh
+malak plans create
+```
+
+#### Set a default plan for newly created workspaces
+
+```sh
+malak plans set-default plan_id
+```
 
 ## FAQs
 
