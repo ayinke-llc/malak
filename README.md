@@ -14,10 +14,17 @@ That's where Malak comes in. Self-hosted on your own infra or hosted by us.
 White-label by design. Ready to be deployed on your own domain.
 Own full control of your data and company state if you decide to selfhost.
 
+- [Features](#features)
+- [FAQs](#faqs)
+- [Self hosting](#self-hosting)
+  - [Frontend](#frontend)
+  - [Migrations](#migrations)
+  - [Backend](#backend)
+
 ## Features
 
-> [!WARNING]
-> Actively being built and not ready yet :)
+> [!NOTE]
+> Hosted version available by mid March
 
 - 100% Opensource. Own your own data, metrics, and story
 - Send investors' updates to anyone via email
@@ -33,6 +40,30 @@ Own full control of your data and company state if you decide to selfhost.
 - NextJS
 - Tailwind CSS
 - Stripe ( optional )
+
+## Self-hosting
+
+### Frontend
+
+### Migrations
+
+```sh
+malak migrate
+```
+
+> [!WARNING]
+> Everytime you upgrade the backend or re-download the binary/docker image, it makes sense to run the migrations again
+
+### Backend
+
+You can either download the raw binary or use our docker image. You can view
+a list of all available releases on [Github](https://github.com/ayinke-llc/malak/releases).
+
+The docker image is also available as `docker pull ghcr.io/ayinke-llc/malak:version`
+where `version` can be the version you want. The version can be in two formats:
+
+- semver version number e.g: `docker pull ghcr.io/ayinke-llc/malak:0.4.2`
+- commit hash e.g: `docker pull ghcr.io/ayinke-llc/malak:101a434d`
 
 ## FAQs
 
