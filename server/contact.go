@@ -9,7 +9,6 @@ import (
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
-	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
@@ -37,29 +36,29 @@ type createContactRequest struct {
 }
 
 func (c *createContactRequest) Validate() error {
-	if util.IsStringEmpty(c.Email.String()) {
+	if hermes.IsStringEmpty(c.Email.String()) {
 		return errors.New("please provide the email address of the contact")
 	}
 
-	firstName := strings.TrimSpace(util.DeRef(c.FirstName))
+	firstName := strings.TrimSpace(hermes.DeRef(c.FirstName))
 
-	if !util.IsStringEmpty(firstName) {
+	if !hermes.IsStringEmpty(firstName) {
 		if len(firstName) > 100 {
 			return errors.New("contact's last name must be less than 100")
 		}
 	}
 
-	c.FirstName = util.Ref(firstName)
+	c.FirstName = hermes.Ref(firstName)
 
-	lastName := strings.TrimSpace(util.DeRef(c.LastName))
+	lastName := strings.TrimSpace(hermes.DeRef(c.LastName))
 
-	if !util.IsStringEmpty(lastName) {
+	if !hermes.IsStringEmpty(lastName) {
 		if len(lastName) > 100 {
 			return errors.New("contact's last name must be less than 100")
 		}
 	}
 
-	c.LastName = util.Ref(lastName)
+	c.LastName = hermes.Ref(lastName)
 
 	return nil
 }
@@ -98,8 +97,8 @@ func (c *contactHandler) Create(
 
 	contact := &malak.Contact{
 		Email:       req.Email,
-		FirstName:   util.DeRef(req.FirstName),
-		LastName:    util.DeRef(req.LastName),
+		FirstName:   hermes.DeRef(req.FirstName),
+		LastName:    hermes.DeRef(req.LastName),
 		Metadata:    make(malak.CustomContactMetadata),
 		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
 		Reference:   c.referenceGenerator.Generate(malak.EntityTypeContact),
@@ -123,7 +122,7 @@ func (c *contactHandler) Create(
 
 	return fetchContactResponse{
 		APIStatus: newAPIStatus(http.StatusCreated, "contact was successfully created"),
-		Contact:   util.DeRef(contact),
+		Contact:   hermes.DeRef(contact),
 	}, StatusSuccess
 }
 
@@ -138,7 +137,7 @@ func (c *createContactListRequest) Validate() error {
 
 	c.Name = strings.TrimSpace(p.Sanitize(c.Name))
 
-	if util.IsStringEmpty(c.Name) {
+	if hermes.IsStringEmpty(c.Name) {
 		return errors.New("please provide the name of your list")
 	}
 
@@ -199,7 +198,7 @@ func (c *contactHandler) createContactList(
 
 	return fetchContactListResponse{
 		APIStatus: newAPIStatus(http.StatusCreated, "list was successfully created"),
-		List:      util.DeRef(list),
+		List:      hermes.DeRef(list),
 	}, StatusSuccess
 }
 
@@ -326,7 +325,7 @@ func (c *contactHandler) editContactList(
 
 	return fetchContactListResponse{
 		APIStatus: newAPIStatus(http.StatusCreated, "list was successfully created"),
-		List:      util.DeRef(list),
+		List:      hermes.DeRef(list),
 	}, StatusSuccess
 }
 
@@ -660,36 +659,74 @@ func (c *contactHandler) deleteContact(
 type editContactRequest struct {
 	GenericRequest
 
-	Email     malak.Email `json:"email,omitempty" validate:"'required'"`
-	FirstName *string     `json:"first_name,omitempty" validate:"'required'"`
-
-	LastName *string `json:"last_name,omitempty" validate:"'required'"`
+	FirstName string `json:"first_name,omitempty" validate:"'required'"`
+	LastName  string `json:"last_name,omitempty" validate:"'required'"`
+	Company   string `json:"company,omitempty" validate:"required"`
+	Address   string `json:"address,omitempty" validate:"required"`
+	Notes     string `json:"notes,omitempty" validate:"required"`
 }
 
 func (c *editContactRequest) Validate() error {
-	if util.IsStringEmpty(c.Email.String()) {
-		return errors.New("please provide the email address of the contact")
-	}
 
-	firstName := strings.TrimSpace(util.DeRef(c.FirstName))
+	c.FirstName = strings.TrimSpace(c.FirstName)
 
-	if !util.IsStringEmpty(firstName) {
-		if len(firstName) > 100 {
-			return errors.New("contact's last name must be less than 100")
+	if !hermes.IsStringEmpty(c.FirstName) {
+		if len(c.FirstName) > 50 {
+			return errors.New("contact's first name must be less than 50")
+		}
+
+		if len(c.FirstName) < 5 {
+			return errors.New("contact's first name must be greater than 5")
 		}
 	}
 
-	c.FirstName = util.Ref(firstName)
+	c.LastName = strings.TrimSpace(c.LastName)
 
-	lastName := strings.TrimSpace(util.DeRef(c.LastName))
+	if !hermes.IsStringEmpty(c.LastName) {
+		if len(c.LastName) > 50 {
+			return errors.New("contact's last name must be less than 50")
+		}
 
-	if !util.IsStringEmpty(lastName) {
-		if len(lastName) > 100 {
-			return errors.New("contact's last name must be less than 100")
+		if len(c.LastName) < 5 {
+			return errors.New("contact's last name must be greater than 5")
 		}
 	}
 
-	c.LastName = util.Ref(lastName)
+	c.Company = strings.TrimSpace(c.Company)
+
+	if !hermes.IsStringEmpty(c.Company) {
+		if len(c.Company) > 100 {
+			return errors.New("company's name must be less than 100")
+		}
+
+		if len(c.Company) < 5 {
+			return errors.New("company's name must be greater than 5 characters")
+		}
+	}
+
+	c.Address = strings.TrimSpace(c.Address)
+
+	if !hermes.IsStringEmpty(c.Address) {
+		if len(c.Address) > 225 {
+			return errors.New("company's address must be less than 225")
+		}
+
+		if len(c.Address) < 5 {
+			return errors.New("company's address must be greater than 5 characters")
+		}
+	}
+
+	c.Notes = strings.TrimSpace(c.Notes)
+
+	if !hermes.IsStringEmpty(c.Notes) {
+		if len(c.Notes) > 2000 {
+			return errors.New("company's notes must be less than 2000")
+		}
+
+		if len(c.Notes) < 5 {
+			return errors.New("company's notes must be greater than 5 characters")
+		}
+	}
 
 	return nil
 }
@@ -713,11 +750,14 @@ func (c *contactHandler) editContact(
 	w http.ResponseWriter,
 	r *http.Request) (render.Renderer, Status) {
 
-	user := getUserFromContext(r.Context())
+	user := getUserFromContext(ctx)
+	workspace := getWorkspaceFromContext(ctx)
+
+	reference := chi.URLParam(r, "reference")
 
 	logger.Debug("editing contact")
 
-	req := new(createContactRequest)
+	req := new(editContactRequest)
 
 	if err := render.Bind(r, req); err != nil {
 		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
@@ -727,33 +767,55 @@ func (c *contactHandler) editContact(
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	contact := &malak.Contact{
-		Email:       req.Email,
-		FirstName:   util.DeRef(req.FirstName),
-		LastName:    util.DeRef(req.LastName),
-		Metadata:    make(malak.CustomContactMetadata),
-		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
-		Reference:   c.referenceGenerator.Generate(malak.EntityTypeContact),
-		// Default to the user who created it
-		OwnerID:   user.ID,
-		CreatedBy: user.ID,
-	}
-
-	err := c.contactRepo.Create(ctx, contact)
-	if errors.Is(err, malak.ErrContactExists) {
-		return newAPIStatus(http.StatusConflict, err.Error()), StatusFailed
-	}
-
+	contact, err := c.contactRepo.Get(ctx, malak.FetchContactOptions{
+		WorkspaceID: workspace.ID,
+		Reference:   malak.Reference(reference),
+	})
 	if err != nil {
+		logger.Error("could not fetch contact",
+			zap.Error(err))
+
+		var status = http.StatusInternalServerError
+		var msg = "could not fetch contact"
+
+		if errors.Is(err, malak.ErrContactNotFound) {
+			status = http.StatusNotFound
+			msg = "contact does not exists"
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	if req.Address != contact.City {
+		contact.City = req.Address
+	}
+
+	if req.Company != contact.Company {
+		contact.Company = req.Company
+	}
+
+	if req.FirstName != contact.FirstName {
+		contact.FirstName = req.FirstName
+	}
+
+	if req.LastName != contact.LastName {
+		contact.LastName = req.LastName
+	}
+
+	if req.Notes != contact.Notes {
+		contact.Notes = req.Notes
+	}
+
+	if err := c.contactRepo.Update(ctx, contact); err != nil {
 		logger.
-			Error("an error occurred while storing contact to the database", zap.Error(err))
+			Error("an error occurred while updating contact", zap.Error(err))
 		return newAPIStatus(
 			http.StatusInternalServerError,
-			"an error occurred while creating contact"), StatusFailed
+			"an error occurred while updating contact"), StatusFailed
 	}
 
 	return fetchContactResponse{
-		APIStatus: newAPIStatus(http.StatusCreated, "contact was successfully created"),
-		Contact:   util.DeRef(contact),
+		APIStatus: newAPIStatus(http.StatusOK, "contact was successfully updated"),
+		Contact:   hermes.DeRef(contact),
 	}, StatusSuccess
 }

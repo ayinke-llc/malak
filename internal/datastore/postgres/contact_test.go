@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ayinke-llc/malak"
+	"github.com/go-faker/faker/v4"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
@@ -220,4 +221,39 @@ func TestContact_List(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(0), total)
 	require.Len(t, result, 0)
+}
+
+func TestContact_Update(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	contactRepo := NewContactRepository(client)
+
+	contact, err := contactRepo.Get(context.Background(), malak.FetchContactOptions{
+		Reference:   "contact_kCoC286IR", // contacts.yml
+		WorkspaceID: workspaceID,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, contact)
+	require.Equal(t, "contact_kCoC286IR", contact.Reference.String())
+
+	newEmail := faker.Email()
+
+	_, err = contactRepo.Get(context.Background(), malak.FetchContactOptions{
+		ID:          contact.ID,
+		WorkspaceID: workspaceID,
+		Email:       malak.Email(newEmail),
+	})
+	require.Error(t, err)
+	require.Equal(t, malak.ErrContactNotFound, err)
+
+	contact.Email = malak.Email(newEmail)
+	require.NoError(t, contactRepo.Update(context.Background(), contact))
+
+	_, err = contactRepo.Get(context.Background(), malak.FetchContactOptions{
+		ID:          contact.ID,
+		WorkspaceID: workspaceID,
+		Email:       malak.Email(newEmail),
+	})
+	require.NoError(t, err)
 }

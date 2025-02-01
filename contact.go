@@ -68,4 +68,5 @@ type ContactRepository interface {
 	Get(context.Context, FetchContactOptions) (*Contact, error)
 	List(context.Context, ListContactOptions) ([]Contact, int64, error)
 	Delete(context.Context, *Contact) error
+	Update(context.Context, *Contact) error
 }

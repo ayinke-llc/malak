@@ -544,6 +544,68 @@ const docTemplate = `{
                     }
                 }
             },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "edit a contact",
+                "parameters": [
+                    {
+                        "description": "contact request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.editContactRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "contact unique reference.. e.g contact_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchContactResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "consumes": [
                     "application/json"
@@ -2249,6 +2311,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "city": {
+                    "description": "Legacy lmao. should be address but migrations bit ugh :))",
                     "type": "string"
                 },
                 "company": {
@@ -3189,6 +3252,31 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/malak.Workspace"
                     }
+                }
+            }
+        },
+        "server.editContactRequest": {
+            "type": "object",
+            "required": [
+                "address",
+                "company",
+                "notes"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "company": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
                 }
             }
         },
