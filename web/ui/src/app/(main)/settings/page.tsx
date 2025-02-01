@@ -1,13 +1,15 @@
 "use client"
 
 import {
-  Tabs, TabsList,
-  TabsTrigger, TabsContent
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
 } from "@/components/ui/tabs";
+import { useSearchParams } from "next/navigation";
+import { BillingPage } from "./billing";
 import { GeneralSettings } from "./general";
 import Soon from "./soon";
-import { BillingPage } from "./billing";
-import { useSearchParams } from "next/navigation";
 
 export default function Settings() {
 
@@ -56,7 +58,6 @@ export default function Settings() {
               <TabsTrigger value="billing">Billing</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
               <TabsTrigger value="api">API Key</TabsTrigger>
-              <TabsTrigger value="webhook">Webhooks</TabsTrigger>
             </TabsList>
             <TabsContent value="general">
               <GeneralSettings />
@@ -69,9 +70,6 @@ export default function Settings() {
             </TabsContent>
             <TabsContent value="api">
               <Soon feature="Api keys" />
-            </TabsContent>
-            <TabsContent value="webhook">
-              <Soon feature="webhooks" />
             </TabsContent>
           </Tabs>
         </section>

@@ -26,8 +26,6 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Avatar } from "./custom/avatar/avatar"
 import { ModalAddWorkspace } from "./navigation/ModalAddWorkspace"
-import { AvatarImage } from "./avatar"
-import Image from "next/image"
 
 export function TeamSwitcher() {
   const { isMobile } = useSidebar();
@@ -112,15 +110,17 @@ export function TeamSwitcher() {
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 p-2 hover:cursor-pointer">
-              <div className="flex size-6 items-center justify-center rounded-md border bg-background">
-                <Plus className="size-4" />
-              </div>
-              <ModalAddWorkspace
-                onSelect={() => { }}
-                onOpenChange={() => { }}
-                itemName="Create workspace"
-              />
+            <DropdownMenuItem className="gap-2 p-2 hover:cursor-pointer" asChild>
+              <>
+                <div className="flex size-6 items-center justify-center rounded-md border bg-background">
+                  <Plus className="size-4" />
+                </div>
+                <ModalAddWorkspace
+                  onSelect={() => { }}
+                  onOpenChange={() => { }}
+                  itemName="Create workspace"
+                />
+              </>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

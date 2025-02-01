@@ -1,3 +1,5 @@
+"use client"
+
 import type { ServerAPIStatus } from "@/client/Api";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,6 +52,13 @@ export function ModalAddWorkspace({
 
   const { setCurrent } = useWorkspacesStore();
 
+  const [open, setOpen] = useState(false);
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    onOpenChange(isOpen);
+  };
+
   const router = useRouter();
 
   const mutation = useMutation({
@@ -89,8 +98,8 @@ export function ModalAddWorkspace({
 
   return (
     <>
-      <Dialog onOpenChange={onOpenChange} modal={false}>
-        <DialogTrigger className="w-full text-left">
+      <Dialog onOpenChange={handleOpenChange} modal={false} open={open}>
+        <DialogTrigger className="w-full text-left" asChild>
           <DropdownMenuItem
             className="hover:cursor-pointer"
             onSelect={(event) => {
