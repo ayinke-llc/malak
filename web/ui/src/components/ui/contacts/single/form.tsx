@@ -26,12 +26,12 @@ import client from "@/lib/client"
 import { AxiosError } from "axios"
 
 const schema = yup.object().shape({
-  company: yup.string().min(5).max(100),
-  notes: yup.string().min(5).max(2000),
-  phone: yup.string(),
-  first_name: yup.string(),
-  last_name: yup.string(),
-  address: yup.string().min(5).max(225),
+  company: yup.string().min(5).max(100).optional(),
+  notes: yup.string().min(5).max(2000).optional(),
+  phone: yup.string().optional(),
+  first_name: yup.string().optional(),
+  last_name: yup.string().optional(),
+  address: yup.string().min(5).max(225).optional(),
 })
 
 type FormData = yup.InferType<typeof schema>;
@@ -75,12 +75,12 @@ export function EditContactDialog({ contact }: { contact: MalakContact }) {
   } = useForm<FormData>({
     resolver: yupResolver(schema),
     defaultValues: {
-      company: contact?.company || "",
-      first_name: contact?.first_name || "",
-      last_name: contact?.last_name || "",
-      notes: contact?.notes || "",
-      phone: contact?.phone || "",
-      address: contact?.city || "",
+      company: contact?.company,
+      first_name: contact?.first_name,
+      last_name: contact?.last_name,
+      notes: contact?.notes,
+      phone: contact?.phone,
+      address: contact?.city,
     },
   });
 
