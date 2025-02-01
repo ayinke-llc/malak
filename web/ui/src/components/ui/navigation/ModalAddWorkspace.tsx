@@ -1,3 +1,5 @@
+"use client"
+
 import type { ServerAPIStatus } from "@/client/Api";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +19,7 @@ import client from "@/lib/client";
 import { CREATE_WORKSPACE } from "@/lib/query-constants";
 import useWorkspacesStore from "@/store/workspace";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { RiAddBoxLine, RiAddLargeLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
@@ -48,7 +51,14 @@ export function ModalAddWorkspace({
 }: ModalProps) {
   const [loading, setLoading] = useState<boolean>(false);
 
-  const { setCurrent } = useWorkspacesStore();
+  const appendWorkspace = useWorkspacesStore(state => state.appendWorkspaceAfterCreation)
+
+  const [open, setOpen] = useState(false);
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    onOpenChange(isOpen);
+  };
 
   const router = useRouter();
 
@@ -57,10 +67,9 @@ export function ModalAddWorkspace({
     mutationFn: (data: CreateWorkspaceInput) =>
       client.workspaces.workspacesCreate(data),
     onSuccess: ({ data }) => {
-      setCurrent(data.workspace);
+      appendWorkspace((data.workspace))
       toast.success(data.message);
       onOpenChange(false);
-      router.push("/");
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message;
@@ -89,8 +98,8 @@ export function ModalAddWorkspace({
 
   return (
     <>
-      <Dialog onOpenChange={onOpenChange} modal={false}>
-        <DialogTrigger className="w-full text-left">
+      <Dialog onOpenChange={handleOpenChange} modal={false} open={open}>
+        <DialogTrigger className="w-full text-left" asChild>
           <DropdownMenuItem
             className="hover:cursor-pointer"
             onSelect={(event) => {
@@ -98,6 +107,9 @@ export function ModalAddWorkspace({
               onSelect?.();
             }}
           >
+            <div className="flex size-6 items-center justify-center rounded-md border bg-background">
+              <RiAddLargeLine className="size-4" />
+            </div>
             {itemName}
           </DropdownMenuItem>
         </DialogTrigger>
