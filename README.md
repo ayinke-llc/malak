@@ -66,10 +66,6 @@ where `version` can be the version you want. The version can be in two formats:
 - semver version number e.g: `docker pull ghcr.io/ayinke-llc/malak:0.4.2`
 - commit hash e.g: `docker pull ghcr.io/ayinke-llc/malak:101a434d`
 
-Plans are extremely important in Malak. Even though you are self hosting
-and not taking payments, you can still limit certain features for users
-on your instance. Every company/workspace must be have a plan.
-
 At the very minimum, your configuration needs to look like this:
 
 > [!IMPORTANT]
@@ -110,6 +106,14 @@ email:
     use_tls: false
     port: 9125
 ```
+
+> [!IMPORTANT]
+> The docker image runs the http server by default but if
+> you are using the binary, you can run it with `malak http`
+
+Plans are extremely important in Malak. Even though you are self hosting
+and not taking payments, you can still limit certain features for users
+on your instance. Every company/workspace must be have a plan.
 
 You can view a complete list of all available configuration here.
 
