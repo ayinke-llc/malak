@@ -147,7 +147,19 @@ NEXT_PUBLIC_SUPPORT_EMAIL=support@yourdomain
 
 ## FAQs
 
-### Managing Minio
+### Using Minio locally for S3
+
+#### Buckets
+
+You need to create two buckets:
+
+- `malak` : for publicly available objects
+- `deck`: Make sure this bucket is private. Items here should not be publicly available
+
+> [!NOTE]
+> This bucket names are not hard-coded. They are just defaults, you can
+> name your buckets however you choose to. Just add the bucket names correctly
+> in your configuration
 
 #### Images are not showing correctly in the editor
 
