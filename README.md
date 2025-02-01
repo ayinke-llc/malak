@@ -14,10 +14,17 @@ That's where Malak comes in. Self-hosted on your own infra or hosted by us.
 White-label by design. Ready to be deployed on your own domain.
 Own full control of your data and company state if you decide to selfhost.
 
+- [Features](#features)
+- [FAQs](#faqs)
+- [Self hosting](#self-hosting)
+  - [Frontend](#frontend)
+  - [Migrations](#migrations)
+  - [Backend](#backend)
+
 ## Features
 
-> [!WARNING]
-> Actively being built and not ready yet :)
+> [!NOTE]
+> Hosted version available by mid March :)
 
 - 100% Opensource. Own your own data, metrics, and story
 - Send investors' updates to anyone via email
@@ -33,6 +40,110 @@ Own full control of your data and company state if you decide to selfhost.
 - NextJS
 - Tailwind CSS
 - Stripe ( optional )
+
+## Self-hosting
+
+### Migrations
+
+```sh
+malak migrate
+```
+
+> [!IMPORTANT]
+> Everytime you upgrade the backend or re-download the binary/docker image,
+> it makes sense to run the migrations again as migrations are usually added to
+> support newer
+> features or enhance existing ones
+
+### Backend
+
+You can either download the raw binary or use our docker image. You can view
+a list of all available releases on [Github](https://github.com/ayinke-llc/malak/releases).
+
+The docker image is also available as `docker pull ghcr.io/ayinke-llc/malak:version`
+where `version` can be the version you want. The version can be in two formats:
+
+- semver version number e.g: `docker pull ghcr.io/ayinke-llc/malak:0.4.2`
+- commit hash e.g: `docker pull ghcr.io/ayinke-llc/malak:101a434d`
+
+Plans are extremely important in Malak. Even though you are self hosting
+and not taking payments, you can still limit certain features for users
+on your instance. Every company/workspace must be have a plan.
+
+At the very minimum, your configuration needs to look like this:
+
+> [!IMPORTANT]
+> You can also use environment values to configure this in cloud environments
+> using the syntax `MALAK_`. So for `auth.google.client_id`, you can use `MALAK_AUTH_GOOGLE_CLIENT_ID`
+
+Your `config.yml` below:
+
+```yml
+auth:
+  google:
+    client_id: "GOOGLE_CLIENT_ID"
+    client_secret: "GOOGLE_CLIENT_SECRET"
+    redirect_uri: "GOOGLE_REDIRECT_URI"
+    is_enabled: true
+
+  jwt:
+    key: YOUR_SECRET_KEY
+
+uploader:
+  s3:
+    access_key: YOUR_ACCESS_KEY
+    access_secret: YOUR_SECRET_KEY
+    region: lagos-1
+    endpoint: http://localhost:9000
+    use_tls: false
+
+email:
+  provider: smtp # OR resend
+  sender: email@yourdomain
+  sender_name: Malak
+  resend:
+    api_key: RESEND_API_KEY
+  smtp:
+    host: localhost
+    password: random
+    username: random
+    use_tls: false
+    port: 9125
+```
+
+You can view a complete list of all available configuration here.
+
+#### Listing plans
+
+```sh
+malak plans list
+```
+
+#### Create a new plan
+
+```sh
+malak plans create
+```
+
+#### Set a default plan for newly created workspaces
+
+```sh
+malak plans set-default plan_id
+```
+
+### Frontend
+
+```env
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=
+NEXT_PUBLIC_MALAK_POSTHOG_KEY=
+NEXT_PUBLIC_MALAK_ENABLE_POSTHOG=
+NEXT_PUBLIC_MALAK_POSTHOG_HOST=
+NEXT_PUBLIC_MALAK_TERMS_CONDITION_LINK=
+NEXT_PUBLIC_MALAK_PRIVACY_POLICY_LINK=
+NEXT_PUBLIC_SENTRY_DSN=
+NEXT_PUBLIC_DECKS_DOMAIN=https://deck.yourdowmain
+NEXT_PUBLIC_SUPPORT_EMAIL=support@yourdomain
+```
 
 ## FAQs
 
