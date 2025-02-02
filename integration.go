@@ -64,11 +64,18 @@ type IntegrationRepository interface {
 // ENUM(currency,others)
 type IntegrationDataPointType string
 
+type IntegrationDataPointMetadata struct {
+}
+
 type IntegrationDataPoint struct {
-	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	Reference   Reference `json:"reference,omitempty"`
-	WorkspaceID uuid.UUID `json:"workspace_id,omitempty"`
-	PointName   string    `json:"point_name,omitempty"`
+	ID                     uuid.UUID                    `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	WorkspaceIntegrationID uuid.UUID                    `json:"workspace_integration_id,omitempty"`
+	WorkspaceID            uuid.UUID                    `json:"workspace_id,omitempty"`
+	Reference              Reference                    `json:"reference,omitempty"`
+	PointName              string                       `json:"point_name,omitempty"`
+	PointValue             int64                        `json:"point_value,omitempty"`
+	DataPointType          IntegrationDataPointType     `json:"data_point_type,omitempty"`
+	Metadata               IntegrationDataPointMetadata `json:"metadata,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`

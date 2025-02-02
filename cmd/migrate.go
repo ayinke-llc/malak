@@ -50,6 +50,7 @@ func addMigrateCommand(c *cobra.Command, cfg *config.Config) {
 				return err
 			}
 
+			logger.Info("migrations successful")
 			return nil
 		},
 	}
