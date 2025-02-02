@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import {
   AlertDialog,
@@ -49,29 +51,29 @@ export default function DeleteDeck({ reference }: { reference: string }) {
         </Button>
       </AlertDialogTrigger>
 
-      <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+      <AlertDialogContent className="bg-white text-zinc-900 border-zinc-300 dark:bg-zinc-900 dark:text-zinc-100 dark:border-zinc-800">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-zinc-100">Delete deck?</AlertDialogTitle>
-          <AlertDialogDescription className="text-zinc-400">
+          <AlertDialogTitle>Delete deck?</AlertDialogTitle>
+          <AlertDialogDescription className="text-zinc-600 dark:text-zinc-400">
             This action cannot be undone. This will permanently delete the deck
             and remove all associated data.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel
-            className="bg-transparent border-zinc-800 text-zinc-100 hover:bg-zinc-800 hover:text-zinc-100"
+            className="bg-transparent border-zinc-300 text-zinc-900 hover:bg-zinc-200 dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-800"
             disabled={deleteMutation.isPending}
           >
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
-            className="bg-red-600 text-zinc-100 hover:bg-red-700"
+            className="bg-red-600 text-white hover:bg-red-700"
             onClick={confirmDelete}
             disabled={deleteMutation.isPending}
           >
             {deleteMutation.isPending ? (
               <div className="flex items-center gap-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-100 border-t-transparent" />
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent dark:border-zinc-100" />
                 Deleting...
               </div>
             ) : (
