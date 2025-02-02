@@ -70,32 +70,32 @@ func (mr *MockIntegrationRepositoryMockRecorder) List(arg0, arg1 any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockIntegrationRepository)(nil).List), arg0, arg1)
 }
 
-// MockIntegrationProvider is a mock of IntegrationProvider interface.
-type MockIntegrationProvider struct {
+// MockIntegrationProviderClient is a mock of IntegrationProviderClient interface.
+type MockIntegrationProviderClient struct {
 	ctrl     *gomock.Controller
-	recorder *MockIntegrationProviderMockRecorder
+	recorder *MockIntegrationProviderClientMockRecorder
 	isgomock struct{}
 }
 
-// MockIntegrationProviderMockRecorder is the mock recorder for MockIntegrationProvider.
-type MockIntegrationProviderMockRecorder struct {
-	mock *MockIntegrationProvider
+// MockIntegrationProviderClientMockRecorder is the mock recorder for MockIntegrationProviderClient.
+type MockIntegrationProviderClientMockRecorder struct {
+	mock *MockIntegrationProviderClient
 }
 
-// NewMockIntegrationProvider creates a new mock instance.
-func NewMockIntegrationProvider(ctrl *gomock.Controller) *MockIntegrationProvider {
-	mock := &MockIntegrationProvider{ctrl: ctrl}
-	mock.recorder = &MockIntegrationProviderMockRecorder{mock}
+// NewMockIntegrationProviderClient creates a new mock instance.
+func NewMockIntegrationProviderClient(ctrl *gomock.Controller) *MockIntegrationProviderClient {
+	mock := &MockIntegrationProviderClient{ctrl: ctrl}
+	mock.recorder = &MockIntegrationProviderClientMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockIntegrationProvider) EXPECT() *MockIntegrationProviderMockRecorder {
+func (m *MockIntegrationProviderClient) EXPECT() *MockIntegrationProviderClientMockRecorder {
 	return m.recorder
 }
 
 // Close mocks base method.
-func (m *MockIntegrationProvider) Close() error {
+func (m *MockIntegrationProviderClient) Close() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Close")
 	ret0, _ := ret[0].(error)
@@ -103,21 +103,35 @@ func (m *MockIntegrationProvider) Close() error {
 }
 
 // Close indicates an expected call of Close.
-func (mr *MockIntegrationProviderMockRecorder) Close() *gomock.Call {
+func (mr *MockIntegrationProviderClientMockRecorder) Close() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockIntegrationProvider)(nil).Close))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockIntegrationProviderClient)(nil).Close))
 }
 
 // Name mocks base method.
-func (m *MockIntegrationProvider) Name() string {
+func (m *MockIntegrationProviderClient) Name() malak.IntegrationProvider {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Name")
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(malak.IntegrationProvider)
 	return ret0
 }
 
 // Name indicates an expected call of Name.
-func (mr *MockIntegrationProviderMockRecorder) Name() *gomock.Call {
+func (mr *MockIntegrationProviderClientMockRecorder) Name() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Name", reflect.TypeOf((*MockIntegrationProvider)(nil).Name))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Name", reflect.TypeOf((*MockIntegrationProviderClient)(nil).Name))
+}
+
+// Ping mocks base method.
+func (m *MockIntegrationProviderClient) Ping(arg0 context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Ping", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Ping indicates an expected call of Ping.
+func (mr *MockIntegrationProviderClientMockRecorder) Ping(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockIntegrationProviderClient)(nil).Ping), arg0)
 }

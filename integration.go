@@ -47,7 +47,11 @@ type WorkspaceIntegration struct {
 	IntegrationID uuid.UUID    `json:"integration_id,omitempty"`
 	Integration   *Integration `bun:"rel:belongs-to,join:integration_id=id" json:"integration,omitempty"`
 
+	// IsEnabled - this integration is enabled and data can be fetched
 	IsEnabled bool `json:"is_enabled,omitempty"`
+
+	// IsActive determines if the connection to the integration has been tested and works
+	IsActive bool `json:"is_active,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
@@ -86,5 +90,6 @@ type IntegrationDataPoint struct {
 
 type IntegrationProviderClient interface {
 	Name() IntegrationProvider
+	Ping(context.Context) error
 	io.Closer
 }

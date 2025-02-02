@@ -352,6 +352,9 @@ export interface MalakWorkspaceIntegration {
   id?: string;
   integration?: MalakIntegration;
   integration_id?: string;
+  /** IsActive determines if the connection to the integration has been tested and works */
+  is_active?: boolean;
+  /** IsEnabled - this integration is enabled and data can be fetched */
   is_enabled?: boolean;
   reference?: string;
   updated_at?: string;

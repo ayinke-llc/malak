@@ -13,7 +13,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func addMigrateCommand(c *cobra.Command, cfg *config.Config) {
+func addMigrateCommand(c *cobra.Command,
+	cfg *config.Config) {
 
 	cmd := &cobra.Command{
 		Use:   "migrate",

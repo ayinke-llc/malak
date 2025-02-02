@@ -3091,7 +3091,12 @@ const docTemplate = `{
                 "integration_id": {
                     "type": "string"
                 },
+                "is_active": {
+                    "description": "IsActive determines if the connection to the integration has been tested and works",
+                    "type": "boolean"
+                },
                 "is_enabled": {
+                    "description": "IsEnabled - this integration is enabled and data can be fetched",
                     "type": "boolean"
                 },
                 "reference": {
