@@ -61,6 +61,22 @@ type IntegrationRepository interface {
 	List(context.Context, *Workspace) ([]WorkspaceIntegration, error)
 }
 
+// ENUM(currency,others)
+type IntegrationDataPointType string
+
+type IntegrationDataPoint struct {
+	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference   Reference `json:"reference,omitempty"`
+	WorkspaceID uuid.UUID `json:"workspace_id,omitempty"`
+	PointName   string    `json:"point_name,omitempty"`
+
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
+
+	bun.BaseModel `json:"-"`
+}
+
 type IntegrationProviderClient interface {
 	Name() IntegrationProvider
 	io.Closer

@@ -12,6 +12,40 @@ import (
 )
 
 const (
+	// IntegrationDataPointTypeCurrency is a IntegrationDataPointType of type currency.
+	IntegrationDataPointTypeCurrency IntegrationDataPointType = "currency"
+	// IntegrationDataPointTypeOthers is a IntegrationDataPointType of type others.
+	IntegrationDataPointTypeOthers IntegrationDataPointType = "others"
+)
+
+var ErrInvalidIntegrationDataPointType = errors.New("not a valid IntegrationDataPointType")
+
+// String implements the Stringer interface.
+func (x IntegrationDataPointType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x IntegrationDataPointType) IsValid() bool {
+	_, err := ParseIntegrationDataPointType(string(x))
+	return err == nil
+}
+
+var _IntegrationDataPointTypeValue = map[string]IntegrationDataPointType{
+	"currency": IntegrationDataPointTypeCurrency,
+	"others":   IntegrationDataPointTypeOthers,
+}
+
+// ParseIntegrationDataPointType attempts to convert a string to a IntegrationDataPointType.
+func ParseIntegrationDataPointType(name string) (IntegrationDataPointType, error) {
+	if x, ok := _IntegrationDataPointTypeValue[name]; ok {
+		return x, nil
+	}
+	return IntegrationDataPointType(""), fmt.Errorf("%s is %w", name, ErrInvalidIntegrationDataPointType)
+}
+
+const (
 	// IntegrationProviderStripe is a IntegrationProvider of type stripe.
 	IntegrationProviderStripe IntegrationProvider = "stripe"
 	// IntegrationProviderPaystack is a IntegrationProvider of type paystack.
