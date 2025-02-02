@@ -7,6 +7,7 @@ import (
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"github.com/ayinke-llc/malak/internal/secret"
 )
 
 // Only Postgres for now. Later on we can add support for sqlite3
@@ -85,6 +86,26 @@ type Config struct {
 		// applied upon creation
 		DefaultPlanReference string `yaml:"default_plan_reference" mapstructure:"default_plan_reference"`
 	} `yaml:"billing" mapstructure:"billing"`
+
+	Integration struct {
+		Provider secret.SecretProvider `yaml:"provider" mapstructure:"provider"`
+
+		Vault struct {
+			Address string `yaml:"address" mapstructure:"address"`
+			Token   string `yaml:"token" mapstructure:"token"`
+		} `yaml:"vault" mapstructure:"vault"`
+
+		Infisical struct {
+			ClientID     string `yaml:"client_id" mapstructure:"client_id"`
+			ClientSecret string `yaml:"client_secret" mapstructure:"client_secret"`
+			SiteURL      string `yaml:"site_url" mapstructure:"site_url"`
+			ProjectID    string `yaml:"project_id" mapstructure:"project_id"`
+		} `yaml:"infisical" mapstructure:"infisical"`
+
+		AES struct {
+			Key string `yaml:"key" mapstructure:"key"`
+		} `yaml:"aes" mapstructure:"aes"`
+	} `yaml:"integration" mapstructure:"integration"`
 
 	Uploader struct {
 		Driver        UploadDriver `yaml:"driver" mapstructure:"driver"`

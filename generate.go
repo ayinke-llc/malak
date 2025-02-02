@@ -26,4 +26,4 @@ package malak
 //go:generate mockgen -source=preferences.go -destination=mocks/preferences.go -package=malak_mocks
 //go:generate mockgen -source=integration.go -destination=mocks/integration.go -package=malak_mocks
 //go:generate mockgen -source=internal/pkg/billing/billing.go -destination=mocks/billing.go -package=malak_mocks
-//go:generate mockgen -source=internal/vault/vault.go -destination=mocks/vault.go -package=malak_mocks
+//go:generate mockgen -source=internal/secret/secret.go -destination=mocks/secret.go -package=malak_mocks

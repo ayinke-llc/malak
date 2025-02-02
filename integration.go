@@ -38,6 +38,7 @@ type Integration struct {
 }
 
 type WorkspaceIntegrationMetadata struct {
+	AccessToken string `json:"access_token,omitempty"`
 }
 
 type WorkspaceIntegration struct {
