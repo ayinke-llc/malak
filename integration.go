@@ -12,6 +12,9 @@ import (
 // ENUM(oauth2,api_key)
 type IntegrationType string
 
+// ENUM(stripe,paystack,flutterwave,mercury,brex)
+type IntegrationProvider string
+
 type IntegrationMetadata struct {
 	Endpoint string `json:"endpoint,omitempty"`
 }
@@ -58,7 +61,7 @@ type IntegrationRepository interface {
 	List(context.Context, *Workspace) ([]WorkspaceIntegration, error)
 }
 
-type IntegrationProvider interface {
-	Name() string
+type IntegrationProviderClient interface {
+	Name() IntegrationProvider
 	io.Closer
 }
