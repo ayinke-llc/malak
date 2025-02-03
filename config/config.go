@@ -113,6 +113,7 @@ type Config struct {
 			Region       string `yaml:"region" mapstructure:"region"`
 			AccessSecret string `yaml:"access_secret" mapstructure:"access_secret"`
 			AccessKey    string `yaml:"access_key" mapstructure:"access_key"`
+			Endpoint     string `yaml:"endpoint" mapstructure:"endpoint"`
 		} `yaml:"secrets_manager" mapstructure:"secrets_manager"`
 	} `yaml:"integration" mapstructure:"integration"`
 

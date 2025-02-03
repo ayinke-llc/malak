@@ -3,6 +3,7 @@ package secretsmanager
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/ayinke-llc/hermes"
@@ -17,15 +18,29 @@ type awsSecretsManagerClient struct {
 }
 
 func New(cfg config.Config) (secret.SecretClient, error) {
-
-	conf, err := awsConfig.LoadDefaultConfig(
-		context.Background(),
+	opts := []func(*awsConfig.LoadOptions) error{
 		awsConfig.WithRegion(cfg.Integration.SecretsManager.Region),
 		awsConfig.WithCredentialsProvider(
 			awsCreds.NewStaticCredentialsProvider(
 				cfg.Integration.SecretsManager.AccessKey,
 				cfg.Integration.SecretsManager.AccessSecret,
 				"")),
+	}
+
+	if cfg.Integration.SecretsManager.Endpoint != "" {
+		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+			return aws.Endpoint{
+				PartitionID:   "aws",
+				URL:           cfg.Integration.SecretsManager.Endpoint,
+				SigningRegion: region,
+			}, nil
+		})
+		opts = append(opts, awsConfig.WithEndpointResolverWithOptions(customResolver))
+	}
+
+	conf, err := awsConfig.LoadDefaultConfig(
+		context.Background(),
+		opts...,
 	)
 	if err != nil {
 		return nil, err
