@@ -42,6 +42,7 @@ func New(cfg config.Config) (secret.SecretClient, error) {
 
 	return &hashicorpVault{
 		client: client,
+		path:   cfg.Integration.Vault.Path,
 	}, nil
 }
 

@@ -107,6 +107,13 @@ type Config struct {
 		AES struct {
 			Key string `yaml:"key" mapstructure:"key"`
 		} `yaml:"aes" mapstructure:"aes"`
+
+		// Merge secrets/key for s3 and this?
+		SecretsManager struct {
+			Region       string `yaml:"region" mapstructure:"region"`
+			AccessSecret string `yaml:"access_secret" mapstructure:"access_secret"`
+			AccessKey    string `yaml:"access_key" mapstructure:"access_key"`
+		} `yaml:"secrets_manager" mapstructure:"secrets_manager"`
 	} `yaml:"integration" mapstructure:"integration"`
 
 	Uploader struct {
