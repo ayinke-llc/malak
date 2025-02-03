@@ -38,6 +38,7 @@ import {
 
 export default function Integrations() {
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
+  const [oauth2SettingsOpen, setOauth2SettingsOpen] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState<any>(null);
   const [apiKey, setApiKey] = useState("");
   const [isEditing, setIsEditing] = useState(false);
@@ -79,6 +80,16 @@ export default function Integrations() {
       setSelectedIntegration(integration);
       setIsEditing(true);
       setApiKeyDialogOpen(true);
+    } else if (integration?.integration?.integration_type === MalakIntegrationType.IntegrationTypeOauth2) {
+      setSelectedIntegration(integration);
+      if (!integration?.is_active) {
+        toast.info(`Redirecting you to reconnect with ${integration?.integration?.integration_name}...`);
+        setTimeout(() => {
+          window.location.href = "https://google.com"; // Replace with actual OAuth URL
+        }, 1500);
+      } else {
+        setOauth2SettingsOpen(true);
+      }
     }
   };
 
@@ -139,8 +150,68 @@ export default function Integrations() {
     }
   }
 
+  const handleDisconnectOAuth = async () => {
+    try {
+      // TODO: Implement actual disconnect/revoke
+      // await client.workspaces.revokeIntegrationAccess(selectedIntegration.integration.id);
+      toast.success(`Disconnected from ${selectedIntegration?.integration?.integration_name}`);
+      setOauth2SettingsOpen(false);
+    } catch (error) {
+      toast.error("Failed to disconnect integration");
+    }
+  };
+
+  const handleReconnectOAuth = () => {
+    setOauth2SettingsOpen(false);
+    toast.info(`Redirecting you to reconnect with ${selectedIntegration?.integration?.integration_name}...`);
+    setTimeout(() => {
+      window.location.href = "https://google.com"; // Replace with actual OAuth URL
+    }, 1500);
+  };
+
   return (
     <>
+      <Dialog open={oauth2SettingsOpen} onOpenChange={setOauth2SettingsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>OAuth2 Connection Settings</DialogTitle>
+            <DialogDescription>
+              Manage your connection with {selectedIntegration?.integration?.integration_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <div className="flex items-center gap-2 text-sm">
+                <div className={`h-2 w-2 rounded-full ${selectedIntegration?.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
+                <span>{selectedIntegration?.is_active ? 'Connected and Active' : 'Connection Inactive'}</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {selectedIntegration?.is_active 
+                  ? "Your integration is currently active and working properly. You can disconnect if needed."
+                  : "Your integration is currently inactive. You may need to reconnect to restore functionality."
+                }
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            {!selectedIntegration?.is_active && (
+              <Button 
+                variant="outline"
+                onClick={handleReconnectOAuth}
+              >
+                Reconnect
+              </Button>
+            )}
+            <Button 
+              variant="destructive"
+              onClick={handleDisconnectOAuth}
+            >
+              Disconnect
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={apiKeyDialogOpen} onOpenChange={(open) => {
         setApiKeyDialogOpen(open);
         if (!open) {
