@@ -19,6 +19,12 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { RiSettings4Line } from "@remixicon/react";
 import { MalakIntegrationType } from "@/client/Api";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function Integrations() {
 
@@ -82,15 +88,26 @@ export default function Integrations() {
                       <div className="flex gap-2">
                         {getConnectionTypeBadge(integration?.integration?.integration_type as MalakIntegrationType)}
                       </div>
-                      <Switch checked={integration?.is_enabled} disabled={!integration?.integration?.is_enabled} />
+                      <div className="flex items-center gap-2">
+                        <Switch checked={integration?.is_enabled} disabled={!integration?.integration?.is_enabled} />
+                        {integration?.is_enabled && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <RiSettings4Line className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Integration Settings</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                   <CardFooter className="flex-shrink-0 flex justify-end">
-                    {integration?.is_enabled && (
-                      <Button variant="ghost" size="icon">
-                        <RiSettings4Line className="h-4 w-4" />
-                      </Button>
-                    )}
                   </CardFooter>
                 </Card>
               ))}
