@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import Skeleton from "@/components/ui/custom/loader/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { RiSettings4Line } from "@remixicon/react";
+import { RiSettings4Line, RiEyeLine, RiEyeOffLine } from "@remixicon/react";
 import { MalakIntegrationType } from "@/client/Api";
 import {
   Dialog,
@@ -35,16 +35,41 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+
+const apiKeySchema = yup.object({
+  apiKey: yup.string().required("API key is required"),
+});
+
+type ApiKeyFormData = yup.InferType<typeof apiKeySchema>;
 
 export default function Integrations() {
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const [oauth2SettingsOpen, setOauth2SettingsOpen] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState<any>(null);
-  const [apiKey, setApiKey] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [isConnectionTested, setIsConnectionTested] = useState(false);
   const [isConnectionValid, setIsConnectionValid] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    reset,
+    setValue,
+  } = useForm<ApiKeyFormData>({
+    resolver: yupResolver(apiKeySchema),
+    defaultValues: {
+      apiKey: "",
+    },
+  });
+
+  const apiKeyValue = watch("apiKey");
 
   const { data, isLoading, error } = useQuery({
     queryKey: [LIST_INTEGRATIONS],
@@ -99,7 +124,7 @@ export default function Integrations() {
       // TODO: Implement actual API test connection
       // const response = await client.workspaces.testIntegrationConnection({ 
       //   integration_id: selectedIntegration.integration.id,
-      //   api_key: apiKey 
+      //   api_key: apiKeyValue
       // });
       
       // Simulated delay for now
@@ -117,7 +142,7 @@ export default function Integrations() {
     }
   };
 
-  const handleApiKeySubmit = async () => {
+  const handleApiKeySubmit = async (data: ApiKeyFormData) => {
     if (!isConnectionTested || !isConnectionValid) {
       toast.error("Please test the connection first");
       return;
@@ -134,11 +159,12 @@ export default function Integrations() {
   };
 
   const resetDialogState = () => {
-    setApiKey("");
+    reset();
     setIsEditing(false);
     setIsTestingConnection(false);
     setIsConnectionTested(false);
     setIsConnectionValid(false);
+    setShowApiKey(false);
   };
 
   const getConnectionTypeBadge = (type: MalakIntegrationType) => {
@@ -228,44 +254,71 @@ export default function Integrations() {
               }
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="api-key">API Key</Label>
-              <Input
-                id="api-key"
-                type="password"
-                value={apiKey}
-                onChange={(e) => {
-                  setApiKey(e.target.value);
-                  setIsConnectionTested(false);
-                  setIsConnectionValid(false);
-                }}
-                placeholder={isEditing ? "Enter new API key" : "Enter your API key"}
-              />
-              {isConnectionTested && (
-                <div className={`text-sm ${isConnectionValid ? 'text-green-500' : 'text-red-500'}`}>
-                  {isConnectionValid 
-                    ? "✓ Connection verified successfully" 
-                    : "✗ Connection test failed"}
+          <form onSubmit={handleSubmit(handleApiKeySubmit)}>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="api-key">API Key</Label>
+                <div className="relative">
+                  <Controller
+                    name="apiKey"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        id="api-key"
+                        type={showApiKey ? "text" : "password"}
+                        placeholder={isEditing ? "Enter new API key" : "Enter your API key"}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          setIsConnectionTested(false);
+                          setIsConnectionValid(false);
+                        }}
+                      />
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                  >
+                    {showApiKey ? (
+                      <RiEyeOffLine className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <RiEyeLine className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
                 </div>
-              )}
+                {errors.apiKey && (
+                  <p className="text-sm text-red-500">{errors.apiKey.message}</p>
+                )}
+                {isConnectionTested && (
+                  <div className={`text-sm ${isConnectionValid ? 'text-green-500' : 'text-red-500'}`}>
+                    {isConnectionValid 
+                      ? "✓ Connection verified successfully" 
+                      : "✗ Connection test failed"}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          <DialogFooter className="flex gap-2">
-            <Button 
-              variant="outline"
-              onClick={handleTestConnection}
-              disabled={!apiKey || isTestingConnection}
-            >
-              {isTestingConnection ? "Testing..." : "Test Connection"}
-            </Button>
-            <Button 
-              onClick={handleApiKeySubmit}
-              disabled={!isConnectionTested || !isConnectionValid}
-            >
-              {isEditing ? "Update" : "Save"}
-            </Button>
-          </DialogFooter>
+            <DialogFooter className="flex gap-2">
+              <Button 
+                type="button"
+                variant="outline"
+                onClick={handleTestConnection}
+                disabled={!apiKeyValue || isTestingConnection}
+              >
+                {isTestingConnection ? "Testing..." : "Test Connection"}
+              </Button>
+              <Button 
+                type="submit"
+                disabled={!isConnectionTested || !isConnectionValid}
+              >
+                {isEditing ? "Update" : "Save"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
