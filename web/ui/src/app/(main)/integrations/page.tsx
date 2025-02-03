@@ -40,6 +40,10 @@ export default function Integrations() {
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState<any>(null);
   const [apiKey, setApiKey] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [isConnectionTested, setIsConnectionTested] = useState(false);
+  const [isConnectionValid, setIsConnectionValid] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: [LIST_INTEGRATIONS],
@@ -52,9 +56,15 @@ export default function Integrations() {
     }
   }, [error]);
 
-  const handleSwitchToggle = (integration: any) => {
+  const handleSwitchToggle = (integration: any, checked: boolean) => {
+    if (!checked) {
+      // Handle disabling integration here if needed
+      return;
+    }
+
     if (integration?.integration?.integration_type === MalakIntegrationType.IntegrationTypeApiKey) {
       setSelectedIntegration(integration);
+      setIsEditing(false);
       setApiKeyDialogOpen(true);
     } else if (integration?.integration?.integration_type === MalakIntegrationType.IntegrationTypeOauth2) {
       toast.info(`Redirecting you to authenticate with ${integration?.integration?.integration_name}...`);
@@ -64,15 +74,60 @@ export default function Integrations() {
     }
   };
 
+  const handleSettingsClick = (integration: any) => {
+    if (integration?.integration?.integration_type === MalakIntegrationType.IntegrationTypeApiKey) {
+      setSelectedIntegration(integration);
+      setIsEditing(true);
+      setApiKeyDialogOpen(true);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    try {
+      setIsTestingConnection(true);
+      // TODO: Implement actual API test connection
+      // const response = await client.workspaces.testIntegrationConnection({ 
+      //   integration_id: selectedIntegration.integration.id,
+      //   api_key: apiKey 
+      // });
+      
+      // Simulated delay for now
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setIsConnectionTested(true);
+      setIsConnectionValid(true);
+      toast.success("Connection test successful!");
+    } catch (error) {
+      setIsConnectionTested(true);
+      setIsConnectionValid(false);
+      toast.error("Connection test failed. Please check your API key and try again.");
+    } finally {
+      setIsTestingConnection(false);
+    }
+  };
+
   const handleApiKeySubmit = async () => {
+    if (!isConnectionTested || !isConnectionValid) {
+      toast.error("Please test the connection first");
+      return;
+    }
+
     try {
       // TODO: Implement API key submission
-      toast.success("API key saved successfully");
+      toast.success(isEditing ? "API key updated successfully" : "API key saved successfully");
       setApiKeyDialogOpen(false);
-      setApiKey("");
+      resetDialogState();
     } catch (error) {
-      toast.error("Failed to save API key");
+      toast.error(isEditing ? "Failed to update API key" : "Failed to save API key");
     }
+  };
+
+  const resetDialogState = () => {
+    setApiKey("");
+    setIsEditing(false);
+    setIsTestingConnection(false);
+    setIsConnectionTested(false);
+    setIsConnectionValid(false);
   };
 
   const getConnectionTypeBadge = (type: MalakIntegrationType) => {
@@ -86,12 +141,20 @@ export default function Integrations() {
 
   return (
     <>
-      <Dialog open={apiKeyDialogOpen} onOpenChange={setApiKeyDialogOpen}>
+      <Dialog open={apiKeyDialogOpen} onOpenChange={(open) => {
+        setApiKeyDialogOpen(open);
+        if (!open) {
+          resetDialogState();
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Enter API Key</DialogTitle>
+            <DialogTitle>{isEditing ? "Update API Key" : "Enter API Key"}</DialogTitle>
             <DialogDescription>
-              Please provide your API key for {selectedIntegration?.integration?.integration_name}
+              {isEditing 
+                ? `Update your API key for ${selectedIntegration?.integration?.integration_name}`
+                : `Please provide your API key for ${selectedIntegration?.integration?.integration_name}`
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -101,13 +164,36 @@ export default function Integrations() {
                 id="api-key"
                 type="password"
                 value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Enter your API key"
+                onChange={(e) => {
+                  setApiKey(e.target.value);
+                  setIsConnectionTested(false);
+                  setIsConnectionValid(false);
+                }}
+                placeholder={isEditing ? "Enter new API key" : "Enter your API key"}
               />
+              {isConnectionTested && (
+                <div className={`text-sm ${isConnectionValid ? 'text-green-500' : 'text-red-500'}`}>
+                  {isConnectionValid 
+                    ? "✓ Connection verified successfully" 
+                    : "✗ Connection test failed"}
+                </div>
+              )}
             </div>
           </div>
-          <DialogFooter>
-            <Button onClick={handleApiKeySubmit}>Save</Button>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline"
+              onClick={handleTestConnection}
+              disabled={!apiKey || isTestingConnection}
+            >
+              {isTestingConnection ? "Testing..." : "Test Connection"}
+            </Button>
+            <Button 
+              onClick={handleApiKeySubmit}
+              disabled={!isConnectionTested || !isConnectionValid}
+            >
+              {isEditing ? "Update" : "Save"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -165,13 +251,18 @@ export default function Integrations() {
                         <Switch 
                           checked={integration?.is_enabled} 
                           disabled={!integration?.integration?.is_enabled}
-                          onCheckedChange={() => handleSwitchToggle(integration)}
+                          onCheckedChange={(checked) => handleSwitchToggle(integration, checked)}
                         />
                         {integration?.is_enabled && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  onClick={() => handleSettingsClick(integration)}
+                                >
                                   <RiSettings4Line className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
