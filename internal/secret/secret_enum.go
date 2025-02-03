@@ -12,12 +12,14 @@ import (
 )
 
 const (
-	// SecretProviderHashicorpVault is a SecretProvider of type hashicorp_vault.
-	SecretProviderHashicorpVault SecretProvider = "hashicorp_vault"
+	// SecretProviderVault is a SecretProvider of type vault.
+	SecretProviderVault SecretProvider = "vault"
 	// SecretProviderInfisical is a SecretProvider of type infisical.
 	SecretProviderInfisical SecretProvider = "infisical"
 	// SecretProviderAesGcm is a SecretProvider of type aes_gcm.
 	SecretProviderAesGcm SecretProvider = "aes_gcm"
+	// SecretProviderSecretsmanager is a SecretProvider of type secretsmanager.
+	SecretProviderSecretsmanager SecretProvider = "secretsmanager"
 )
 
 var ErrInvalidSecretProvider = errors.New("not a valid SecretProvider")
@@ -35,9 +37,10 @@ func (x SecretProvider) IsValid() bool {
 }
 
 var _SecretProviderValue = map[string]SecretProvider{
-	"hashicorp_vault": SecretProviderHashicorpVault,
-	"infisical":       SecretProviderInfisical,
-	"aes_gcm":         SecretProviderAesGcm,
+	"vault":          SecretProviderVault,
+	"infisical":      SecretProviderInfisical,
+	"aes_gcm":        SecretProviderAesGcm,
+	"secretsmanager": SecretProviderSecretsmanager,
 }
 
 // ParseSecretProvider attempts to convert a string to a SecretProvider.

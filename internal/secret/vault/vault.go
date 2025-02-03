@@ -3,8 +3,8 @@ package vault
 import (
 	"context"
 	"errors"
-	"fmt"
 
+	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/secret"
 	vault "github.com/hashicorp/vault/api"
@@ -16,6 +16,18 @@ type hashicorpVault struct {
 }
 
 func New(cfg config.Config) (secret.SecretClient, error) {
+
+	if hermes.IsStringEmpty(cfg.Integration.Vault.Path) {
+		return nil, errors.New("please provide your vault mount secret path")
+	}
+
+	if hermes.IsStringEmpty(cfg.Integration.Vault.Token) {
+		return nil, errors.New("please provide your vault token")
+	}
+
+	if hermes.IsStringEmpty(cfg.Integration.Vault.Address) {
+		return nil, errors.New("please provide your vault address")
+	}
 
 	c := vault.DefaultConfig()
 
@@ -59,14 +71,11 @@ func (h *hashicorpVault) Get(ctx context.Context,
 func (h *hashicorpVault) Create(ctx context.Context,
 	opts *secret.CreateSecretOptions) (string, error) {
 
-	key := fmt.Sprintf("%s/%s",
-		opts.WorkspaceID.String(), opts.IntegrationName.String())
-
 	_, err := h.client.KVv2(h.path).
 		Put(ctx,
-			key, map[string]interface{}{
+			opts.Key(), map[string]interface{}{
 				"data": opts.Value,
 			})
 
-	return key, err
+	return opts.Key(), err
 }

@@ -93,6 +93,7 @@ type Config struct {
 		Vault struct {
 			Address string `yaml:"address" mapstructure:"address"`
 			Token   string `yaml:"token" mapstructure:"token"`
+			Path    string `yaml:"path" mapstructure:"path"`
 		} `yaml:"vault" mapstructure:"vault"`
 
 		Infisical struct {
@@ -100,6 +101,7 @@ type Config struct {
 			ClientSecret string `yaml:"client_secret" mapstructure:"client_secret"`
 			SiteURL      string `yaml:"site_url" mapstructure:"site_url"`
 			ProjectID    string `yaml:"project_id" mapstructure:"project_id"`
+			Environment  string `yaml:"environment" mapstructure:"environment"`
 		} `yaml:"infisical" mapstructure:"infisical"`
 
 		AES struct {
