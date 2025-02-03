@@ -89,6 +89,16 @@ export default function Integrations() {
                         {getConnectionTypeBadge(integration?.integration?.integration_type as MalakIntegrationType)}
                       </div>
                       <div className="flex items-center gap-2">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <div className={`h-2 w-2 rounded-full ${integration?.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{integration?.is_active ? 'Connected' : 'Connection Failed'}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         <Switch checked={integration?.is_enabled} disabled={!integration?.integration?.is_enabled} />
                         {integration?.is_enabled && (
                           <TooltipProvider>
