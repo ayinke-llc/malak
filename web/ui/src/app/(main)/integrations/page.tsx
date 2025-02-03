@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -20,6 +20,16 @@ import { Button } from "@/components/ui/button";
 import { RiSettings4Line } from "@remixicon/react";
 import { MalakIntegrationType } from "@/client/Api";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -27,6 +37,9 @@ import {
 } from "@/components/ui/tooltip";
 
 export default function Integrations() {
+  const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
+  const [selectedIntegration, setSelectedIntegration] = useState<any>(null);
+  const [apiKey, setApiKey] = useState("");
 
   const { data, isLoading, error } = useQuery({
     queryKey: [LIST_INTEGRATIONS],
@@ -39,6 +52,28 @@ export default function Integrations() {
     }
   }, [error]);
 
+  const handleSwitchToggle = (integration: any) => {
+    if (integration?.integration?.integration_type === MalakIntegrationType.IntegrationTypeApiKey) {
+      setSelectedIntegration(integration);
+      setApiKeyDialogOpen(true);
+    } else if (integration?.integration?.integration_type === MalakIntegrationType.IntegrationTypeOauth2) {
+      toast.info(`Redirecting you to authenticate with ${integration?.integration?.integration_name}...`);
+      setTimeout(() => {
+        window.location.href = "https://google.com"; // Replace with actual OAuth URL
+      }, 1500); // Give user time to see the toast
+    }
+  };
+
+  const handleApiKeySubmit = async () => {
+    try {
+      // TODO: Implement API key submission
+      toast.success("API key saved successfully");
+      setApiKeyDialogOpen(false);
+      setApiKey("");
+    } catch (error) {
+      toast.error("Failed to save API key");
+    }
+  };
 
   const getConnectionTypeBadge = (type: MalakIntegrationType) => {
     switch (type) {
@@ -51,6 +86,32 @@ export default function Integrations() {
 
   return (
     <>
+      <Dialog open={apiKeyDialogOpen} onOpenChange={setApiKeyDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enter API Key</DialogTitle>
+            <DialogDescription>
+              Please provide your API key for {selectedIntegration?.integration?.integration_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="api-key">API Key</Label>
+              <Input
+                id="api-key"
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="Enter your API key"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleApiKeySubmit}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="pt-6 bg-background">
         <section>
           <div className="sm:flex sm:items-center sm:justify-between">
@@ -89,17 +150,23 @@ export default function Integrations() {
                         {getConnectionTypeBadge(integration?.integration?.integration_type as MalakIntegrationType)}
                       </div>
                       <div className="flex items-center gap-2">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <div className={`h-2 w-2 rounded-full ${integration?.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{integration?.is_active ? 'Connected' : 'Connection Failed'}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        <Switch checked={integration?.is_enabled} disabled={!integration?.integration?.is_enabled} />
+                        {integration?.is_enabled && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <div className={`h-2 w-2 rounded-full ${integration?.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{integration?.is_active ? 'Connected' : 'Connection Failed'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                        <Switch 
+                          checked={integration?.is_enabled} 
+                          disabled={!integration?.integration?.is_enabled}
+                          onCheckedChange={() => handleSwitchToggle(integration)}
+                        />
                         {integration?.is_enabled && (
                           <TooltipProvider>
                             <Tooltip>
