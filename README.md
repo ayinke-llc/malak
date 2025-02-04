@@ -28,7 +28,8 @@ Own full control of your data and company state if you decide to selfhost.
 
 - 100% Opensource. Own your own data, metrics, and story
 - Send investors' updates to anyone via email
-- Manage metrics automatically from many sources. [See Integrations](https://malak.vc/integrations)
+- Manage metrics automatically from many sources such as Mercury,
+  Brex, Stripe and more. [Full list](https://malak.vc/integrations)
 - Create, manage and share your decks.
 - Manage your fundraising pipeline
 
