@@ -12,6 +12,83 @@ import (
 )
 
 const (
+	// IntegrationDataPointTypeCurrency is a IntegrationDataPointType of type currency.
+	IntegrationDataPointTypeCurrency IntegrationDataPointType = "currency"
+	// IntegrationDataPointTypeOthers is a IntegrationDataPointType of type others.
+	IntegrationDataPointTypeOthers IntegrationDataPointType = "others"
+)
+
+var ErrInvalidIntegrationDataPointType = errors.New("not a valid IntegrationDataPointType")
+
+// String implements the Stringer interface.
+func (x IntegrationDataPointType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x IntegrationDataPointType) IsValid() bool {
+	_, err := ParseIntegrationDataPointType(string(x))
+	return err == nil
+}
+
+var _IntegrationDataPointTypeValue = map[string]IntegrationDataPointType{
+	"currency": IntegrationDataPointTypeCurrency,
+	"others":   IntegrationDataPointTypeOthers,
+}
+
+// ParseIntegrationDataPointType attempts to convert a string to a IntegrationDataPointType.
+func ParseIntegrationDataPointType(name string) (IntegrationDataPointType, error) {
+	if x, ok := _IntegrationDataPointTypeValue[name]; ok {
+		return x, nil
+	}
+	return IntegrationDataPointType(""), fmt.Errorf("%s is %w", name, ErrInvalidIntegrationDataPointType)
+}
+
+const (
+	// IntegrationProviderStripe is a IntegrationProvider of type stripe.
+	IntegrationProviderStripe IntegrationProvider = "stripe"
+	// IntegrationProviderPaystack is a IntegrationProvider of type paystack.
+	IntegrationProviderPaystack IntegrationProvider = "paystack"
+	// IntegrationProviderFlutterwave is a IntegrationProvider of type flutterwave.
+	IntegrationProviderFlutterwave IntegrationProvider = "flutterwave"
+	// IntegrationProviderMercury is a IntegrationProvider of type mercury.
+	IntegrationProviderMercury IntegrationProvider = "mercury"
+	// IntegrationProviderBrex is a IntegrationProvider of type brex.
+	IntegrationProviderBrex IntegrationProvider = "brex"
+)
+
+var ErrInvalidIntegrationProvider = errors.New("not a valid IntegrationProvider")
+
+// String implements the Stringer interface.
+func (x IntegrationProvider) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x IntegrationProvider) IsValid() bool {
+	_, err := ParseIntegrationProvider(string(x))
+	return err == nil
+}
+
+var _IntegrationProviderValue = map[string]IntegrationProvider{
+	"stripe":      IntegrationProviderStripe,
+	"paystack":    IntegrationProviderPaystack,
+	"flutterwave": IntegrationProviderFlutterwave,
+	"mercury":     IntegrationProviderMercury,
+	"brex":        IntegrationProviderBrex,
+}
+
+// ParseIntegrationProvider attempts to convert a string to a IntegrationProvider.
+func ParseIntegrationProvider(name string) (IntegrationProvider, error) {
+	if x, ok := _IntegrationProviderValue[name]; ok {
+		return x, nil
+	}
+	return IntegrationProvider(""), fmt.Errorf("%s is %w", name, ErrInvalidIntegrationProvider)
+}
+
+const (
 	// IntegrationTypeOauth2 is a IntegrationType of type oauth2.
 	IntegrationTypeOauth2 IntegrationType = "oauth2"
 	// IntegrationTypeApiKey is a IntegrationType of type api_key.

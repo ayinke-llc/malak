@@ -12,6 +12,9 @@ import (
 // ENUM(oauth2,api_key)
 type IntegrationType string
 
+// ENUM(stripe,paystack,flutterwave,mercury,brex)
+type IntegrationProvider string
+
 type IntegrationMetadata struct {
 	Endpoint string `json:"endpoint,omitempty"`
 }
@@ -35,6 +38,7 @@ type Integration struct {
 }
 
 type WorkspaceIntegrationMetadata struct {
+	AccessToken string `json:"access_token,omitempty"`
 }
 
 type WorkspaceIntegration struct {
@@ -44,7 +48,11 @@ type WorkspaceIntegration struct {
 	IntegrationID uuid.UUID    `json:"integration_id,omitempty"`
 	Integration   *Integration `bun:"rel:belongs-to,join:integration_id=id" json:"integration,omitempty"`
 
+	// IsEnabled - this integration is enabled and data can be fetched
 	IsEnabled bool `json:"is_enabled,omitempty"`
+
+	// IsActive determines if the connection to the integration has been tested and works
+	IsActive bool `json:"is_active,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
@@ -58,7 +66,31 @@ type IntegrationRepository interface {
 	List(context.Context, *Workspace) ([]WorkspaceIntegration, error)
 }
 
-type IntegrationProvider interface {
-	Name() string
+// ENUM(currency,others)
+type IntegrationDataPointType string
+
+type IntegrationDataPointMetadata struct {
+}
+
+type IntegrationDataPoint struct {
+	ID                     uuid.UUID                    `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	WorkspaceIntegrationID uuid.UUID                    `json:"workspace_integration_id,omitempty"`
+	WorkspaceID            uuid.UUID                    `json:"workspace_id,omitempty"`
+	Reference              Reference                    `json:"reference,omitempty"`
+	PointName              string                       `json:"point_name,omitempty"`
+	PointValue             int64                        `json:"point_value,omitempty"`
+	DataPointType          IntegrationDataPointType     `json:"data_point_type,omitempty"`
+	Metadata               IntegrationDataPointMetadata `json:"metadata,omitempty"`
+
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
+
+	bun.BaseModel `json:"-"`
+}
+
+type IntegrationProviderClient interface {
+	Name() IntegrationProvider
+	Ping(context.Context) error
 	io.Closer
 }

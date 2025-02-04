@@ -58,6 +58,8 @@ const (
 	EntityTypeIntegration EntityType = "integration"
 	// EntityTypeWorkspaceIntegration is a EntityType of type workspace_integration.
 	EntityTypeWorkspaceIntegration EntityType = "workspace_integration"
+	// EntityTypeIntegrationDatapoint is a EntityType of type integration_datapoint.
+	EntityTypeIntegrationDatapoint EntityType = "integration_datapoint"
 )
 
 var ErrInvalidEntityType = errors.New("not a valid EntityType")
@@ -98,6 +100,7 @@ var _EntityTypeValue = map[string]EntityType{
 	"price":                 EntityTypePrice,
 	"integration":           EntityTypeIntegration,
 	"workspace_integration": EntityTypeWorkspaceIntegration,
+	"integration_datapoint": EntityTypeIntegrationDatapoint,
 }
 
 // ParseEntityType attempts to convert a string to a EntityType.

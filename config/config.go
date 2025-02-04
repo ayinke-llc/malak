@@ -7,6 +7,7 @@ import (
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"github.com/ayinke-llc/malak/internal/secret"
 )
 
 // Only Postgres for now. Later on we can add support for sqlite3
@@ -85,6 +86,36 @@ type Config struct {
 		// applied upon creation
 		DefaultPlanReference string `yaml:"default_plan_reference" mapstructure:"default_plan_reference"`
 	} `yaml:"billing" mapstructure:"billing"`
+
+	Integration struct {
+		Provider secret.SecretProvider `yaml:"provider" mapstructure:"provider"`
+
+		Vault struct {
+			Address string `yaml:"address" mapstructure:"address"`
+			Token   string `yaml:"token" mapstructure:"token"`
+			Path    string `yaml:"path" mapstructure:"path"`
+		} `yaml:"vault" mapstructure:"vault"`
+
+		Infisical struct {
+			ClientID     string `yaml:"client_id" mapstructure:"client_id"`
+			ClientSecret string `yaml:"client_secret" mapstructure:"client_secret"`
+			SiteURL      string `yaml:"site_url" mapstructure:"site_url"`
+			ProjectID    string `yaml:"project_id" mapstructure:"project_id"`
+			Environment  string `yaml:"environment" mapstructure:"environment"`
+		} `yaml:"infisical" mapstructure:"infisical"`
+
+		AES struct {
+			Key string `yaml:"key" mapstructure:"key"`
+		} `yaml:"aes" mapstructure:"aes"`
+
+		// Merge secrets/key for s3 and this?
+		SecretsManager struct {
+			Region       string `yaml:"region" mapstructure:"region"`
+			AccessSecret string `yaml:"access_secret" mapstructure:"access_secret"`
+			AccessKey    string `yaml:"access_key" mapstructure:"access_key"`
+			Endpoint     string `yaml:"endpoint" mapstructure:"endpoint"`
+		} `yaml:"secrets_manager" mapstructure:"secrets_manager"`
+	} `yaml:"integration" mapstructure:"integration"`
 
 	Uploader struct {
 		Driver        UploadDriver `yaml:"driver" mapstructure:"driver"`

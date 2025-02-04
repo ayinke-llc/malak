@@ -6,15 +6,15 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Skeleton from "../../custom/loader/skeleton";
 import SingleUpdate from "./single";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { RiArrowDownSLine } from "@remixicon/react";
 
 export type UpdateListTableProps = {
   data: MalakUpdate[];
@@ -39,10 +39,13 @@ const ListUpdatesTable = () => {
     retry: false,
   });
 
-  if (error) {
-    toast.error(error.message);
-  }
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message);
+    }
+  }, [error]);
 
+  const updates = data?.data?.updates || [];
   const totalPages = Math.ceil((data?.data?.meta?.paging?.total || 0) / pageSize) || 1;
 
   return (
@@ -52,16 +55,20 @@ const ListUpdatesTable = () => {
           <div className="p-6 space-y-6">
             <Skeleton count={5} />
           </div>
-        ) : (
+        ) : updates.length > 0 ? (
           <div className="divide-y divide-border/50">
-            {data?.data?.updates?.map((update) => (
-              <div 
-                key={update.reference} 
+            {updates.map((update) => (
+              <div
+                key={update.reference}
                 className="p-4 hover:bg-muted transition-colors"
               >
                 <SingleUpdate {...update} />
               </div>
             ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center p-6 text-center">
+            <p className="text-muted-foreground">No updates found.</p>
           </div>
         )}
       </div>
@@ -75,7 +82,7 @@ const ListUpdatesTable = () => {
                 size="sm"
                 className="h-8"
               >
-                {pageSize} per page <ChevronDownIcon className="ml-2 h-4 w-4" />
+                {pageSize} per page <RiArrowDownSLine className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
