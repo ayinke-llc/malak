@@ -934,18 +934,19 @@ func mockValidator(f gulter.File) error {
 
 type mockStorage struct {
 	file *gulter.File
+	// Add a fixed timestamp for testing
+	fixedTimestamp int64
 }
 
 func (m *mockStorage) Upload(ctx context.Context, r io.Reader, opts *gulter.UploadFileOptions) (*gulter.UploadedFileMetadata, error) {
 	if m.file == nil {
 		return nil, errors.New("no file")
 	}
-	// Gulter adds a prefix to the filename, so we need to match that
-	filename := fmt.Sprintf("gulter-%d-%s", time.Now().Unix(), opts.FileName)
+	// Don't add our own prefix, let Gulter handle it
 	return &gulter.UploadedFileMetadata{
 		Size:              m.file.Size,
 		FolderDestination: "decks",
-		Key:               fmt.Sprintf("decks/%s", filename),
+		Key:               fmt.Sprintf("decks/%s", opts.FileName),
 	}, nil
 }
 
@@ -1008,11 +1009,15 @@ func TestDeckHandler_UploadImage(t *testing.T) {
 				mockStorage := &mockStorage{
 					file: v.file,
 				}
+
 				g, err := gulter.New(
 					gulter.WithStorage(mockStorage),
 					gulter.WithMaxFileSize(1024*1024*10), // 10MB
 					gulter.WithIgnoreNonExistentKey(true),
 					gulter.WithValidationFunc(mockValidator),
+					gulter.WithNameFuncGenerator(func(s string) string {
+						return fmt.Sprintf("gulter-1738628312-%s", s) // Fixed timestamp for consistent test output
+					}),
 				)
 				require.NoError(t, err)
 
