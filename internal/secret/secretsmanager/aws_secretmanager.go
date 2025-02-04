@@ -28,14 +28,17 @@ func New(cfg config.Config) (secret.SecretClient, error) {
 	}
 
 	if cfg.Integration.SecretsManager.Endpoint != "" {
-		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-			return aws.Endpoint{
-				PartitionID:   "aws",
-				URL:           cfg.Integration.SecretsManager.Endpoint,
-				SigningRegion: region,
-			}, nil
-		})
-		opts = append(opts, awsConfig.WithEndpointResolverWithOptions(customResolver))
+		//nolint:staticcheck // Using deprecated AWS SDK functions for backward compatibility
+		opts = append(opts, awsConfig.WithEndpointResolver(
+			//nolint:staticcheck // Using deprecated AWS SDK functions for backward compatibility
+			aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
+				//nolint:staticcheck // Using deprecated AWS SDK functions for backward compatibility
+				return aws.Endpoint{
+					URL:           cfg.Integration.SecretsManager.Endpoint,
+					SigningRegion: region,
+				}, nil
+			}),
+		))
 	}
 
 	conf, err := awsConfig.LoadDefaultConfig(

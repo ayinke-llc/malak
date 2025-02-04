@@ -113,7 +113,9 @@ func TestInfisicalClient(t *testing.T) {
 	ctx := context.Background()
 
 	// Create a Docker network
+	//nolint:staticcheck
 	network, err := testcontainers.GenericNetwork(ctx, testcontainers.GenericNetworkRequest{
+		//nolint:staticcheck
 		NetworkRequest: testcontainers.NetworkRequest{
 			Name: "infisical_test_network",
 		},

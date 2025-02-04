@@ -905,7 +905,9 @@ func generateDeckUploadImageRequest() []struct {
 							Size int64  `json:"Size"`
 							Key  string `json:"Key"`
 						}
-						json.Unmarshal(value, &f)
+						if err := json.Unmarshal(value, &f); err != nil {
+							panic(err)
+						}
 						if f.Size != 1024 {
 							panic("invalid file size")
 						}

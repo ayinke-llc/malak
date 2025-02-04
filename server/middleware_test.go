@@ -210,7 +210,10 @@ func TestJsonResponse(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 
 	handler := jsonResponse(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`{"test": true}`))
+		_, err := w.Write([]byte(`{"test": true}`))
+		if err != nil {
+			t.Fatal(err)
+		}
 	}))
 
 	handler.ServeHTTP(rr, req)
