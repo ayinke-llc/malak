@@ -934,8 +934,6 @@ func mockValidator(f gulter.File) error {
 
 type mockStorage struct {
 	file *gulter.File
-	// Add a fixed timestamp for testing
-	fixedTimestamp int64
 }
 
 func (m *mockStorage) Upload(ctx context.Context, r io.Reader, opts *gulter.UploadFileOptions) (*gulter.UploadedFileMetadata, error) {
