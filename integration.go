@@ -15,6 +15,9 @@ type IntegrationType string
 // ENUM(stripe,paystack,flutterwave,mercury,brex)
 type IntegrationProvider string
 
+// ENUM(mercury_account)
+type IntegrationChartInternalNameType string
+
 type IntegrationMetadata struct {
 	Endpoint string `json:"endpoint,omitempty"`
 }
@@ -61,11 +64,6 @@ type WorkspaceIntegration struct {
 	bun.BaseModel `json:"-"`
 }
 
-type IntegrationRepository interface {
-	Create(context.Context, *Integration) error
-	List(context.Context, *Workspace) ([]WorkspaceIntegration, error)
-}
-
 // ENUM(currency,others)
 type IntegrationDataPointType string
 
@@ -89,8 +87,32 @@ type IntegrationDataPoint struct {
 	bun.BaseModel `json:"-"`
 }
 
+type IntegrationChart struct {
+	ID                     uuid.UUID                        `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	WorkspaceIntegrationID uuid.UUID                        `json:"workspace_integration_id,omitempty"`
+	WorkspaceID            uuid.UUID                        `json:"workspace_id,omitempty"`
+	Reference              Reference                        `json:"reference,omitempty"`
+	UserFacingName         string                           `json:"user_facing_name,omitempty"`
+	InternalName           IntegrationChartInternalNameType `json:"internal_name,omitempty"`
+
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
+
+	bun.BaseModel `json:"-"`
+}
+
 type IntegrationProviderClient interface {
 	Name() IntegrationProvider
-	Ping(context.Context) error
+	// Ping tests the connection to make sure we have an
+	// active connection
+	Ping(context.Context, AccessToken) error
 	io.Closer
+}
+
+type AccessToken string
+
+type IntegrationRepository interface {
+	Create(context.Context, *Integration) error
+	List(context.Context, *Workspace) ([]WorkspaceIntegration, error)
 }

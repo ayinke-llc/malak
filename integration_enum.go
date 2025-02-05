@@ -12,6 +12,37 @@ import (
 )
 
 const (
+	// IntegrationChartInternalNameTypeMercuryAccount is a IntegrationChartInternalNameType of type mercury_account.
+	IntegrationChartInternalNameTypeMercuryAccount IntegrationChartInternalNameType = "mercury_account"
+)
+
+var ErrInvalidIntegrationChartInternalNameType = errors.New("not a valid IntegrationChartInternalNameType")
+
+// String implements the Stringer interface.
+func (x IntegrationChartInternalNameType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x IntegrationChartInternalNameType) IsValid() bool {
+	_, err := ParseIntegrationChartInternalNameType(string(x))
+	return err == nil
+}
+
+var _IntegrationChartInternalNameTypeValue = map[string]IntegrationChartInternalNameType{
+	"mercury_account": IntegrationChartInternalNameTypeMercuryAccount,
+}
+
+// ParseIntegrationChartInternalNameType attempts to convert a string to a IntegrationChartInternalNameType.
+func ParseIntegrationChartInternalNameType(name string) (IntegrationChartInternalNameType, error) {
+	if x, ok := _IntegrationChartInternalNameTypeValue[name]; ok {
+		return x, nil
+	}
+	return IntegrationChartInternalNameType(""), fmt.Errorf("%s is %w", name, ErrInvalidIntegrationChartInternalNameType)
+}
+
+const (
 	// IntegrationDataPointTypeCurrency is a IntegrationDataPointType of type currency.
 	IntegrationDataPointTypeCurrency IntegrationDataPointType = "currency"
 	// IntegrationDataPointTypeOthers is a IntegrationDataPointType of type others.

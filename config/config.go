@@ -88,6 +88,8 @@ type Config struct {
 	} `yaml:"billing" mapstructure:"billing"`
 
 	Integration struct {
+		ClientTimeout time.Duration `yaml:"client_timeout" mapstructure:"client_timeout"`
+
 		Provider secret.SecretProvider `yaml:"provider" mapstructure:"provider"`
 
 		Vault struct {
