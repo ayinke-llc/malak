@@ -648,6 +648,8 @@ components:
       properties:
         name:
           type: string
+      required:
+      - name
       type: object
     server.createdUpdateResponse:
       properties:
@@ -907,6 +909,13 @@ components:
           type: array
         send_at:
           type: integer
+      type: object
+    server.testAPIIntegrationRequest:
+      properties:
+        api_key:
+          type: string
+      required:
+      - api_key
       type: object
     server.updateDeckPreferencesRequest:
       properties:
@@ -2129,7 +2138,51 @@ paths:
           description: Internal Server Error
       summary: fetch workspace preferences
       tags:
-      - workspace
+      - integrations
+  /workspaces/integrations/{reference}/ping:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.testAPIIntegrationRequest'
+        description: request body to test an integration
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: test an api key is valid and can reach the integration
+      tags:
+      - integrations
   /workspaces/preferences:
     get:
       responses:

@@ -8,6 +8,7 @@ import (
 	"github.com/adelowo/gulter"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/integrations"
 	"github.com/ayinke-llc/malak/internal/pkg/billing"
 	"github.com/ayinke-llc/malak/internal/pkg/cache"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
@@ -43,7 +44,8 @@ func New(logger *zap.Logger,
 	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
 	redisCache cache.Cache,
-	billingClient billing.Client) (*http.Server, func()) {
+	billingClient billing.Client,
+	integrationManager *integrations.IntegrationsManager) (*http.Server, func()) {
 
 	srv := &http.Server{
 		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
@@ -51,7 +53,7 @@ func New(logger *zap.Logger,
 			contactRepo, updateRepo, contactListRepo,
 			deckRepo, shareRepo, preferenceRepo, integrationRepo,
 			googleAuthProvider, mid, gulterHandler,
-			queueHandler, redisCache, billingClient),
+			queueHandler, redisCache, billingClient, integrationManager),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -100,7 +102,7 @@ func buildRoutes(
 	queueHandler queue.QueueHandler,
 	redisCache cache.Cache,
 	billingClient billing.Client,
-) http.Handler {
+	integrationManager *integrations.IntegrationsManager) http.Handler {
 
 	if cfg.HTTP.Swagger.UIEnabled {
 		go func() {
@@ -137,6 +139,7 @@ func buildRoutes(
 		referenceGenerationFunc: malak.GenerateReference,
 		queueClient:             queueHandler,
 		billingClient:           billingClient,
+		integrationManager:      integrationManager,
 	}
 
 	contactHandler := &contactHandler{
@@ -241,6 +244,10 @@ func buildRoutes(
 			r.Route("/integrations", func(r chi.Router) {
 				r.Get("/",
 					WrapMalakHTTPHandler(logger, workspaceHandler.getIntegrations, cfg, "workspaces.integrations.list"))
+
+				r.Post("/{reference}/ping",
+					WrapMalakHTTPHandler(logger, workspaceHandler.pingIntegration, cfg, "workspaces.integrations.ping"))
+
 			})
 
 			r.Route("/updates", func(r chi.Router) {

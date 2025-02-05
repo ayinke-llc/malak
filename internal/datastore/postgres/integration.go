@@ -78,3 +78,16 @@ func (i *integrationRepo) List(ctx context.Context,
 		Relation("Integration").
 		Scan(ctx)
 }
+
+func (i *integrationRepo) System(ctx context.Context) ([]malak.Integration, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	integrations := make([]malak.Integration, 0)
+
+	return integrations, i.inner.NewSelect().
+		Model(&integrations).
+		Order("created_at ASC").
+		Scan(ctx)
+}

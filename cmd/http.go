@@ -19,8 +19,11 @@ import (
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	awsCreds "github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/ayinke-llc/hermes"
+	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
+	"github.com/ayinke-llc/malak/internal/integrations"
+	"github.com/ayinke-llc/malak/internal/integrations/mercury"
 	"github.com/ayinke-llc/malak/internal/pkg/billing/stripe"
 	"github.com/ayinke-llc/malak/internal/pkg/cache/rediscache"
 	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
@@ -251,13 +254,19 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 					zap.Error(err))
 			}
 
+			integrationManager, err := buildIntegrationManager(integrationRepo, *cfg, logger)
+			if err != nil {
+				logger.Fatal("could not build integration manager", zap.Error(err))
+			}
+
 			srv, cleanupSrv := server.New(logger,
 				util.DeRef(cfg), db,
 				tokenManager, googleAuthProvider,
 				userRepo, workspaceRepo, planRepo, contactRepo,
 				updateRepo, contactlistRepo, deckRepo, shareRepo,
 				preferenceRepo, integrationRepo, mid, gulterHandler,
-				queueHandler, redisCache, billingClient)
+				queueHandler, redisCache, billingClient,
+				integrationManager)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {
@@ -285,6 +294,42 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 	}
 
 	c.AddCommand(cmd)
+}
+
+func buildIntegrationManager(integrationRepo malak.IntegrationRepository, cfg config.Config, logger *zap.Logger) (
+	*integrations.IntegrationsManager, error) {
+	i := integrations.NewManager()
+
+	integrations, err := integrationRepo.System(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range integrations {
+		provider, err := malak.ParseIntegrationProvider(v.IntegrationName)
+		if err != nil {
+			logger.Warn("invalid integration provider",
+				zap.String("integration_name", v.IntegrationName),
+				zap.Error(err))
+			continue
+		}
+
+		switch provider {
+		case malak.IntegrationProviderMercury:
+			client, err := mercury.New(cfg)
+			if err != nil {
+				return nil, err
+			}
+
+			i.Add(provider, client)
+
+		default:
+			logger.Warn("provider not yet implemented",
+				zap.String("provider", provider.String()))
+		}
+	}
+
+	return i, nil
 }
 
 func getRatelimiter(cfg config.Config) (limiter.Store, error) {

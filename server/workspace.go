@@ -11,6 +11,7 @@ import (
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/integrations"
 	"github.com/ayinke-llc/malak/internal/pkg/billing"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
@@ -31,10 +32,11 @@ type workspaceHandler struct {
 	referenceGenerationFunc func(e malak.EntityType) string
 	billingClient           billing.Client
 	queueClient             queue.QueueHandler
+	integrationManager      *integrations.IntegrationsManager
 }
 
 type createWorkspaceRequest struct {
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" validate:"required"`
 	GenericRequest
 }
 

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/adelowo/gulter"
+	"github.com/ayinke-llc/malak/internal/integrations"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
@@ -45,7 +46,7 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockQueueHandler(controller),
 			malak_mocks.NewMockCache(controller),
 			malak_mocks.NewMockClient(controller),
-		)
+			integrations.NewManager())
 
 		closeFn()
 
@@ -84,7 +85,8 @@ func TestServer_New(t *testing.T) {
 			&gulter.Gulter{},
 			malak_mocks.NewMockQueueHandler(controller),
 			malak_mocks.NewMockCache(controller),
-			malak_mocks.NewMockClient(controller))
+			malak_mocks.NewMockClient(controller),
+			integrations.NewManager())
 
 		closeFn()
 

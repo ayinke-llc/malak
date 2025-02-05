@@ -112,7 +112,11 @@ type IntegrationProviderClient interface {
 
 type AccessToken string
 
+func (a AccessToken) String() string { return string(a) }
+
 type IntegrationRepository interface {
 	Create(context.Context, *Integration) error
+	System(context.Context) ([]Integration, error)
+
 	List(context.Context, *Workspace) ([]WorkspaceIntegration, error)
 }

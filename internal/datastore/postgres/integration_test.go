@@ -59,3 +59,29 @@ func TestIntegration_List(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, integrations, 1)
 }
+
+func TestIntegration_System(t *testing.T) {
+
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	integrationRepo := NewIntegrationRepo(client)
+
+	integrations, err := integrationRepo.System(context.Background())
+	require.NoError(t, err)
+	require.Len(t, integrations, 0)
+
+	err = integrationRepo.Create(context.Background(), &malak.Integration{
+		IntegrationName: "Stripe",
+		Reference:       malak.NewReferenceGenerator().Generate(malak.EntityTypeIntegration),
+		Description:     "Stripe stripe stripe",
+		IsEnabled:       true,
+		IntegrationType: malak.IntegrationTypeOauth2,
+		LogoURL:         "https://google.com",
+	})
+	require.NoError(t, err)
+
+	integrations, err = integrationRepo.System(context.Background())
+	require.NoError(t, err)
+	require.Len(t, integrations, 1)
+}
