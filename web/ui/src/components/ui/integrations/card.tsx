@@ -28,8 +28,8 @@ import { RiEyeLine, RiEyeOffLine } from "@remixicon/react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useMutation } from "@tanstack/react-query";
-import { ENABLE_INTEGRATION, PING_INTEGRATION } from "@/lib/query-constants";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ENABLE_INTEGRATION, LIST_INTEGRATIONS, PING_INTEGRATION } from "@/lib/query-constants";
 import client from "@/lib/client";
 import { AxiosError } from "axios";
 
@@ -61,6 +61,8 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
   const [isConnectionValid, setIsConnectionValid] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+
+  const queryClient = useQueryClient();
 
   const {
     control,
@@ -100,20 +102,18 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
   const enableMutation = useMutation({
     mutationKey: [ENABLE_INTEGRATION],
     mutationFn: (data: ApiKeyFormData) => {
-      setIsTestingConnection(true);
       return client.workspaces.integrationsCreate(integration?.reference as string, {
         api_key: data.apiKey,
       })
     },
     onSuccess: ({ data }) => {
       toast.success(data.message);
-      setIsEditing(false);
-      setApiKeyDialogOpen(true);
+      setApiKeyDialogOpen(false);
+      resetDialogState();
+      queryClient.invalidateQueries({ queryKey: [LIST_INTEGRATIONS] });
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       toast.error(err.response?.data.message || "An error occurred while enabling this integration");
-      setIsEditing(false);
-      setApiKeyDialogOpen(true);
     },
   });
 

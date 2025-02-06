@@ -224,6 +224,7 @@ func (wo *workspaceHandler) enableIntegration(
 
 	integration.IsEnabled = true
 	integration.Metadata.AccessToken = req.APIKey
+	integration.IsActive = true
 
 	if err := wo.integrationRepo.Update(ctx, integration); err != nil {
 		logger.Error("could not update integration",
