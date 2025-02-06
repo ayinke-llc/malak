@@ -141,8 +141,8 @@ func setDefaults() {
 
 	viper.SetDefault("auth.google.scopes", []string{"profile", "email"})
 
-	viper.SetDefault("integration.infisical.site_url", "https://app.infisical.com")
-	viper.SetDefault("integration.infisical.environment", "prod")
+	viper.SetDefault("secrets.infisical.site_url", "https://app.infisical.com")
+	viper.SetDefault("secrets.infisical.environment", "prod")
 }
 
 func getEmailProvider(cfg config.Config) (email.Client, error) {

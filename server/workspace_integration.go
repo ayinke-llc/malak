@@ -8,6 +8,7 @@ import (
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"github.com/ayinke-llc/malak/internal/secret"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"go.opentelemetry.io/otel/attribute"
@@ -222,8 +223,21 @@ func (wo *workspaceHandler) enableIntegration(
 		return newAPIStatus(http.StatusInternalServerError, err.Error()), StatusFailed
 	}
 
+	workspace := getWorkspaceFromContext(ctx)
+
+	value, err := wo.secretsClient.Create(ctx, &secret.CreateSecretOptions{
+		Value:       req.APIKey.String(),
+		WorkspaceID: workspace.ID,
+	})
+	if err != nil {
+		logger.Error("could not run value agaisnt secets provider",
+			zap.Error(err))
+
+		return newAPIStatus(http.StatusInternalServerError, "could not encrypt secrets provider"), StatusFailed
+	}
+
 	integration.IsEnabled = true
-	integration.Metadata.AccessToken = req.APIKey
+	integration.Metadata.AccessToken = malak.AccessToken(value)
 	integration.IsActive = true
 
 	if err := wo.integrationRepo.Update(ctx, integration); err != nil {

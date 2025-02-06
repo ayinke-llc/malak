@@ -14,6 +14,7 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
+	"github.com/ayinke-llc/malak/internal/secret"
 	_ "github.com/ayinke-llc/malak/swagger"
 	chi "github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -45,7 +46,8 @@ func New(logger *zap.Logger,
 	queueHandler queue.QueueHandler,
 	redisCache cache.Cache,
 	billingClient billing.Client,
-	integrationManager *integrations.IntegrationsManager) (*http.Server, func()) {
+	integrationManager *integrations.IntegrationsManager,
+	secretsClient secret.SecretClient) (*http.Server, func()) {
 
 	srv := &http.Server{
 		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
@@ -53,7 +55,7 @@ func New(logger *zap.Logger,
 			contactRepo, updateRepo, contactListRepo,
 			deckRepo, shareRepo, preferenceRepo, integrationRepo,
 			googleAuthProvider, mid, gulterHandler,
-			queueHandler, redisCache, billingClient, integrationManager),
+			queueHandler, redisCache, billingClient, integrationManager, secretsClient),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -102,7 +104,8 @@ func buildRoutes(
 	queueHandler queue.QueueHandler,
 	redisCache cache.Cache,
 	billingClient billing.Client,
-	integrationManager *integrations.IntegrationsManager) http.Handler {
+	integrationManager *integrations.IntegrationsManager,
+	secretsClient secret.SecretClient) http.Handler {
 
 	if cfg.HTTP.Swagger.UIEnabled {
 		go func() {
@@ -140,6 +143,7 @@ func buildRoutes(
 		queueClient:             queueHandler,
 		billingClient:           billingClient,
 		integrationManager:      integrationManager,
+		secretsClient:           secretsClient,
 	}
 
 	contactHandler := &contactHandler{

@@ -32,6 +32,11 @@ import (
 	watermillqueue "github.com/ayinke-llc/malak/internal/pkg/queue/watermill"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"github.com/ayinke-llc/malak/internal/secret"
+	"github.com/ayinke-llc/malak/internal/secret/aes"
+	"github.com/ayinke-llc/malak/internal/secret/infisical"
+	"github.com/ayinke-llc/malak/internal/secret/secretsmanager"
+	"github.com/ayinke-llc/malak/internal/secret/vault"
 	"github.com/ayinke-llc/malak/server"
 	"github.com/google/uuid"
 	redisotel "github.com/redis/go-redis/extra/redisotel/v9"
@@ -260,6 +265,11 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				logger.Fatal("could not build integration manager", zap.Error(err))
 			}
 
+			secretsProvider, err := buildSecretsProvider(*cfg)
+			if err != nil {
+				logger.Fatal("could not build secrets provider", zap.Error(err))
+			}
+
 			srv, cleanupSrv := server.New(logger,
 				util.DeRef(cfg), db,
 				tokenManager, googleAuthProvider,
@@ -267,7 +277,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				updateRepo, contactlistRepo, deckRepo, shareRepo,
 				preferenceRepo, integrationRepo, mid, gulterHandler,
 				queueHandler, redisCache, billingClient,
-				integrationManager)
+				integrationManager, secretsProvider)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {
@@ -348,5 +358,20 @@ func getRatelimiter(cfg config.Config) (limiter.Store, error) {
 
 	default:
 		return nil, errors.New("unsupported ratelimter")
+	}
+}
+
+func buildSecretsProvider(cfg config.Config) (secret.SecretClient, error) {
+	switch cfg.Secrets.Provider {
+	case secret.SecretProviderVault:
+		return vault.New(cfg)
+	case secret.SecretProviderInfisical:
+		return infisical.New(cfg)
+	case secret.SecretProviderAesGcm:
+		return aes.New(cfg)
+	case secret.SecretProviderSecretsmanager:
+		return secretsmanager.New(cfg)
+	default:
+		return nil, fmt.Errorf("unsupported secrets provider: %s", cfg.Secrets.Provider)
 	}
 }
