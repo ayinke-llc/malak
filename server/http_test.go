@@ -50,15 +50,19 @@ func TestServer_New(t *testing.T) {
 			integrations.NewManager(),
 			malak_mocks.NewMockSecretClient(controller))
 
-		closeFn()
+		if closeFn != nil {
+			closeFn()
+		}
 
-		go func() {
-			_ = srv.ListenAndServe()
-		}()
+		if srv != nil {
+			go func() {
+				_ = srv.ListenAndServe()
+			}()
 
-		time.Sleep(time.Second * 2)
+			time.Sleep(time.Second * 2)
 
-		require.NoError(t, srv.Close())
+			require.NoError(t, srv.Close())
+		}
 	})
 
 	t.Run("with swagger enabled", func(t *testing.T) {
@@ -91,15 +95,19 @@ func TestServer_New(t *testing.T) {
 			integrations.NewManager(),
 			malak_mocks.NewMockSecretClient(controller))
 
-		closeFn()
+		if closeFn != nil {
+			closeFn()
+		}
 
-		go func() {
-			_ = srv.ListenAndServe()
-		}()
+		if srv != nil {
+			go func() {
+				_ = srv.ListenAndServe()
+			}()
 
-		time.Sleep(time.Second * 2)
+			time.Sleep(time.Second * 2)
 
-		require.NoError(t, srv.Close())
+			require.NoError(t, srv.Close())
+		}
 	})
 }
 

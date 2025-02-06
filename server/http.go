@@ -49,6 +49,11 @@ func New(logger *zap.Logger,
 	integrationManager *integrations.IntegrationsManager,
 	secretsClient secret.SecretClient) (*http.Server, func()) {
 
+	if err := cfg.Validate(); err != nil {
+		logger.Error("invalid configuration", zap.Error(err))
+		return nil, nil
+	}
+
 	srv := &http.Server{
 		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
 			userRepo, workspaceRepo, planRepo,

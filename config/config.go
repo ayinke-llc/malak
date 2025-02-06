@@ -182,6 +182,10 @@ func (c *Config) Validate() error {
 		return errors.New("please provide a valid upload driver like s3")
 	}
 
+	if c.HTTP.Port <= 0 {
+		return errors.New("please provide a valid HTTP port number greater than 0")
+	}
+
 	if util.IsStringEmpty(c.Uploader.S3.AccessKey) {
 		return errors.New("please provide your s3 access key")
 	}
