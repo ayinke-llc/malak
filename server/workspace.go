@@ -11,9 +11,11 @@ import (
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/integrations"
 	"github.com/ayinke-llc/malak/internal/pkg/billing"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"github.com/ayinke-llc/malak/internal/secret"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"go.opentelemetry.io/otel/attribute"
@@ -31,10 +33,12 @@ type workspaceHandler struct {
 	referenceGenerationFunc func(e malak.EntityType) string
 	billingClient           billing.Client
 	queueClient             queue.QueueHandler
+	integrationManager      *integrations.IntegrationsManager
+	secretsClient           secret.SecretClient
 }
 
 type createWorkspaceRequest struct {
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" validate:"required"`
 	GenericRequest
 }
 

@@ -1434,7 +1434,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "workspace"
+                    "integrations"
                 ],
                 "summary": "fetch workspace preferences",
                 "responses": {
@@ -1442,6 +1442,120 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/server.listIntegrationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/workspaces/integrations/{reference}": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "integrations"
+                ],
+                "summary": "enable integration",
+                "parameters": [
+                    {
+                        "description": "request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.testAPIIntegrationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/workspaces/integrations/{reference}/ping": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "integrations"
+                ],
+                "summary": "test an api key is valid and can reach the integration",
+                "parameters": [
+                    {
+                        "description": "request body to test an integration",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.testAPIIntegrationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
                         }
                     },
                     "400": {
@@ -3099,6 +3213,9 @@ const docTemplate = `{
                     "description": "IsEnabled - this integration is enabled and data can be fetched",
                     "type": "boolean"
                 },
+                "metadata": {
+                    "$ref": "#/definitions/malak.WorkspaceIntegrationMetadata"
+                },
                 "reference": {
                     "type": "string"
                 },
@@ -3106,6 +3223,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.WorkspaceIntegrationMetadata": {
+            "type": "object",
+            "properties": {
+                "access_token": {
                     "type": "string"
                 }
             }
@@ -3210,6 +3335,9 @@ const docTemplate = `{
         },
         "server.createWorkspaceRequest": {
             "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
                 "name": {
                     "type": "string"
@@ -3599,6 +3727,17 @@ const docTemplate = `{
                 },
                 "send_at": {
                     "type": "integer"
+                }
+            }
+        },
+        "server.testAPIIntegrationRequest": {
+            "type": "object",
+            "required": [
+                "api_key"
+            ],
+            "properties": {
+                "api_key": {
+                    "type": "string"
                 }
             }
         },

@@ -18,41 +18,41 @@ type infisicalClient struct {
 
 func New(cfg config.Config) (secret.SecretClient, error) {
 
-	if hermes.IsStringEmpty(cfg.Integration.Infisical.Environment) {
-		return nil, errors.New("please add your infisical environment")
+	if hermes.IsStringEmpty(cfg.Secrets.Infisical.Environment) {
+		return nil, errors.New("please provide your infisical environment")
 	}
 
-	if hermes.IsStringEmpty(cfg.Integration.Infisical.ProjectID) {
-		return nil, errors.New("please provide your infisical projectID")
+	if hermes.IsStringEmpty(cfg.Secrets.Infisical.ProjectID) {
+		return nil, errors.New("please provide your infisical project id")
 	}
 
-	if hermes.IsStringEmpty(cfg.Integration.Infisical.ClientID) {
+	if hermes.IsStringEmpty(cfg.Secrets.Infisical.ClientID) {
 		return nil, errors.New("please provide your infisical client id")
 	}
 
-	if hermes.IsStringEmpty(cfg.Integration.Infisical.ClientSecret) {
+	if hermes.IsStringEmpty(cfg.Secrets.Infisical.ClientSecret) {
 		return nil, errors.New("please provide your infisical client secret")
 	}
 
-	if hermes.IsStringEmpty(cfg.Integration.Infisical.SiteURL) {
+	if hermes.IsStringEmpty(cfg.Secrets.Infisical.SiteURL) {
 		return nil, errors.New("please provide your infisical site url")
 	}
 
 	client := infisical.NewInfisicalClient(context.Background(), infisical.Config{
-		SiteUrl:          cfg.Integration.Infisical.SiteURL,
+		SiteUrl:          cfg.Secrets.Infisical.SiteURL,
 		AutoTokenRefresh: true,
 	})
 
 	_, err := client.Auth().
-		UniversalAuthLogin(cfg.Integration.Infisical.ClientID, cfg.Integration.Infisical.ClientSecret)
+		UniversalAuthLogin(cfg.Secrets.Infisical.ClientID, cfg.Secrets.Infisical.ClientSecret)
 	if err != nil {
 		return nil, err
 	}
 
 	return &infisicalClient{
 		client:      client,
-		environment: cfg.Integration.Infisical.Environment,
-		projectID:   cfg.Integration.Infisical.ProjectID,
+		environment: cfg.Secrets.Infisical.Environment,
+		projectID:   cfg.Secrets.Infisical.ProjectID,
 	}, nil
 }
 

@@ -5,36 +5,33 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/secret"
-
-	awsCreds "github.com/aws/aws-sdk-go-v2/credentials"
 )
 
 type awsSecretsManagerClient struct {
 	svc *secretsmanager.Client
+	URL string
 }
 
 func New(cfg config.Config) (secret.SecretClient, error) {
 	opts := []func(*awsConfig.LoadOptions) error{
-		awsConfig.WithRegion(cfg.Integration.SecretsManager.Region),
+		awsConfig.WithRegion(cfg.Secrets.SecretsManager.Region),
 		awsConfig.WithCredentialsProvider(
-			awsCreds.NewStaticCredentialsProvider(
-				cfg.Integration.SecretsManager.AccessKey,
-				cfg.Integration.SecretsManager.AccessSecret,
+			credentials.NewStaticCredentialsProvider(
+				cfg.Secrets.SecretsManager.AccessKey,
+				cfg.Secrets.SecretsManager.AccessSecret,
 				"")),
 	}
 
-	if cfg.Integration.SecretsManager.Endpoint != "" {
-		//nolint:staticcheck // Using deprecated AWS SDK functions for backward compatibility
+	if cfg.Secrets.SecretsManager.Endpoint != "" {
 		opts = append(opts, awsConfig.WithEndpointResolver(
-			//nolint:staticcheck // Using deprecated AWS SDK functions for backward compatibility
 			aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
-				//nolint:staticcheck // Using deprecated AWS SDK functions for backward compatibility
 				return aws.Endpoint{
-					URL:           cfg.Integration.SecretsManager.Endpoint,
+					URL:           cfg.Secrets.SecretsManager.Endpoint,
 					SigningRegion: region,
 				}, nil
 			}),
@@ -53,6 +50,7 @@ func New(cfg config.Config) (secret.SecretClient, error) {
 
 	return &awsSecretsManagerClient{
 		svc: svc,
+		URL: cfg.Secrets.SecretsManager.Endpoint,
 	}, nil
 }
 

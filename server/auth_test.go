@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
@@ -45,6 +46,102 @@ func verifyMatch(t *testing.T, v interface{}) {
 
 func getConfig() config.Config {
 	return config.Config{
+		Logging: struct {
+			Mode config.LogMode "yaml:\"mode\" mapstructure:\"mode\""
+		}{
+			Mode: config.LogModeDev,
+		},
+		Database: struct {
+			DatabaseType config.DatabaseType "yaml:\"database_type\" mapstructure:\"database_type\""
+			Postgres     struct {
+				DSN          string        "yaml:\"dsn\" mapstructure:\"dsn\""
+				LogQueries   bool          "yaml:\"log_queries\" mapstructure:\"log_queries\""
+				QueryTimeout time.Duration "yaml:\"query_timeout\" mapstructure:\"query_timeout\""
+			} "yaml:\"postgres\" mapstructure:\"postgres\""
+			Redis struct {
+				DSN string "yaml:\"dsn\" mapstructure:\"dsn\""
+			} "yaml:\"redis\" mapstructure:\"redis\""
+		}{
+			DatabaseType: config.DatabaseTypePostgres,
+		},
+		HTTP: struct {
+			Port      int "yaml:\"port\" mapstructure:\"port\""
+			RateLimit struct {
+				Type              config.RateLimiterType "yaml:\"type\" mapstructure:\"type\""
+				IsEnabled         bool                   "yaml:\"is_enabled\" mapstructure:\"is_enabled\""
+				RequestsPerMinute uint64                 "yaml:\"requests_per_minute\" mapstructure:\"requests_per_minute\""
+				BurstInterval     time.Duration          "yaml:\"burst_interval\" mapstructure:\"burst_interval\""
+			} "yaml:\"rate_limit\" mapstructure:\"rate_limit\""
+			Swagger struct {
+				Port      int  "mapstructure:\"port\" yaml:\"port\""
+				UIEnabled bool "mapstructure:\"ui_enabled\" yaml:\"ui_enabled\""
+			} "mapstructure:\"swagger\" yaml:\"swagger\""
+		}{
+			Port: 8080,
+		},
+		Uploader: struct {
+			Driver        config.UploadDriver "yaml:\"driver\" mapstructure:\"driver\""
+			MaxUploadSize int64               "yaml:\"max_upload_size\" mapstructure:\"max_upload_size\""
+			S3            struct {
+				AccessKey     string "yaml:\"access_key\" mapstructure:\"access_key\""
+				AccessSecret  string "yaml:\"access_secret\" mapstructure:\"access_secret\""
+				Region        string "yaml:\"region\" mapstructure:\"region\""
+				Endpoint      string "yaml:\"endpoint\" mapstructure:\"endpoint\""
+				LogOperations bool   "yaml:\"log_operations\" mapstructure:\"log_operations\""
+				Bucket        string "yaml:\"bucket\" mapstructure:\"bucket\""
+				DeckBucket    string "yaml:\"deck_bucket\" mapstructure:\"deck_bucket\""
+				UseTLS        bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
+			} "yaml:\"s3\" mapstructure:\"s3\""
+		}{
+			Driver: config.UploadDriverS3,
+			S3: struct {
+				AccessKey     string "yaml:\"access_key\" mapstructure:\"access_key\""
+				AccessSecret  string "yaml:\"access_secret\" mapstructure:\"access_secret\""
+				Region        string "yaml:\"region\" mapstructure:\"region\""
+				Endpoint      string "yaml:\"endpoint\" mapstructure:\"endpoint\""
+				LogOperations bool   "yaml:\"log_operations\" mapstructure:\"log_operations\""
+				Bucket        string "yaml:\"bucket\" mapstructure:\"bucket\""
+				DeckBucket    string "yaml:\"deck_bucket\" mapstructure:\"deck_bucket\""
+				UseTLS        bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
+			}{
+				AccessKey:    "test-key",
+				AccessSecret: "test-secret",
+				Region:       "us-east-1",
+				Bucket:       "test-bucket",
+				DeckBucket:   "test-deck-bucket",
+			},
+		},
+		Email: struct {
+			Provider   config.EmailProvider "mapstructure:\"provider\" yaml:\"provider\""
+			Sender     malak.Email          "mapstructure:\"sender\" yaml:\"sender\""
+			SenderName string               "mapstructure:\"sender_name\" yaml:\"sender_name\""
+			SMTP       struct {
+				Host     string "mapstructure:\"host\" yaml:\"host\""
+				Port     int    "mapstructure:\"port\" yaml:\"port\""
+				Username string "mapstructure:\"username\" yaml:\"username\""
+				Password string "mapstructure:\"password\" yaml:\"password\""
+				UseTLS   bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
+			} "mapstructure:\"smtp\" yaml:\"smtp\""
+			Resend struct {
+				APIKey string "mapstructure:\"api_key\" yaml:\"api_key\""
+			} "mapstructure:\"resend\" yaml:\"resend\""
+		}{
+			Provider:   config.EmailProviderSmtp,
+			Sender:     malak.Email("test@example.com"),
+			SenderName: "Test Sender",
+			SMTP: struct {
+				Host     string "mapstructure:\"host\" yaml:\"host\""
+				Port     int    "mapstructure:\"port\" yaml:\"port\""
+				Username string "mapstructure:\"username\" yaml:\"username\""
+				Password string "mapstructure:\"password\" yaml:\"password\""
+				UseTLS   bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
+			}{
+				Host:     "localhost",
+				Port:     1025,
+				Username: "test",
+				Password: "test",
+			},
+		},
 		Otel: struct {
 			Endpoint  string "yaml:\"endpoint\" mapstructure:\"endpoint\""
 			UseTLS    bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
@@ -81,6 +178,17 @@ func getConfig() config.Config {
 				Key string "yaml:\"key\" mapstructure:\"key\""
 			} "yaml:\"jwt\" mapstructure:\"jwt\""
 		}{
+			Google: struct {
+				ClientID     string   "yaml:\"client_id\" mapstructure:\"client_id\""
+				ClientSecret string   "yaml:\"client_secret\" mapstructure:\"client_secret\""
+				RedirectURI  string   "yaml:\"redirect_uri\" mapstructure:\"redirect_uri\""
+				Scopes       []string "yaml:\"scopes\" mapstructure:\"scopes\""
+				IsEnabled    bool     "yaml:\"is_enabled\" mapstructure:\"is_enabled\""
+			}{
+				ClientID:     "test-client-id",
+				ClientSecret: "test-client-secret",
+				IsEnabled:    true,
+			},
 			JWT: struct {
 				Key string "yaml:\"key\" mapstructure:\"key\""
 			}{

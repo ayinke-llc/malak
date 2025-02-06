@@ -20,17 +20,17 @@ type aesClient struct {
 }
 
 func New(cfg config.Config) (secret.SecretClient, error) {
-	if hermes.IsStringEmpty(cfg.Integration.AES.Key) {
-		return nil, errors.New("please provide your aes key")
+	if hermes.IsStringEmpty(cfg.Secrets.AES.Key) {
+		return nil, errors.New("please provide your AES key")
 	}
 
-	keyLen := len(cfg.Integration.AES.Key)
+	keyLen := len(cfg.Secrets.AES.Key)
 	if keyLen != 32 {
-		return nil, fmt.Errorf("aes encryption key must be exactly 32 characters, got %d", keyLen)
+		return nil, errors.New("AES key must be 32 bytes")
 	}
 
 	return &aesClient{
-		key: cfg.Integration.AES.Key,
+		key: cfg.Secrets.AES.Key,
 	}, nil
 }
 

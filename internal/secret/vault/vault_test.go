@@ -30,9 +30,9 @@ func TestCreateAndGetSecret(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := config.Config{}
-	cfg.Integration.Vault.Address = vaultAddr
-	cfg.Integration.Vault.Token = "dev-token"
-	cfg.Integration.Vault.Path = "secret"
+	cfg.Secrets.Vault.Address = vaultAddr
+	cfg.Secrets.Vault.Token = "dev-token"
+	cfg.Secrets.Vault.Path = "secret"
 
 	client, err := New(cfg)
 	require.NoError(t, err)
@@ -70,9 +70,9 @@ func TestCreateAndGetNonexistentSecret(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := config.Config{}
-	cfg.Integration.Vault.Address = vaultAddr
-	cfg.Integration.Vault.Token = "dev-token"
-	cfg.Integration.Vault.Path = "secret"
+	cfg.Secrets.Vault.Address = vaultAddr
+	cfg.Secrets.Vault.Token = "dev-token"
+	cfg.Secrets.Vault.Path = "secret"
 
 	client, err := New(cfg)
 	require.NoError(t, err)
@@ -114,18 +114,18 @@ func TestNewVaultClientValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			switch tt.name {
 			case "missing path":
-				tt.cfg.Integration.Vault.Token = "token"
-				tt.cfg.Integration.Vault.Address = "addr"
+				tt.cfg.Secrets.Vault.Token = "token"
+				tt.cfg.Secrets.Vault.Address = "addr"
 			case "missing token":
-				tt.cfg.Integration.Vault.Path = "path"
-				tt.cfg.Integration.Vault.Address = "addr"
+				tt.cfg.Secrets.Vault.Path = "path"
+				tt.cfg.Secrets.Vault.Address = "addr"
 			case "missing address":
-				tt.cfg.Integration.Vault.Path = "path"
-				tt.cfg.Integration.Vault.Token = "token"
+				tt.cfg.Secrets.Vault.Path = "path"
+				tt.cfg.Secrets.Vault.Token = "token"
 			case "valid config":
-				tt.cfg.Integration.Vault.Path = "path"
-				tt.cfg.Integration.Vault.Token = "token"
-				tt.cfg.Integration.Vault.Address = "addr"
+				tt.cfg.Secrets.Vault.Path = "path"
+				tt.cfg.Secrets.Vault.Token = "token"
+				tt.cfg.Secrets.Vault.Address = "addr"
 			}
 
 			_, err := New(tt.cfg)

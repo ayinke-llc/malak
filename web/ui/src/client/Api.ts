@@ -356,9 +356,14 @@ export interface MalakWorkspaceIntegration {
   is_active?: boolean;
   /** IsEnabled - this integration is enabled and data can be fetched */
   is_enabled?: boolean;
+  metadata?: MalakWorkspaceIntegrationMetadata;
   reference?: string;
   updated_at?: string;
   workspace_id?: string;
+}
+
+export interface MalakWorkspaceIntegrationMetadata {
+  access_token?: string;
 }
 
 export type MalakWorkspaceMetadata = object;
@@ -400,7 +405,7 @@ export interface ServerCreateUpdateContent {
 }
 
 export interface ServerCreateWorkspaceRequest {
-  name?: string;
+  name: string;
 }
 
 export interface ServerCreatedUpdateResponse {
@@ -518,6 +523,10 @@ export interface ServerPreviewUpdateRequest {
 export interface ServerSendUpdateRequest {
   emails?: string[];
   send_at?: number;
+}
+
+export interface ServerTestAPIIntegrationRequest {
+  api_key: string;
 }
 
 export interface ServerUpdateDeckPreferencesRequest {
@@ -1166,7 +1175,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
      * No description
      *
-     * @tags workspace
+     * @tags integrations
      * @name IntegrationsList
      * @summary fetch workspace preferences
      * @request GET:/workspaces/integrations
@@ -1175,6 +1184,42 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerListIntegrationResponse, ServerAPIStatus>({
         path: `/workspaces/integrations`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags integrations
+     * @name IntegrationsCreate
+     * @summary enable integration
+     * @request POST:/workspaces/integrations/{reference}
+     */
+    integrationsCreate: (reference: string, data: ServerTestAPIIntegrationRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/workspaces/integrations/${reference}`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags integrations
+     * @name IntegrationsPingCreate
+     * @summary test an api key is valid and can reach the integration
+     * @request POST:/workspaces/integrations/{reference}/ping
+     */
+    integrationsPingCreate: (reference: string, data: ServerTestAPIIntegrationRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/workspaces/integrations/${reference}/ping`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

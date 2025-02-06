@@ -8,11 +8,13 @@ import (
 	"github.com/adelowo/gulter"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/integrations"
 	"github.com/ayinke-llc/malak/internal/pkg/billing"
 	"github.com/ayinke-llc/malak/internal/pkg/cache"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
+	"github.com/ayinke-llc/malak/internal/secret"
 	_ "github.com/ayinke-llc/malak/swagger"
 	chi "github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -43,7 +45,14 @@ func New(logger *zap.Logger,
 	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
 	redisCache cache.Cache,
-	billingClient billing.Client) (*http.Server, func()) {
+	billingClient billing.Client,
+	integrationManager *integrations.IntegrationsManager,
+	secretsClient secret.SecretClient) (*http.Server, func()) {
+
+	if err := cfg.Validate(); err != nil {
+		logger.Error("invalid configuration", zap.Error(err))
+		return nil, nil
+	}
 
 	srv := &http.Server{
 		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
@@ -51,7 +60,7 @@ func New(logger *zap.Logger,
 			contactRepo, updateRepo, contactListRepo,
 			deckRepo, shareRepo, preferenceRepo, integrationRepo,
 			googleAuthProvider, mid, gulterHandler,
-			queueHandler, redisCache, billingClient),
+			queueHandler, redisCache, billingClient, integrationManager, secretsClient),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -100,7 +109,8 @@ func buildRoutes(
 	queueHandler queue.QueueHandler,
 	redisCache cache.Cache,
 	billingClient billing.Client,
-) http.Handler {
+	integrationManager *integrations.IntegrationsManager,
+	secretsClient secret.SecretClient) http.Handler {
 
 	if cfg.HTTP.Swagger.UIEnabled {
 		go func() {
@@ -137,6 +147,8 @@ func buildRoutes(
 		referenceGenerationFunc: malak.GenerateReference,
 		queueClient:             queueHandler,
 		billingClient:           billingClient,
+		integrationManager:      integrationManager,
+		secretsClient:           secretsClient,
 	}
 
 	contactHandler := &contactHandler{
@@ -241,6 +253,12 @@ func buildRoutes(
 			r.Route("/integrations", func(r chi.Router) {
 				r.Get("/",
 					WrapMalakHTTPHandler(logger, workspaceHandler.getIntegrations, cfg, "workspaces.integrations.list"))
+
+				r.Post("/{reference}",
+					WrapMalakHTTPHandler(logger, workspaceHandler.enableIntegration, cfg, "workspaces.integrations.store"))
+
+				r.Post("/{reference}/ping",
+					WrapMalakHTTPHandler(logger, workspaceHandler.pingIntegration, cfg, "workspaces.integrations.ping"))
 			})
 
 			r.Route("/updates", func(r chi.Router) {

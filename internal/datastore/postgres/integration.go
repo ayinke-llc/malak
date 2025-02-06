@@ -3,8 +3,11 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"time"
 
 	"github.com/ayinke-llc/malak"
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
@@ -77,4 +80,75 @@ func (i *integrationRepo) List(ctx context.Context,
 		Order("created_at ASC").
 		Relation("Integration").
 		Scan(ctx)
+}
+
+func (i *integrationRepo) System(ctx context.Context) ([]malak.Integration, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	integrations := make([]malak.Integration, 0)
+
+	return integrations, i.inner.NewSelect().
+		Model(&integrations).
+		Order("created_at ASC").
+		Scan(ctx)
+}
+
+func (i *integrationRepo) Get(ctx context.Context,
+	opts malak.FindWorkspaceIntegrationOptions) (*malak.WorkspaceIntegration, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	integration := &malak.WorkspaceIntegration{}
+
+	sel := i.inner.NewSelect().Model(integration).
+		Where("workspace_integration.reference = ?", opts.Reference)
+
+	if opts.ID != uuid.Nil {
+		sel = sel.Where("workspace_integration.id = ?", opts.ID)
+	}
+
+	err := sel.Relation("Integration").
+		Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = malak.ErrWorkspaceIntegrationNotFound
+	}
+
+	return integration, err
+}
+
+func (i *integrationRepo) ToggleEnabled(ctx context.Context,
+	integration *malak.WorkspaceIntegration) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return i.inner.RunInTx(ctx, &sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+
+			_, err := tx.NewUpdate().
+				Where("id = ?", integration.ID).
+				Set("is_enabled = CASE WHEN is_enabled = true THEN false ELSE true END").
+				Model(integration).
+				Exec(ctx)
+
+			return err
+		})
+}
+
+func (i *integrationRepo) Update(ctx context.Context,
+	integration *malak.WorkspaceIntegration) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	integration.UpdatedAt = time.Now()
+
+	_, err := i.inner.NewUpdate().
+		Where("id = ?", integration.ID).
+		Model(integration).
+		Exec(ctx)
+	return err
 }
