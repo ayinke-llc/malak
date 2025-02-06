@@ -87,7 +87,7 @@ type Config struct {
 		DefaultPlanReference string `yaml:"default_plan_reference" mapstructure:"default_plan_reference"`
 	} `yaml:"billing" mapstructure:"billing"`
 
-	Integration struct {
+	Secrets struct {
 		ClientTimeout time.Duration `yaml:"client_timeout" mapstructure:"client_timeout"`
 
 		Provider secret.SecretProvider `yaml:"provider" mapstructure:"provider"`
@@ -117,7 +117,7 @@ type Config struct {
 			AccessKey    string `yaml:"access_key" mapstructure:"access_key"`
 			Endpoint     string `yaml:"endpoint" mapstructure:"endpoint"`
 		} `yaml:"secrets_manager" mapstructure:"secrets_manager"`
-	} `yaml:"integration" mapstructure:"integration"`
+	} `yaml:"secrets" mapstructure:"secrets"`
 
 	Uploader struct {
 		Driver        UploadDriver `yaml:"driver" mapstructure:"driver"`

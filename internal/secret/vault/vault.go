@@ -17,32 +17,32 @@ type hashicorpVault struct {
 
 func New(cfg config.Config) (secret.SecretClient, error) {
 
-	if hermes.IsStringEmpty(cfg.Integration.Vault.Path) {
-		return nil, errors.New("please provide your vault mount secret path")
+	if hermes.IsStringEmpty(cfg.Secrets.Vault.Path) {
+		return nil, errors.New("please provide your vault path")
 	}
 
-	if hermes.IsStringEmpty(cfg.Integration.Vault.Token) {
+	if hermes.IsStringEmpty(cfg.Secrets.Vault.Token) {
 		return nil, errors.New("please provide your vault token")
 	}
 
-	if hermes.IsStringEmpty(cfg.Integration.Vault.Address) {
+	if hermes.IsStringEmpty(cfg.Secrets.Vault.Address) {
 		return nil, errors.New("please provide your vault address")
 	}
 
 	c := vault.DefaultConfig()
 
-	c.Address = cfg.Integration.Vault.Address
+	c.Address = cfg.Secrets.Vault.Address
 
 	client, err := vault.NewClient(c)
 	if err != nil {
 		return nil, err
 	}
 
-	client.SetToken(cfg.Integration.Vault.Token)
+	client.SetToken(cfg.Secrets.Vault.Token)
 
 	return &hashicorpVault{
 		client: client,
-		path:   cfg.Integration.Vault.Path,
+		path:   cfg.Secrets.Vault.Path,
 	}, nil
 }
 

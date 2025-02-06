@@ -45,11 +45,14 @@ type mercuryClient struct {
 
 func New(cfg config.Config) (malak.IntegrationProviderClient, error) {
 
+	transport := otelhttp.NewTransport(http.DefaultTransport)
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   cfg.Secrets.ClientTimeout,
+	}
+
 	return &mercuryClient{
-		httpClient: &http.Client{
-			Transport: otelhttp.NewTransport(http.DefaultTransport),
-			Timeout:   cfg.Integration.ClientTimeout,
-		},
+		httpClient: client,
 	}, nil
 }
 
