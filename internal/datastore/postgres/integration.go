@@ -130,7 +130,7 @@ func (i *integrationRepo) ToggleEnabled(ctx context.Context,
 
 			_, err := tx.NewUpdate().
 				Where("id = ?", integration.ID).
-				Set("is_active = CASE WHEN is_active = true THEN false ELSE true END").
+				Set("is_enabled = CASE WHEN is_enabled = true THEN false ELSE true END").
 				Model(integration).
 				Exec(ctx)
 
