@@ -31,11 +31,11 @@ func TestInfisicalClientInitialization(t *testing.T) {
 			name: "missing environment",
 			config: func() config.Config {
 				cfg := config.Config{}
-				cfg.Integration.Provider = secret.SecretProvider("infisical")
-				cfg.Integration.Infisical.ClientID = "test-id"
-				cfg.Integration.Infisical.ClientSecret = "test-secret"
-				cfg.Integration.Infisical.SiteURL = "http://localhost:8080"
-				cfg.Integration.Infisical.ProjectID = "test-project"
+				cfg.Secrets.Provider = secret.SecretProvider("infisical")
+				cfg.Secrets.Infisical.ClientID = "test-id"
+				cfg.Secrets.Infisical.ClientSecret = "test-secret"
+				cfg.Secrets.Infisical.SiteURL = "http://localhost:8080"
+				cfg.Secrets.Infisical.ProjectID = "test-project"
 				return cfg
 			}(),
 			expectError: true,
@@ -44,11 +44,11 @@ func TestInfisicalClientInitialization(t *testing.T) {
 			name: "missing project ID",
 			config: func() config.Config {
 				cfg := config.Config{}
-				cfg.Integration.Provider = secret.SecretProvider("infisical")
-				cfg.Integration.Infisical.ClientID = "test-id"
-				cfg.Integration.Infisical.ClientSecret = "test-secret"
-				cfg.Integration.Infisical.SiteURL = "http://localhost:8080"
-				cfg.Integration.Infisical.Environment = "dev"
+				cfg.Secrets.Provider = secret.SecretProvider("infisical")
+				cfg.Secrets.Infisical.ClientID = "test-id"
+				cfg.Secrets.Infisical.ClientSecret = "test-secret"
+				cfg.Secrets.Infisical.SiteURL = "http://localhost:8080"
+				cfg.Secrets.Infisical.Environment = "dev"
 				return cfg
 			}(),
 			expectError: true,
@@ -57,11 +57,11 @@ func TestInfisicalClientInitialization(t *testing.T) {
 			name: "missing client ID",
 			config: func() config.Config {
 				cfg := config.Config{}
-				cfg.Integration.Provider = secret.SecretProvider("infisical")
-				cfg.Integration.Infisical.ClientSecret = "test-secret"
-				cfg.Integration.Infisical.SiteURL = "http://localhost:8080"
-				cfg.Integration.Infisical.ProjectID = "test-project"
-				cfg.Integration.Infisical.Environment = "dev"
+				cfg.Secrets.Provider = secret.SecretProvider("infisical")
+				cfg.Secrets.Infisical.ClientSecret = "test-secret"
+				cfg.Secrets.Infisical.SiteURL = "http://localhost:8080"
+				cfg.Secrets.Infisical.ProjectID = "test-project"
+				cfg.Secrets.Infisical.Environment = "dev"
 				return cfg
 			}(),
 			expectError: true,
@@ -70,11 +70,11 @@ func TestInfisicalClientInitialization(t *testing.T) {
 			name: "missing client secret",
 			config: func() config.Config {
 				cfg := config.Config{}
-				cfg.Integration.Provider = secret.SecretProvider("infisical")
-				cfg.Integration.Infisical.ClientID = "test-id"
-				cfg.Integration.Infisical.SiteURL = "http://localhost:8080"
-				cfg.Integration.Infisical.ProjectID = "test-project"
-				cfg.Integration.Infisical.Environment = "dev"
+				cfg.Secrets.Provider = secret.SecretProvider("infisical")
+				cfg.Secrets.Infisical.ClientID = "test-id"
+				cfg.Secrets.Infisical.SiteURL = "http://localhost:8080"
+				cfg.Secrets.Infisical.ProjectID = "test-project"
+				cfg.Secrets.Infisical.Environment = "dev"
 				return cfg
 			}(),
 			expectError: true,
@@ -83,11 +83,11 @@ func TestInfisicalClientInitialization(t *testing.T) {
 			name: "missing site URL",
 			config: func() config.Config {
 				cfg := config.Config{}
-				cfg.Integration.Provider = secret.SecretProvider("infisical")
-				cfg.Integration.Infisical.ClientID = "test-id"
-				cfg.Integration.Infisical.ClientSecret = "test-secret"
-				cfg.Integration.Infisical.ProjectID = "test-project"
-				cfg.Integration.Infisical.Environment = "dev"
+				cfg.Secrets.Provider = secret.SecretProvider("infisical")
+				cfg.Secrets.Infisical.ClientID = "test-id"
+				cfg.Secrets.Infisical.ClientSecret = "test-secret"
+				cfg.Secrets.Infisical.ProjectID = "test-project"
+				cfg.Secrets.Infisical.Environment = "dev"
 				return cfg
 			}(),
 			expectError: true,
@@ -229,12 +229,12 @@ func TestInfisicalClient(t *testing.T) {
 
 	// Create test configuration with the actual mapped port
 	cfg := config.Config{}
-	cfg.Integration.Provider = secret.SecretProvider("infisical")
-	cfg.Integration.Infisical.SiteURL = fmt.Sprintf("http://%s:%s", host, port.Port())
-	cfg.Integration.Infisical.Environment = "dev"
-	cfg.Integration.Infisical.ProjectID = "test-project"
-	cfg.Integration.Infisical.ClientID = "test-client-id"
-	cfg.Integration.Infisical.ClientSecret = "test-client-secret"
+	cfg.Secrets.Provider = secret.SecretProvider("infisical")
+	cfg.Secrets.Infisical.SiteURL = fmt.Sprintf("http://%s:%s", host, port.Port())
+	cfg.Secrets.Infisical.Environment = "dev"
+	cfg.Secrets.Infisical.ProjectID = "test-project"
+	cfg.Secrets.Infisical.ClientID = "test-client-id"
+	cfg.Secrets.Infisical.ClientSecret = "test-client-secret"
 
 	// Initialize client
 	client, err := New(cfg)

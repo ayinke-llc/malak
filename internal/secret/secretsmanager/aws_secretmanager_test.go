@@ -36,10 +36,10 @@ func setupTest(t *testing.T) *testSuite {
 
 	// Configure AWS client to use localstack
 	cfg := config.Config{}
-	cfg.Integration.SecretsManager.Region = "us-east-1"
-	cfg.Integration.SecretsManager.AccessKey = "test"
-	cfg.Integration.SecretsManager.AccessSecret = "test"
-	cfg.Integration.SecretsManager.Endpoint = endpoint
+	cfg.Secrets.SecretsManager.Region = "us-east-1"
+	cfg.Secrets.SecretsManager.AccessKey = "test"
+	cfg.Secrets.SecretsManager.AccessSecret = "test"
+	cfg.Secrets.SecretsManager.Endpoint = endpoint
 
 	client, err := New(cfg)
 	require.NoError(t, err)

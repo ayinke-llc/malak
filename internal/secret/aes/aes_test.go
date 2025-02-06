@@ -207,7 +207,7 @@ func TestAESClient(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := config.Config{}
-			cfg.Integration.AES.Key = tt.key
+			cfg.Secrets.AES.Key = tt.key
 
 			client, err := New(cfg)
 			if tt.wantErr {
@@ -230,7 +230,7 @@ func TestAESClient(t *testing.T) {
 
 func TestAESClientContextCancellation(t *testing.T) {
 	cfg := config.Config{}
-	cfg.Integration.AES.Key = "12345678901234567890123456789012"
+	cfg.Secrets.AES.Key = "12345678901234567890123456789012"
 
 	client, err := New(cfg)
 	require.NoError(t, err)

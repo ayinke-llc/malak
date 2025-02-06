@@ -16,7 +16,7 @@ import (
 func TestNew(t *testing.T) {
 	t.Run("creates client with config", func(t *testing.T) {
 		cfg := config.Config{}
-		cfg.Integration.ClientTimeout = 30 * time.Second
+		cfg.Secrets.ClientTimeout = 30 * time.Second
 
 		client, err := New(cfg)
 		require.NoError(t, err)
@@ -65,7 +65,7 @@ func TestMercuryClient_Ping(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := config.Config{}
-			cfg.Integration.ClientTimeout = 10 * time.Second
+			cfg.Secrets.ClientTimeout = 10 * time.Second
 
 			client, err := New(cfg)
 			require.NoError(t, err)
