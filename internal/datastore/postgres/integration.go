@@ -120,7 +120,7 @@ func (i *integrationRepo) Get(ctx context.Context,
 }
 
 func (i *integrationRepo) ToggleEnabled(ctx context.Context,
-	integration malak.WorkspaceIntegration) error {
+	integration *malak.WorkspaceIntegration) error {
 
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()

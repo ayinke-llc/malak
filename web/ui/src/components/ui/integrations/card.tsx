@@ -29,7 +29,7 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useMutation } from "@tanstack/react-query";
-import { PING_INTEGRATION } from "@/lib/query-constants";
+import { ENABLE_INTEGRATION, PING_INTEGRATION } from "@/lib/query-constants";
 import client from "@/lib/client";
 import { AxiosError } from "axios";
 
@@ -79,7 +79,7 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
     mutationKey: [PING_INTEGRATION],
     mutationFn: (data: ApiKeyFormData) => {
       setIsTestingConnection(true);
-      return client.workspaces.integrationsPingCreate(integration?.reference as string, {
+      return client.workspaces.integrationsPingCreate(integration.reference as string, {
         api_key: data.apiKey,
       })
     },
@@ -96,6 +96,27 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
       setIsTestingConnection(false);
     },
   });
+
+  const enableMutation = useMutation({
+    mutationKey: [ENABLE_INTEGRATION],
+    mutationFn: (data: ApiKeyFormData) => {
+      setIsTestingConnection(true);
+      return client.workspaces.integrationsCreate(integration?.reference as string, {
+        api_key: data.apiKey,
+      })
+    },
+    onSuccess: ({ data }) => {
+      toast.success(data.message);
+      setIsEditing(false);
+      setApiKeyDialogOpen(true);
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      toast.error(err.response?.data.message || "An error occurred while enabling this integration");
+      setIsEditing(false);
+      setApiKeyDialogOpen(true);
+    },
+  });
+
 
   const apiKeyValue = watch("apiKey");
 
@@ -140,13 +161,7 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
       return;
     }
 
-    try {
-      toast.success(isEditing ? "API key updated successfully" : "API key saved successfully");
-      setApiKeyDialogOpen(false);
-      resetDialogState();
-    } catch (error) {
-      toast.error(isEditing ? "Failed to update API key" : "Failed to save API key");
-    }
+    enableMutation.mutate(data);
   };
 
   const resetDialogState = () => {
