@@ -245,9 +245,11 @@ func buildRoutes(
 				r.Get("/",
 					WrapMalakHTTPHandler(logger, workspaceHandler.getIntegrations, cfg, "workspaces.integrations.list"))
 
+				r.Post("/{reference}",
+					WrapMalakHTTPHandler(logger, workspaceHandler.enableIntegration, cfg, "workspaces.integrations.store"))
+
 				r.Post("/{reference}/ping",
 					WrapMalakHTTPHandler(logger, workspaceHandler.pingIntegration, cfg, "workspaces.integrations.ping"))
-
 			})
 
 			r.Route("/updates", func(r chi.Router) {

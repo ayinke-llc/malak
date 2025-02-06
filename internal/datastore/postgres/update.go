@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/google/uuid"
@@ -61,6 +62,8 @@ func (u *updatesRepo) Update(ctx context.Context,
 
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
+
+	update.UpdatedAt = time.Now()
 
 	_, err := u.inner.NewUpdate().
 		Where("id = ?", update.ID).

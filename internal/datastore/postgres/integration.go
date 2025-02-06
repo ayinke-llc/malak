@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/google/uuid"
@@ -116,4 +117,38 @@ func (i *integrationRepo) Get(ctx context.Context,
 	}
 
 	return integration, err
+}
+
+func (i *integrationRepo) ToggleEnabled(ctx context.Context,
+	integration malak.WorkspaceIntegration) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return i.inner.RunInTx(ctx, &sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+
+			_, err := tx.NewUpdate().
+				Where("id = ?", integration.ID).
+				Set("is_pinned = CASE WHEN is_pinned = true THEN false ELSE true END").
+				Model(integration).
+				Exec(ctx)
+
+			return err
+		})
+}
+
+func (i *integrationRepo) Update(ctx context.Context,
+	integration *malak.WorkspaceIntegration) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	integration.UpdatedAt = time.Now()
+
+	_, err := i.inner.NewUpdate().
+		Where("id = ?", integration.ID).
+		Model(integration).
+		Exec(ctx)
+	return err
 }

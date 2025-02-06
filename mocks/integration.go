@@ -165,3 +165,31 @@ func (mr *MockIntegrationRepositoryMockRecorder) System(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "System", reflect.TypeOf((*MockIntegrationRepository)(nil).System), arg0)
 }
+
+// ToggleEnabled mocks base method.
+func (m *MockIntegrationRepository) ToggleEnabled(arg0 context.Context, arg1 *malak.WorkspaceIntegration) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ToggleEnabled", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ToggleEnabled indicates an expected call of ToggleEnabled.
+func (mr *MockIntegrationRepositoryMockRecorder) ToggleEnabled(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToggleEnabled", reflect.TypeOf((*MockIntegrationRepository)(nil).ToggleEnabled), arg0, arg1)
+}
+
+// Update mocks base method.
+func (m *MockIntegrationRepository) Update(arg0 context.Context, arg1 *malak.WorkspaceIntegration) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockIntegrationRepositoryMockRecorder) Update(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockIntegrationRepository)(nil).Update), arg0, arg1)
+}

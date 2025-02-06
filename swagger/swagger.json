@@ -833,6 +833,9 @@
 						"description": "IsEnabled - this integration is enabled and data can be fetched",
 						"type": "boolean"
 					},
+					"metadata": {
+						"$ref": "#/components/schemas/malak.WorkspaceIntegrationMetadata"
+					},
 					"reference": {
 						"type": "string"
 					},
@@ -840,6 +843,14 @@
 						"type": "string"
 					},
 					"workspace_id": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"malak.WorkspaceIntegrationMetadata": {
+				"properties": {
+					"access_token": {
 						"type": "string"
 					}
 				},
@@ -3335,6 +3346,78 @@
 					}
 				},
 				"summary": "fetch workspace preferences",
+				"tags": [
+					"integrations"
+				]
+			}
+		},
+		"/workspaces/integrations/{reference}": {
+			"post": {
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.testAPIIntegrationRequest"
+							}
+						}
+					},
+					"description": "request body",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "enable integration",
 				"tags": [
 					"integrations"
 				]

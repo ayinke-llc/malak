@@ -45,7 +45,7 @@ type Integration struct {
 }
 
 type WorkspaceIntegrationMetadata struct {
-	AccessToken string `json:"access_token,omitempty"`
+	AccessToken AccessToken `json:"access_token,omitempty"`
 }
 
 type WorkspaceIntegration struct {
@@ -60,6 +60,8 @@ type WorkspaceIntegration struct {
 
 	// IsActive determines if the connection to the integration has been tested and works
 	IsActive bool `json:"is_active,omitempty"`
+
+	Metadata WorkspaceIntegrationMetadata `json:"metadata,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
@@ -129,4 +131,6 @@ type IntegrationRepository interface {
 
 	List(context.Context, *Workspace) ([]WorkspaceIntegration, error)
 	Get(context.Context, FindWorkspaceIntegrationOptions) (*WorkspaceIntegration, error)
+	ToggleEnabled(context.Context, *WorkspaceIntegration) error
+	Update(context.Context, *WorkspaceIntegration) error
 }

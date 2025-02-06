@@ -356,9 +356,14 @@ export interface MalakWorkspaceIntegration {
   is_active?: boolean;
   /** IsEnabled - this integration is enabled and data can be fetched */
   is_enabled?: boolean;
+  metadata?: MalakWorkspaceIntegrationMetadata;
   reference?: string;
   updated_at?: string;
   workspace_id?: string;
+}
+
+export interface MalakWorkspaceIntegrationMetadata {
+  access_token?: string;
 }
 
 export type MalakWorkspaceMetadata = object;
@@ -1179,6 +1184,24 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerListIntegrationResponse, ServerAPIStatus>({
         path: `/workspaces/integrations`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags integrations
+     * @name IntegrationsCreate
+     * @summary enable integration
+     * @request POST:/workspaces/integrations/{reference}
+     */
+    integrationsCreate: (reference: string, data: ServerTestAPIIntegrationRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/workspaces/integrations/${reference}`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
