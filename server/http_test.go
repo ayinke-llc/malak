@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
 	"go.uber.org/mock/gomock"
+	"go.uber.org/zap"
 )
 
 // This does nothing really
@@ -46,7 +47,8 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockQueueHandler(controller),
 			malak_mocks.NewMockCache(controller),
 			malak_mocks.NewMockClient(controller),
-			integrations.NewManager())
+			integrations.NewManager(),
+			malak_mocks.NewMockSecretClient(controller))
 
 		closeFn()
 
@@ -86,7 +88,8 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockQueueHandler(controller),
 			malak_mocks.NewMockCache(controller),
 			malak_mocks.NewMockClient(controller),
-			integrations.NewManager())
+			integrations.NewManager(),
+			malak_mocks.NewMockSecretClient(controller))
 
 		closeFn()
 
@@ -98,4 +101,77 @@ func TestServer_New(t *testing.T) {
 
 		require.NoError(t, srv.Close())
 	})
+}
+
+func TestNew(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+
+	userRepo := malak_mocks.NewMockUserRepository(controller)
+	workspaceRepo := malak_mocks.NewMockWorkspaceRepository(controller)
+	planRepo := malak_mocks.NewMockPlanRepository(controller)
+	contactRepo := malak_mocks.NewMockContactRepository(controller)
+	updateRepo := malak_mocks.NewMockUpdateRepository(controller)
+	contactListRepo := malak_mocks.NewMockContactListRepository(controller)
+	deckRepo := malak_mocks.NewMockDeckRepository(controller)
+	contactShareRepo := malak_mocks.NewMockContactShareRepository(controller)
+	preferenceRepo := malak_mocks.NewMockPreferenceRepository(controller)
+	integrationRepo := malak_mocks.NewMockIntegrationRepository(controller)
+	queueRepo := malak_mocks.NewMockQueueHandler(controller)
+	cacheRepo := malak_mocks.NewMockCache(controller)
+	billingClient := malak_mocks.NewMockClient(controller)
+	secretsClient := malak_mocks.NewMockSecretClient(controller)
+
+	logger, err := zap.NewDevelopment()
+	require.NoError(t, err)
+
+	cfg := getConfig()
+
+	db := &bun.DB{}
+
+	srv, closeFn := New(logger, cfg, db, jwttoken.New(cfg), socialauth.NewGoogle(cfg),
+		userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
+		contactListRepo, deckRepo, contactShareRepo, preferenceRepo,
+		integrationRepo, &httplimit.Middleware{}, &gulter.Gulter{}, queueRepo, cacheRepo,
+		billingClient, integrations.NewManager(), secretsClient)
+
+	require.NotNil(t, srv)
+	require.NotNil(t, closeFn)
+}
+
+func TestNewWithInvalidConfig(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+
+	userRepo := malak_mocks.NewMockUserRepository(controller)
+	workspaceRepo := malak_mocks.NewMockWorkspaceRepository(controller)
+	planRepo := malak_mocks.NewMockPlanRepository(controller)
+	contactRepo := malak_mocks.NewMockContactRepository(controller)
+	updateRepo := malak_mocks.NewMockUpdateRepository(controller)
+	contactListRepo := malak_mocks.NewMockContactListRepository(controller)
+	deckRepo := malak_mocks.NewMockDeckRepository(controller)
+	contactShareRepo := malak_mocks.NewMockContactShareRepository(controller)
+	preferenceRepo := malak_mocks.NewMockPreferenceRepository(controller)
+	integrationRepo := malak_mocks.NewMockIntegrationRepository(controller)
+	queueRepo := malak_mocks.NewMockQueueHandler(controller)
+	cacheRepo := malak_mocks.NewMockCache(controller)
+	billingClient := malak_mocks.NewMockClient(controller)
+	secretsClient := malak_mocks.NewMockSecretClient(controller)
+
+	logger, err := zap.NewDevelopment()
+	require.NoError(t, err)
+
+	cfg := getConfig()
+	cfg.HTTP.Port = 0
+
+	db := &bun.DB{}
+
+	srv, closeFn := New(logger, cfg, db, jwttoken.New(cfg), socialauth.NewGoogle(cfg),
+		userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
+		contactListRepo, deckRepo, contactShareRepo, preferenceRepo,
+		integrationRepo, &httplimit.Middleware{}, &gulter.Gulter{}, queueRepo, cacheRepo,
+		billingClient, integrations.NewManager(), secretsClient)
+
+	require.Nil(t, srv)
+	require.Nil(t, closeFn)
 }

@@ -872,8 +872,9 @@ func TestWorkspaceHandler_EnableIntegration(t *testing.T) {
 			integrationRepo := malak_mocks.NewMockIntegrationRepository(controller)
 			integrationManager := malak_mocks.NewMockIntegrationProviderClient(controller)
 			queueRepo := malak_mocks.NewMockQueueHandler(controller)
+			secretsClient := malak_mocks.NewMockSecretClient(controller)
 
-			v.mockFn(integrationRepo, integrationManager)
+			v.mockFn(integrationRepo, integrationManager, secretsClient)
 
 			// Set up the mock provider's Name() method
 			integrationManager.EXPECT().
@@ -889,6 +890,7 @@ func TestWorkspaceHandler_EnableIntegration(t *testing.T) {
 				queueClient:        queueRepo,
 				integrationRepo:    integrationRepo,
 				integrationManager: manager,
+				secretsClient:      secretsClient,
 				referenceGenerationFunc: func(e malak.EntityType) string {
 					return "workspace_tt7-YieIgz"
 				},
@@ -1058,26 +1060,26 @@ func generateWorkspacePingIntegrationTestTable() []struct {
 
 func generateWorkspaceEnableIntegrationTestTable() []struct {
 	name               string
-	mockFn             func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient)
+	mockFn             func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient)
 	expectedStatusCode int
 	req                testAPIIntegrationRequest
 } {
 	return []struct {
 		name               string
-		mockFn             func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient)
+		mockFn             func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient)
 		expectedStatusCode int
 		req                testAPIIntegrationRequest
 	}{
 		{
 			name: "invalid request - no api key",
-			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient) {
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req:                testAPIIntegrationRequest{},
 		},
 		{
 			name: "integration not found",
-			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient) {
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
 				integrationRepo.EXPECT().
 					Get(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -1090,7 +1092,7 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 		},
 		{
 			name: "invalid integration provider",
-			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient) {
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
 				integrationRepo.EXPECT().
 					Get(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -1107,7 +1109,7 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 		},
 		{
 			name: "integration manager error",
-			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient) {
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
 				integrationRepo.EXPECT().
 					Get(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -1129,7 +1131,7 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 		},
 		{
 			name: "ping error",
-			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient) {
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
 				integrationRepo.EXPECT().
 					Get(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -1150,8 +1152,8 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 			},
 		},
 		{
-			name: "update error",
-			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient) {
+			name: "secrets client error",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
 				integrationRepo.EXPECT().
 					Get(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -1165,6 +1167,38 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 					Ping(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil)
+
+				secretsClient.EXPECT().
+					Create(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return("", errors.New("secrets client error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: testAPIIntegrationRequest{
+				APIKey: "test-key",
+			},
+		},
+		{
+			name: "update error after successful secrets storage",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
+				integrationRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.WorkspaceIntegration{
+						Integration: &malak.Integration{
+							IntegrationName: "mercury",
+						},
+					}, nil)
+
+				integrationManager.EXPECT().
+					Ping(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+
+				secretsClient.EXPECT().
+					Create(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return("test-key", nil)
 
 				integrationRepo.EXPECT().
 					Update(gomock.Any(), gomock.Any()).
@@ -1177,8 +1211,8 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 			},
 		},
 		{
-			name: "successful enable",
-			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient) {
+			name: "successful enable with secrets storage",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
 				integrationRepo.EXPECT().
 					Get(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -1192,6 +1226,11 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 					Ping(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil)
+
+				secretsClient.EXPECT().
+					Create(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return("test-key", nil)
 
 				integrationRepo.EXPECT().
 					Update(gomock.Any(), gomock.Any()).
