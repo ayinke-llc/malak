@@ -107,7 +107,7 @@ func (i *integrationRepo) Get(ctx context.Context,
 		Where("workspace_integration.reference = ?", opts.Reference)
 
 	if opts.ID != uuid.Nil {
-		sel = sel.Where("id = ?", opts.ID)
+		sel = sel.Where("workspace_integration.id = ?", opts.ID)
 	}
 
 	err := sel.Relation("Integration").
@@ -130,7 +130,7 @@ func (i *integrationRepo) ToggleEnabled(ctx context.Context,
 
 			_, err := tx.NewUpdate().
 				Where("id = ?", integration.ID).
-				Set("is_pinned = CASE WHEN is_pinned = true THEN false ELSE true END").
+				Set("is_active = CASE WHEN is_active = true THEN false ELSE true END").
 				Model(integration).
 				Exec(ctx)
 
