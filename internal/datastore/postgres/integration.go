@@ -3,8 +3,10 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/ayinke-llc/malak"
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
@@ -90,4 +92,28 @@ func (i *integrationRepo) System(ctx context.Context) ([]malak.Integration, erro
 		Model(&integrations).
 		Order("created_at ASC").
 		Scan(ctx)
+}
+
+func (i *integrationRepo) Get(ctx context.Context,
+	opts malak.FindWorkspaceIntegrationOptions) (*malak.WorkspaceIntegration, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	integration := &malak.WorkspaceIntegration{}
+
+	sel := i.inner.NewSelect().Model(integration).
+		Where("workspace_integration.reference = ?", opts.Reference)
+
+	if opts.ID != uuid.Nil {
+		sel = sel.Where("id = ?", opts.ID)
+	}
+
+	err := sel.Relation("Integration").
+		Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = malak.ErrWorkspaceIntegrationNotFound
+	}
+
+	return integration, err
 }

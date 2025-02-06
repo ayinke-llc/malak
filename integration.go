@@ -9,6 +9,10 @@ import (
 	"github.com/uptrace/bun"
 )
 
+var (
+	ErrWorkspaceIntegrationNotFound = MalakError("integration not found")
+)
+
 // ENUM(oauth2,api_key)
 type IntegrationType string
 
@@ -114,9 +118,15 @@ type AccessToken string
 
 func (a AccessToken) String() string { return string(a) }
 
+type FindWorkspaceIntegrationOptions struct {
+	Reference Reference
+	ID        uuid.UUID
+}
+
 type IntegrationRepository interface {
 	Create(context.Context, *Integration) error
 	System(context.Context) ([]Integration, error)
 
 	List(context.Context, *Workspace) ([]WorkspaceIntegration, error)
+	Get(context.Context, FindWorkspaceIntegrationOptions) (*WorkspaceIntegration, error)
 }

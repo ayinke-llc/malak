@@ -98,7 +98,7 @@ func (m *mercuryClient) Ping(
 	_, _ = io.Copy(io.Discard, res.Body)
 
 	if res.StatusCode != http.StatusOK {
-		err = errors.New("invalid status code")
+		err = errors.New("invalid api key")
 		span.SetAttributes(attribute.Int("response_code", res.StatusCode))
 		return err
 	}

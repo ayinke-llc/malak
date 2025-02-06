@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -306,7 +307,7 @@ func buildIntegrationManager(integrationRepo malak.IntegrationRepository, cfg co
 	}
 
 	for _, v := range integrations {
-		provider, err := malak.ParseIntegrationProvider(v.IntegrationName)
+		provider, err := malak.ParseIntegrationProvider(strings.ToLower(v.IntegrationName))
 		if err != nil {
 			logger.Warn("invalid integration provider",
 				zap.String("integration_name", v.IntegrationName),

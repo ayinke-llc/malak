@@ -85,3 +85,52 @@ func TestIntegration_System(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, integrations, 1)
 }
+
+func TestIntegration_Get(t *testing.T) {
+
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	integrationRepo := NewIntegrationRepo(client)
+	repo := NewWorkspaceRepository(client)
+
+	_, err := integrationRepo.Get(context.Background(), malak.FindWorkspaceIntegrationOptions{
+		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeWorkspaceIntegration),
+	})
+	require.Error(t, err)
+	require.Equal(t, malak.ErrWorkspaceIntegrationNotFound, err)
+
+	workspace, err := repo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	integrations, err := integrationRepo.List(context.Background(), workspace)
+	require.NoError(t, err)
+	require.Len(t, integrations, 0)
+
+	err = integrationRepo.Create(context.Background(), &malak.Integration{
+		IntegrationName: "Stripe",
+		Reference:       malak.NewReferenceGenerator().Generate(malak.EntityTypeIntegration),
+		Description:     "Stripe stripe stripe",
+		IsEnabled:       true,
+		IntegrationType: malak.IntegrationTypeOauth2,
+		LogoURL:         "https://google.com",
+	})
+	require.NoError(t, err)
+
+	integrations, err = integrationRepo.List(context.Background(), workspace)
+	require.NoError(t, err)
+	require.Len(t, integrations, 1)
+
+	_, err = integrationRepo.Get(context.Background(), malak.FindWorkspaceIntegrationOptions{
+		Reference: integrations[0].Reference,
+	})
+	require.NoError(t, err)
+
+	_, err = integrationRepo.Get(context.Background(), malak.FindWorkspaceIntegrationOptions{
+		Reference: integrations[0].Reference,
+		ID:        integrations[0].ID,
+	})
+	require.NoError(t, err)
+}

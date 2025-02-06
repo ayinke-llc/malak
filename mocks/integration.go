@@ -121,6 +121,21 @@ func (mr *MockIntegrationRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockIntegrationRepository)(nil).Create), arg0, arg1)
 }
 
+// Get mocks base method.
+func (m *MockIntegrationRepository) Get(arg0 context.Context, arg1 malak.FindWorkspaceIntegrationOptions) (*malak.WorkspaceIntegration, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret0, _ := ret[0].(*malak.WorkspaceIntegration)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockIntegrationRepositoryMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockIntegrationRepository)(nil).Get), arg0, arg1)
+}
+
 // List mocks base method.
 func (m *MockIntegrationRepository) List(arg0 context.Context, arg1 *malak.Workspace) ([]malak.WorkspaceIntegration, error) {
 	m.ctrl.T.Helper()

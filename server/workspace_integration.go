@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -80,11 +82,15 @@ func (wo *workspaceHandler) pingIntegration(
 	w http.ResponseWriter,
 	r *http.Request) (render.Renderer, Status) {
 
-	user := getUserFromContext(r.Context())
+	ref := chi.URLParam(r, "reference")
 
-	logger.Debug("creating workspace")
+	span.SetAttributes(attribute.String("reference", ref))
 
-	req := new(createWorkspaceRequest)
+	logger = logger.With(zap.String("reference", ref))
+
+	logger.Debug("pinging integration")
+
+	req := new(testAPIIntegrationRequest)
 
 	if err := render.Bind(r, req); err != nil {
 		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
@@ -94,51 +100,49 @@ func (wo *workspaceHandler) pingIntegration(
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	plan, err := wo.planRepo.Get(ctx, &malak.FetchPlanOptions{
-		Reference: wo.cfg.Billing.DefaultPlanReference,
+	logger = logger.With(zap.String("integration_reference", ref))
+
+	integration, err := wo.integrationRepo.Get(ctx, malak.FindWorkspaceIntegrationOptions{
+		Reference: malak.Reference(ref),
 	})
 	if err != nil {
+		var msg string = "could not fetch integration"
+		var status = http.StatusInternalServerError
+
+		if errors.Is(err, malak.ErrWorkspaceIntegrationNotFound) {
+			msg = err.Error()
+			status = http.StatusNotFound
+		}
+
 		logger.
-			Error("could not fetch default plan",
-				zap.Error(err),
-				zap.String("plan_reference", wo.cfg.Billing.DefaultPlanReference))
-		return newAPIStatus(http.StatusInternalServerError,
-			"could not fetch default plan details"), StatusFailed
+			Error(msg,
+				zap.Error(err))
+		return newAPIStatus(status, msg), StatusFailed
 	}
 
-	workspace := malak.NewWorkspace(req.Name, user, plan,
-		wo.referenceGenerationFunc(malak.EntityTypeWorkspace))
+	logger = logger.With(zap.String("integration_name", integration.Integration.IntegrationName))
 
-	err = wo.workspaceRepo.Create(ctx, &malak.CreateWorkspaceOptions{
-		User:      user,
-		Workspace: workspace,
-	})
+	if integration.IsActive {
+		return newAPIStatus(http.StatusBadRequest, "Integration is currently active"), StatusFailed
+	}
+
+	provider, err := malak.ParseIntegrationProvider(strings.ToLower(integration.Integration.IntegrationName))
 	if err != nil {
-		logger.Error("could not fetch default plan",
-			zap.Error(err),
-			zap.String("plan_reference", wo.cfg.Billing.DefaultPlanReference))
-		return newAPIStatus(http.StatusInternalServerError,
-			"could not create workspace"), StatusFailed
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	opts := &queue.BillingCreateCustomerOptions{
-		Workspace: workspace,
-		Email:     user.Email,
+	integrationImpl, err := wo.integrationManager.Get(provider)
+	if err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	if err := wo.queueClient.Add(ctx, queue.QueueTopicBillingCreateCustomer, opts); err != nil {
-		// aware of logic here. no error sent to client as
-		// 1. this would rarely fail
-		// 2. in the event, it fails, it is not a fatal error and can be sorted
-		// out by contacting support usually, or we can even make a slack bot/cli that fixes this
-		// 3. given 2, it's fine but if it comes up often, then we should fail
-		// the request instead
-		logger.Error("an error occurred while adding user to queue to create billing customer",
+	if err := integrationImpl.Ping(ctx, req.APIKey); err != nil {
+		logger.Error("could not ping Integration",
 			zap.Error(err))
+
+		return newAPIStatus(http.StatusInternalServerError, err.Error()), StatusFailed
 	}
 
-	return fetchWorkspaceResponse{
-		Workspace: util.DeRef(workspace),
-		APIStatus: newAPIStatus(http.StatusCreated, "workspace successfully created"),
-	}, StatusSuccess
+	return newAPIStatus(http.StatusCreated, "integration successfully pinged"),
+		StatusSuccess
 }
