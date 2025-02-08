@@ -1,4 +1,4 @@
-package mercury
+package brex
 
 import (
 	"context"
@@ -23,25 +23,25 @@ func TestNew(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, client)
 
-		mercuryClient, ok := client.(*mercuryClient)
+		brexClient, ok := client.(*brexClient)
 		require.True(t, ok)
-		require.Equal(t, 30*time.Second, mercuryClient.httpClient.Timeout)
+		require.Equal(t, 30*time.Second, brexClient.httpClient.Timeout)
 	})
 }
 
-func TestMercuryClient_Name(t *testing.T) {
-	client := &mercuryClient{}
-	require.Equal(t, malak.IntegrationProviderMercury, client.Name())
+func TestBrexClient_Name(t *testing.T) {
+	client := &brexClient{}
+	require.Equal(t, malak.IntegrationProviderBrex, client.Name())
 }
 
-func TestMercuryClient_Ping(t *testing.T) {
+func TestBrexClient_Ping(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping integration test")
 	}
 
-	token := os.Getenv("MERCURY_API_TOKEN")
+	token := os.Getenv("BREX_API_TOKEN")
 	if token == "" {
-		t.Skip("MERCURY_API_TOKEN not set")
+		t.Skip("BREX_API_TOKEN not set")
 	}
 
 	tests := []struct {
@@ -59,7 +59,7 @@ func TestMercuryClient_Ping(t *testing.T) {
 			name:       "invalid token",
 			token:      "invalid-token",
 			wantErr:    true,
-			errMessage: "invalid api key",
+			errMessage: "brex api request failed with status code",
 		},
 	}
 
@@ -72,26 +72,27 @@ func TestMercuryClient_Ping(t *testing.T) {
 			require.NoError(t, err)
 			defer client.Close()
 
-			_, err = client.Ping(context.Background(), tt.token)
+			charts, err := client.Ping(context.Background(), tt.token)
 			if tt.wantErr {
 				require.Error(t, err)
 				require.Contains(t, err.Error(), tt.errMessage)
 			} else {
 				require.NoError(t, err)
+				require.NotEmpty(t, charts)
 			}
 		})
 	}
 }
 
-func TestMercuryClient_Close(t *testing.T) {
-	client := &mercuryClient{
+func TestBrexClient_Close(t *testing.T) {
+	client := &brexClient{
 		httpClient: &http.Client{},
 	}
 	err := client.Close()
 	require.NoError(t, err)
 }
 
-func TestMercuryClient_buildRequest(t *testing.T) {
+func TestBrexClient_buildRequest(t *testing.T) {
 	tests := []struct {
 		name       string
 		token      malak.AccessToken
@@ -104,7 +105,7 @@ func TestMercuryClient_buildRequest(t *testing.T) {
 			name:     "successful request build",
 			token:    "test-token",
 			spanName: "test.span",
-			endpoint: "/accounts",
+			endpoint: "/accounts/cash",
 			wantErr:  false,
 		},
 	}
@@ -116,9 +117,9 @@ func TestMercuryClient_buildRequest(t *testing.T) {
 
 			client, err := New(cfg)
 			require.NoError(t, err)
-			mercuryClient := client.(*mercuryClient)
+			brexClient := client.(*brexClient)
 
-			req, span, err := mercuryClient.buildRequest(context.Background(), tt.token, tt.spanName, tt.endpoint)
+			req, span, err := brexClient.buildRequest(context.Background(), tt.token, tt.spanName, tt.endpoint)
 			if tt.wantErr {
 				require.Error(t, err)
 				require.Contains(t, err.Error(), tt.errMessage)
@@ -136,14 +137,14 @@ func TestMercuryClient_buildRequest(t *testing.T) {
 	}
 }
 
-func TestMercuryClient_Data(t *testing.T) {
+func TestBrexClient_Data(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping integration test")
 	}
 
-	token := os.Getenv("MERCURY_API_TOKEN")
+	token := os.Getenv("BREX_API_TOKEN")
 	if token == "" {
-		t.Skip("MERCURY_API_TOKEN not set")
+		t.Skip("BREX_API_TOKEN not set")
 	}
 
 	tests := []struct {
@@ -174,7 +175,7 @@ func TestMercuryClient_Data(t *testing.T) {
 				LastFetchedAt:      time.Now(),
 			},
 			wantErr:    true,
-			errMessage: "invalid api key",
+			errMessage: "brex api request failed with status code",
 		},
 	}
 
@@ -203,10 +204,10 @@ func TestMercuryClient_Data(t *testing.T) {
 
 			for _, dp := range dataPoints {
 				switch dp.InternalName {
-				case malak.IntegrationChartInternalNameTypeMercuryAccount:
+				case malak.IntegrationChartInternalNameTypeBrexAccount:
 					hasAccountData = true
 					require.Equal(t, malak.IntegrationDataPointTypeCurrency, dp.Data.DataPointType)
-				case malak.IntegrationChartInternalNameTypeMercuryAccountTransaction:
+				case malak.IntegrationChartInternalNameTypeBrexAccountTransaction:
 					hasTransactionData = true
 					require.Equal(t, malak.IntegrationDataPointTypeOthers, dp.Data.DataPointType)
 				}

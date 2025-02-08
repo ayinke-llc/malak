@@ -3,7 +3,6 @@ package mercury
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -111,7 +110,7 @@ func (m *mercuryClient) Ping(
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		err = errors.New("invalid api key")
+		err = fmt.Errorf("mercury api request failed with status code: %d", res.StatusCode)
 		span.SetAttributes(attribute.Int("response_code", res.StatusCode))
 		return charts, err
 	}
@@ -169,7 +168,7 @@ func (m *mercuryClient) Data(ctx context.Context,
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		err = errors.New("invalid api key")
+		err = fmt.Errorf("mercury api request failed with status code: %d", res.StatusCode)
 		span.SetAttributes(attribute.Int("response_code", res.StatusCode))
 		return dataPoints, err
 	}
@@ -218,6 +217,13 @@ func (m *mercuryClient) Data(ctx context.Context,
 			}
 
 			defer res.Body.Close()
+
+			if res.StatusCode != http.StatusOK {
+				err = fmt.Errorf("mercury api request failed with status code: %d", res.StatusCode)
+				span.SetAttributes(attribute.Int("response_code", res.StatusCode))
+				span.SetStatus(codes.Error, "request failed")
+				return err
+			}
 
 			var txs AccountTransaction
 

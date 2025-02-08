@@ -3,7 +3,6 @@ package brex
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -124,6 +123,16 @@ func (m *brexClient) buildRequest(ctx context.Context,
 	return req.WithContext(ctx), span, err
 }
 
+func checkResponse(res *http.Response, span trace.Span) error {
+	if res.StatusCode != http.StatusOK {
+		err := fmt.Errorf("brex api request failed with status code: %d", res.StatusCode)
+		span.SetAttributes(attribute.Int("response_code", res.StatusCode))
+		span.SetStatus(codes.Error, "request failed with non-200 status code")
+		return err
+	}
+	return nil
+}
+
 func (m *brexClient) Ping(
 	ctx context.Context,
 	token malak.AccessToken) ([]malak.IntegrationChartValues, error) {
@@ -144,9 +153,7 @@ func (m *brexClient) Ping(
 
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		err = errors.New("invalid api key")
-		span.SetAttributes(attribute.Int("response_code", res.StatusCode))
+	if err := checkResponse(res, span); err != nil {
 		return charts, err
 	}
 
@@ -174,6 +181,10 @@ func (m *brexClient) Ping(
 	}
 
 	defer res.Body.Close()
+
+	if err := checkResponse(res, span); err != nil {
+		return charts, err
+	}
 
 	var accountsResponse AccountsResponse
 
@@ -233,6 +244,10 @@ func (m *brexClient) fetchTransactions(ctx context.Context,
 
 		defer res.Body.Close()
 
+		if err := checkResponse(res, span); err != nil {
+			return nil, err
+		}
+
 		var txs TransactionsResponse
 
 		if err := json.NewDecoder(res.Body).Decode(&txs); err != nil {
@@ -273,6 +288,10 @@ func (m *brexClient) Data(ctx context.Context,
 	}
 
 	defer res.Body.Close()
+
+	if err := checkResponse(res, span); err != nil {
+		return dataPoints, err
+	}
 
 	var accountsResponse AccountsResponse
 
