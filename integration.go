@@ -131,6 +131,7 @@ type IntegrationFetchDataOptions struct {
 	IntegrationID      uuid.UUID
 	WorkspaceID        uuid.UUID
 	ReferenceGenerator ReferenceGenerator
+	LastFetchedAt      time.Time
 }
 
 type IntegrationProviderClient interface {

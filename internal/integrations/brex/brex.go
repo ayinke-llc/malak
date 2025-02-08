@@ -61,6 +61,26 @@ type AccountsResponse struct {
 	Items      []Account `json:"items"`
 }
 
+type TransactionAmount struct {
+	Amount   float64 `json:"amount"`
+	Currency string  `json:"currency"`
+}
+
+type Transaction struct {
+	ID              string            `json:"id"`
+	Description     string            `json:"description"`
+	Amount          TransactionAmount `json:"amount"`
+	InitiatedAtDate string            `json:"initiated_at_date"`
+	PostedAtDate    string            `json:"posted_at_date"`
+	Type            string            `json:"type"`
+	TransferID      string            `json:"transfer_id"`
+}
+
+type TransactionsResponse struct {
+	NextCursor string        `json:"next_cursor"`
+	Items      []Transaction `json:"items"`
+}
+
 func ordinalSuffix(day int) string {
 	if day >= 11 && day <= 13 {
 		return "th"
@@ -241,7 +261,7 @@ func (m *brexClient) Data(ctx context.Context,
 
 	for _, account := range accountsResponse.Items {
 		dataPoints = append(dataPoints, malak.IntegrationDataValues{
-			InternalName: malak.IntegrationChartInternalNameTypebrexAccount,
+			InternalName: malak.IntegrationChartInternalNameTypeBrexAccount,
 			Data: malak.IntegrationDataPoint{
 				DataPointType:          malak.IntegrationDataPointTypeCurrency,
 				WorkspaceIntegrationID: opts.IntegrationID,
@@ -254,11 +274,10 @@ func (m *brexClient) Data(ctx context.Context,
 		})
 
 		g.Go(func() error {
-
-			dateFormatterd := time.Now().Format("2006-01-02")
+			startTimeFormatted := opts.LastFetchedAt.Format(time.RFC3339)
 
 			req, span, err := m.buildRequest(ctx, token, "account.transactions.fetch",
-				fmt.Sprintf("/accounts/%s/transactions?start=%s&end=%s&status=sent", account.ID, dateFormatterd, dateFormatterd))
+				fmt.Sprintf("/transactions/cash/%s?posted_at_start=%s", account.ID, startTimeFormatted))
 			if err != nil {
 				return err
 			}
@@ -276,7 +295,7 @@ func (m *brexClient) Data(ctx context.Context,
 
 			defer res.Body.Close()
 
-			var txs AccountTransaction
+			var txs TransactionsResponse
 
 			if err := json.NewDecoder(res.Body).Decode(&txs); err != nil {
 				span.RecordError(err)
@@ -285,14 +304,14 @@ func (m *brexClient) Data(ctx context.Context,
 			}
 
 			dataPoints = append(dataPoints, malak.IntegrationDataValues{
-				InternalName: malak.IntegrationChartInternalNameTypebrexAccountTransaction,
+				InternalName: malak.IntegrationChartInternalNameTypeBrexAccountTransaction,
 				Data: malak.IntegrationDataPoint{
 					DataPointType:          malak.IntegrationDataPointTypeOthers,
 					WorkspaceIntegrationID: opts.IntegrationID,
 					WorkspaceID:            opts.WorkspaceID,
 					Reference:              opts.ReferenceGenerator.Generate(malak.EntityTypeIntegrationDatapoint),
 					PointName:              getTodayFormatted(),
-					PointValue:             txs.Total,
+					PointValue:             int64(len(txs.Items)),
 					Metadata:               malak.IntegrationDataPointMetadata{},
 				},
 			})
