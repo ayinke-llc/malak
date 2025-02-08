@@ -2,9 +2,10 @@ package mercury
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
+	"math"
 	"net/http"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -35,6 +37,36 @@ type Account struct {
 	Type                   string    `json:"type"`
 	Nickname               string    `json:"nickname"`
 	LegalBusinessName      string    `json:"legalBusinessName"`
+}
+
+type AccountTransaction struct {
+	Total int64 `json:"total"`
+}
+
+func ordinalSuffix(day int) string {
+	if day >= 11 && day <= 13 {
+		return "th"
+	}
+	switch day % 10 {
+	case 1:
+		return "st"
+	case 2:
+		return "nd"
+	case 3:
+		return "rd"
+	default:
+		return "th"
+	}
+}
+
+func getTodayFormatted() string {
+
+	today := time.Now()
+	day := today.Day()
+	formattedDate := fmt.Sprintf("%s %d%s, %d",
+		today.Format("January"), day, ordinalSuffix(day), today.Year())
+
+	return formattedDate
 }
 
 var tracer = otel.Tracer("integrations.mercury")
@@ -81,36 +113,158 @@ func (m *mercuryClient) buildRequest(ctx context.Context,
 }
 
 func (m *mercuryClient) Ping(
-	ctx context.Context, token malak.AccessToken) error {
+	ctx context.Context,
+	token malak.AccessToken) ([]malak.IntegrationChartValues, error) {
+
+	charts := make([]malak.IntegrationChartValues, 0)
 
 	req, span, err := m.buildRequest(ctx, token, "connection.ping", "/accounts")
 	if err != nil {
-		return err
+		return charts, err
 	}
 
 	res, err := m.httpClient.Do(req)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, "could not send request")
-		return err
+		return charts, err
 	}
 
 	defer res.Body.Close()
 
-	// ignored on purpose
-	_, _ = io.Copy(io.Discard, res.Body)
-
 	if res.StatusCode != http.StatusOK {
 		err = errors.New("invalid api key")
 		span.SetAttributes(attribute.Int("response_code", res.StatusCode))
-		return err
+		return charts, err
 	}
 
 	span.SetStatus(codes.Ok, "connection to mercury was successful")
-	return nil
+
+	var accounts []Account
+
+	if err := json.NewDecoder(res.Body).Decode(&accounts); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not ")
+		return charts, err
+	}
+
+	for _, account := range accounts {
+		charts = append(charts, malak.IntegrationChartValues{
+			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
+			UserFacingName: account.Name,
+			ProviderID:     account.ID,
+		})
+	}
+
+	charts = append(charts, malak.IntegrationChartValues{
+		InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccountTransaction,
+		UserFacingName: "Mercury Transactions Count",
+	})
+
+	return charts, nil
 }
 
 func (m *mercuryClient) Close() error {
 	m.httpClient.CloseIdleConnections()
 	return nil
+}
+
+func (m *mercuryClient) Data(ctx context.Context,
+	token malak.AccessToken,
+	opts *malak.IntegrationFetchDataOptions) ([]malak.IntegrationDataValues, error) {
+
+	var g errgroup.Group
+	var dataPoints = make([]malak.IntegrationDataValues, 0, 2)
+
+	req, span, err := m.buildRequest(ctx, token, "accounts.fetch", "/accounts")
+	if err != nil {
+		return dataPoints, err
+	}
+
+	res, err := m.httpClient.Do(req)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not send request")
+		return dataPoints, err
+	}
+
+	defer res.Body.Close()
+
+	var accounts []Account
+
+	if err := json.NewDecoder(res.Body).Decode(&accounts); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not decode response")
+		return dataPoints, err
+	}
+
+	for _, account := range accounts {
+		dataPoints = append(dataPoints, malak.IntegrationDataValues{
+			InternalName: malak.IntegrationChartInternalNameTypeMercuryAccount,
+			Data: malak.IntegrationDataPoint{
+				DataPointType:          malak.IntegrationDataPointTypeCurrency,
+				WorkspaceIntegrationID: opts.IntegrationID,
+				WorkspaceID:            opts.WorkspaceID,
+				Reference:              opts.ReferenceGenerator.Generate(malak.EntityTypeIntegrationDatapoint),
+				PointName:              getTodayFormatted(),
+				PointValue:             int64(math.Floor(account.AvailableBalance * 100)),
+				Metadata:               malak.IntegrationDataPointMetadata{},
+			},
+		})
+
+		g.Go(func() error {
+
+			dateFormatterd := time.Now().Format("2006-01-02")
+
+			req, span, err := m.buildRequest(ctx, token, "account.transactions.fetch",
+				fmt.Sprintf("/accounts/%s/transactions?start=%s&end=%s&status=sent", account.ID, dateFormatterd, dateFormatterd))
+			if err != nil {
+				return err
+			}
+
+			span.SetAttributes(
+				attribute.String("workspace_id", opts.WorkspaceID.String()),
+				attribute.String("account_id", account.ID))
+
+			res, err := m.httpClient.Do(req)
+			if err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, "could not send request")
+				return err
+			}
+
+			defer res.Body.Close()
+
+			var txs AccountTransaction
+
+			if err := json.NewDecoder(res.Body).Decode(&txs); err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, "could not decode tx response")
+				return err
+			}
+
+			dataPoints = append(dataPoints, malak.IntegrationDataValues{
+				InternalName: malak.IntegrationChartInternalNameTypeMercuryAccountTransaction,
+				Data: malak.IntegrationDataPoint{
+					DataPointType:          malak.IntegrationDataPointTypeOthers,
+					WorkspaceIntegrationID: opts.IntegrationID,
+					WorkspaceID:            opts.WorkspaceID,
+					Reference:              opts.ReferenceGenerator.Generate(malak.EntityTypeIntegrationDatapoint),
+					PointName:              getTodayFormatted(),
+					PointValue:             txs.Total,
+					Metadata:               malak.IntegrationDataPointMetadata{},
+				},
+			})
+
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not fetch account and transactions")
+		return dataPoints, err
+	}
+
+	return dataPoints, nil
 }

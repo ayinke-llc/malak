@@ -19,7 +19,7 @@ type IntegrationType string
 // ENUM(stripe,paystack,flutterwave,mercury,brex)
 type IntegrationProvider string
 
-// ENUM(mercury_account)
+// ENUM(mercury_account,mercury_account_transaction)
 type IntegrationChartInternalNameType string
 
 type IntegrationMetadata struct {
@@ -93,6 +93,10 @@ type IntegrationDataPoint struct {
 	bun.BaseModel `json:"-"`
 }
 
+type IntegrationChartMetadata struct {
+	ProviderID string
+}
+
 type IntegrationChart struct {
 	ID                     uuid.UUID                        `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 	WorkspaceIntegrationID uuid.UUID                        `json:"workspace_integration_id,omitempty"`
@@ -100,6 +104,7 @@ type IntegrationChart struct {
 	Reference              Reference                        `json:"reference,omitempty"`
 	UserFacingName         string                           `json:"user_facing_name,omitempty"`
 	InternalName           IntegrationChartInternalNameType `json:"internal_name,omitempty"`
+	Metadata               IntegrationChartMetadata         `json:"metadata,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
@@ -108,11 +113,35 @@ type IntegrationChart struct {
 	bun.BaseModel `json:"-"`
 }
 
+// keeping it simple here with a new struct
+type IntegrationDataValues struct {
+	// here so it is easy to find the chart this data point belongs to
+	// without too much voodoo
+	InternalName IntegrationChartInternalNameType
+	Data         IntegrationDataPoint
+}
+
+type IntegrationChartValues struct {
+	InternalName   IntegrationChartInternalNameType
+	UserFacingName string
+	ProviderID     string
+}
+
+type IntegrationFetchDataOptions struct {
+	IntegrationID      uuid.UUID
+	WorkspaceID        uuid.UUID
+	ReferenceGenerator ReferenceGenerator
+}
+
 type IntegrationProviderClient interface {
 	Name() IntegrationProvider
+
 	// Ping tests the connection to make sure we have an
 	// active connection
-	Ping(context.Context, AccessToken) error
+	Ping(context.Context, AccessToken) ([]IntegrationChartValues, error)
+
+	Data(context.Context, AccessToken, *IntegrationFetchDataOptions) ([]IntegrationDataValues, error)
+
 	io.Closer
 }
 
