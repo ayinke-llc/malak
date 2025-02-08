@@ -19,7 +19,7 @@ type IntegrationType string
 // ENUM(stripe,paystack,flutterwave,mercury,brex)
 type IntegrationProvider string
 
-// ENUM(mercury_account,mercury_account_transaction)
+// ENUM(mercury_account,mercury_account_transaction,brex_account,brex_account_transaction)
 type IntegrationChartInternalNameType string
 
 type IntegrationMetadata struct {
