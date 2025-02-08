@@ -200,7 +200,7 @@ func (m *mercuryClient) Data(ctx context.Context,
 			dateFormatterd := time.Now().Format("2006-01-02")
 
 			req, span, err := m.buildRequest(ctx, token, "account.transactions.fetch",
-				fmt.Sprintf("/accounts/%s/transactions?start=%s&end=%s&status=sent", account.ID, dateFormatterd, dateFormatterd))
+				fmt.Sprintf("/account/%s/transactions?start=%s&end=%s&status=sent", account.ID, dateFormatterd, dateFormatterd))
 			if err != nil {
 				return err
 			}
