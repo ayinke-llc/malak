@@ -39,34 +39,12 @@ type Account struct {
 	LegalBusinessName      string    `json:"legalBusinessName"`
 }
 
+type AccountsResponse struct {
+	Accounts []Account `json:"accounts"`
+}
+
 type AccountTransaction struct {
 	Total int64 `json:"total"`
-}
-
-func ordinalSuffix(day int) string {
-	if day >= 11 && day <= 13 {
-		return "th"
-	}
-	switch day % 10 {
-	case 1:
-		return "st"
-	case 2:
-		return "nd"
-	case 3:
-		return "rd"
-	default:
-		return "th"
-	}
-}
-
-func getTodayFormatted() string {
-
-	today := time.Now()
-	day := today.Day()
-	formattedDate := fmt.Sprintf("%s %d%s, %d",
-		today.Format("January"), day, ordinalSuffix(day), today.Year())
-
-	return formattedDate
 }
 
 var tracer = otel.Tracer("integrations.mercury")
@@ -140,15 +118,15 @@ func (m *mercuryClient) Ping(
 
 	span.SetStatus(codes.Ok, "connection to mercury was successful")
 
-	var accounts []Account
+	var response AccountsResponse
 
-	if err := json.NewDecoder(res.Body).Decode(&accounts); err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
 		span.RecordError(err)
-		span.SetStatus(codes.Error, "could not ")
+		span.SetStatus(codes.Error, "could not decode response")
 		return charts, err
 	}
 
-	for _, account := range accounts {
+	for _, account := range response.Accounts {
 		charts = append(charts, malak.IntegrationChartValues{
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 			UserFacingName: account.Name,
@@ -190,15 +168,21 @@ func (m *mercuryClient) Data(ctx context.Context,
 
 	defer res.Body.Close()
 
-	var accounts []Account
+	if res.StatusCode != http.StatusOK {
+		err = errors.New("invalid api key")
+		span.SetAttributes(attribute.Int("response_code", res.StatusCode))
+		return dataPoints, err
+	}
 
-	if err := json.NewDecoder(res.Body).Decode(&accounts); err != nil {
+	var response AccountsResponse
+
+	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, "could not decode response")
 		return dataPoints, err
 	}
 
-	for _, account := range accounts {
+	for _, account := range response.Accounts {
 		dataPoints = append(dataPoints, malak.IntegrationDataValues{
 			InternalName: malak.IntegrationChartInternalNameTypeMercuryAccount,
 			Data: malak.IntegrationDataPoint{
@@ -206,7 +190,7 @@ func (m *mercuryClient) Data(ctx context.Context,
 				WorkspaceIntegrationID: opts.IntegrationID,
 				WorkspaceID:            opts.WorkspaceID,
 				Reference:              opts.ReferenceGenerator.Generate(malak.EntityTypeIntegrationDatapoint),
-				PointName:              getTodayFormatted(),
+				PointName:              malak.GetTodayFormatted(),
 				PointValue:             int64(math.Floor(account.AvailableBalance * 100)),
 				Metadata:               malak.IntegrationDataPointMetadata{},
 			},
@@ -250,7 +234,7 @@ func (m *mercuryClient) Data(ctx context.Context,
 					WorkspaceIntegrationID: opts.IntegrationID,
 					WorkspaceID:            opts.WorkspaceID,
 					Reference:              opts.ReferenceGenerator.Generate(malak.EntityTypeIntegrationDatapoint),
-					PointName:              getTodayFormatted(),
+					PointName:              malak.GetTodayFormatted(),
 					PointValue:             txs.Total,
 					Metadata:               malak.IntegrationDataPointMetadata{},
 				},

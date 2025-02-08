@@ -137,7 +137,8 @@ func (wo *workspaceHandler) pingIntegration(
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	if err := integrationImpl.Ping(ctx, req.APIKey); err != nil {
+	_, err = integrationImpl.Ping(ctx, req.APIKey)
+	if err != nil {
 		logger.Error("could not ping Integration",
 			zap.Error(err))
 
@@ -216,7 +217,8 @@ func (wo *workspaceHandler) enableIntegration(
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	if err := integrationImpl.Ping(ctx, req.APIKey); err != nil {
+	_, err = integrationImpl.Ping(ctx, req.APIKey)
+	if err != nil {
 		logger.Error("could not ping Integration",
 			zap.Error(err))
 

@@ -81,32 +81,6 @@ type TransactionsResponse struct {
 	Items      []Transaction `json:"items"`
 }
 
-func ordinalSuffix(day int) string {
-	if day >= 11 && day <= 13 {
-		return "th"
-	}
-	switch day % 10 {
-	case 1:
-		return "st"
-	case 2:
-		return "nd"
-	case 3:
-		return "rd"
-	default:
-		return "th"
-	}
-}
-
-func getTodayFormatted() string {
-
-	today := time.Now()
-	day := today.Day()
-	formattedDate := fmt.Sprintf("%s %d%s, %d",
-		today.Format("January"), day, ordinalSuffix(day), today.Year())
-
-	return formattedDate
-}
-
 var tracer = otel.Tracer("integrations.brex")
 
 type brexClient struct {
@@ -230,6 +204,55 @@ func (m *brexClient) Close() error {
 	return nil
 }
 
+func (m *brexClient) fetchTransactions(ctx context.Context,
+	token malak.AccessToken,
+	accountID string,
+	startTime string,
+	cursor string) ([]Transaction, error) {
+
+	var allTransactions []Transaction
+	currentCursor := cursor
+
+	for {
+		endpoint := fmt.Sprintf("/transactions/cash/%s?posted_at_start=%s", accountID, startTime)
+		if currentCursor != "" {
+			endpoint = fmt.Sprintf("%s&cursor=%s", endpoint, currentCursor)
+		}
+
+		req, span, err := m.buildRequest(ctx, token, "account.transactions.fetch", endpoint)
+		if err != nil {
+			return nil, err
+		}
+
+		res, err := m.httpClient.Do(req)
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "could not send request")
+			return nil, err
+		}
+
+		defer res.Body.Close()
+
+		var txs TransactionsResponse
+
+		if err := json.NewDecoder(res.Body).Decode(&txs); err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "could not decode tx response")
+			return nil, err
+		}
+
+		allTransactions = append(allTransactions, txs.Items...)
+
+		if txs.NextCursor == "" {
+			break
+		}
+
+		currentCursor = txs.NextCursor
+	}
+
+	return allTransactions, nil
+}
+
 func (m *brexClient) Data(ctx context.Context,
 	token malak.AccessToken,
 	opts *malak.IntegrationFetchDataOptions) ([]malak.IntegrationDataValues, error) {
@@ -267,7 +290,7 @@ func (m *brexClient) Data(ctx context.Context,
 				WorkspaceIntegrationID: opts.IntegrationID,
 				WorkspaceID:            opts.WorkspaceID,
 				Reference:              opts.ReferenceGenerator.Generate(malak.EntityTypeIntegrationDatapoint),
-				PointName:              getTodayFormatted(),
+				PointName:              malak.GetTodayFormatted(),
 				PointValue:             int64(math.Floor(account.AvailableBalance.Amount * 100)),
 				Metadata:               malak.IntegrationDataPointMetadata{},
 			},
@@ -276,30 +299,8 @@ func (m *brexClient) Data(ctx context.Context,
 		g.Go(func() error {
 			startTimeFormatted := opts.LastFetchedAt.Format(time.RFC3339)
 
-			req, span, err := m.buildRequest(ctx, token, "account.transactions.fetch",
-				fmt.Sprintf("/transactions/cash/%s?posted_at_start=%s", account.ID, startTimeFormatted))
+			transactions, err := m.fetchTransactions(ctx, token, account.ID, startTimeFormatted, "")
 			if err != nil {
-				return err
-			}
-
-			span.SetAttributes(
-				attribute.String("workspace_id", opts.WorkspaceID.String()),
-				attribute.String("account_id", account.ID))
-
-			res, err := m.httpClient.Do(req)
-			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, "could not send request")
-				return err
-			}
-
-			defer res.Body.Close()
-
-			var txs TransactionsResponse
-
-			if err := json.NewDecoder(res.Body).Decode(&txs); err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, "could not decode tx response")
 				return err
 			}
 
@@ -310,8 +311,8 @@ func (m *brexClient) Data(ctx context.Context,
 					WorkspaceIntegrationID: opts.IntegrationID,
 					WorkspaceID:            opts.WorkspaceID,
 					Reference:              opts.ReferenceGenerator.Generate(malak.EntityTypeIntegrationDatapoint),
-					PointName:              getTodayFormatted(),
-					PointValue:             int64(len(txs.Items)),
+					PointName:              malak.GetTodayFormatted(),
+					PointValue:             int64(len(transactions)),
 					Metadata:               malak.IntegrationDataPointMetadata{},
 				},
 			})

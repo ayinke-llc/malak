@@ -130,7 +130,7 @@ type IntegrationChartValues struct {
 type IntegrationFetchDataOptions struct {
 	IntegrationID      uuid.UUID
 	WorkspaceID        uuid.UUID
-	ReferenceGenerator ReferenceGenerator
+	ReferenceGenerator ReferenceGeneratorOperation
 	LastFetchedAt      time.Time
 }
 
