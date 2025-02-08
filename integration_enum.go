@@ -14,6 +14,12 @@ import (
 const (
 	// IntegrationChartInternalNameTypeMercuryAccount is a IntegrationChartInternalNameType of type mercury_account.
 	IntegrationChartInternalNameTypeMercuryAccount IntegrationChartInternalNameType = "mercury_account"
+	// IntegrationChartInternalNameTypeMercuryAccountTransaction is a IntegrationChartInternalNameType of type mercury_account_transaction.
+	IntegrationChartInternalNameTypeMercuryAccountTransaction IntegrationChartInternalNameType = "mercury_account_transaction"
+	// IntegrationChartInternalNameTypeBrexAccount is a IntegrationChartInternalNameType of type brex_account.
+	IntegrationChartInternalNameTypeBrexAccount IntegrationChartInternalNameType = "brex_account"
+	// IntegrationChartInternalNameTypeBrexAccountTransaction is a IntegrationChartInternalNameType of type brex_account_transaction.
+	IntegrationChartInternalNameTypeBrexAccountTransaction IntegrationChartInternalNameType = "brex_account_transaction"
 )
 
 var ErrInvalidIntegrationChartInternalNameType = errors.New("not a valid IntegrationChartInternalNameType")
@@ -31,7 +37,10 @@ func (x IntegrationChartInternalNameType) IsValid() bool {
 }
 
 var _IntegrationChartInternalNameTypeValue = map[string]IntegrationChartInternalNameType{
-	"mercury_account": IntegrationChartInternalNameTypeMercuryAccount,
+	"mercury_account":             IntegrationChartInternalNameTypeMercuryAccount,
+	"mercury_account_transaction": IntegrationChartInternalNameTypeMercuryAccountTransaction,
+	"brex_account":                IntegrationChartInternalNameTypeBrexAccount,
+	"brex_account_transaction":    IntegrationChartInternalNameTypeBrexAccountTransaction,
 }
 
 // ParseIntegrationChartInternalNameType attempts to convert a string to a IntegrationChartInternalNameType.

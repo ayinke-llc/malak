@@ -55,6 +55,21 @@ func (mr *MockIntegrationProviderClientMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockIntegrationProviderClient)(nil).Close))
 }
 
+// Data mocks base method.
+func (m *MockIntegrationProviderClient) Data(arg0 context.Context, arg1 malak.AccessToken, arg2 *malak.IntegrationFetchDataOptions) ([]malak.IntegrationDataValues, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Data", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]malak.IntegrationDataValues)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Data indicates an expected call of Data.
+func (mr *MockIntegrationProviderClientMockRecorder) Data(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Data", reflect.TypeOf((*MockIntegrationProviderClient)(nil).Data), arg0, arg1, arg2)
+}
+
 // Name mocks base method.
 func (m *MockIntegrationProviderClient) Name() malak.IntegrationProvider {
 	m.ctrl.T.Helper()
@@ -70,11 +85,12 @@ func (mr *MockIntegrationProviderClientMockRecorder) Name() *gomock.Call {
 }
 
 // Ping mocks base method.
-func (m *MockIntegrationProviderClient) Ping(arg0 context.Context, arg1 malak.AccessToken) error {
+func (m *MockIntegrationProviderClient) Ping(arg0 context.Context, arg1 malak.AccessToken) ([]malak.IntegrationChartValues, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Ping", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].([]malak.IntegrationChartValues)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Ping indicates an expected call of Ping.
