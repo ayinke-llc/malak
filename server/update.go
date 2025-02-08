@@ -166,7 +166,7 @@ func (u *updatesHandler) list(
 
 	workspace := getWorkspaceFromContext(r.Context())
 
-	filterStatus := malak.ListUpdateFilterStatus(r.URL.Query().Get("view"))
+	filterStatus := malak.ListUpdateFilterStatus(r.URL.Query().Get("status"))
 
 	if !filterStatus.IsValid() {
 		filterStatus = malak.ListUpdateFilterStatusAll

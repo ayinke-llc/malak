@@ -14,26 +14,30 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { RiArrowDownSLine } from "@remixicon/react";
+import { RiArrowDownSLine, RiFilter3Line } from "@remixicon/react";
 
 export type UpdateListTableProps = {
   data: MalakUpdate[];
 };
 
+type FilterStatus = "all" | "draft" | "sent";
+
 const ListUpdatesTable = () => {
   const [pageIndex, setPageIndex] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
 
   const {
     data,
     error,
     isLoading,
   } = useQuery({
-    queryKey: [LIST_UPDATES, pageIndex, pageSize],
+    queryKey: [LIST_UPDATES, pageIndex, pageSize, filterStatus],
     queryFn: () => {
       return client.workspaces.updatesList({
         page: pageIndex,
         per_page: pageSize,
+        status: filterStatus === "all" ? undefined : filterStatus,
       });
     },
     retry: false,
@@ -50,6 +54,35 @@ const ListUpdatesTable = () => {
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 bg-muted p-1 rounded-lg">
+          <Button
+            variant={filterStatus === "all" ? "default" : "ghost"}
+            size="sm"
+            className="h-8"
+            onClick={() => setFilterStatus("all")}
+          >
+            All Updates
+          </Button>
+          <Button
+            variant={filterStatus === "draft" ? "default" : "ghost"}
+            size="sm"
+            className="h-8"
+            onClick={() => setFilterStatus("draft")}
+          >
+            Drafts
+          </Button>
+          <Button
+            variant={filterStatus === "sent" ? "default" : "ghost"}
+            size="sm"
+            className="h-8"
+            onClick={() => setFilterStatus("sent")}
+          >
+            Sent
+          </Button>
+        </div>
+      </div>
+
       <div className="rounded-lg border bg-background">
         {isLoading ? (
           <div className="p-6 space-y-6">
@@ -74,7 +107,7 @@ const ListUpdatesTable = () => {
       </div>
 
       <div className="flex items-center justify-between py-2">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
