@@ -452,6 +452,6 @@ func (wo *workspaceHandler) disableIntegration(
 		return newAPIStatus(http.StatusInternalServerError, "could not update integration"), StatusFailed
 	}
 
-	return newAPIStatus(http.StatusCreated, "integration successfully disabled"),
+	return newAPIStatus(http.StatusOK, "integration successfully disabled"),
 		StatusSuccess
 }

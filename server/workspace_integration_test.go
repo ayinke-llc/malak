@@ -880,3 +880,169 @@ func TestWorkspaceHandler_UpdateAPIKey(t *testing.T) {
 		})
 	}
 }
+
+func TestWorkspaceHandler_DisableIntegration(t *testing.T) {
+	for _, v := range generateWorkspaceDisableIntegrationTestTable() {
+
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			integrationRepo := malak_mocks.NewMockIntegrationRepository(controller)
+			integrationManager := malak_mocks.NewMockIntegrationProviderClient(controller)
+			queueRepo := malak_mocks.NewMockQueueHandler(controller)
+			secretsClient := malak_mocks.NewMockSecretClient(controller)
+
+			v.mockFn(integrationRepo, integrationManager, secretsClient)
+
+			integrationManager.EXPECT().
+				Name().
+				AnyTimes().
+				Return(malak.IntegrationProviderMercury)
+
+			manager := integrations.NewManager()
+			manager.Add(malak.IntegrationProviderMercury, integrationManager)
+
+			a := &workspaceHandler{
+				cfg:                getConfig(),
+				queueClient:        queueRepo,
+				integrationRepo:    integrationRepo,
+				integrationManager: manager,
+				secretsClient:      secretsClient,
+				referenceGenerationFunc: func(e malak.EntityType) string {
+					return "workspace_tt7-YieIgz"
+				},
+			}
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/", nil)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			ctx := chi.NewRouteContext()
+			ctx.URLParams.Add("reference", "test-ref")
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
+
+			WrapMalakHTTPHandler(getLogger(t),
+				a.disableIntegration, getConfig(), "workspaces.disable.integration").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateWorkspaceDisableIntegrationTestTable() []struct {
+	name               string
+	mockFn             func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient)
+	expectedStatusCode int
+} {
+	return []struct {
+		name               string
+		mockFn             func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient)
+		expectedStatusCode int
+	}{
+		{
+			name: "integration not found",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
+				integrationRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, malak.ErrWorkspaceIntegrationNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "integration db error",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
+				integrationRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("db error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "root integration not enabled",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
+				integrationRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.WorkspaceIntegration{
+						Integration: &malak.Integration{
+							IntegrationName: "mercury",
+							IsEnabled:       false,
+							IntegrationType: malak.IntegrationTypeApiKey,
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "integration already disabled",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
+				integrationRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.WorkspaceIntegration{
+						IsEnabled: false,
+						Integration: &malak.Integration{
+							IntegrationName: "mercury",
+							IsEnabled:       true,
+							IntegrationType: malak.IntegrationTypeApiKey,
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "disable error",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
+				integrationRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.WorkspaceIntegration{
+						IsEnabled: true,
+						Integration: &malak.Integration{
+							IntegrationName: "mercury",
+							IsEnabled:       true,
+							IntegrationType: malak.IntegrationTypeApiKey,
+						},
+					}, nil)
+
+				integrationRepo.EXPECT().
+					Disable(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(errors.New("disable error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "successful disable",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
+				integrationRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.WorkspaceIntegration{
+						IsEnabled: true,
+						Integration: &malak.Integration{
+							IntegrationName: "mercury",
+							IsEnabled:       true,
+							IntegrationType: malak.IntegrationTypeApiKey,
+						},
+					}, nil)
+
+				integrationRepo.EXPECT().
+					Disable(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
