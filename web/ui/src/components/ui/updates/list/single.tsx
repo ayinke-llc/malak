@@ -42,7 +42,8 @@ import { toast } from "sonner";
 import UpdateBadge from "../../custom/update/badge";
 import Link from "next/link";
 import { Separator } from "../../separator";
-import { format } from "date-fns";
+import { formatInTimeZone } from 'date-fns-tz';
+import useWorkspacesStore from "@/store/workspace";
 
 const SingleUpdate = (update: MalakUpdate) => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -56,6 +57,8 @@ const SingleUpdate = (update: MalakUpdate) => {
   const router = useRouter();
 
   const posthog = usePostHog();
+
+  const current = useWorkspacesStore((state) => state.current);
 
   const duplicateMutation = useMutation({
     mutationKey: [DUPLICATE_UPDATE],
@@ -142,7 +145,11 @@ const SingleUpdate = (update: MalakUpdate) => {
             <UpdateBadge status={update.status as string} />
           </div>
           <p className="text-sm text-muted-foreground">
-            {format(update?.created_at as string, "EEEE, MMMM do, yyyy")}
+            {formatInTimeZone(
+              new Date(update?.created_at as string),
+              current?.timezone || 'UTC',
+              "EEEE, MMMM do, yyyy"
+            )}
           </p>
         </div>
         <div className="flex space-x-2">

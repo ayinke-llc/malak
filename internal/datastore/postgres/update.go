@@ -115,6 +115,10 @@ func (u *updatesRepo) Stat(ctx context.Context, update *malak.Update) (
 		Where("update_id = ?", update.ID).
 		Scan(ctx)
 
+	if errors.Is(err, sql.ErrNoRows) {
+		return stat, nil
+	}
+
 	return stat, err
 }
 
