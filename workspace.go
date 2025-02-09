@@ -21,7 +21,7 @@ type Workspace struct {
 
 	WorkspaceName string `json:"workspace_name,omitempty"`
 	Reference     string `json:"reference,omitempty"`
-	Timezone      string `json:"-"`
+	Timezone      string `json:"timezone"`
 	Website       string `json:"website,omitempty"`
 	LogoURL       string `json:"logo_url,omitempty"`
 

@@ -24,6 +24,7 @@ import (
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/internal/integrations"
+	"github.com/ayinke-llc/malak/internal/integrations/brex"
 	"github.com/ayinke-llc/malak/internal/integrations/mercury"
 	"github.com/ayinke-llc/malak/internal/pkg/billing/stripe"
 	"github.com/ayinke-llc/malak/internal/pkg/cache/rediscache"
@@ -328,6 +329,14 @@ func buildIntegrationManager(integrationRepo malak.IntegrationRepository, cfg co
 		switch provider {
 		case malak.IntegrationProviderMercury:
 			client, err := mercury.New(cfg)
+			if err != nil {
+				return nil, err
+			}
+
+			i.Add(provider, client)
+
+		case malak.IntegrationProviderBrex:
+			client, err := brex.New(cfg)
 			if err != nil {
 				return nil, err
 			}

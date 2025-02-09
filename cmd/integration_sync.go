@@ -79,16 +79,11 @@ func syncDataPointForIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Co
 						continue
 					}
 
-					lastFetchedAt := time.Now()
-					if integration.Metadata.LastFetchedAt != nil {
-						lastFetchedAt = hermes.DeRef(integration.Metadata.LastFetchedAt)
-					}
-
 					dataPoints, err := client.Data(cmd.Context(), integration.Metadata.AccessToken, &malak.IntegrationFetchDataOptions{
 						IntegrationID:      integration.ID,
 						WorkspaceID:        workspace.ID,
 						ReferenceGenerator: malak.NewReferenceGenerator(),
-						LastFetchedAt:      lastFetchedAt,
+						LastFetchedAt:      integration.Metadata.LastFetchedAt,
 					})
 					if err != nil {
 						logger.Error("could not fetch data points from integration",
@@ -103,7 +98,7 @@ func syncDataPointForIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Co
 						zap.String("integration_id", integration.ID.String()),
 						zap.Int("data_points_count", len(dataPoints)))
 
-					integration.Metadata.LastFetchedAt = hermes.Ref(time.Now())
+					integration.Metadata.LastFetchedAt = time.Now()
 
 					if err := integrationRepo.Update(context.Background(), &integration); err != nil {
 						logger.Error("could not fetch data points from integration",

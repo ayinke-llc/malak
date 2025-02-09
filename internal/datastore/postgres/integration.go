@@ -152,3 +152,76 @@ func (i *integrationRepo) Update(ctx context.Context,
 		Exec(ctx)
 	return err
 }
+
+func (i *integrationRepo) CreateCharts(ctx context.Context,
+	workspaceIntegration *malak.WorkspaceIntegration,
+	chartValues []malak.IntegrationChartValues) error {
+
+	generator := malak.NewReferenceGenerator()
+
+	return i.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		for _, value := range chartValues {
+
+			chart := &malak.IntegrationChart{
+				WorkspaceIntegrationID: workspaceIntegration.ID,
+				WorkspaceID:            workspaceIntegration.WorkspaceID,
+				Reference:              generator.Generate(malak.EntityTypeIntegrationChart),
+				UserFacingName:         value.UserFacingName,
+				InternalName:           value.InternalName,
+				Metadata: malak.IntegrationChartMetadata{
+					ProviderID: value.ProviderID,
+				},
+			}
+
+			_, err := tx.NewInsert().Model(chart).
+				On("CONFLICT (internal_name,workspace_id,workspace_integration_id) DO NOTHING").
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+
+		// update the integration too
+		_, err := tx.NewUpdate().
+			Where("id = ?", workspaceIntegration.ID).
+			Model(workspaceIntegration).
+			Exec(ctx)
+		return err
+	})
+}
+
+func (i *integrationRepo) AddDataPoint(ctx context.Context,
+	workspaceIntegration *malak.WorkspaceIntegration,
+	dataPoints []malak.IntegrationDataValues) error {
+
+	// generator := malak.NewReferenceGenerator()
+	//
+	// return i.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+	//
+	// 	for _, value := range dataPoints {
+	//
+	// 		var chart malak.IntegrationChart
+	//
+	// 		err := tx.NewSelect().
+	// 			Where("workspace_integration_id = ?", workspaceIntegration.ID).
+	// 			Where("workspace_id = ?", workspaceIntegration.WorkspaceID).
+	// 			Where("internal_name = ?", value.InternalName).
+	// 			Scan(ctx, &chart)
+	// 		if errors.Is(err, sql.ErrNoRows) {
+	// 			chart = malak.IntegrationChart{
+	// 				WorkspaceIntegrationID: workspaceIntegration.ID,
+	// 				WorkspaceID:            workspaceIntegration.WorkspaceID,
+	// 				Reference:              generator.Generate(malak.EntityTypeIntegrationChart),
+	// 				UserFacingName:         value.InternalName.String(),
+	// 			}
+	// 			tx.NewInsert().
+	// 				Exec(ctx, &chart)
+	// 		}
+	//
+	// 	}
+	//
+	// 	return nil
+	// })
+	return nil
+}

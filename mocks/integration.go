@@ -137,6 +137,20 @@ func (mr *MockIntegrationRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockIntegrationRepository)(nil).Create), arg0, arg1)
 }
 
+// CreateCharts mocks base method.
+func (m *MockIntegrationRepository) CreateCharts(arg0 context.Context, arg1 *malak.WorkspaceIntegration, arg2 malak.IntegrationChartValues) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateCharts", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateCharts indicates an expected call of CreateCharts.
+func (mr *MockIntegrationRepositoryMockRecorder) CreateCharts(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCharts", reflect.TypeOf((*MockIntegrationRepository)(nil).CreateCharts), arg0, arg1, arg2)
+}
+
 // Get mocks base method.
 func (m *MockIntegrationRepository) Get(arg0 context.Context, arg1 malak.FindWorkspaceIntegrationOptions) (*malak.WorkspaceIntegration, error) {
 	m.ctrl.T.Helper()

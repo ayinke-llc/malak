@@ -46,7 +46,7 @@ type Integration struct {
 
 type WorkspaceIntegrationMetadata struct {
 	AccessToken   AccessToken `json:"access_token,omitempty"`
-	LastFetchedAt *time.Time  `json:"last_fetched_at,omitempty"`
+	LastFetchedAt time.Time   `json:"last_fetched_at,omitempty"`
 }
 
 type WorkspaceIntegration struct {
@@ -164,4 +164,8 @@ type IntegrationRepository interface {
 	Get(context.Context, FindWorkspaceIntegrationOptions) (*WorkspaceIntegration, error)
 	ToggleEnabled(context.Context, *WorkspaceIntegration) error
 	Update(context.Context, *WorkspaceIntegration) error
+
+	CreateCharts(context.Context, *WorkspaceIntegration, []IntegrationChartValues) error
+
+	// AddDataPoint(context.Context, *WorkspaceIntegration, []IntegrationDataValues) error
 }

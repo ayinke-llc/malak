@@ -118,6 +118,7 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
       toast.success(data.message);
       setApiKeyDialogOpen(false);
       resetDialogState();
+      setLocalEnabled(true);
       queryClient.invalidateQueries({ queryKey: [LIST_INTEGRATIONS] });
     },
     onError(err: AxiosError<ServerAPIStatus>) {
