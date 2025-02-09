@@ -364,6 +364,7 @@ export interface MalakWorkspaceIntegration {
 
 export interface MalakWorkspaceIntegrationMetadata {
   access_token?: string;
+  last_fetched_at?: string;
 }
 
 export type MalakWorkspaceMetadata = object;

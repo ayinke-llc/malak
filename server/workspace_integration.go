@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
@@ -229,7 +230,7 @@ func (wo *workspaceHandler) enableIntegration(
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	_, err = integrationImpl.Ping(ctx, req.APIKey)
+	chartValues, err := integrationImpl.Ping(ctx, req.APIKey)
 	if err != nil {
 		logger.Error("could not ping Integration",
 			zap.Error(err))
@@ -252,9 +253,10 @@ func (wo *workspaceHandler) enableIntegration(
 
 	integration.IsEnabled = true
 	integration.Metadata.AccessToken = malak.AccessToken(value)
+	integration.Metadata.LastFetchedAt = time.Now()
 	integration.IsActive = true
 
-	if err := wo.integrationRepo.Update(ctx, integration); err != nil {
+	if err := wo.integrationRepo.CreateCharts(ctx, integration, chartValues); err != nil {
 		logger.Error("could not update integration",
 			zap.Error(err))
 

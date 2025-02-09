@@ -200,12 +200,12 @@ func (m *brexClient) Ping(
 			UserFacingName: account.Name,
 			ProviderID:     account.ID,
 		})
-	}
 
-	charts = append(charts, malak.IntegrationChartValues{
-		InternalName:   malak.IntegrationChartInternalNameTypeBrexAccount,
-		UserFacingName: "Brex Transactions Count",
-	})
+		charts = append(charts, malak.IntegrationChartValues{
+			InternalName:   malak.IntegrationChartInternalNameTypeBrexAccount,
+			UserFacingName: "Transactions count for " + account.Name,
+		})
+	}
 
 	return charts, nil
 }
@@ -304,6 +304,7 @@ func (m *brexClient) Data(ctx context.Context,
 	for _, account := range accountsResponse.Items {
 		dataPoints = append(dataPoints, malak.IntegrationDataValues{
 			InternalName: malak.IntegrationChartInternalNameTypeBrexAccount,
+			ProviderID:   account.ID,
 			Data: malak.IntegrationDataPoint{
 				DataPointType:          malak.IntegrationDataPointTypeCurrency,
 				WorkspaceIntegrationID: opts.IntegrationID,

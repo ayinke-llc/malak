@@ -45,7 +45,8 @@ type Integration struct {
 }
 
 type WorkspaceIntegrationMetadata struct {
-	AccessToken AccessToken `json:"access_token,omitempty"`
+	AccessToken   AccessToken `json:"access_token,omitempty"`
+	LastFetchedAt time.Time   `json:"last_fetched_at,omitempty"`
 }
 
 type WorkspaceIntegration struct {
@@ -80,6 +81,7 @@ type IntegrationDataPoint struct {
 	ID                     uuid.UUID                    `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 	WorkspaceIntegrationID uuid.UUID                    `json:"workspace_integration_id,omitempty"`
 	WorkspaceID            uuid.UUID                    `json:"workspace_id,omitempty"`
+	IntegrationChartID     uuid.UUID                    `json:"integration_chart_id,omitempty"`
 	Reference              Reference                    `json:"reference,omitempty"`
 	PointName              string                       `json:"point_name,omitempty"`
 	PointValue             int64                        `json:"point_value,omitempty"`
@@ -94,7 +96,7 @@ type IntegrationDataPoint struct {
 }
 
 type IntegrationChartMetadata struct {
-	ProviderID string
+	ProviderID string `json:"provider_id,omitempty"`
 }
 
 type IntegrationChart struct {
@@ -117,7 +119,11 @@ type IntegrationChart struct {
 type IntegrationDataValues struct {
 	// here so it is easy to find the chart this data point belongs to
 	// without too much voodoo
+	// InternalName + ProviderID search in db
+	// We cannot use only InternalName becasue some integrations
+	// like mercury have the same InternalName twice ( each account has a savings and checkings which we track)
 	InternalName IntegrationChartInternalNameType
+	ProviderID   string
 	Data         IntegrationDataPoint
 }
 
@@ -163,4 +169,7 @@ type IntegrationRepository interface {
 	Get(context.Context, FindWorkspaceIntegrationOptions) (*WorkspaceIntegration, error)
 	ToggleEnabled(context.Context, *WorkspaceIntegration) error
 	Update(context.Context, *WorkspaceIntegration) error
+
+	CreateCharts(context.Context, *WorkspaceIntegration, []IntegrationChartValues) error
+	AddDataPoint(context.Context, *WorkspaceIntegration, []IntegrationDataValues) error
 }

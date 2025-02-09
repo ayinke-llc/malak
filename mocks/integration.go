@@ -123,6 +123,20 @@ func (m *MockIntegrationRepository) EXPECT() *MockIntegrationRepositoryMockRecor
 	return m.recorder
 }
 
+// AddDataPoint mocks base method.
+func (m *MockIntegrationRepository) AddDataPoint(arg0 context.Context, arg1 *malak.WorkspaceIntegration, arg2 []malak.IntegrationDataValues) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddDataPoint", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddDataPoint indicates an expected call of AddDataPoint.
+func (mr *MockIntegrationRepositoryMockRecorder) AddDataPoint(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddDataPoint", reflect.TypeOf((*MockIntegrationRepository)(nil).AddDataPoint), arg0, arg1, arg2)
+}
+
 // Create mocks base method.
 func (m *MockIntegrationRepository) Create(arg0 context.Context, arg1 *malak.Integration) error {
 	m.ctrl.T.Helper()
@@ -135,6 +149,20 @@ func (m *MockIntegrationRepository) Create(arg0 context.Context, arg1 *malak.Int
 func (mr *MockIntegrationRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockIntegrationRepository)(nil).Create), arg0, arg1)
+}
+
+// CreateCharts mocks base method.
+func (m *MockIntegrationRepository) CreateCharts(arg0 context.Context, arg1 *malak.WorkspaceIntegration, arg2 []malak.IntegrationChartValues) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateCharts", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateCharts indicates an expected call of CreateCharts.
+func (mr *MockIntegrationRepositoryMockRecorder) CreateCharts(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCharts", reflect.TypeOf((*MockIntegrationRepository)(nil).CreateCharts), arg0, arg1, arg2)
 }
 
 // Get mocks base method.

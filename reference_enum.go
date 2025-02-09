@@ -60,6 +60,10 @@ const (
 	EntityTypeWorkspaceIntegration EntityType = "workspace_integration"
 	// EntityTypeIntegrationDatapoint is a EntityType of type integration_datapoint.
 	EntityTypeIntegrationDatapoint EntityType = "integration_datapoint"
+	// EntityTypeIntegrationChart is a EntityType of type integration_chart.
+	EntityTypeIntegrationChart EntityType = "integration_chart"
+	// EntityTypeIntegrationSyncCheckpoint is a EntityType of type integration_sync_checkpoint.
+	EntityTypeIntegrationSyncCheckpoint EntityType = "integration_sync_checkpoint"
 )
 
 var ErrInvalidEntityType = errors.New("not a valid EntityType")
@@ -77,30 +81,32 @@ func (x EntityType) IsValid() bool {
 }
 
 var _EntityTypeValue = map[string]EntityType{
-	"workspace":             EntityTypeWorkspace,
-	"invoice":               EntityTypeInvoice,
-	"team":                  EntityTypeTeam,
-	"invite":                EntityTypeInvite,
-	"contact":               EntityTypeContact,
-	"update":                EntityTypeUpdate,
-	"link":                  EntityTypeLink,
-	"room":                  EntityTypeRoom,
-	"recipient":             EntityTypeRecipient,
-	"schedule":              EntityTypeSchedule,
-	"list":                  EntityTypeList,
-	"list_email":            EntityTypeListEmail,
-	"update_stat":           EntityTypeUpdateStat,
-	"recipient_stat":        EntityTypeRecipientStat,
-	"recipient_log":         EntityTypeRecipientLog,
-	"deck":                  EntityTypeDeck,
-	"deck_preference":       EntityTypeDeckPreference,
-	"contact_share":         EntityTypeContactShare,
-	"dashboard":             EntityTypeDashboard,
-	"plan":                  EntityTypePlan,
-	"price":                 EntityTypePrice,
-	"integration":           EntityTypeIntegration,
-	"workspace_integration": EntityTypeWorkspaceIntegration,
-	"integration_datapoint": EntityTypeIntegrationDatapoint,
+	"workspace":                   EntityTypeWorkspace,
+	"invoice":                     EntityTypeInvoice,
+	"team":                        EntityTypeTeam,
+	"invite":                      EntityTypeInvite,
+	"contact":                     EntityTypeContact,
+	"update":                      EntityTypeUpdate,
+	"link":                        EntityTypeLink,
+	"room":                        EntityTypeRoom,
+	"recipient":                   EntityTypeRecipient,
+	"schedule":                    EntityTypeSchedule,
+	"list":                        EntityTypeList,
+	"list_email":                  EntityTypeListEmail,
+	"update_stat":                 EntityTypeUpdateStat,
+	"recipient_stat":              EntityTypeRecipientStat,
+	"recipient_log":               EntityTypeRecipientLog,
+	"deck":                        EntityTypeDeck,
+	"deck_preference":             EntityTypeDeckPreference,
+	"contact_share":               EntityTypeContactShare,
+	"dashboard":                   EntityTypeDashboard,
+	"plan":                        EntityTypePlan,
+	"price":                       EntityTypePrice,
+	"integration":                 EntityTypeIntegration,
+	"workspace_integration":       EntityTypeWorkspaceIntegration,
+	"integration_datapoint":       EntityTypeIntegrationDatapoint,
+	"integration_chart":           EntityTypeIntegrationChart,
+	"integration_sync_checkpoint": EntityTypeIntegrationSyncCheckpoint,
 }
 
 // ParseEntityType attempts to convert a string to a EntityType.

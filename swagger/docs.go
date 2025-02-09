@@ -3232,6 +3232,9 @@ const docTemplate = `{
             "properties": {
                 "access_token": {
                     "type": "string"
+                },
+                "last_fetched_at": {
+                    "type": "string"
                 }
             }
         },

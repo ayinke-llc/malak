@@ -1,0 +1,2 @@
+ALTER TABLE integration_charts DROP CONSTRAINT unique_name_and_internal_name_per_workspace_and_integration;
+ALTER TABLE integration_charts ADD CONSTRAINT unique_internal_name_per_workspace_and_integration UNIQUE(internal_name,workspace_id,workspace_integration_id);

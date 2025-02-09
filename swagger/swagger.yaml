@@ -587,6 +587,8 @@ components:
       properties:
         access_token:
           type: string
+        last_fetched_at:
+          type: string
       type: object
     malak.WorkspaceMetadata:
       type: object

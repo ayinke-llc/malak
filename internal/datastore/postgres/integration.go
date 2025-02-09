@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -128,6 +129,8 @@ func (i *integrationRepo) ToggleEnabled(ctx context.Context,
 	return i.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
 
+			integration.UpdatedAt = time.Now()
+
 			_, err := tx.NewUpdate().
 				Where("id = ?", integration.ID).
 				Set("is_enabled = CASE WHEN is_enabled = true THEN false ELSE true END").
@@ -151,4 +154,87 @@ func (i *integrationRepo) Update(ctx context.Context,
 		Model(integration).
 		Exec(ctx)
 	return err
+}
+
+func (i *integrationRepo) CreateCharts(ctx context.Context,
+	workspaceIntegration *malak.WorkspaceIntegration,
+	chartValues []malak.IntegrationChartValues) error {
+
+	generator := malak.NewReferenceGenerator()
+
+	return i.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		for _, value := range chartValues {
+
+			chart := &malak.IntegrationChart{
+				WorkspaceIntegrationID: workspaceIntegration.ID,
+				WorkspaceID:            workspaceIntegration.WorkspaceID,
+				Reference:              generator.Generate(malak.EntityTypeIntegrationChart),
+				UserFacingName:         value.UserFacingName,
+				InternalName:           value.InternalName,
+				Metadata: malak.IntegrationChartMetadata{
+					ProviderID: value.ProviderID,
+				},
+			}
+
+			_, err := tx.NewInsert().Model(chart).
+				On("CONFLICT (user_facing_name,internal_name,workspace_id,workspace_integration_id) DO NOTHING").
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+
+		workspaceIntegration.UpdatedAt = time.Now()
+
+		_, err := tx.NewUpdate().
+			Where("id = ?", workspaceIntegration.ID).
+			Model(workspaceIntegration).
+			Exec(ctx)
+		return err
+	})
+}
+
+func (i *integrationRepo) AddDataPoint(ctx context.Context,
+	workspaceIntegration *malak.WorkspaceIntegration,
+	dataPoints []malak.IntegrationDataValues) error {
+
+	generator := malak.NewReferenceGenerator()
+
+	return i.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		for _, value := range dataPoints {
+
+			var chart malak.IntegrationChart
+
+			query := tx.NewSelect().
+				Model(&chart).
+				Where("workspace_integration_id = ?", workspaceIntegration.ID).
+				Where("workspace_id = ?", workspaceIntegration.WorkspaceID).
+				Where("internal_name = ?", value.InternalName)
+
+			if !hermes.IsStringEmpty(value.ProviderID) {
+				query = query.Where("metadata->>'provider_id' = ?", value.ProviderID)
+			}
+
+			err := query.Scan(ctx)
+			if err != nil {
+				return err
+			}
+
+			value.Data.Reference = generator.Generate(malak.EntityTypeIntegrationDatapoint)
+			value.Data.WorkspaceIntegrationID = workspaceIntegration.ID
+			value.Data.WorkspaceID = workspaceIntegration.WorkspaceID
+			value.Data.IntegrationChartID = chart.ID
+
+			_, err = tx.NewInsert().
+				Model(&value.Data).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
