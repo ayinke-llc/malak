@@ -56,7 +56,7 @@ believe is entirely relevant for larger organisations that require enterprise fe
 Our philosophy is simple, all features are open-source under AGPLv3.
 But 3rd party integrations and auto-syncing are under a commercial license.
 
-[See details here](https://github.com/ayinke-llc/malak/tree/fix_readme/internal/integrations#readme)
+[See details here](https://github.com/ayinke-llc/malak/tree/main/internal/integrations#readme)
 
 ## Self-hosting
 
