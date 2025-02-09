@@ -79,12 +79,13 @@ func syncDataPointForIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Co
 						continue
 					}
 
-					dataPoints, err := client.Data(cmd.Context(), integration.Metadata.AccessToken, &malak.IntegrationFetchDataOptions{
-						IntegrationID:      integration.ID,
-						WorkspaceID:        workspace.ID,
-						ReferenceGenerator: malak.NewReferenceGenerator(),
-						LastFetchedAt:      integration.Metadata.LastFetchedAt,
-					})
+					dataPoints, err := client.Data(cmd.Context(), integration.Metadata.AccessToken,
+						&malak.IntegrationFetchDataOptions{
+							IntegrationID:      integration.ID,
+							WorkspaceID:        workspace.ID,
+							ReferenceGenerator: malak.NewReferenceGenerator(),
+							LastFetchedAt:      integration.Metadata.LastFetchedAt,
+						})
 					if err != nil {
 						logger.Error("could not fetch data points from integration",
 							zap.String("workspace_id", workspace.ID.String()),

@@ -95,7 +95,7 @@ type IntegrationDataPoint struct {
 }
 
 type IntegrationChartMetadata struct {
-	ProviderID string
+	ProviderID string `json:"provider_id,omitempty"`
 }
 
 type IntegrationChart struct {
@@ -118,7 +118,11 @@ type IntegrationChart struct {
 type IntegrationDataValues struct {
 	// here so it is easy to find the chart this data point belongs to
 	// without too much voodoo
+	// InternalName + ProviderID search in db
+	// We cannot use only InternalName becasue some integrations
+	// like mercury have the same InternalName twice ( each account has a savings and checkings which we track)
 	InternalName IntegrationChartInternalNameType
+	ProviderID   string
 	Data         IntegrationDataPoint
 }
 
@@ -166,6 +170,5 @@ type IntegrationRepository interface {
 	Update(context.Context, *WorkspaceIntegration) error
 
 	CreateCharts(context.Context, *WorkspaceIntegration, []IntegrationChartValues) error
-
-	// AddDataPoint(context.Context, *WorkspaceIntegration, []IntegrationDataValues) error
+	AddDataPoint(context.Context, *WorkspaceIntegration, []IntegrationDataValues) error
 }

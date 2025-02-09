@@ -235,6 +235,7 @@ func (m *mercuryClient) Data(ctx context.Context,
 
 			dataPoints = append(dataPoints, malak.IntegrationDataValues{
 				InternalName: malak.IntegrationChartInternalNameTypeMercuryAccountTransaction,
+				ProviderID:   account.ID,
 				Data: malak.IntegrationDataPoint{
 					DataPointType:          malak.IntegrationDataPointTypeOthers,
 					WorkspaceIntegrationID: opts.IntegrationID,

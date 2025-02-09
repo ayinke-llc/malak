@@ -325,6 +325,7 @@ func (m *brexClient) Data(ctx context.Context,
 
 			dataPoints = append(dataPoints, malak.IntegrationDataValues{
 				InternalName: malak.IntegrationChartInternalNameTypeBrexAccountTransaction,
+				ProviderID:   account.ID,
 				Data: malak.IntegrationDataPoint{
 					DataPointType:          malak.IntegrationDataPointTypeOthers,
 					WorkspaceIntegrationID: opts.IntegrationID,

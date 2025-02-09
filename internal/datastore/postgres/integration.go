@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -128,6 +129,8 @@ func (i *integrationRepo) ToggleEnabled(ctx context.Context,
 	return i.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
 
+			integration.UpdatedAt = time.Now()
+
 			_, err := tx.NewUpdate().
 				Where("id = ?", integration.ID).
 				Set("is_enabled = CASE WHEN is_enabled = true THEN false ELSE true END").
@@ -182,7 +185,8 @@ func (i *integrationRepo) CreateCharts(ctx context.Context,
 			}
 		}
 
-		// update the integration too
+		workspaceIntegration.UpdatedAt = time.Now()
+
 		_, err := tx.NewUpdate().
 			Where("id = ?", workspaceIntegration.ID).
 			Model(workspaceIntegration).
@@ -195,33 +199,41 @@ func (i *integrationRepo) AddDataPoint(ctx context.Context,
 	workspaceIntegration *malak.WorkspaceIntegration,
 	dataPoints []malak.IntegrationDataValues) error {
 
-	// generator := malak.NewReferenceGenerator()
-	//
-	// return i.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
-	//
-	// 	for _, value := range dataPoints {
-	//
-	// 		var chart malak.IntegrationChart
-	//
-	// 		err := tx.NewSelect().
-	// 			Where("workspace_integration_id = ?", workspaceIntegration.ID).
-	// 			Where("workspace_id = ?", workspaceIntegration.WorkspaceID).
-	// 			Where("internal_name = ?", value.InternalName).
-	// 			Scan(ctx, &chart)
-	// 		if errors.Is(err, sql.ErrNoRows) {
-	// 			chart = malak.IntegrationChart{
-	// 				WorkspaceIntegrationID: workspaceIntegration.ID,
-	// 				WorkspaceID:            workspaceIntegration.WorkspaceID,
-	// 				Reference:              generator.Generate(malak.EntityTypeIntegrationChart),
-	// 				UserFacingName:         value.InternalName.String(),
-	// 			}
-	// 			tx.NewInsert().
-	// 				Exec(ctx, &chart)
-	// 		}
-	//
-	// 	}
-	//
-	// 	return nil
-	// })
-	return nil
+	generator := malak.NewReferenceGenerator()
+
+	return i.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		for _, value := range dataPoints {
+
+			var chart []malak.IntegrationChart
+
+			query := tx.NewSelect().
+				Model(&chart).
+				Where("workspace_integration_id = ?", workspaceIntegration.ID).
+				Where("workspace_id = ?", workspaceIntegration.WorkspaceID).
+				Where("internal_name = ?", value.InternalName)
+
+			if !hermes.IsStringEmpty(value.ProviderID) {
+				query = query.Where("metadata->>'provider_id' = ?", value.ProviderID)
+			}
+
+			err := query.Scan(ctx)
+			if err != nil {
+				return err
+			}
+
+			value.Data.Reference = generator.Generate(malak.EntityTypeIntegrationDatapoint)
+			value.Data.WorkspaceIntegrationID = workspaceIntegration.ID
+			value.Data.WorkspaceID = workspaceIntegration.WorkspaceID
+
+			_, err = tx.NewInsert().
+				Model(&value.Data).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
