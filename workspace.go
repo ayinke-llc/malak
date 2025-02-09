@@ -2,6 +2,7 @@ package malak
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,7 +21,7 @@ type Workspace struct {
 
 	WorkspaceName string `json:"workspace_name,omitempty"`
 	Reference     string `json:"reference,omitempty"`
-	Timezone      string `json:"timezone,omitempty"`
+	Timezone      string `json:"-"`
 	Website       string `json:"website,omitempty"`
 	LogoURL       string `json:"logo_url,omitempty"`
 
@@ -70,4 +71,21 @@ type WorkspaceRepository interface {
 	List(context.Context, *User) ([]Workspace, error)
 	MarkInActive(context.Context, *Workspace) error
 	MarkActive(context.Context, *Workspace) error
+}
+
+func (w *Workspace) MarshalJSON() ([]byte, error) {
+	type Alias Workspace
+
+	timezone := w.Timezone
+	if timezone == "" {
+		timezone = "UTC"
+	}
+
+	return json.Marshal(&struct {
+		Timezone string `json:"timezone"`
+		*Alias
+	}{
+		Timezone: timezone,
+		Alias:    (*Alias)(w),
+	})
 }

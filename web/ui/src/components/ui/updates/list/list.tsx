@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { RiArrowDownSLine, RiFilter3Line } from "@remixicon/react";
+import { RiArrowDownSLine } from "@remixicon/react";
 
 export type UpdateListTableProps = {
   data: MalakUpdate[];
