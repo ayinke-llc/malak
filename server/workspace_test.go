@@ -1021,6 +1021,7 @@ func generateWorkspacePingIntegrationTestTable() []struct {
 					Return(&malak.WorkspaceIntegration{
 						Integration: &malak.Integration{
 							IntegrationName: "mercury",
+							IsEnabled:       true,
 						},
 					}, nil)
 
