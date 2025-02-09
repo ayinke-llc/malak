@@ -998,6 +998,7 @@ func generateWorkspacePingIntegrationTestTable() []struct {
 					Return(&malak.WorkspaceIntegration{
 						Integration: &malak.Integration{
 							IntegrationName: "mercury",
+							IsEnabled:       true,
 						},
 					}, nil)
 
@@ -1035,6 +1036,24 @@ func generateWorkspacePingIntegrationTestTable() []struct {
 					}, nil)
 			},
 			expectedStatusCode: http.StatusOK,
+			req: testAPIIntegrationRequest{
+				APIKey: "test-key",
+			},
+		},
+		{
+			name: "integration not enabled yet",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient) {
+				integrationRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.WorkspaceIntegration{
+						Integration: &malak.Integration{
+							IntegrationName: "mercury",
+							IsEnabled:       false,
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusBadRequest,
 			req: testAPIIntegrationRequest{
 				APIKey: "test-key",
 			},
@@ -1100,6 +1119,7 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 					Return(&malak.WorkspaceIntegration{
 						Integration: &malak.Integration{
 							IntegrationName: "mercury",
+							IsEnabled:       true,
 						},
 					}, nil)
 
@@ -1122,19 +1142,14 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 					Return(&malak.WorkspaceIntegration{
 						Integration: &malak.Integration{
 							IntegrationName: "mercury",
+							IsEnabled:       true,
 						},
 					}, nil)
 
 				integrationManager.EXPECT().
 					Ping(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return([]malak.IntegrationChartValues{
-						{
-							InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
-							UserFacingName: "Test Account",
-							ProviderID:     "test-id",
-						},
-					}, nil)
+					Return([]malak.IntegrationChartValues{}, nil)
 
 				secretsClient.EXPECT().
 					Create(gomock.Any(), gomock.Any()).
@@ -1155,19 +1170,14 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 					Return(&malak.WorkspaceIntegration{
 						Integration: &malak.Integration{
 							IntegrationName: "mercury",
+							IsEnabled:       true,
 						},
 					}, nil)
 
 				integrationManager.EXPECT().
 					Ping(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return([]malak.IntegrationChartValues{
-						{
-							InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
-							UserFacingName: "Test Account",
-							ProviderID:     "test-id",
-						},
-					}, nil)
+					Return([]malak.IntegrationChartValues{}, nil)
 
 				secretsClient.EXPECT().
 					Create(gomock.Any(), gomock.Any()).
@@ -1191,21 +1201,17 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 					Get(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(&malak.WorkspaceIntegration{
+						IsActive: true,
 						Integration: &malak.Integration{
 							IntegrationName: "mercury",
+							IsEnabled:       true,
 						},
 					}, nil)
 
 				integrationManager.EXPECT().
 					Ping(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return([]malak.IntegrationChartValues{
-						{
-							InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
-							UserFacingName: "Test Account",
-							ProviderID:     "test-id",
-						},
-					}, nil)
+					Return([]malak.IntegrationChartValues{}, nil)
 
 				secretsClient.EXPECT().
 					Create(gomock.Any(), gomock.Any()).
@@ -1218,6 +1224,44 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 					Return(nil)
 			},
 			expectedStatusCode: http.StatusCreated,
+			req: testAPIIntegrationRequest{
+				APIKey: "test-key",
+			},
+		},
+		{
+			name: "integration already enabled",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
+				integrationRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.WorkspaceIntegration{
+						IsActive:  true,
+						IsEnabled: true,
+						Integration: &malak.Integration{
+							IntegrationName: "mercury",
+							IsEnabled:       true,
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: testAPIIntegrationRequest{
+				APIKey: "test-key",
+			},
+		},
+		{
+			name: "integration not enabled yet",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
+				integrationRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.WorkspaceIntegration{
+						Integration: &malak.Integration{
+							IntegrationName: "mercury",
+							IsEnabled:       false,
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusBadRequest,
 			req: testAPIIntegrationRequest{
 				APIKey: "test-key",
 			},

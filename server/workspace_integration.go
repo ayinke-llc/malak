@@ -213,6 +213,10 @@ func (wo *workspaceHandler) enableIntegration(
 		return newAPIStatus(http.StatusBadRequest, "integration not enabled yet and coming soon"), StatusFailed
 	}
 
+	if integration.IsEnabled {
+		return newAPIStatus(http.StatusBadRequest, "integration already enabled"), StatusFailed
+	}
+
 	logger = logger.With(zap.String("integration_name", integration.Integration.IntegrationName))
 
 	provider, err := malak.ParseIntegrationProvider(strings.ToLower(integration.Integration.IntegrationName))
