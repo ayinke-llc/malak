@@ -1,6 +1,6 @@
-# Self hosted Enterprise Edition of Malak
+# Self hosted Commercial/Enterprise Edition of Malak
 
-Welcome to the Self hosted Enterprise Edition of Malak
+Welcome to the Self hosted Commercial/Enterprise Edition of Malak
 
 Our philosophy is simple, all the source code under AGPLv3 and free to self host yourself.
 All auto syncing features from 3rd party systems are under a commercial license.

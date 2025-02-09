@@ -44,20 +44,6 @@ Own full control of your data and company state if you decide to selfhost.
 - Tailwind CSS
 - Stripe ( optional )
 
-## LICENSE
-
-Malak is a commercial open source product, which means some parts of this
-open source repository require a commercial license. The concept is
-called "Open Core" where the core software (99%) is fully open source,
-licensed under AGPLv3 and the last 1% is covered under a
-commercial license ("/internal/integrations/" Enterprise Edition) which we
-believe is entirely relevant for larger organisations that require enterprise features.
-
-Our philosophy is simple, all features are open-source under AGPLv3.
-But 3rd party integrations and auto-syncing are under a commercial license.
-
-[See details here](https://github.com/ayinke-llc/malak/tree/main/internal/integrations#readme)
-
 ## Self-hosting
 
 ### Migrations
@@ -164,6 +150,21 @@ NEXT_PUBLIC_SENTRY_DSN=
 NEXT_PUBLIC_DECKS_DOMAIN=https://deck.yourdowmain
 NEXT_PUBLIC_SUPPORT_EMAIL=support@yourdomain
 ```
+
+## LICENSE
+
+Malak is a commercial open source product, which means some parts of this
+open source repository require a commercial license. The concept is
+called "Open Core" where the core software (99%) is fully open source,
+licensed under AGPLv3 and the last 1% is covered under a
+commercial license
+([/internal/integrations Enterprise/Commercial Edition](https://github.com/ayinke-llc/malak/tree/main/internal/integrations)) which we
+believe is entirely relevant for larger organisations that require those features.
+
+Our philosophy is simple, all features are open-source under AGPLv3.
+But 3rd party integrations and auto-syncing are under a commercial/Enterprise license.
+
+[See details of commercial/Enterprise license here](https://github.com/ayinke-llc/malak/tree/main/internal/integrations#readme)
 
 ## FAQs
 
