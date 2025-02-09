@@ -45,7 +45,8 @@ type Integration struct {
 }
 
 type WorkspaceIntegrationMetadata struct {
-	AccessToken AccessToken `json:"access_token,omitempty"`
+	AccessToken   AccessToken `json:"access_token,omitempty"`
+	LastFetchedAt *time.Time  `json:"last_fetched_at,omitempty"`
 }
 
 type WorkspaceIntegration struct {

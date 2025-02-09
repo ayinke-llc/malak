@@ -1,13 +1,13 @@
 package main
 
 import (
+	"context"
 	"time"
 
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
-	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -36,26 +36,24 @@ func syncDataPointForIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Co
 			logger.Debug("syncing datapoints")
 
 			integrationRepo := postgres.NewIntegrationRepo(db)
-			workspaceRepo := postgres.NewWorkspaceRepository(db)
 
 			integrationManager, err := buildIntegrationManager(integrationRepo, hermes.DeRef(cfg), logger)
 			if err != nil {
 				logger.Fatal("could not build integration manager", zap.Error(err))
 			}
 
-			systemUser := &malak.User{
-				ID:    uuid.New(),
-				Email: "system@malak.local",
-			}
+			workspaces := make([]*malak.Workspace, 0)
 
-			workspaces, err := workspaceRepo.List(cmd.Context(), systemUser)
+			err = db.NewSelect().
+				Model(&workspaces).
+				Scan(context.Background())
 			if err != nil {
 				logger.Error("could not fetch workspaces", zap.Error(err))
 				return err
 			}
 
 			for _, workspace := range workspaces {
-				integrations, err := integrationRepo.List(cmd.Context(), &workspace)
+				integrations, err := integrationRepo.List(cmd.Context(), workspace)
 				if err != nil {
 					logger.Error("could not fetch integrations for workspace",
 						zap.String("workspace_id", workspace.ID.String()),
@@ -81,11 +79,16 @@ func syncDataPointForIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Co
 						continue
 					}
 
+					lastFetchedAt := time.Now()
+					if integration.Metadata.LastFetchedAt != nil {
+						lastFetchedAt = hermes.DeRef(integration.Metadata.LastFetchedAt)
+					}
+
 					dataPoints, err := client.Data(cmd.Context(), integration.Metadata.AccessToken, &malak.IntegrationFetchDataOptions{
 						IntegrationID:      integration.ID,
 						WorkspaceID:        workspace.ID,
 						ReferenceGenerator: malak.NewReferenceGenerator(),
-						LastFetchedAt:      time.Now(),
+						LastFetchedAt:      lastFetchedAt,
 					})
 					if err != nil {
 						logger.Error("could not fetch data points from integration",
@@ -99,6 +102,15 @@ func syncDataPointForIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Co
 						zap.String("workspace_id", workspace.ID.String()),
 						zap.String("integration_id", integration.ID.String()),
 						zap.Int("data_points_count", len(dataPoints)))
+
+					integration.Metadata.LastFetchedAt = hermes.Ref(time.Now())
+
+					if err := integrationRepo.Update(context.Background(), &integration); err != nil {
+						logger.Error("could not fetch data points from integration",
+							zap.String("workspace_id", workspace.ID.String()),
+							zap.String("integration_id", integration.ID.String()),
+							zap.Error(err))
+					}
 				}
 			}
 
