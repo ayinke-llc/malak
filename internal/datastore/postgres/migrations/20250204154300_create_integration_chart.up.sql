@@ -1,4 +1,3 @@
-
 CREATE TABLE integration_charts (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   workspace_id uuid NOT NULL REFERENCES workspaces(id),

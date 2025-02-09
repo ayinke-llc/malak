@@ -11,117 +11,10 @@ import (
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
-	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/uptrace/bun"
 	"go.uber.org/zap"
 )
-
-type SyncCheckpoint struct {
-	ID                 uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
-	WorkspaceID        uuid.UUID `bun:"workspace_id,notnull" json:"workspace_id,omitempty"`
-	IntegrationID      uuid.UUID `bun:"integration_id,notnull" json:"integration_id,omitempty"`
-	LastSyncAttempt    time.Time `bun:"last_sync_attempt" json:"last_sync_attempt,omitempty"`
-	LastSuccessfulSync time.Time `bun:"last_successful_sync" json:"last_successful_sync,omitempty"`
-	Status             string    `bun:"status,notnull" json:"status,omitempty"`
-	ErrorMessage       string    `bun:"error_message" json:"error_message,omitempty"`
-	CreatedAt          time.Time `bun:"created_at,default:current_timestamp" json:"created_at,omitempty"`
-	UpdatedAt          time.Time `bun:"updated_at,default:current_timestamp" json:"updated_at,omitempty"`
-}
-
-func shouldProcessIntegration(ctx context.Context, db *bun.DB, workspace *malak.Workspace, integration *malak.WorkspaceIntegration, resumeFailed bool) (bool, error) {
-	return true, nil
-	var checkpoint SyncCheckpoint
-	err := db.NewSelect().
-		Model(&checkpoint).
-		Where("workspace_id = ? AND integration_id = ?",
-			workspace.ID, integration.ID).
-		Scan(ctx)
-
-	if err != nil && err != sql.ErrNoRows {
-		return false, err
-	}
-
-	// if resuming failed syncs, only process failed or pending ones
-	if resumeFailed {
-		return checkpoint.Status == "failed" || checkpoint.Status == "pending", nil
-	}
-
-	// No checkpoint exists
-	if err == sql.ErrNoRows {
-		return true, nil
-	}
-
-	// Last sync was too long ago (e.g. within last 10 hours)
-	if time.Since(checkpoint.LastSuccessfulSync) > 24*time.Hour {
-		return true, nil
-	}
-
-	// previous sync failed
-	if checkpoint.Status == "failed" {
-		return true, nil
-	}
-
-	return false, nil
-}
-
-type syncJob struct {
-	workspace   *malak.Workspace
-	integration *malak.WorkspaceIntegration
-	client      malak.IntegrationProviderClient
-	accessToken malak.AccessToken
-}
-
-func worker(
-	ctx context.Context,
-	id int,
-	jobs <-chan syncJob,
-	wg *sync.WaitGroup,
-	logger *zap.Logger,
-	integrationRepo malak.IntegrationRepository,
-) {
-	defer wg.Done()
-
-	for job := range jobs {
-		logger.Info("worker processing integration",
-			zap.Int("worker_id", id),
-			zap.String("workspace_id", job.workspace.ID.String()),
-			zap.String("integration_id", job.integration.ID.String()))
-
-		dataPoints, err := job.client.Data(ctx,
-			job.accessToken,
-			&malak.IntegrationFetchDataOptions{
-				IntegrationID:      job.integration.ID,
-				WorkspaceID:        job.workspace.ID,
-				ReferenceGenerator: malak.NewReferenceGenerator(),
-				LastFetchedAt:      job.integration.Metadata.LastFetchedAt,
-			})
-		if err != nil {
-			logger.Error("could not fetch data points from integration",
-				zap.Int("worker_id", id),
-				zap.String("workspace_id", job.workspace.ID.String()),
-				zap.String("integration_id", job.integration.ID.String()),
-				zap.Error(err))
-			continue
-		}
-
-		logger.Info("fetched data points from integration",
-			zap.Int("worker_id", id),
-			zap.String("workspace_id", job.workspace.ID.String()),
-			zap.String("integration_id", job.integration.ID.String()),
-			zap.Int("data_points_count", len(dataPoints)))
-
-		job.integration.Metadata.LastFetchedAt = time.Now()
-
-		if err := integrationRepo.AddDataPoint(ctx, job.integration, dataPoints); err != nil {
-			logger.Error("could not save data points from integration",
-				zap.Int("worker_id", id),
-				zap.String("workspace_id", job.workspace.ID.String()),
-				zap.String("integration_id", job.integration.ID.String()),
-				zap.Error(err))
-		}
-	}
-}
 
 func syncDataPointForIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
@@ -173,7 +66,7 @@ func syncDataPointForIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Co
 
 			for w := 1; w <= numWorkers; w++ {
 				wg.Add(1)
-				go worker(cmd.Context(), w, jobs, &wg, logger, integrationRepo)
+				go worker(cmd.Context(), w, jobs, &wg, logger, integrationRepo, db)
 			}
 
 			for _, workspace := range workspaces {
@@ -252,4 +145,160 @@ func syncDataPointForIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Co
 	}
 
 	return cmd
+}
+
+func shouldProcessIntegration(ctx context.Context,
+	db *bun.DB,
+	workspace *malak.Workspace,
+	integration *malak.WorkspaceIntegration,
+	resumeFailed bool) (bool, error) {
+
+	now := time.Now()
+	today := now.Format("2006-01-02")
+
+	var checkpoint malak.IntegrationSyncCheckpoint
+	err := db.NewSelect().
+		Model(&checkpoint).
+		Where("workspace_id = ? AND workspace_integration_id = ? AND DATE(created_at) = ?",
+			workspace.ID, integration.ID, today).
+		Order("created_at DESC").
+		Limit(1).
+		Scan(ctx)
+
+	// No checkpoint exists for today - should process
+	if err == sql.ErrNoRows {
+		return true, nil
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	// Only check these conditions if we have a checkpoint for today
+	if resumeFailed {
+		return checkpoint.Status == "failed" || checkpoint.Status == "pending", nil
+	}
+
+	if checkpoint.Status == "failed" {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+type syncJob struct {
+	workspace   *malak.Workspace
+	integration *malak.WorkspaceIntegration
+	client      malak.IntegrationProviderClient
+	accessToken malak.AccessToken
+}
+
+func worker(
+	ctx context.Context,
+	id int,
+	jobs <-chan syncJob,
+	wg *sync.WaitGroup,
+	logger *zap.Logger,
+	integrationRepo malak.IntegrationRepository,
+	db *bun.DB,
+) {
+	defer wg.Done()
+
+	for job := range jobs {
+		logger.Info("worker processing integration",
+			zap.Int("worker_id", id),
+			zap.String("workspace_id", job.workspace.ID.String()),
+			zap.String("integration_id", job.integration.ID.String()))
+
+		generator := malak.NewReferenceGenerator()
+
+		// create new checkpoint for today
+		checkpoint := &malak.IntegrationSyncCheckpoint{
+			WorkspaceID:            job.workspace.ID,
+			WorkspaceIntegrationID: job.integration.ID,
+			Status:                 "pending",
+			LastSyncAttempt:        time.Now(),
+			Reference:              generator.Generate(malak.EntityTypeIntegrationSyncCheckpoint),
+		}
+
+		_, err := db.NewInsert().
+			Model(checkpoint).
+			Exec(ctx)
+		if err != nil {
+			logger.Error("failed to create checkpoint",
+				zap.Error(err))
+			continue
+		}
+
+		dataPoints, err := job.client.Data(ctx,
+			job.accessToken,
+			&malak.IntegrationFetchDataOptions{
+				IntegrationID:      job.integration.ID,
+				WorkspaceID:        job.workspace.ID,
+				ReferenceGenerator: generator,
+				LastFetchedAt:      job.integration.Metadata.LastFetchedAt,
+			})
+		if err != nil {
+			logger.Error("could not fetch data points from integration",
+				zap.Int("worker_id", id),
+				zap.String("workspace_id", job.workspace.ID.String()),
+				zap.String("integration_id", job.integration.ID.String()),
+				zap.Error(err))
+
+			// update current checkpoint with error
+			_, updateErr := db.NewUpdate().
+				Model(checkpoint).
+				Set("status = ?", "failed").
+				Set("error_message = ?", err.Error()).
+				Set("updated_at = NOW()").
+				Where("id = ?", checkpoint.ID).
+				Exec(ctx)
+			if updateErr != nil {
+				logger.Error("failed to update checkpoint", zap.Error(updateErr))
+			}
+			continue
+		}
+
+		logger.Info("fetched data points from integration",
+			zap.Int("worker_id", id),
+			zap.String("workspace_id", job.workspace.ID.String()),
+			zap.String("integration_id", job.integration.ID.String()),
+			zap.Int("data_points_count", len(dataPoints)))
+
+		job.integration.Metadata.LastFetchedAt = time.Now()
+
+		if err := integrationRepo.AddDataPoint(ctx, job.integration, dataPoints); err != nil {
+			logger.Error("could not save data points from integration",
+				zap.Int("worker_id", id),
+				zap.String("workspace_id", job.workspace.ID.String()),
+				zap.String("integration_id", job.integration.ID.String()),
+				zap.Error(err))
+
+			// update current checkpoint with error
+			_, updateErr := db.NewUpdate().
+				Model(checkpoint).
+				Set("status = ?", "failed").
+				Set("error_message = ?", err.Error()).
+				Set("updated_at = NOW()").
+				Where("id = ?", checkpoint.ID).
+				Exec(ctx)
+			if updateErr != nil {
+				logger.Error("failed to update checkpoint", zap.Error(updateErr))
+			}
+			continue
+		}
+
+		// update current checkpoint as successful
+		_, err = db.NewUpdate().
+			Model(checkpoint).
+			Set("status = ?", "success").
+			Set("last_successful_sync = NOW()").
+			Set("error_message = NULL").
+			Set("updated_at = NOW()").
+			Where("id = ?", checkpoint.ID).
+			Exec(ctx)
+		if err != nil {
+			logger.Error("failed to update checkpoint", zap.Error(err))
+		}
+	}
 }

@@ -1,0 +1,1 @@
+DROP TABLE integration_sync_checkpoints;
