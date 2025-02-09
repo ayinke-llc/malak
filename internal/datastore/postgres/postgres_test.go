@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -88,6 +89,8 @@ func prepareTestDatabase(t *testing.T, dsn string) {
 // please always make sure to call the closure as it is the teardown function
 func setupDatabase(t *testing.T) (*bun.DB, func()) {
 	t.Helper()
+
+	os.Setenv("TZ", "")
 
 	var dsn string
 
