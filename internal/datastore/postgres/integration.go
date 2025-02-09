@@ -175,7 +175,7 @@ func (i *integrationRepo) CreateCharts(ctx context.Context,
 			}
 
 			_, err := tx.NewInsert().Model(chart).
-				On("CONFLICT (internal_name,workspace_id,workspace_integration_id) DO NOTHING").
+				On("CONFLICT (user_facing_name,internal_name,workspace_id,workspace_integration_id) DO NOTHING").
 				Exec(ctx)
 			if err != nil {
 				return err

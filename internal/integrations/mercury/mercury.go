@@ -126,7 +126,6 @@ func (m *mercuryClient) Ping(
 	}
 
 	for _, account := range response.Accounts {
-		fmt.Println(account.Name)
 		charts = append(charts, malak.IntegrationChartValues{
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 			UserFacingName: account.Name,
