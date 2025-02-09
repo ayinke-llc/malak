@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/ayinke-llc/hermes"
@@ -42,6 +43,11 @@ func syncDataPointForIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Co
 				logger.Fatal("could not build integration manager", zap.Error(err))
 			}
 
+			secretsProvider, err := buildSecretsProvider(hermes.DeRef(cfg))
+			if err != nil {
+				logger.Fatal("could not build secrets provider", zap.Error(err))
+			}
+
 			workspaces := make([]*malak.Workspace, 0)
 
 			err = db.NewSelect().
@@ -66,21 +72,44 @@ func syncDataPointForIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Co
 					zap.Int("integration_count", len(integrations)))
 
 				for _, integration := range integrations {
-					if !integration.IsEnabled {
+					if !integration.Integration.IsEnabled || !integration.IsEnabled {
+						logger.Info("skipping integration",
+							zap.String("workspace_integration_id", integration.ID.String()),
+							zap.String("integration", integration.Integration.IntegrationName))
 						continue
 					}
 
-					client, err := integrationManager.Get(malak.IntegrationProvider(integration.Integration.IntegrationName))
+					if !integration.IsActive {
+						logger.Info("skipping integration becasue it is not active",
+							zap.String("workspace_integration_id", integration.ID.String()),
+							zap.String("integration", integration.Integration.IntegrationName))
+						continue
+					}
+
+					client, err := integrationManager.Get(
+						malak.IntegrationProvider(
+							strings.ToLower(integration.Integration.IntegrationName)))
 					if err != nil {
 						logger.Error("could not get integration client",
+							zap.String("integration_name", integration.Integration.IntegrationName),
 							zap.String("workspace_id", workspace.ID.String()),
 							zap.String("integration_id", integration.ID.String()),
 							zap.Error(err))
 						continue
 					}
 
-					dataPoints, err := client.Data(cmd.Context(), integration.Metadata.AccessToken,
-						&malak.IntegrationFetchDataOptions{
+					value, err := secretsProvider.Get(context.Background(), string(integration.Metadata.AccessToken))
+					if err != nil {
+						logger.Error("could not fetch value from secret vault",
+							zap.String("secret_provider", cfg.Secrets.Provider.String()),
+							zap.String("workspace_id", workspace.ID.String()),
+							zap.String("integration_id", integration.ID.String()),
+							zap.Error(err))
+						continue
+					}
+
+					dataPoints, err := client.Data(cmd.Context(),
+						malak.AccessToken(value), &malak.IntegrationFetchDataOptions{
 							IntegrationID:      integration.ID,
 							WorkspaceID:        workspace.ID,
 							ReferenceGenerator: malak.NewReferenceGenerator(),
@@ -101,7 +130,7 @@ func syncDataPointForIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Co
 
 					integration.Metadata.LastFetchedAt = time.Now()
 
-					if err := integrationRepo.Update(context.Background(), &integration); err != nil {
+					if err := integrationRepo.AddDataPoint(context.Background(), hermes.Ref(integration), dataPoints); err != nil {
 						logger.Error("could not fetch data points from integration",
 							zap.String("workspace_id", workspace.ID.String()),
 							zap.String("integration_id", integration.ID.String()),
