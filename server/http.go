@@ -252,13 +252,20 @@ func buildRoutes(
 
 			r.Route("/integrations", func(r chi.Router) {
 				r.Get("/",
-					WrapMalakHTTPHandler(logger, workspaceHandler.getIntegrations, cfg, "workspaces.integrations.list"))
+					WrapMalakHTTPHandler(logger,
+						workspaceHandler.getIntegrations, cfg, "workspaces.integrations.list"))
 
 				r.Post("/{reference}",
-					WrapMalakHTTPHandler(logger, workspaceHandler.enableIntegration, cfg, "workspaces.integrations.store"))
+					WrapMalakHTTPHandler(logger,
+						workspaceHandler.enableIntegration, cfg, "workspaces.integrations.store"))
+
+				r.Put("/{reference}",
+					WrapMalakHTTPHandler(logger,
+						workspaceHandler.updateAPIKeyForIntegration, cfg, "workspaces.integrations.update_token"))
 
 				r.Post("/{reference}/ping",
-					WrapMalakHTTPHandler(logger, workspaceHandler.pingIntegration, cfg, "workspaces.integrations.ping"))
+					WrapMalakHTTPHandler(logger,
+						workspaceHandler.pingIntegration, cfg, "workspaces.integrations.ping"))
 			})
 
 			r.Route("/updates", func(r chi.Router) {

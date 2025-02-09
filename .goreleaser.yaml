@@ -37,6 +37,7 @@ archives:
         format: zip
 
 changelog:
+  use: git
   sort: asc
   filters:
     exclude:

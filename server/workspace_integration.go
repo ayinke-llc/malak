@@ -138,8 +138,8 @@ func (wo *workspaceHandler) pingIntegration(
 		return newAPIStatus(http.StatusBadRequest, "integration not enabled yet and coming soon"), StatusFailed
 	}
 
-	if integration.IsActive {
-		return newAPIStatus(http.StatusBadRequest, "Integration is currently active"), StatusFailed
+	if integration.Integration.IntegrationType != malak.IntegrationTypeApiKey {
+		return newAPIStatus(http.StatusBadRequest, "You cannot set the api key for this integration"), StatusFailed
 	}
 
 	_, err = integrationImpl.Ping(ctx, req.APIKey)
@@ -218,6 +218,10 @@ func (wo *workspaceHandler) enableIntegration(
 		return newAPIStatus(http.StatusBadRequest, "integration already enabled"), StatusFailed
 	}
 
+	if integration.Integration.IntegrationType != malak.IntegrationTypeApiKey {
+		return newAPIStatus(http.StatusBadRequest, "You can only update the api key for this integration"), StatusFailed
+	}
+
 	logger = logger.With(zap.String("integration_name", integration.Integration.IntegrationName))
 
 	provider, err := malak.ParseIntegrationProvider(strings.ToLower(integration.Integration.IntegrationName))
@@ -264,5 +268,124 @@ func (wo *workspaceHandler) enableIntegration(
 	}
 
 	return newAPIStatus(http.StatusCreated, "integration successfully enabled"),
+		StatusSuccess
+}
+
+// TODO: maybe have just one endpoint for updateAPIKeyForIntegration and enableIntegration?
+// They are pretty much the same except for validation criterias.
+//
+// @Summary update integration api key
+// @Tags integrations
+// @Accept  json
+// @Produce  json
+// @Param message body testAPIIntegrationRequest true "request body"
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/integrations/{reference} [put]
+func (wo *workspaceHandler) updateAPIKeyForIntegration(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	_ http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	ref := chi.URLParam(r, "reference")
+
+	span.SetAttributes(attribute.String("reference", ref))
+
+	logger = logger.With(zap.String("reference", ref))
+
+	logger.Debug("updating api key for integration")
+
+	req := new(testAPIIntegrationRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	logger = logger.With(zap.String("integration_reference", ref))
+
+	integration, err := wo.integrationRepo.Get(ctx, malak.FindWorkspaceIntegrationOptions{
+		Reference: malak.Reference(ref),
+	})
+	if err != nil {
+		var msg string = "could not fetch integration"
+		var status = http.StatusInternalServerError
+
+		if errors.Is(err, malak.ErrWorkspaceIntegrationNotFound) {
+			msg = err.Error()
+			status = http.StatusNotFound
+		}
+
+		logger.
+			Error(msg,
+				zap.Error(err))
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	if !integration.Integration.IsEnabled {
+		return newAPIStatus(http.StatusBadRequest, "integration not enabled yet and coming soon"), StatusFailed
+	}
+
+	if !integration.IsEnabled {
+		return newAPIStatus(http.StatusBadRequest, "integration is not enabled. Enable before updating api key"), StatusFailed
+	}
+
+	if integration.Integration.IntegrationType != malak.IntegrationTypeApiKey {
+		return newAPIStatus(http.StatusBadRequest, "You cannot update the api key for this integration"), StatusFailed
+	}
+
+	logger = logger.With(zap.String("integration_name", integration.Integration.IntegrationName))
+
+	provider, err := malak.ParseIntegrationProvider(strings.ToLower(integration.Integration.IntegrationName))
+	if err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	integrationImpl, err := wo.integrationManager.Get(provider)
+	if err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	chartValues, err := integrationImpl.Ping(ctx, req.APIKey)
+	if err != nil {
+		logger.Error("could not ping Integration",
+			zap.Error(err))
+
+		return newAPIStatus(http.StatusInternalServerError, err.Error()), StatusFailed
+	}
+
+	workspace := getWorkspaceFromContext(ctx)
+
+	value, err := wo.secretsClient.Create(ctx, &secret.CreateSecretOptions{
+		Value:       req.APIKey.String(),
+		WorkspaceID: workspace.ID,
+	})
+	if err != nil {
+		logger.Error("could not run value agaisnt secets provider",
+			zap.Error(err))
+
+		return newAPIStatus(http.StatusInternalServerError, "could not encrypt secrets provider"), StatusFailed
+	}
+
+	integration.IsEnabled = true
+	integration.Metadata.AccessToken = malak.AccessToken(value)
+	integration.IsActive = true
+
+	if err := wo.integrationRepo.CreateCharts(ctx, integration, chartValues); err != nil {
+		logger.Error("could not update integration",
+			zap.Error(err))
+
+		return newAPIStatus(http.StatusInternalServerError, "could not update integration"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusCreated, "integration api key updated"),
 		StatusSuccess
 }

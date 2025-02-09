@@ -1211,6 +1211,24 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags integrations
+     * @name IntegrationsUpdate
+     * @summary update integration api key
+     * @request PUT:/workspaces/integrations/{reference}
+     */
+    integrationsUpdate: (reference: string, data: ServerTestAPIIntegrationRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/workspaces/integrations/${reference}`,
+        method: "PUT",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags integrations
      * @name IntegrationsPingCreate
      * @summary test an api key is valid and can reach the integration
      * @request POST:/workspaces/integrations/{reference}/ping
