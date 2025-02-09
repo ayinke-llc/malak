@@ -52,6 +52,13 @@ const getConnectionTypeBadge = (type: MalakIntegrationType) => {
   }
 }
 
+const getStatusBadge = (integration: MalakWorkspaceIntegration) => {
+  if (!integration?.integration?.is_enabled) {
+    return <Badge variant="secondary">Coming Soon</Badge>
+  }
+  return null;
+}
+
 export function IntegrationCard({ integration }: IntegrationCardProps) {
 
   const [apiKeyDialogOpen, setApiKeyDialogOpen] = useState(false);
@@ -327,9 +334,10 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
           <div className="flex justify-between items-center mt-4">
             <div className="flex gap-2">
               {getConnectionTypeBadge(integration?.integration?.integration_type as MalakIntegrationType)}
+              {getStatusBadge(integration)}
             </div>
             <div className="flex items-center gap-2">
-              {integration?.is_enabled && (
+              {integration?.is_enabled && integration?.integration?.is_enabled && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -346,7 +354,7 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
                 disabled={!integration?.integration?.is_enabled}
                 onCheckedChange={handleToggleIntegration}
               />
-              {integration?.is_enabled && (
+              {integration?.is_enabled && integration?.integration?.is_enabled && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
