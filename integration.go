@@ -167,7 +167,7 @@ type IntegrationRepository interface {
 
 	List(context.Context, *Workspace) ([]WorkspaceIntegration, error)
 	Get(context.Context, FindWorkspaceIntegrationOptions) (*WorkspaceIntegration, error)
-	ToggleEnabled(context.Context, *WorkspaceIntegration) error
+	Disable(context.Context, *WorkspaceIntegration) error
 	Update(context.Context, *WorkspaceIntegration) error
 
 	CreateCharts(context.Context, *WorkspaceIntegration, []IntegrationChartValues) error

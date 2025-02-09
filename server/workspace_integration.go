@@ -389,3 +389,69 @@ func (wo *workspaceHandler) updateAPIKeyForIntegration(
 	return newAPIStatus(http.StatusCreated, "integration api key updated"),
 		StatusSuccess
 }
+
+// @Summary disable integration
+// @Tags integrations
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/integrations/{reference} [delete]
+func (wo *workspaceHandler) disableIntegration(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	_ http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	ref := chi.URLParam(r, "reference")
+
+	span.SetAttributes(attribute.String("reference", ref))
+
+	logger = logger.With(zap.String("reference", ref))
+
+	logger.Debug("updating api key for integration")
+
+	logger = logger.With(zap.String("integration_reference", ref))
+
+	integration, err := wo.integrationRepo.Get(ctx, malak.FindWorkspaceIntegrationOptions{
+		Reference: malak.Reference(ref),
+	})
+	if err != nil {
+		var msg string = "could not fetch integration"
+		var status = http.StatusInternalServerError
+
+		if errors.Is(err, malak.ErrWorkspaceIntegrationNotFound) {
+			msg = err.Error()
+			status = http.StatusNotFound
+		}
+
+		logger.
+			Error(msg,
+				zap.Error(err))
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	if !integration.Integration.IsEnabled {
+		return newAPIStatus(http.StatusBadRequest, "integration not enabled yet and coming soon"), StatusFailed
+	}
+
+	if !integration.IsEnabled {
+		return newAPIStatus(http.StatusBadRequest, "integration is already disabled"), StatusFailed
+	}
+
+	logger = logger.With(zap.String("integration_name", integration.Integration.IntegrationName))
+
+	if err := wo.integrationRepo.Disable(ctx, integration); err != nil {
+		logger.Error("could not update integration",
+			zap.Error(err))
+
+		return newAPIStatus(http.StatusInternalServerError, "could not update integration"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusCreated, "integration successfully disabled"),
+		StatusSuccess
+}

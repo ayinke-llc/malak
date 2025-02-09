@@ -120,7 +120,7 @@ func (i *integrationRepo) Get(ctx context.Context,
 	return integration, err
 }
 
-func (i *integrationRepo) ToggleEnabled(ctx context.Context,
+func (i *integrationRepo) Disable(ctx context.Context,
 	integration *malak.WorkspaceIntegration) error {
 
 	ctx, cancelFn := withContext(ctx)
@@ -133,7 +133,7 @@ func (i *integrationRepo) ToggleEnabled(ctx context.Context,
 
 			_, err := tx.NewUpdate().
 				Where("id = ?", integration.ID).
-				Set("is_enabled = CASE WHEN is_enabled = true THEN false ELSE true END").
+				Set("is_enabled = ?", false).
 				Model(integration).
 				Exec(ctx)
 

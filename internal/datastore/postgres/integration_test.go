@@ -135,7 +135,7 @@ func TestIntegration_Get(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestIntegration_ToggleEnabled(t *testing.T) {
+func TestIntegration_Disable(t *testing.T) {
 	client, teardownFunc := setupDatabase(t)
 	defer teardownFunc()
 
@@ -164,28 +164,24 @@ func TestIntegration_ToggleEnabled(t *testing.T) {
 	require.Len(t, integrations, 1)
 
 	workspaceIntegration := integrations[0]
-	initialEnabledState := workspaceIntegration.IsEnabled
+	workspaceIntegration.IsEnabled = true
 
-	// Toggle enabled state
-	err = integrationRepo.ToggleEnabled(context.Background(), &workspaceIntegration)
-	require.NoError(t, err)
+	require.NoError(t, integrationRepo.Update(context.Background(), &workspaceIntegration))
 
-	// Fetch updated integration
 	updatedIntegration, err := integrationRepo.Get(context.Background(), malak.FindWorkspaceIntegrationOptions{
 		Reference: workspaceIntegration.Reference,
 	})
 	require.NoError(t, err)
-	require.NotEqual(t, initialEnabledState, updatedIntegration.IsEnabled)
+	require.True(t, updatedIntegration.IsEnabled)
 
-	// Toggle again to verify it switches back
-	err = integrationRepo.ToggleEnabled(context.Background(), updatedIntegration)
+	err = integrationRepo.Disable(context.Background(), &workspaceIntegration)
 	require.NoError(t, err)
 
-	finalIntegration, err := integrationRepo.Get(context.Background(), malak.FindWorkspaceIntegrationOptions{
+	updatedIntegration, err = integrationRepo.Get(context.Background(), malak.FindWorkspaceIntegrationOptions{
 		Reference: workspaceIntegration.Reference,
 	})
 	require.NoError(t, err)
-	require.Equal(t, initialEnabledState, finalIntegration.IsEnabled)
+	require.False(t, updatedIntegration.IsEnabled)
 }
 
 func TestIntegration_Update(t *testing.T) {
