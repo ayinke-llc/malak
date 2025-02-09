@@ -123,10 +123,6 @@ func (wo *workspaceHandler) pingIntegration(
 
 	logger = logger.With(zap.String("integration_name", integration.Integration.IntegrationName))
 
-	if integration.IsActive {
-		return newAPIStatus(http.StatusBadRequest, "Integration is currently active"), StatusFailed
-	}
-
 	provider, err := malak.ParseIntegrationProvider(strings.ToLower(integration.Integration.IntegrationName))
 	if err != nil {
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
@@ -135,6 +131,14 @@ func (wo *workspaceHandler) pingIntegration(
 	integrationImpl, err := wo.integrationManager.Get(provider)
 	if err != nil {
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	if !integration.Integration.IsEnabled {
+		return newAPIStatus(http.StatusBadRequest, "integration not enabled yet and coming soon"), StatusFailed
+	}
+
+	if integration.IsActive {
+		return newAPIStatus(http.StatusBadRequest, "Integration is currently active"), StatusFailed
 	}
 
 	_, err = integrationImpl.Ping(ctx, req.APIKey)
@@ -203,6 +207,14 @@ func (wo *workspaceHandler) enableIntegration(
 			Error(msg,
 				zap.Error(err))
 		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	if !integration.Integration.IsEnabled {
+		return newAPIStatus(http.StatusBadRequest, "integration not enabled yet and coming soon"), StatusFailed
+	}
+
+	if integration.IsEnabled {
+		return newAPIStatus(http.StatusBadRequest, "integration already enabled"), StatusFailed
 	}
 
 	logger = logger.With(zap.String("integration_name", integration.Integration.IntegrationName))
