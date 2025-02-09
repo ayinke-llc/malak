@@ -15,6 +15,7 @@ White-label by design. Ready to be deployed on your own domain.
 Own full control of your data and company state if you decide to selfhost.
 
 - [Features](#features)
+- [License](#license)
 - [FAQs](#faqs)
 - [Self hosting](#self-hosting)
   - [Frontend](#frontend)
@@ -32,8 +33,9 @@ Own full control of your data and company state if you decide to selfhost.
   Brex, Stripe and more. [Full list](https://malak.vc/integrations)
 - Create, manage and share your decks.
 - Manage your fundraising pipeline
+- Own your captable
 
-## Built With
+### Built With
 
 - Golang
 - Postgresql
@@ -41,6 +43,20 @@ Own full control of your data and company state if you decide to selfhost.
 - NextJS
 - Tailwind CSS
 - Stripe ( optional )
+
+## LICENSE
+
+Malak is a commercial open source product, which means some parts of this
+open source repository require a commercial license. The concept is
+called "Open Core" where the core software (99%) is fully open source,
+licensed under AGPLv3 and the last 1% is covered under a
+commercial license ("/internal/integrations/" Enterprise Edition) which we
+believe is entirely relevant for larger organisations that require enterprise features.
+
+Our philosophy is simple, all features are open-source under AGPLv3.
+But 3rd party integrations and auto-syncing are under a commercial license.
+
+[See details here](https://github.com/ayinke-llc/malak/tree/fix_readme/internal/integrations#readme)
 
 ## Self-hosting
 
@@ -53,8 +69,7 @@ malak migrate
 > [!IMPORTANT]
 > Everytime you upgrade the backend or re-download the binary/docker image,
 > it makes sense to run the migrations again as migrations are usually added to
-> support newer
-> features or enhance existing ones
+> support newer features or enhance existing ones
 
 ### Backend
 
