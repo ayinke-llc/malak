@@ -68,6 +68,7 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
   const [isConnectionValid, setIsConnectionValid] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [localEnabled, setLocalEnabled] = useState(integration?.is_enabled || false);
 
   const queryClient = useQueryClient();
 
@@ -128,7 +129,11 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
   const apiKeyValue = watch("apiKey");
 
   const handleToggleIntegration = (checked: boolean) => {
-    if (!checked) return;
+    setLocalEnabled(checked);
+    if (!checked) {
+      queryClient.invalidateQueries({ queryKey: [LIST_INTEGRATIONS] });
+      return;
+    }
 
     if (integration?.integration?.integration_type === MalakIntegrationType.IntegrationTypeApiKey) {
       setIsEditing(false);
@@ -178,6 +183,7 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
     setIsConnectionTested(false);
     setIsConnectionValid(false);
     setShowApiKey(false);
+    setLocalEnabled(integration?.is_enabled || false);
   };
 
   const handleDisconnectOAuth = async () => {
@@ -236,6 +242,7 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
         setApiKeyDialogOpen(open);
         if (!open) {
           resetDialogState();
+          queryClient.invalidateQueries({ queryKey: [LIST_INTEGRATIONS] });
         }
       }}>
         <DialogContent>
@@ -350,7 +357,7 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
                 </TooltipProvider>
               )}
               <Switch
-                checked={integration?.is_enabled}
+                checked={localEnabled}
                 disabled={!integration?.integration?.is_enabled}
                 onCheckedChange={handleToggleIntegration}
               />
