@@ -205,7 +205,7 @@ func (i *integrationRepo) AddDataPoint(ctx context.Context,
 
 		for _, value := range dataPoints {
 
-			var chart []malak.IntegrationChart
+			var chart malak.IntegrationChart
 
 			query := tx.NewSelect().
 				Model(&chart).
@@ -225,6 +225,7 @@ func (i *integrationRepo) AddDataPoint(ctx context.Context,
 			value.Data.Reference = generator.Generate(malak.EntityTypeIntegrationDatapoint)
 			value.Data.WorkspaceIntegrationID = workspaceIntegration.ID
 			value.Data.WorkspaceID = workspaceIntegration.WorkspaceID
+			value.Data.IntegrationChartID = chart.ID
 
 			_, err = tx.NewInsert().
 				Model(&value.Data).

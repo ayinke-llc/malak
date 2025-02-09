@@ -81,6 +81,7 @@ type IntegrationDataPoint struct {
 	ID                     uuid.UUID                    `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 	WorkspaceIntegrationID uuid.UUID                    `json:"workspace_integration_id,omitempty"`
 	WorkspaceID            uuid.UUID                    `json:"workspace_id,omitempty"`
+	IntegrationChartID     uuid.UUID                    `json:"integration_chart_id,omitempty"`
 	Reference              Reference                    `json:"reference,omitempty"`
 	PointName              string                       `json:"point_name,omitempty"`
 	PointValue             int64                        `json:"point_value,omitempty"`
