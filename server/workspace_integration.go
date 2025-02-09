@@ -138,6 +138,10 @@ func (wo *workspaceHandler) pingIntegration(
 		return newAPIStatus(http.StatusBadRequest, "integration not enabled yet and coming soon"), StatusFailed
 	}
 
+	if integration.Integration.IntegrationType != malak.IntegrationTypeApiKey {
+		return newAPIStatus(http.StatusBadRequest, "You cannot set the api key for this integration"), StatusFailed
+	}
+
 	_, err = integrationImpl.Ping(ctx, req.APIKey)
 	if err != nil {
 		logger.Error("could not ping Integration",
@@ -335,7 +339,7 @@ func (wo *workspaceHandler) updateAPIKeyForIntegration(
 	}
 
 	if integration.Integration.IntegrationType != malak.IntegrationTypeApiKey {
-		return newAPIStatus(http.StatusBadRequest, "You can only update the api key for this integration"), StatusFailed
+		return newAPIStatus(http.StatusBadRequest, "You cannot update the api key for this integration"), StatusFailed
 	}
 
 	logger = logger.With(zap.String("integration_name", integration.Integration.IntegrationName))
@@ -373,7 +377,6 @@ func (wo *workspaceHandler) updateAPIKeyForIntegration(
 
 	integration.IsEnabled = true
 	integration.Metadata.AccessToken = malak.AccessToken(value)
-	integration.Metadata.LastFetchedAt = time.Now()
 	integration.IsActive = true
 
 	if err := wo.integrationRepo.CreateCharts(ctx, integration, chartValues); err != nil {
