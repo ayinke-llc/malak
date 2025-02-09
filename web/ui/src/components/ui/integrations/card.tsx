@@ -29,7 +29,7 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ENABLE_INTEGRATION, LIST_INTEGRATIONS, PING_INTEGRATION } from "@/lib/query-constants";
+import { ENABLE_INTEGRATION, LIST_INTEGRATIONS, PING_INTEGRATION, UPDATE_INTEGRATION_SETTINGS } from "@/lib/query-constants";
 import client from "@/lib/client";
 import { AxiosError } from "axios";
 
@@ -126,6 +126,24 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
     },
   });
 
+  const updateMutationSettings = useMutation({
+    mutationKey: [UPDATE_INTEGRATION_SETTINGS],
+    mutationFn: (data: ApiKeyFormData) => {
+      return client.workspaces.integrationsUpdate(integration?.reference as string, {
+        api_key: data.apiKey,
+      })
+    },
+    onSuccess: ({ data }) => {
+      toast.success(data.message);
+      setApiKeyDialogOpen(false);
+      resetDialogState();
+      setLocalEnabled(true);
+      queryClient.invalidateQueries({ queryKey: [LIST_INTEGRATIONS] });
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      toast.error(err.response?.data.message || "An error occurred while updating this integration");
+    },
+  });
 
   const apiKeyValue = watch("apiKey");
 
@@ -174,7 +192,11 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
       return;
     }
 
-    enableMutation.mutate(data);
+    if (isEditing) {
+      updateMutationSettings.mutate(data);
+    } else {
+      enableMutation.mutate(data);
+    }
   };
 
   const resetDialogState = () => {

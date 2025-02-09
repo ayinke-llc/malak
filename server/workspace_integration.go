@@ -138,10 +138,6 @@ func (wo *workspaceHandler) pingIntegration(
 		return newAPIStatus(http.StatusBadRequest, "integration not enabled yet and coming soon"), StatusFailed
 	}
 
-	if integration.IsActive {
-		return newAPIStatus(http.StatusBadRequest, "Integration is currently active"), StatusFailed
-	}
-
 	_, err = integrationImpl.Ping(ctx, req.APIKey)
 	if err != nil {
 		logger.Error("could not ping Integration",
