@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"strings"
 	"sync"
 	"time"
@@ -166,7 +167,7 @@ func shouldProcessIntegration(ctx context.Context,
 		Scan(ctx)
 
 	// No checkpoint exists for today - should process
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return true, nil
 	}
 

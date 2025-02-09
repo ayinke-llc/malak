@@ -1164,7 +1164,7 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 			},
 		},
 		{
-			name: "integration update error",
+			name: "integration create charts error",
 			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
 				integrationRepo.EXPECT().
 					Get(gomock.Any(), gomock.Any()).
@@ -1187,9 +1187,9 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 					Return("test-key", nil)
 
 				integrationRepo.EXPECT().
-					Update(gomock.Any(), gomock.Any()).
+					CreateCharts(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(errors.New("update error"))
+					Return(errors.New("create charts error"))
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 			req: testAPIIntegrationRequest{
@@ -1221,7 +1221,7 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 					Return("test-key", nil)
 
 				integrationRepo.EXPECT().
-					Update(gomock.Any(), gomock.Any()).
+					CreateCharts(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil)
 			},

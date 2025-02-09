@@ -14,3 +14,12 @@ plan such as Mercury, Brex, Stripe,Mixpanel, Paystack, Flutterwave and many more
 > You are not allowed to use this code to host your own version of <https://app.malak.vc>
 > to include automatic data syncing
 > without obtaining a proper license first. Shoot an email to <lanre@ayinke.ventures>
+
+## Syncing integrations
+
+The binary comes with a `integrations sync` command, it will auto sync the required data
+from the integration and insert into the database.
+
+```sh
+malak integrations sync
+```
