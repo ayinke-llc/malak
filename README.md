@@ -19,6 +19,8 @@ Own full control of your data and company state if you decide to selfhost.
 - [FAQs](#faqs)
 - [Self hosting](#self-hosting)
   - [Frontend](#frontend)
+    - [Dashboard app](#dashboard)
+    - [Deck viewer](#deck-viewer)
   - [Migrations](#migrations)
   - [Backend](#backend)
 
@@ -139,6 +141,8 @@ malak plans set-default plan_id
 
 ### Frontend
 
+#### Dashboard
+
 ```env
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=
 NEXT_PUBLIC_MALAK_POSTHOG_KEY=
@@ -150,6 +154,12 @@ NEXT_PUBLIC_SENTRY_DSN=
 NEXT_PUBLIC_DECKS_DOMAIN=https://deck.yourdowmain
 NEXT_PUBLIC_SUPPORT_EMAIL=support@yourdomain
 ```
+
+#### Deck viewer
+
+> [!IMPORTANT]
+> The decks viewer is not open sourced at the moment. You need a commercial/
+> Enterprise license for that.
 
 ## LICENSE
 
