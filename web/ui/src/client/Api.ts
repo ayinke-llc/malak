@@ -1193,6 +1193,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags integrations
+     * @name IntegrationsDelete
+     * @summary disable integration
+     * @request DELETE:/workspaces/integrations/{reference}
+     */
+    integrationsDelete: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/workspaces/integrations/${reference}`,
+        method: "DELETE",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags integrations
      * @name IntegrationsCreate
      * @summary enable integration
      * @request POST:/workspaces/integrations/{reference}

@@ -165,6 +165,20 @@ func (mr *MockIntegrationRepositoryMockRecorder) CreateCharts(arg0, arg1, arg2 a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCharts", reflect.TypeOf((*MockIntegrationRepository)(nil).CreateCharts), arg0, arg1, arg2)
 }
 
+// Disable mocks base method.
+func (m *MockIntegrationRepository) Disable(arg0 context.Context, arg1 *malak.WorkspaceIntegration) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Disable", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Disable indicates an expected call of Disable.
+func (mr *MockIntegrationRepositoryMockRecorder) Disable(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Disable", reflect.TypeOf((*MockIntegrationRepository)(nil).Disable), arg0, arg1)
+}
+
 // Get mocks base method.
 func (m *MockIntegrationRepository) Get(arg0 context.Context, arg1 malak.FindWorkspaceIntegrationOptions) (*malak.WorkspaceIntegration, error) {
 	m.ctrl.T.Helper()
@@ -208,20 +222,6 @@ func (m *MockIntegrationRepository) System(arg0 context.Context) ([]malak.Integr
 func (mr *MockIntegrationRepositoryMockRecorder) System(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "System", reflect.TypeOf((*MockIntegrationRepository)(nil).System), arg0)
-}
-
-// ToggleEnabled mocks base method.
-func (m *MockIntegrationRepository) ToggleEnabled(arg0 context.Context, arg1 *malak.WorkspaceIntegration) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ToggleEnabled", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// ToggleEnabled indicates an expected call of ToggleEnabled.
-func (mr *MockIntegrationRepositoryMockRecorder) ToggleEnabled(arg0, arg1 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ToggleEnabled", reflect.TypeOf((*MockIntegrationRepository)(nil).ToggleEnabled), arg0, arg1)
 }
 
 // Update mocks base method.

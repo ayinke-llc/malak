@@ -29,7 +29,7 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ENABLE_INTEGRATION, LIST_INTEGRATIONS, PING_INTEGRATION, UPDATE_INTEGRATION_SETTINGS } from "@/lib/query-constants";
+import { DISABLE_INTEGRATION, ENABLE_INTEGRATION, LIST_INTEGRATIONS, PING_INTEGRATION, UPDATE_INTEGRATION_SETTINGS } from "@/lib/query-constants";
 import client from "@/lib/client";
 import { AxiosError } from "axios";
 
@@ -126,6 +126,24 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
     },
   });
 
+  const disableMutation = useMutation({
+    mutationKey: [DISABLE_INTEGRATION],
+    mutationFn: () => {
+      return client.workspaces.integrationsDelete(integration?.reference as string)
+    },
+    onSuccess: ({ data }) => {
+      toast.success(data.message);
+      setApiKeyDialogOpen(false);
+      resetDialogState();
+      setLocalEnabled(false);
+      queryClient.invalidateQueries({ queryKey: [LIST_INTEGRATIONS] });
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      toast.error(err.response?.data.message || "An error occurred while disabling this integration");
+      setLocalEnabled(true);
+    },
+  });
+
   const updateMutationSettings = useMutation({
     mutationKey: [UPDATE_INTEGRATION_SETTINGS],
     mutationFn: (data: ApiKeyFormData) => {
@@ -148,12 +166,12 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
   const apiKeyValue = watch("apiKey");
 
   const handleToggleIntegration = (checked: boolean) => {
-    setLocalEnabled(checked);
     if (!checked) {
-      queryClient.invalidateQueries({ queryKey: [LIST_INTEGRATIONS] });
+      disableMutation.mutate();
       return;
     }
 
+    setLocalEnabled(checked);
     if (integration?.integration?.integration_type === MalakIntegrationType.IntegrationTypeApiKey) {
       setIsEditing(false);
       setApiKeyDialogOpen(true);

@@ -263,6 +263,10 @@ func buildRoutes(
 					WrapMalakHTTPHandler(logger,
 						workspaceHandler.updateAPIKeyForIntegration, cfg, "workspaces.integrations.update_token"))
 
+				r.Delete("/{reference}",
+					WrapMalakHTTPHandler(logger,
+						workspaceHandler.disableIntegration, cfg, "workspaces.integrations.disable"))
+
 				r.Post("/{reference}/ping",
 					WrapMalakHTTPHandler(logger,
 						workspaceHandler.pingIntegration, cfg, "workspaces.integrations.ping"))
