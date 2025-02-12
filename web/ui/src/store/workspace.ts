@@ -20,9 +20,9 @@ const useWorkspacesStore = create(
       current: null,
       workspaces: [],
       setCurrent: (workspace: MalakWorkspace) => set({ current: workspace }),
-      setWorkspaces: (workspaces: MalakWorkspace[]) => set({ workspaces }),
+      setWorkspaces: (workspaces: MalakWorkspace[]) => set({ workspaces: workspaces || [] }),
       appendWorkspaceAfterCreation: (workspace: MalakWorkspace) =>
-        set((state) => ({ workspaces: [...state.workspaces, workspace] })),
+        set((state) => ({ workspaces: [...(state.workspaces || []), workspace] })),
       clear: () => set({ current: null, workspaces: [] }),
     }),
     {

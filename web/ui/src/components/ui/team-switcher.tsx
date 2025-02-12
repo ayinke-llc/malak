@@ -26,14 +26,24 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Avatar } from "./custom/avatar/avatar"
 import { ModalAddWorkspace } from "./navigation/ModalAddWorkspace"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 
 export function TeamSwitcher() {
   const { isMobile } = useSidebar();
-  const { current, workspaces, setCurrent } = useWorkspacesStore();
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
 
-  const router = useRouter();
+  const current = useWorkspacesStore(state => state.current)
+  const workspaces = useWorkspacesStore(state => state.workspaces)
+  const setCurrent = useWorkspacesStore(state => state.setCurrent);
+
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
+
+  useEffect(() => {
+    if (!workspaces || workspaces.length === 0) {
+      setShowCreateWorkspace(true);
+    }
+  }, [workspaces]);
 
   const mutation = useMutation({
     mutationKey: [SWITCH_WORKSPACE],
@@ -50,6 +60,26 @@ export function TeamSwitcher() {
     gcTime: Number.POSITIVE_INFINITY,
   });
 
+  if (showCreateWorkspace) {
+    return (
+      <Dialog open={showCreateWorkspace} onOpenChange={(open) => !open && workspaces?.length > 0 && setShowCreateWorkspace(false)}>
+        <DialogContent className="sm:max-w-[425px]" onInteractOutside={(e) => {
+          // Prevent closing when clicking outside if no workspaces exist
+          if (!workspaces?.length) {
+            e.preventDefault();
+          }
+        }}>
+          <ModalAddWorkspace
+            onSelect={() => setShowCreateWorkspace(false)}
+            onOpenChange={(open) => !open && workspaces?.length > 0 && setShowCreateWorkspace(false)}
+            itemName="Create workspace"
+            forceOpen={true}
+          />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -60,8 +90,7 @@ export function TeamSwitcher() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
               <div
                 className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                 {current?.logo_url ? (
@@ -90,7 +119,7 @@ export function TeamSwitcher() {
             <DropdownMenuLabel className="text-xs text-muted-foreground">
               Teams
             </DropdownMenuLabel>
-            {workspaces.map((workspace, index) => (
+            {workspaces?.map((workspace, index) => (
               <DropdownMenuItem
                 key={workspace.reference}
                 onClick={() => {
