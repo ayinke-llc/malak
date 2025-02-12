@@ -32,6 +32,7 @@ export type ModalProps = {
   itemName: string;
   onSelect: () => void;
   onOpenChange: (open: boolean) => void;
+  forceOpen?: boolean;
 };
 
 type CreateWorkspaceInput = {
@@ -48,12 +49,13 @@ export function ModalAddWorkspace({
   itemName,
   onSelect,
   onOpenChange,
+  forceOpen = false,
 }: ModalProps) {
   const [loading, setLoading] = useState<boolean>(false);
 
   const appendWorkspace = useWorkspacesStore(state => state.appendWorkspaceAfterCreation)
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(forceOpen);
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
@@ -97,8 +99,8 @@ export function ModalAddWorkspace({
   };
 
   return (
-    <>
-      <Dialog onOpenChange={handleOpenChange} modal={false} open={open}>
+    <Dialog onOpenChange={handleOpenChange} modal={false} open={forceOpen || open}>
+      {!forceOpen && (
         <DialogTrigger className="w-full text-left" asChild>
           <DropdownMenuItem
             className="hover:cursor-pointer"
@@ -113,40 +115,42 @@ export function ModalAddWorkspace({
             {itemName}
           </DropdownMenuItem>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-lg">
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col gap-y-1"
-          >
-            <DialogHeader>
-              <DialogTitle>Add new workspace</DialogTitle>
-              <DialogDescription className="mt-1 text-sm leading-6">
-                Get started with connecting and building relationships with your
-                investors
-              </DialogDescription>
-              <div className="mt-4 grid grid-cols-2 gap-4">
-                <div className="col-span-full">
-                  <Label htmlFor="workspace-name" className="font-medium">
-                    Workspace name
-                  </Label>
-                  <Input
-                    id="name"
-                    placeholder="Ayinke Ventures"
-                    className="mt-2"
-                    {...register("name")}
-                  />
-                  <p className="mt-2 text-xs text-gray-500">
-                    Please provide the name of your product, startup or company
+      )}
+      <DialogContent className="sm:max-w-lg">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-y-1"
+        >
+          <DialogHeader>
+            <DialogTitle>Add new workspace</DialogTitle>
+            <DialogDescription className="mt-1 text-sm leading-6">
+              Get started with connecting and building relationships with your
+              investors
+            </DialogDescription>
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              <div className="col-span-full">
+                <Label htmlFor="workspace-name" className="font-medium">
+                  Workspace name
+                </Label>
+                <Input
+                  id="name"
+                  placeholder="Ayinke Ventures"
+                  className="mt-2"
+                  {...register("name")}
+                />
+                <p className="mt-2 text-xs text-gray-500">
+                  Please provide the name of your product, startup or company
+                </p>
+                {errors.name && (
+                  <p className="mt-4 text-xs text-red-600 dark:text-red-500">
+                    <span className="font-medium">{errors.name.message}</span>
                   </p>
-                  {errors.name && (
-                    <p className="mt-4 text-xs text-red-600 dark:text-red-500">
-                      <span className="font-medium">{errors.name.message}</span>
-                    </p>
-                  )}
-                </div>
+                )}
               </div>
-            </DialogHeader>
-            <DialogFooter className="mt-6">
+            </div>
+          </DialogHeader>
+          <DialogFooter className="mt-6">
+            {!forceOpen && (
               <DialogClose asChild>
                 <Button
                   className="mt-2 w-full sm:mt-0 sm:w-fit"
@@ -155,13 +159,13 @@ export function ModalAddWorkspace({
                   Go back
                 </Button>
               </DialogClose>
-              <Button type="submit" className="w-full sm:w-fit">
-                Add workspace
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </>
+            )}
+            <Button type="submit" className="w-full sm:w-fit" disabled={loading}>
+              Add workspace
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
