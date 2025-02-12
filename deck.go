@@ -12,6 +12,23 @@ const (
 	ErrDeckNotFound = MalakError("deck not found")
 )
 
+type PublicDeck struct {
+	Reference   Reference `json:"reference,omitempty"`
+	WorkspaceID uuid.UUID `json:"workspace_id,omitempty"`
+	Title       string    `json:"title,omitempty"`
+	ShortLink   string    `json:"short_link,omitempty"`
+	DeckSize    int64     `json:"deck_size,omitempty"`
+
+	IsArchived bool `json:"is_archived,omitempty"`
+
+	ObjectLink string `json:"object_link,omitempty"`
+
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+
+	DeckPreference *DeckPreference `bun:"rel:has-one,join:id=deck_id" json:"preferences,omitempty"`
+}
+
 type Deck struct {
 	ID uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 
@@ -84,6 +101,7 @@ type DeckRepository interface {
 	Create(context.Context, *Deck, *CreateDeckOptions) error
 	List(context.Context, *Workspace) ([]Deck, error)
 	Get(context.Context, FetchDeckOptions) (*Deck, error)
+	PublicDetails(context.Context, Reference) (*Deck, error)
 	Delete(context.Context, *Deck) error
 	UpdatePreferences(context.Context, *Deck) error
 	ToggleArchive(context.Context, *Deck) error

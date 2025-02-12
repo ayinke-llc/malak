@@ -398,3 +398,64 @@ func TestDecks_TogglePinned(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, malak.ErrPinnedDeckCapacityExceeded, err)
 }
+
+func TestDeck_PublicDetails(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	deck := NewDeckRepository(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+	userRepo := NewUserRepository(client)
+
+	// user from the fixtures
+	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+
+	// from workspaces.yml migration
+	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	// Test non-existent deck
+	nonExistentRef := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck)
+	_, err = deck.PublicDetails(context.Background(), nonExistentRef)
+	require.Error(t, err)
+	require.ErrorIs(t, err, malak.ErrDeckNotFound)
+
+	// Create a new deck
+	ref := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck)
+	err = deck.Create(context.Background(), &malak.Deck{
+		Reference:   ref,
+		WorkspaceID: workspace.ID,
+		CreatedBy:   user.ID,
+		Title:       "Public Deck Test",
+		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+		ObjectKey:   uuid.NewString(),
+	}, &malak.CreateDeckOptions{
+		Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
+		RequireEmail:      true,
+		EnableDownloading: true,
+		Password: struct {
+			Enabled  bool           `json:"enabled,omitempty" validate:"required"`
+			Password malak.Password `json:"password,omitempty" validate:"required"`
+		}{
+			Enabled:  true,
+			Password: malak.Password("test-password"),
+		},
+	})
+	require.NoError(t, err)
+
+	// Test fetching the deck's public details
+	deckFromDB, err := deck.PublicDetails(context.Background(), ref)
+	require.NoError(t, err)
+	require.NotNil(t, deckFromDB)
+	require.Equal(t, ref.String(), deckFromDB.Reference.String())
+	require.Equal(t, "Public Deck Test", deckFromDB.Title)
+	require.NotNil(t, deckFromDB.DeckPreference)
+	require.True(t, deckFromDB.DeckPreference.RequireEmail)
+	require.True(t, deckFromDB.DeckPreference.EnableDownloading)
+	require.True(t, deckFromDB.DeckPreference.Password.Enabled)
+}

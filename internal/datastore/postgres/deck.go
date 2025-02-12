@@ -204,3 +204,25 @@ func (d *decksRepo) TogglePinned(ctx context.Context,
 			return nil
 		})
 }
+
+// same as Get without the workspace_id
+// Separate api so as to not potentially misuse
+func (d *decksRepo) PublicDetails(ctx context.Context,
+	ref malak.Reference) (*malak.Deck, error) {
+
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	deck := &malak.Deck{}
+
+	err := d.inner.NewSelect().
+		Model(deck).
+		Where("deck.reference = ?", ref).
+		Relation("DeckPreference").
+		Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = malak.ErrDeckNotFound
+	}
+
+	return deck, err
+}

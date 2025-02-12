@@ -1046,6 +1046,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/decks/{reference}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "decks-viewer"
+                ],
+                "summary": "public api to fetch a deck",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deck unique reference.. e.g deck_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchPublicDeckResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/updates/react": {
             "get": {
                 "consumes": [
@@ -2983,6 +3038,41 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.PublicDeck": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deck_size": {
+                    "type": "integer"
+                },
+                "is_archived": {
+                    "type": "boolean"
+                },
+                "object_link": {
+                    "type": "string"
+                },
+                "preferences": {
+                    "$ref": "#/definitions/malak.DeckPreference"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "short_link": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.RecipientStatus": {
             "type": "string",
             "enum": [
@@ -3645,6 +3735,21 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/malak.ContactShareItem"
                     }
+                }
+            }
+        },
+        "server.fetchPublicDeckResponse": {
+            "type": "object",
+            "required": [
+                "deck",
+                "message"
+            ],
+            "properties": {
+                "deck": {
+                    "$ref": "#/definitions/malak.PublicDeck"
+                },
+                "message": {
+                    "type": "string"
                 }
             }
         },

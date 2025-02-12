@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/adelowo/gulter"
+	gulter "github.com/adelowo/gulter"
 	"github.com/ayinke-llc/malak"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/go-chi/chi/v5"
@@ -856,17 +856,27 @@ func TestGetExpectedCacheKey(t *testing.T) {
 	}
 }
 
+type uploadedFileMetadata struct {
+	Size              int64
+	FolderDestination string
+	Key               string
+}
+
+type mockStorage struct {
+	file *uploadedFileMetadata
+}
+
 func generateDeckUploadImageRequest() []struct {
 	name               string
 	mockFn             func(t *testing.T, cache *malak_mocks.MockCache)
 	expectedStatusCode int
-	file               *gulter.File
+	file               *uploadedFileMetadata
 } {
 	return []struct {
 		name               string
 		mockFn             func(t *testing.T, cache *malak_mocks.MockCache)
 		expectedStatusCode int
-		file               *gulter.File
+		file               *uploadedFileMetadata
 	}{
 		{
 			name:               "no file uploaded",
@@ -882,17 +892,15 @@ func generateDeckUploadImageRequest() []struct {
 					Return(errors.New("could not store in cache"))
 			},
 			expectedStatusCode: http.StatusInternalServerError,
-			file: &gulter.File{
+			file: &uploadedFileMetadata{
 				Size:              1024,
 				FolderDestination: "decks",
-				UploadedFileName:  "test.pdf",
-				StorageKey:        "decks/test.pdf",
+				Key:               "decks/test.pdf",
 			},
 		},
 		{
 			name: "successfully uploaded file",
 			mockFn: func(t *testing.T, cache *malak_mocks.MockCache) {
-				// Accept any cache key since gulter modifies the filename with a timestamp
 				cache.EXPECT().Add(
 					gomock.Any(),
 					gomock.Any(),
@@ -918,11 +926,10 @@ func generateDeckUploadImageRequest() []struct {
 					Return(nil)
 			},
 			expectedStatusCode: http.StatusOK,
-			file: &gulter.File{
+			file: &uploadedFileMetadata{
 				Size:              1024,
 				FolderDestination: "decks",
-				UploadedFileName:  "test.pdf",
-				StorageKey:        "decks/test.pdf",
+				Key:               "decks/test.pdf",
 			},
 		},
 	}
@@ -932,20 +939,22 @@ func mockValidator(f gulter.File) error {
 	return nil
 }
 
-type mockStorage struct {
-	file *gulter.File
-}
-
 func (m *mockStorage) Upload(ctx context.Context, r io.Reader, opts *gulter.UploadFileOptions) (*gulter.UploadedFileMetadata, error) {
 	if m.file == nil {
 		return nil, errors.New("no file")
 	}
-	// Don't add our own prefix, let Gulter handle it
 	return &gulter.UploadedFileMetadata{
 		Size:              m.file.Size,
 		FolderDestination: "decks",
 		Key:               fmt.Sprintf("decks/%s", opts.FileName),
 	}, nil
+}
+
+func (m *mockStorage) Path(ctx context.Context, opts gulter.PathOptions) (string, error) {
+	if m.file == nil {
+		return "", errors.New("no file")
+	}
+	return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", opts.Bucket, opts.Key), nil
 }
 
 func (m *mockStorage) Close() error {
@@ -1041,6 +1050,119 @@ func TestDeckHandler_UploadImage(t *testing.T) {
 					cfg, "decks.upload").
 					ServeHTTP(rr, req)
 			}
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generatePublicDeckDetailsTestTable() []struct {
+	name               string
+	mockFn             func(deck *malak_mocks.MockDeckRepository, gulter *mockStorage)
+	expectedStatusCode int
+} {
+	return []struct {
+		name               string
+		mockFn             func(deck *malak_mocks.MockDeckRepository, gulter *mockStorage)
+		expectedStatusCode int
+	}{
+		{
+			name: "no reference provided",
+			mockFn: func(deck *malak_mocks.MockDeckRepository, gulter *mockStorage) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "deck not found",
+			mockFn: func(deck *malak_mocks.MockDeckRepository, gulter *mockStorage) {
+				deck.EXPECT().PublicDetails(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, malak.ErrDeckNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "error fetching deck",
+			mockFn: func(deck *malak_mocks.MockDeckRepository, gulter *mockStorage) {
+				deck.EXPECT().PublicDetails(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("error occurred"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "error getting object path",
+			mockFn: func(deck *malak_mocks.MockDeckRepository, gulter *mockStorage) {
+				deck.EXPECT().PublicDetails(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Deck{
+						Reference:   "deck_test",
+						WorkspaceID: workspaceID,
+						Title:       "Test Deck",
+						ShortLink:   "test-deck",
+						ObjectKey:   "test-key",
+					}, nil)
+
+				gulter.file = nil // This will cause Path to return an error
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "fetched public deck details successfully",
+			mockFn: func(deck *malak_mocks.MockDeckRepository, gulter *mockStorage) {
+				deck.EXPECT().PublicDetails(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Deck{
+						Reference:   "deck_test",
+						WorkspaceID: workspaceID,
+						Title:       "Test Deck",
+						ShortLink:   "test-deck",
+						ObjectKey:   "test-key",
+					}, nil)
+
+				gulter.file = &uploadedFileMetadata{
+					Size:              1024,
+					FolderDestination: "decks",
+					Key:               "test-key",
+				}
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
+func TestDeckHandler_PublicDeckDetails(t *testing.T) {
+	for _, v := range generatePublicDeckDetailsTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			deckRepo := malak_mocks.NewMockDeckRepository(controller)
+			gulterStore := &mockStorage{}
+
+			v.mockFn(deckRepo, gulterStore)
+
+			u := &deckHandler{
+				deckRepo:    deckRepo,
+				gulterStore: gulterStore,
+				cfg:         getConfig(),
+			}
+
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, "/public/decks/deck_test", nil)
+			req.Header.Add("Content-Type", "application/json")
+
+			ctx := chi.NewRouteContext()
+			if v.name != "no reference provided" {
+				ctx.URLParams.Add("reference", "deck_test")
+			}
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
+
+			WrapMalakHTTPHandler(getLogger(t),
+				u.publicDeckDetails,
+				getConfig(), "decks.public_details").
+				ServeHTTP(rr, req)
 
 			require.Equal(t, v.expectedStatusCode, rr.Code)
 			verifyMatch(t, rr)

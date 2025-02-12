@@ -1,0 +1,1 @@
+{"deck":{"reference":"deck_test","workspace_id":"8ce0f580-4d6d-429e-9d0e-a78eb99f62c2","title":"Test Deck","short_link":"test-deck","object_link":"https://test-deck-bucket.s3.amazonaws.com/test-key","created_at":"0001-01-01T00:00:00Z","updated_at":"0001-01-01T00:00:00Z"},"message":"fetched deck details"}

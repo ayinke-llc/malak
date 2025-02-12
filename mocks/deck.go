@@ -99,6 +99,21 @@ func (mr *MockDeckRepositoryMockRecorder) List(arg0, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockDeckRepository)(nil).List), arg0, arg1)
 }
 
+// PublicDetails mocks base method.
+func (m *MockDeckRepository) PublicDetails(arg0 context.Context, arg1 malak.Reference) (*malak.Deck, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PublicDetails", arg0, arg1)
+	ret0, _ := ret[0].(*malak.Deck)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PublicDetails indicates an expected call of PublicDetails.
+func (mr *MockDeckRepositoryMockRecorder) PublicDetails(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublicDetails", reflect.TypeOf((*MockDeckRepository)(nil).PublicDetails), arg0, arg1)
+}
+
 // ToggleArchive mocks base method.
 func (m *MockDeckRepository) ToggleArchive(arg0 context.Context, arg1 *malak.Deck) error {
 	m.ctrl.T.Helper()
