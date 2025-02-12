@@ -18,7 +18,6 @@ import (
 	"github.com/ayinke-llc/malak"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -1099,7 +1098,7 @@ func generatePublicDeckDetailsTestTable() []struct {
 					Times(1).
 					Return(&malak.Deck{
 						Reference:   "deck_test",
-						WorkspaceID: uuid.New(),
+						WorkspaceID: workspaceID,
 						Title:       "Test Deck",
 						ShortLink:   "test-deck",
 						ObjectKey:   "test-key",
@@ -1116,7 +1115,7 @@ func generatePublicDeckDetailsTestTable() []struct {
 					Times(1).
 					Return(&malak.Deck{
 						Reference:   "deck_test",
-						WorkspaceID: uuid.New(),
+						WorkspaceID: workspaceID,
 						Title:       "Test Deck",
 						ShortLink:   "test-deck",
 						ObjectKey:   "test-key",
