@@ -51,9 +51,11 @@ export function ModalAddWorkspace({
   onOpenChange,
   forceOpen = false,
 }: ModalProps) {
+
   const [loading, setLoading] = useState<boolean>(false);
   const appendWorkspace = useWorkspacesStore(state => state.appendWorkspaceAfterCreation)
   const [open, setOpen] = useState(forceOpen);
+  const setCurrent = useWorkspacesStore(state => state.setCurrent)
 
   useEffect(() => {
     if (open || forceOpen) {
@@ -77,9 +79,11 @@ export function ModalAddWorkspace({
     mutationFn: (data: CreateWorkspaceInput) =>
       client.workspaces.workspacesCreate(data),
     onSuccess: ({ data }) => {
+      setCurrent(data.workspace)
       appendWorkspace(data.workspace);
       toast.success(data.message);
       onOpenChange(false);
+      setOpen(false);
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message;
