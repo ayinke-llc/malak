@@ -23,7 +23,7 @@ import { RiAddBoxLine, RiAddLargeLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as yup from "yup";
@@ -52,10 +52,18 @@ export function ModalAddWorkspace({
   forceOpen = false,
 }: ModalProps) {
   const [loading, setLoading] = useState<boolean>(false);
-
   const appendWorkspace = useWorkspacesStore(state => state.appendWorkspaceAfterCreation)
-
   const [open, setOpen] = useState(forceOpen);
+
+  useEffect(() => {
+    if (open || forceOpen) {
+      // Small delay to ensure the modal is rendered
+      setTimeout(() => {
+        const input = document.getElementById('workspace-name');
+        input?.focus();
+      }, 100);
+    }
+  }, [open, forceOpen]);
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
@@ -69,7 +77,7 @@ export function ModalAddWorkspace({
     mutationFn: (data: CreateWorkspaceInput) =>
       client.workspaces.workspacesCreate(data),
     onSuccess: ({ data }) => {
-      appendWorkspace((data.workspace))
+      appendWorkspace(data.workspace);
       toast.success(data.message);
       onOpenChange(false);
     },
@@ -133,7 +141,7 @@ export function ModalAddWorkspace({
                   Workspace name
                 </Label>
                 <Input
-                  id="name"
+                  id="workspace-name"
                   placeholder="Ayinke Ventures"
                   className="mt-2"
                   {...register("name")}

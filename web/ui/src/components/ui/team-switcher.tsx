@@ -62,12 +62,21 @@ export function TeamSwitcher() {
 
   if (showCreateWorkspace) {
     return (
-      <ModalAddWorkspace
-        onSelect={() => setShowCreateWorkspace(false)}
-        onOpenChange={(open) => !open && workspaces?.length > 0 && setShowCreateWorkspace(false)}
-        itemName="Create workspace"
-        forceOpen={true}
-      />
+      <Dialog open={showCreateWorkspace} onOpenChange={(open) => !open && workspaces?.length > 0 && setShowCreateWorkspace(false)}>
+        <DialogContent className="sm:max-w-[425px]" onInteractOutside={(e) => {
+          // Prevent closing when clicking outside if no workspaces exist
+          if (!workspaces?.length) {
+            e.preventDefault();
+          }
+        }}>
+          <ModalAddWorkspace
+            onSelect={() => setShowCreateWorkspace(false)}
+            onOpenChange={(open) => !open && workspaces?.length > 0 && setShowCreateWorkspace(false)}
+            itemName="Create workspace"
+            forceOpen={true}
+          />
+        </DialogContent>
+      </Dialog>
     );
   }
 
