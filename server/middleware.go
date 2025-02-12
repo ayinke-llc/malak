@@ -150,18 +150,28 @@ func requireAuthentication(
 
 			r = r.WithContext(writeUserToCtx(ctx, user))
 
-			if user.Metadata.CurrentWorkspace != uuid.Nil {
-				workspace, err := workspaceRepo.Get(ctx, &malak.FindWorkspaceOptions{
-					ID: user.Metadata.CurrentWorkspace,
-				})
-				if err != nil {
-					logger.Error("could not fetch workspace from database", zap.Error(err))
-					_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while fetching workspace from database"))
-					return
-				}
-
-				r = r.WithContext(writeWorkspaceToCtx(r.Context(), workspace))
+			// For auth/connect path, we don't need to check workspace
+			if strings.HasPrefix(r.URL.Path, "/v1/auth/connect") {
+				next.ServeHTTP(w, r)
+				return
 			}
+
+			// For all other paths, user must have a workspace
+			if user.Metadata.CurrentWorkspace == uuid.Nil {
+				_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, "You must be a member of a workspace"))
+				return
+			}
+
+			workspace, err := workspaceRepo.Get(ctx, &malak.FindWorkspaceOptions{
+				ID: user.Metadata.CurrentWorkspace,
+			})
+			if err != nil {
+				logger.Error("could not fetch workspace from database", zap.Error(err))
+				_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while fetching workspace from database"))
+				return
+			}
+
+			r = r.WithContext(writeWorkspaceToCtx(r.Context(), workspace))
 
 			next.ServeHTTP(w, r)
 		})

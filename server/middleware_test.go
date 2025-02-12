@@ -315,12 +315,11 @@ func TestRequireAuthentication(t *testing.T) {
 		require.Equal(t, http.StatusInternalServerError, rr.Code)
 	})
 
-	t.Run("workspace not found", func(t *testing.T) {
+	t.Run("user without workspace accessing protected route", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
 		userID := uuid.New()
-		workspaceID := uuid.New()
 		jwtManager := mock_jwttoken.NewMockJWTokenManager(ctrl)
 		userRepo := malak_mocks.NewMockUserRepository(ctrl)
 		workspaceRepo := malak_mocks.NewMockWorkspaceRepository(ctrl)
@@ -334,16 +333,12 @@ func TestRequireAuthentication(t *testing.T) {
 			Return(&malak.User{
 				ID: userID,
 				Metadata: &malak.UserMetadata{
-					CurrentWorkspace: workspaceID,
+					CurrentWorkspace: uuid.Nil, // No workspace
 				},
 			}, nil)
 
-		workspaceRepo.EXPECT().
-			Get(gomock.Any(), &malak.FindWorkspaceOptions{ID: workspaceID}).
-			Return(nil, errors.New("workspace not found"))
-
 		rr := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req := httptest.NewRequest(http.MethodGet, "/v1/protected", nil)
 		req.Header.Set("Authorization", "Bearer valid-token")
 
 		handler := requireAuthentication(
@@ -357,10 +352,67 @@ func TestRequireAuthentication(t *testing.T) {
 		}))
 
 		handler.ServeHTTP(rr, req)
-		require.Equal(t, http.StatusInternalServerError, rr.Code)
+		require.Equal(t, http.StatusBadRequest, rr.Code)
+
+		// Verify error message
+		var response map[string]string
+		err := json.NewDecoder(rr.Body).Decode(&response)
+		require.NoError(t, err)
+		require.Equal(t, "You must be a member of a workspace", response["message"])
 	})
 
-	t.Run("successful authentication with workspace", func(t *testing.T) {
+	t.Run("user without workspace accessing auth/connect route", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		userID := uuid.New()
+		jwtManager := mock_jwttoken.NewMockJWTokenManager(ctrl)
+		userRepo := malak_mocks.NewMockUserRepository(ctrl)
+		workspaceRepo := malak_mocks.NewMockWorkspaceRepository(ctrl)
+
+		jwtManager.EXPECT().
+			ParseJWToken("valid-token").
+			Return(jwttoken.JWTokenData{UserID: userID}, nil)
+
+		userRepo.EXPECT().
+			Get(gomock.Any(), &malak.FindUserOptions{ID: userID}).
+			Return(&malak.User{
+				ID: userID,
+				Metadata: &malak.UserMetadata{
+					CurrentWorkspace: uuid.Nil, // No workspace
+				},
+			}, nil)
+
+		// For auth/connect route, workspace repository should never be called
+		// since we check the path before attempting to fetch workspace
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/v1/auth/connect", nil)
+		req.Header.Set("Authorization", "Bearer valid-token")
+
+		handler := requireAuthentication(
+			logger,
+			jwtManager,
+			cfg,
+			userRepo,
+			workspaceRepo,
+		)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// For auth/connect route, we should still have user in context
+			user := getUserFromContext(r.Context())
+			require.Equal(t, userID, user.ID)
+			require.Equal(t, uuid.Nil, user.Metadata.CurrentWorkspace)
+
+			// Workspace should not be in context since we never fetched it
+			require.False(t, doesWorkspaceExistInContext(r.Context()))
+
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		handler.ServeHTTP(rr, req)
+		require.Equal(t, http.StatusOK, rr.Code)
+	})
+
+	t.Run("user with workspace accessing protected route", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -388,7 +440,7 @@ func TestRequireAuthentication(t *testing.T) {
 			Return(&malak.Workspace{ID: workspaceID}, nil)
 
 		rr := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req := httptest.NewRequest(http.MethodGet, "/v1/protected", nil)
 		req.Header.Set("Authorization", "Bearer valid-token")
 
 		handler := requireAuthentication(
@@ -398,6 +450,7 @@ func TestRequireAuthentication(t *testing.T) {
 			userRepo,
 			workspaceRepo,
 		)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Verify user and workspace are in context
 			user := getUserFromContext(r.Context())
 			require.Equal(t, userID, user.ID)
 
