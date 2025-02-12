@@ -107,7 +107,7 @@ export function ModalAddWorkspace({
   };
 
   return (
-    <Dialog onOpenChange={handleOpenChange} modal={false} open={forceOpen || open}>
+    <Dialog onOpenChange={handleOpenChange} open={forceOpen || open}>
       {!forceOpen && (
         <DialogTrigger className="w-full text-left" asChild>
           <DropdownMenuItem
