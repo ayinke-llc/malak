@@ -190,10 +190,11 @@ func buildRoutes(
 	}
 
 	deckHandler := &deckHandler{
+		gulterStore:        gulterHandler.Storage(),
 		referenceGenerator: referenceGenerator,
+		cache:              redisCache,
 		deckRepo:           deckRepo,
 		cfg:                cfg,
-		cache:              redisCache,
 	}
 
 	router.Use(middleware.RequestID)
@@ -387,6 +388,11 @@ func buildRoutes(
 				r.Post("/",
 					WrapMalakHTTPHandler(logger, updateHandler.uploadImage, cfg, "updates.image_upload"))
 			})
+		})
+
+		r.Route("/public", func(r chi.Router) {
+			r.Get("/decks/{reference}",
+				WrapMalakHTTPHandler(logger, deckHandler.publicDeckDetails, cfg, "public.decks.fetch"))
 		})
 	})
 

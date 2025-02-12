@@ -219,6 +219,19 @@ export interface MalakPreference {
   workspace_id?: string;
 }
 
+export interface MalakPublicDeck {
+  created_at?: string;
+  deck_size?: number;
+  is_archived?: boolean;
+  object_link?: string;
+  preferences?: MalakDeckPreference;
+  reference?: string;
+  short_link?: string;
+  title?: string;
+  updated_at?: string;
+  workspace_id?: string;
+}
+
 export enum MalakRecipientStatus {
   RecipientStatusPending = "pending",
   RecipientStatusSent = "sent",
@@ -467,6 +480,11 @@ export interface ServerFetchDetailedContactResponse {
   contact: MalakContact;
   message: string;
   shared_items: MalakContactShareItem[];
+}
+
+export interface ServerFetchPublicDeckResponse {
+  deck: MalakPublicDeck;
+  message: string;
 }
 
 export interface ServerFetchUpdateAnalyticsResponse {
@@ -1018,6 +1036,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "PUT",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  public = {
+    /**
+     * No description
+     *
+     * @tags decks-viewer
+     * @name DecksDetail
+     * @summary public api to fetch a deck
+     * @request GET:/public/decks/{reference}
+     */
+    decksDetail: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerFetchPublicDeckResponse, ServerAPIStatus>({
+        path: `/public/decks/${reference}`,
+        method: "GET",
         format: "json",
         ...params,
       }),

@@ -106,6 +106,11 @@ type fetchUpdateAnalyticsResponse struct {
 	Recipients []malak.UpdateRecipient `json:"recipients,omitempty" validate:"required"`
 }
 
+type fetchPublicDeckResponse struct {
+	Deck malak.PublicDeck `json:"deck,omitempty" validate:"required"`
+	APIStatus
+}
+
 type fetchDeckResponse struct {
 	Deck malak.Deck `json:"deck,omitempty" validate:"required"`
 	APIStatus

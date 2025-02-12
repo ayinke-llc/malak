@@ -5,7 +5,7 @@ go 1.23.1
 require (
 	github.com/ThreeDotsLabs/watermill v1.3.7
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.2
-	github.com/adelowo/gulter v0.0.0-20250118125244-ee5e3db48073
+	github.com/adelowo/gulter v0.0.0-20250212164855-be5012c5f635
 	github.com/alexlast/bunzap v0.1.0
 	github.com/aws/aws-sdk-go-v2 v1.36.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.36
@@ -65,7 +65,7 @@ require (
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.31.0
 	golang.org/x/oauth2 v0.22.0
-	golang.org/x/sync v0.10.0
+	golang.org/x/sync v0.11.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )
 
