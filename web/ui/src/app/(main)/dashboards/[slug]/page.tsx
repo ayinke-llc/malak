@@ -65,7 +65,7 @@ const mockCharts: Chart[] = [
   },
   {
     id: "3",
-    title: "Cost Breakdown",
+    title: "Cost Distribution",
     type: "pie",
     description: "Distribution of operational costs"
   },
@@ -74,6 +74,30 @@ const mockCharts: Chart[] = [
     title: "Conversion Rate",
     type: "bar",
     description: "User conversion metrics"
+  },
+  {
+    id: "5",
+    title: "Team Distribution",
+    type: "pie",
+    description: "Team members by department"
+  },
+  {
+    id: "6",
+    title: "Storage Usage",
+    type: "pie",
+    description: "Storage allocation by type"
+  },
+  {
+    id: "7",
+    title: "Support Tickets",
+    type: "bar",
+    description: "Monthly support ticket volume"
+  },
+  {
+    id: "8",
+    title: "API Requests",
+    type: "bar",
+    description: "Daily API request count"
   }
 ];
 
@@ -105,12 +129,44 @@ const conversionData = [
   { month: "Jun", rate: 67 },
 ];
 
-// Mock data for pie chart
+const ticketData = [
+  { month: "Jan", tickets: 145 },
+  { month: "Feb", tickets: 132 },
+  { month: "Mar", tickets: 164 },
+  { month: "Apr", tickets: 128 },
+  { month: "May", tickets: 155 },
+  { month: "Jun", tickets: 147 },
+];
+
+const apiRequestData = [
+  { month: "Jan", requests: 25000 },
+  { month: "Feb", requests: 32000 },
+  { month: "Mar", requests: 38000 },
+  { month: "Apr", requests: 42000 },
+  { month: "May", requests: 45000 },
+  { month: "Jun", requests: 51000 },
+];
+
+// Mock data for pie charts
 const costData = [
   { name: "Infrastructure", value: 400, color: "#0088FE" },
   { name: "Marketing", value: 300, color: "#00C49F" },
   { name: "Development", value: 500, color: "#FFBB28" },
   { name: "Operations", value: 200, color: "#FF8042" },
+];
+
+const teamData = [
+  { name: "Engineering", value: 40, color: "#0088FE" },
+  { name: "Product", value: 15, color: "#00C49F" },
+  { name: "Marketing", value: 20, color: "#FFBB28" },
+  { name: "Sales", value: 25, color: "#FF8042" },
+];
+
+const storageData = [
+  { name: "Documents", value: 450, color: "#0088FE" },
+  { name: "Media", value: 800, color: "#00C49F" },
+  { name: "Backups", value: 300, color: "#FFBB28" },
+  { name: "Other", value: 150, color: "#FF8042" },
 ];
 
 function ChartCard({ chart }: { chart: Chart }) {
@@ -131,8 +187,25 @@ function ChartCard({ chart }: { chart: Chart }) {
         return { data: userGrowthData, key: "users" };
       case "4":
         return { data: conversionData, key: "rate" };
+      case "7":
+        return { data: ticketData, key: "tickets" };
+      case "8":
+        return { data: apiRequestData, key: "requests" };
       default:
         return { data: revenueData, key: "revenue" };
+    }
+  };
+
+  const getPieData = (chartId: string) => {
+    switch (chartId) {
+      case "3":
+        return costData;
+      case "5":
+        return teamData;
+      case "6":
+        return storageData;
+      default:
+        return costData;
     }
   };
 
@@ -142,10 +215,10 @@ function ChartCard({ chart }: { chart: Chart }) {
         const { data, key } = getBarData(chart.id);
         return (
           <ChartContainer className="w-full h-full" config={{}}>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={data} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-                <XAxis dataKey="month" stroke="#888888" fontSize={12} />
-                <YAxis stroke="#888888" fontSize={12} />
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={data} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+                <XAxis dataKey="month" stroke="#888888" fontSize={11} />
+                <YAxis stroke="#888888" fontSize={11} />
                 <Tooltip />
                 <Bar dataKey={key} fill="#8884d8" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -153,20 +226,21 @@ function ChartCard({ chart }: { chart: Chart }) {
           </ChartContainer>
         );
       case "pie":
+        const pieData = getPieData(chart.id);
         return (
           <ChartContainer className="w-full h-full" config={{}}>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+            <ResponsiveContainer width="100%" height={160}>
+              <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                 <Pie
-                  data={costData}
+                  data={pieData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
+                  outerRadius={60}
                   dataKey="value"
                 >
-                  {costData.map((entry, index) => (
+                  {pieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -179,8 +253,8 @@ function ChartCard({ chart }: { chart: Chart }) {
   };
 
   return (
-    <Card className="p-4">
-      <div className="flex items-center justify-between mb-2">
+    <Card className="p-3">
+      <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <div className="text-muted-foreground">
             {getChartIcon(chart.type)}
@@ -192,7 +266,7 @@ function ChartCard({ chart }: { chart: Chart }) {
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="p-2 hover:bg-muted rounded-md">
+            <button className="p-1.5 hover:bg-muted rounded-md">
               <RiSettings4Line className="h-4 w-4 text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
@@ -227,7 +301,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{dashboard.title}</h1>
@@ -240,7 +314,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {mockCharts.map((chart) => (
           <ChartCard key={chart.id} chart={chart} />
         ))}
