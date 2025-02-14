@@ -1,7 +1,7 @@
 "use client";
 
-import ListDecks from "@/components/ui/decks/list/list";
-import UploadDeckModal from "@/components/ui/decks/modal";
+import ListDashboards from "@/components/ui/dashboards/list";
+import CreateDashboardModal from "@/components/ui/dashboards/create-modal";
 
 export default function Page() {
   return (
@@ -22,13 +22,13 @@ export default function Page() {
             </div>
 
             <div>
-              <UploadDeckModal />
+              <CreateDashboardModal />
             </div>
           </div>
         </section>
 
         <section className="mt-10">
-          <ListDecks />
+          <ListDashboards />
         </section>
       </div>
     </>
