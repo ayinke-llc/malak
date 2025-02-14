@@ -126,20 +126,20 @@ function ChartCard({ chart }: { chart: Chart }) {
   const getBarData = (chartId: string) => {
     switch (chartId) {
       case "1":
-        return { data: revenueData, key: "revenue", color: "#8884d8" };
+        return { data: revenueData, key: "revenue" };
       case "2":
-        return { data: userGrowthData, key: "users", color: "#82ca9d" };
+        return { data: userGrowthData, key: "users" };
       case "4":
-        return { data: conversionData, key: "rate", color: "#ffc658" };
+        return { data: conversionData, key: "rate" };
       default:
-        return { data: revenueData, key: "revenue", color: "#8884d8" };
+        return { data: revenueData, key: "revenue" };
     }
   };
 
   const renderChart = (type: Chart["type"]) => {
     switch (type) {
       case "bar":
-        const { data, key, color } = getBarData(chart.id);
+        const { data, key } = getBarData(chart.id);
         return (
           <ChartContainer className="w-full h-full" config={{}}>
             <ResponsiveContainer width="100%" height={200}>
@@ -147,7 +147,7 @@ function ChartCard({ chart }: { chart: Chart }) {
                 <XAxis dataKey="month" stroke="#888888" fontSize={12} />
                 <YAxis stroke="#888888" fontSize={12} />
                 <Tooltip />
-                <Bar dataKey={key} fill={color} radius={[4, 4, 0, 0]} />
+                <Bar dataKey={key} fill="#8884d8" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
