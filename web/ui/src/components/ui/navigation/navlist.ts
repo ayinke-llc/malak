@@ -37,7 +37,7 @@ export const links = [
     icon: RiPlug2Line
   },
   {
-    title: "Dashboards",
+    title: "Data Dashboards",
     url: "/dashboards",
     icon: RiDashboardHorizontalLine
   },

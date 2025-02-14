@@ -4,13 +4,34 @@ import { Card } from "@/components/ui/card";
 import { RiBarChart2Line, RiPieChartLine, RiSettings4Line } from "@remixicon/react";
 import { useParams } from "next/navigation";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from "recharts";
-import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
+import { ChartContainer } from "@/components/ui/chart";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Mock type for demonstration
 type Chart = {
@@ -169,6 +190,55 @@ const storageData = [
   { name: "Other", value: 150, color: "#FF8042" },
 ];
 
+// Rename from availableCharts to chartOptions
+const chartOptions = [
+  {
+    title: "Bar Charts",
+    items: [
+      {
+        id: "revenue",
+        title: "Revenue Chart",
+        description: "Track revenue over time",
+        type: "bar",
+        icon: <RiBarChart2Line className="h-4 w-4" />,
+      },
+      {
+        id: "users",
+        title: "User Growth",
+        description: "Monitor user growth trends",
+        type: "bar",
+        icon: <RiBarChart2Line className="h-4 w-4" />,
+      },
+      {
+        id: "conversion",
+        title: "Conversion Rate",
+        description: "Track conversion metrics",
+        type: "bar",
+        icon: <RiBarChart2Line className="h-4 w-4" />,
+      },
+    ],
+  },
+  {
+    title: "Pie Charts",
+    items: [
+      {
+        id: "distribution",
+        title: "Cost Distribution",
+        description: "Analyze cost breakdown",
+        type: "pie",
+        icon: <RiPieChartLine className="h-4 w-4" />,
+      },
+      {
+        id: "team",
+        title: "Team Distribution",
+        description: "View team composition",
+        type: "pie",
+        icon: <RiPieChartLine className="h-4 w-4" />,
+      },
+    ],
+  },
+];
+
 function ChartCard({ chart }: { chart: Chart }) {
   const getChartIcon = (type: Chart["type"]) => {
     switch (type) {
@@ -288,6 +358,56 @@ export default function DashboardPage() {
   const params = useParams();
   const dashboardId = params.slug as string;
   const dashboard = mockDashboards[dashboardId];
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedChart, setSelectedChart] = useState<string>("");
+  const [selectedChartLabel, setSelectedChartLabel] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [availableCharts, setAvailableCharts] = useState<Array<{
+    value: string;
+    label: string;
+    type: "bar" | "pie";
+  }>>([]);
+
+  // Simulating API call to fetch available charts
+  useEffect(() => {
+    const fetchCharts = async () => {
+      setIsLoading(true);
+      try {
+        // Simulated API response
+        const data: Array<{ value: string; label: string; type: "bar" | "pie" }> = [
+          { value: "revenue", label: "Revenue Chart", type: "bar" },
+          { value: "users", label: "User Growth", type: "bar" },
+          { value: "conversion", label: "Conversion Rate", type: "bar" },
+          { value: "distribution", label: "Cost Distribution", type: "pie" },
+          { value: "team", label: "Team Distribution", type: "pie" },
+        ];
+
+        setAvailableCharts(data);
+      } catch (error) {
+        console.error("Failed to fetch charts:", error);
+        // Initialize with empty array on error
+        setAvailableCharts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchCharts();
+    }
+  }, [isOpen]);
+
+  const handleAddChart = () => {
+    if (!selectedChart) return;
+
+    // Here you would typically add the chart to your dashboard
+    const chartToAdd = availableCharts.find(chart => chart.value === selectedChart);
+    console.log("Adding chart:", chartToAdd);
+
+    setSelectedChart("");
+    setSelectedChartLabel("");
+    setIsOpen(false);
+  };
 
   if (!dashboard) {
     return (
@@ -307,11 +427,89 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold">{dashboard.title}</h1>
           <p className="text-muted-foreground">{dashboard.description}</p>
         </div>
-        <div>
-          <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
-            Add Chart
-          </button>
-        </div>
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
+            <Button>Add Chart</Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>Add Chart</SheetTitle>
+              <SheetDescription>
+                Select a chart to add to your dashboard
+              </SheetDescription>
+            </SheetHeader>
+            <div className="mt-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Chart Type</Label>
+                  <Select
+                    value={selectedChart}
+                    onValueChange={(value) => {
+                      setSelectedChart(value);
+                      const chart = availableCharts.find(c => c.value === value);
+                      if (chart) {
+                        setSelectedChartLabel(chart.label);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a chart" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Bar Charts</SelectLabel>
+                        {availableCharts
+                          .filter(chart => chart.type === "bar")
+                          .map(chart => (
+                            <SelectItem
+                              key={chart.value}
+                              value={chart.value}
+                              className="flex items-center gap-2"
+                            >
+                              <div className="flex items-center gap-2">
+                                <RiBarChart2Line className="h-4 w-4" />
+                                <span>{chart.label}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                      </SelectGroup>
+                      <SelectGroup>
+                        <SelectLabel>Pie Charts</SelectLabel>
+                        {availableCharts
+                          .filter(chart => chart.type === "pie")
+                          .map(chart => (
+                            <SelectItem
+                              key={chart.value}
+                              value={chart.value}
+                              className="flex items-center gap-2"
+                            >
+                              <div className="flex items-center gap-2">
+                                <RiPieChartLine className="h-4 w-4" />
+                                <span>{chart.label}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  {selectedChart && (
+                    <p className="text-sm text-muted-foreground">
+                      Selected: {selectedChartLabel}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <SheetFooter className="mt-4">
+              <Button
+                onClick={handleAddChart}
+                disabled={!selectedChart || isLoading}
+              >
+                Add to Dashboard
+              </Button>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
