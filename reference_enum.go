@@ -64,6 +64,8 @@ const (
 	EntityTypeIntegrationChart EntityType = "integration_chart"
 	// EntityTypeIntegrationSyncCheckpoint is a EntityType of type integration_sync_checkpoint.
 	EntityTypeIntegrationSyncCheckpoint EntityType = "integration_sync_checkpoint"
+	// EntityTypeDashboard is a EntityType of type dashboard.
+	EntityTypeDashboard EntityType = "dashboard"
 )
 
 var ErrInvalidEntityType = errors.New("not a valid EntityType")
@@ -107,6 +109,7 @@ var _EntityTypeValue = map[string]EntityType{
 	"integration_datapoint":       EntityTypeIntegrationDatapoint,
 	"integration_chart":           EntityTypeIntegrationChart,
 	"integration_sync_checkpoint": EntityTypeIntegrationSyncCheckpoint,
+	"dashboard":                   EntityTypeDashboard,
 }
 
 // ParseEntityType attempts to convert a string to a EntityType.
