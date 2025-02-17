@@ -371,6 +371,17 @@ func buildRoutes(
 
 		})
 
+		r.Route("/dashboards", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
+
+			r.Post("/",
+				WrapMalakHTTPHandler(logger, contactHandler.Create, cfg, "contacts.create"))
+
+			r.Get("/",
+				WrapMalakHTTPHandler(logger, contactHandler.list, cfg, "contacts.list"))
+		})
+
 		r.Route("/uploads", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 
