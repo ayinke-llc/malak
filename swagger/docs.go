@@ -776,6 +776,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/dashboards/charts": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "List charts",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.listIntegrationChartsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/decks": {
             "get": {
                 "consumes": [
@@ -3028,6 +3074,61 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.IntegrationChart": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "internal_name": {
+                    "$ref": "#/definitions/malak.IntegrationChartInternalNameType"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/malak.IntegrationChartMetadata"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_facing_name": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                },
+                "workspace_integration_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.IntegrationChartInternalNameType": {
+            "type": "string",
+            "enum": [
+                "mercury_account",
+                "mercury_account_transaction",
+                "brex_account",
+                "brex_account_transaction"
+            ],
+            "x-enum-varnames": [
+                "IntegrationChartInternalNameTypeMercuryAccount",
+                "IntegrationChartInternalNameTypeMercuryAccountTransaction",
+                "IntegrationChartInternalNameTypeBrexAccount",
+                "IntegrationChartInternalNameTypeBrexAccountTransaction"
+            ]
+        },
+        "malak.IntegrationChartMetadata": {
+            "type": "object",
+            "properties": {
+                "provider_id": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.IntegrationMetadata": {
             "type": "object",
             "properties": {
@@ -4016,6 +4117,24 @@ const docTemplate = `{
                 },
                 "meta": {
                     "$ref": "#/definitions/server.meta"
+                }
+            }
+        },
+        "server.listIntegrationChartsResponse": {
+            "type": "object",
+            "required": [
+                "charts",
+                "message"
+            ],
+            "properties": {
+                "charts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.IntegrationChart"
+                    }
+                },
+                "message": {
+                    "type": "string"
                 }
             }
         },

@@ -208,3 +208,84 @@ func TestDashboardHandler_List(t *testing.T) {
 		})
 	}
 }
+
+func generateListAllChartsRequest() []struct {
+	name               string
+	mockFn             func(integration *malak_mocks.MockIntegrationRepository)
+	expectedStatusCode int
+} {
+	return []struct {
+		name               string
+		mockFn             func(integration *malak_mocks.MockIntegrationRepository)
+		expectedStatusCode int
+	}{
+		{
+			name: "error listing charts",
+			mockFn: func(integration *malak_mocks.MockIntegrationRepository) {
+				integration.EXPECT().ListCharts(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("could not list charts"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "successfully listed charts",
+			mockFn: func(integration *malak_mocks.MockIntegrationRepository) {
+				integration.EXPECT().ListCharts(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]malak.IntegrationChart{
+						{
+							ID:                     workspaceID,
+							WorkspaceIntegrationID: workspaceID,
+							WorkspaceID:            workspaceID,
+							Reference:              "CHART_123",
+							UserFacingName:         "Test Chart",
+							InternalName:           malak.IntegrationChartInternalNameTypeMercuryAccount,
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "empty charts list",
+			mockFn: func(integration *malak_mocks.MockIntegrationRepository) {
+				integration.EXPECT().ListCharts(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]malak.IntegrationChart{}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
+func TestDashboardHandler_ListAllCharts(t *testing.T) {
+	for _, v := range generateListAllChartsRequest() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			integrationRepo := malak_mocks.NewMockIntegrationRepository(controller)
+			v.mockFn(integrationRepo)
+
+			h := &dashboardHandler{
+				integrationRepo: integrationRepo,
+				cfg:             getConfig(),
+			}
+
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{ID: uuid.New()}))
+
+			WrapMalakHTTPHandler(getLogger(t),
+				h.listAllCharts,
+				getConfig(), "dashboards.listAllCharts").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}

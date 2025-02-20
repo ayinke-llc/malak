@@ -238,3 +238,18 @@ func (i *integrationRepo) AddDataPoint(ctx context.Context,
 		return nil
 	})
 }
+
+func (i *integrationRepo) ListCharts(ctx context.Context,
+	workspaceID uuid.UUID) ([]malak.IntegrationChart, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	charts := make([]malak.IntegrationChart, 0)
+
+	return charts, i.inner.NewSelect().
+		Model(&charts).
+		Where("workspace_id = ?", workspaceID).
+		Order("created_at ASC").
+		Scan(ctx)
+}

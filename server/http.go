@@ -201,9 +201,10 @@ func buildRoutes(
 	}
 
 	dashHandler := &dashboardHandler{
-		cfg:           cfg,
-		dashboardRepo: dashboardRepo,
-		generator:     referenceGenerator,
+		cfg:             cfg,
+		dashboardRepo:   dashboardRepo,
+		generator:       referenceGenerator,
+		integrationRepo: integrationRepo,
 	}
 
 	router.Use(middleware.RequestID)
@@ -389,6 +390,9 @@ func buildRoutes(
 
 			r.Get("/",
 				WrapMalakHTTPHandler(logger, dashHandler.list, cfg, "dashboards.list"))
+
+			r.Get("/charts",
+				WrapMalakHTTPHandler(logger, dashHandler.listAllCharts, cfg, "dashboards.list.charts"))
 		})
 
 		r.Route("/uploads", func(r chi.Router) {

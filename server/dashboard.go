@@ -15,9 +15,10 @@ import (
 )
 
 type dashboardHandler struct {
-	cfg           config.Config
-	dashboardRepo malak.DashboardRepository
-	generator     malak.ReferenceGeneratorOperation
+	cfg             config.Config
+	dashboardRepo   malak.DashboardRepository
+	integrationRepo malak.IntegrationRepository
+	generator       malak.ReferenceGeneratorOperation
 }
 
 type createDashboardRequest struct {
@@ -153,5 +154,43 @@ func (d *dashboardHandler) list(
 				Total:   total,
 			},
 		},
+	}, StatusSuccess
+}
+
+// @Summary List charts
+// @Tags dashboards
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} listIntegrationChartsResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /dashboards/charts [get]
+func (d *dashboardHandler) listAllCharts(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("Listing all charts")
+
+	workspace := getWorkspaceFromContext(r.Context())
+
+	charts, err := d.integrationRepo.ListCharts(ctx, workspace.ID)
+	if err != nil {
+
+		logger.Error("could not list charts",
+			zap.Error(err))
+
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"could not list charts"), StatusFailed
+	}
+
+	return listIntegrationChartsResponse{
+		APIStatus: newAPIStatus(http.StatusOK, "dashboards fetched"),
+		Charts:    charts,
 	}, StatusSuccess
 }

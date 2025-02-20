@@ -380,6 +380,61 @@
 				},
 				"type": "object"
 			},
+			"malak.IntegrationChart": {
+				"properties": {
+					"created_at": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"internal_name": {
+						"$ref": "#/components/schemas/malak.IntegrationChartInternalNameType"
+					},
+					"metadata": {
+						"$ref": "#/components/schemas/malak.IntegrationChartMetadata"
+					},
+					"reference": {
+						"type": "string"
+					},
+					"updated_at": {
+						"type": "string"
+					},
+					"user_facing_name": {
+						"type": "string"
+					},
+					"workspace_id": {
+						"type": "string"
+					},
+					"workspace_integration_id": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"malak.IntegrationChartInternalNameType": {
+				"enum": [
+					"mercury_account",
+					"mercury_account_transaction",
+					"brex_account",
+					"brex_account_transaction"
+				],
+				"type": "string",
+				"x-enum-varnames": [
+					"IntegrationChartInternalNameTypeMercuryAccount",
+					"IntegrationChartInternalNameTypeMercuryAccountTransaction",
+					"IntegrationChartInternalNameTypeBrexAccount",
+					"IntegrationChartInternalNameTypeBrexAccountTransaction"
+				]
+			},
+			"malak.IntegrationChartMetadata": {
+				"properties": {
+					"provider_id": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
 			"malak.IntegrationMetadata": {
 				"properties": {
 					"endpoint": {
@@ -1368,6 +1423,24 @@
 					"dashboards",
 					"message",
 					"meta"
+				],
+				"type": "object"
+			},
+			"server.listIntegrationChartsResponse": {
+				"properties": {
+					"charts": {
+						"items": {
+							"$ref": "#/components/schemas/malak.IntegrationChart"
+						},
+						"type": "array"
+					},
+					"message": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"charts",
+					"message"
 				],
 				"type": "object"
 			},
@@ -2562,6 +2635,66 @@
 					}
 				},
 				"summary": "create a new dashboard",
+				"tags": [
+					"dashboards"
+				]
+			}
+		},
+		"/dashboards/charts": {
+			"get": {
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.listIntegrationChartsResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "List charts",
 				"tags": [
 					"dashboards"
 				]

@@ -353,3 +353,74 @@ func TestIntegration_AddDataPoint(t *testing.T) {
 	err = integrationRepo.AddDataPoint(context.Background(), &workspaceIntegration, invalidDataPoints)
 	require.Error(t, err)
 }
+
+func TestIntegration_ListCharts(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	integrationRepo := NewIntegrationRepo(client)
+	repo := NewWorkspaceRepository(client)
+
+	workspace, err := repo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	// Initially there should be no charts
+	charts, err := integrationRepo.ListCharts(context.Background(), workspace.ID)
+	require.NoError(t, err)
+	require.Empty(t, charts)
+
+	// Create an integration first
+	err = integrationRepo.Create(context.Background(), &malak.Integration{
+		IntegrationName: "Stripe",
+		Reference:       malak.NewReferenceGenerator().Generate(malak.EntityTypeIntegration),
+		Description:     "Stripe stripe stripe",
+		IsEnabled:       true,
+		IntegrationType: malak.IntegrationTypeOauth2,
+		LogoURL:         "https://google.com",
+	})
+	require.NoError(t, err)
+
+	// Get the workspace integration
+	integrations, err := integrationRepo.List(context.Background(), workspace)
+	require.NoError(t, err)
+	require.Len(t, integrations, 1)
+
+	workspaceIntegration := integrations[0]
+
+	// Create some charts
+	chartValues := []malak.IntegrationChartValues{
+		{
+			UserFacingName: "Monthly Revenue",
+			InternalName:   "monthly_revenue",
+			ProviderID:     "stripe_monthly_revenue",
+		},
+		{
+			UserFacingName: "Customer Count",
+			InternalName:   "customer_count",
+			ProviderID:     "stripe_customer_count",
+		},
+	}
+
+	err = integrationRepo.CreateCharts(context.Background(), &workspaceIntegration, chartValues)
+	require.NoError(t, err)
+
+	// List the charts and verify
+	charts, err = integrationRepo.ListCharts(context.Background(), workspace.ID)
+	require.NoError(t, err)
+	require.Len(t, charts, 2)
+
+	// Verify chart details
+	require.Contains(t, []string{charts[0].UserFacingName, charts[1].UserFacingName}, "Monthly Revenue")
+	require.Contains(t, []string{charts[0].UserFacingName, charts[1].UserFacingName}, "Customer Count")
+	require.Contains(t, []string{string(charts[0].InternalName), string(charts[1].InternalName)}, "monthly_revenue")
+	require.Contains(t, []string{string(charts[0].InternalName), string(charts[1].InternalName)}, "customer_count")
+
+	// Verify workspace association
+	for _, chart := range charts {
+		require.Equal(t, workspace.ID, chart.WorkspaceID)
+		require.Equal(t, workspaceIntegration.ID, chart.WorkspaceIntegrationID)
+		require.NotEmpty(t, chart.Reference)
+	}
+}

@@ -77,6 +77,11 @@ type listUpdateResponse struct {
 	APIStatus
 }
 
+type listIntegrationChartsResponse struct {
+	Charts []malak.IntegrationChart `json:"charts,omitempty" validate:"required"`
+	APIStatus
+}
+
 type listDashboardResponse struct {
 	Meta       meta              `json:"meta,omitempty" validate:"required"`
 	Dashboards []malak.Dashboard `json:"dashboards,omitempty" validate:"required"`

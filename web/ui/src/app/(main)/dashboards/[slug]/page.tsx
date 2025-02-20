@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { RiBarChart2Line, RiPieChartLine, RiSettings4Line } from "@remixicon/react";
+import { RiBarChart2Line, RiPieChartLine, RiSettings4Line, RiArrowDownSLine, RiLoader4Line } from "@remixicon/react";
 import { useParams } from "next/navigation";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
@@ -20,18 +20,26 @@ import {
   SheetTrigger,
   SheetFooter,
 } from "@/components/ui/sheet";
-import { useState, useEffect } from "react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { useQuery } from "@tanstack/react-query";
+import client from "@/lib/client";
+import { LIST_CHARTS } from "@/lib/query-constants";
+import type { ServerListIntegrationChartsResponse } from "@/client/Api";
 
 // Mock type for demonstration
 type Chart = {
@@ -53,8 +61,8 @@ type DashboardsMap = {
 
 // Mock dashboard data
 const mockDashboards: DashboardsMap = {
-  "1": {
-    id: "1",
+  "dashboard_lLDM9lfnEk": {
+    id: "dashboard_C5B_LEc_D7",
     title: "Revenue Overview",
     description: "Monthly revenue trends and projections",
   },
@@ -404,55 +412,46 @@ function ChartCard({ chart }: { chart: Chart }) {
   );
 }
 
+interface ChartOption {
+  value: string;
+  label: string;
+  type: "bar" | "pie";
+  description: string;
+}
+
 export default function DashboardPage() {
   const params = useParams();
   const dashboardId = params.slug as string;
   const dashboard = mockDashboards[dashboardId];
   const [isOpen, setIsOpen] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [selectedChart, setSelectedChart] = useState<string>("");
   const [selectedChartLabel, setSelectedChartLabel] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const [availableCharts, setAvailableCharts] = useState<Array<{
-    value: string;
-    label: string;
-    type: "bar" | "pie";
-  }>>([]);
 
-  // Simulating API call to fetch available charts
-  useEffect(() => {
-    const fetchCharts = async () => {
-      setIsLoading(true);
-      try {
-        // Simulated API response
-        const data: Array<{ value: string; label: string; type: "bar" | "pie" }> = [
-          { value: "revenue", label: "Revenue Chart", type: "bar" },
-          { value: "users", label: "User Growth", type: "bar" },
-          { value: "conversion", label: "Conversion Rate", type: "bar" },
-          { value: "distribution", label: "Cost Distribution", type: "pie" },
-          { value: "team", label: "Team Distribution", type: "pie" },
-        ];
+  const { data: chartsData, isLoading: isLoadingCharts } = useQuery<ServerListIntegrationChartsResponse>({
+    queryKey: [LIST_CHARTS],
+    queryFn: async () => {
+      const response = await client.dashboards.chartsList();
+      return response.data;
+    },
+    enabled: isPopoverOpen, // Only fetch when popover is open
+  });
 
-        setAvailableCharts(data);
-      } catch (error) {
-        console.error("Failed to fetch charts:", error);
-        // Initialize with empty array on error
-        setAvailableCharts([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const availableCharts: ChartOption[] = (chartsData?.charts || []).map(chart => ({
+    value: chart.reference || "",
+    label: chart.user_facing_name || "",
+    type: chart.internal_name?.toLowerCase().includes("transaction") ? "bar" : "pie",
+    description: chart.internal_name || "",
+  }));
 
-    if (isOpen) {
-      fetchCharts();
-    }
-  }, [isOpen]);
+  const barCharts = availableCharts.filter(chart => chart.type === "bar");
+  const pieCharts = availableCharts.filter(chart => chart.type === "pie");
 
   const handleAddChart = () => {
     if (!selectedChart) return;
 
-    // Here you would typically add the chart to your dashboard
     const chartToAdd = availableCharts.find(chart => chart.value === selectedChart);
-    console.log("Adding chart:", chartToAdd);
 
     setSelectedChart("");
     setSelectedChartLabel("");
@@ -481,7 +480,7 @@ export default function DashboardPage() {
           <SheetTrigger asChild>
             <Button>Add Chart</Button>
           </SheetTrigger>
-          <SheetContent>
+          <SheetContent className="sm:max-w-xl">
             <SheetHeader>
               <SheetTitle>Add Chart</SheetTitle>
               <SheetDescription>
@@ -492,56 +491,74 @@ export default function DashboardPage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Chart Type</Label>
-                  <Select
-                    value={selectedChart}
-                    onValueChange={(value) => {
-                      setSelectedChart(value);
-                      const chart = availableCharts.find(c => c.value === value);
-                      if (chart) {
-                        setSelectedChartLabel(chart.label);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a chart" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Bar Charts</SelectLabel>
-                        {availableCharts
-                          .filter(chart => chart.type === "bar")
-                          .map(chart => (
-                            <SelectItem
-                              key={chart.value}
-                              value={chart.value}
-                              className="flex items-center gap-2"
-                            >
-                              <div className="flex items-center gap-2">
-                                <RiBarChart2Line className="h-4 w-4" />
-                                <span>{chart.label}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                      </SelectGroup>
-                      <SelectGroup>
-                        <SelectLabel>Pie Charts</SelectLabel>
-                        {availableCharts
-                          .filter(chart => chart.type === "pie")
-                          .map(chart => (
-                            <SelectItem
-                              key={chart.value}
-                              value={chart.value}
-                              className="flex items-center gap-2"
-                            >
-                              <div className="flex items-center gap-2">
-                                <RiPieChartLine className="h-4 w-4" />
-                                <span>{chart.label}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                  <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between"
+                        aria-expanded={isPopoverOpen}
+                      >
+                        {selectedChart ? selectedChartLabel : "Select a chart..."}
+                        <RiArrowDownSLine className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start" side="bottom">
+                      <Command className="w-full">
+                        <CommandInput placeholder="Search charts..." />
+                        <CommandList>
+                          <CommandEmpty>No charts found.</CommandEmpty>
+                          {isLoadingCharts ? (
+                            <CommandItem disabled className="flex items-center gap-2 opacity-60">
+                              <RiLoader4Line className="h-4 w-4 animate-spin" />
+                              <span>Loading available charts...</span>
+                            </CommandItem>
+                          ) : (
+                            <>
+                              {barCharts.length > 0 && (
+                                <CommandGroup heading="Bar Charts">
+                                  {barCharts.map(chart => (
+                                    <CommandItem
+                                      key={chart.value}
+                                      value={`${chart.label} ${chart.description}`}
+                                      onSelect={(currentValue) => {
+                                        setSelectedChart(chart.value);
+                                        setSelectedChartLabel(chart.label);
+                                        setIsPopoverOpen(false);
+                                      }}
+                                      className="flex items-center gap-2"
+                                    >
+                                      <RiBarChart2Line className="h-4 w-4" />
+                                      <span>{chart.label}</span>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              )}
+                              {pieCharts.length > 0 && (
+                                <CommandGroup heading="Pie Charts">
+                                  {pieCharts.map(chart => (
+                                    <CommandItem
+                                      key={chart.value}
+                                      value={`${chart.label} ${chart.description}`}
+                                      onSelect={(currentValue) => {
+                                        setSelectedChart(chart.value);
+                                        setSelectedChartLabel(chart.label);
+                                        setIsPopoverOpen(false);
+                                      }}
+                                      className="flex items-center gap-2"
+                                    >
+                                      <RiPieChartLine className="h-4 w-4" />
+                                      <span>{chart.label}</span>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              )}
+                            </>
+                          )}
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   {selectedChart && (
                     <p className="text-sm text-muted-foreground">
                       Selected: {selectedChartLabel}

@@ -158,6 +158,29 @@ export interface MalakIntegration {
   updated_at?: string;
 }
 
+export interface MalakIntegrationChart {
+  created_at?: string;
+  id?: string;
+  internal_name?: MalakIntegrationChartInternalNameType;
+  metadata?: MalakIntegrationChartMetadata;
+  reference?: string;
+  updated_at?: string;
+  user_facing_name?: string;
+  workspace_id?: string;
+  workspace_integration_id?: string;
+}
+
+export enum MalakIntegrationChartInternalNameType {
+  IntegrationChartInternalNameTypeMercuryAccount = "mercury_account",
+  IntegrationChartInternalNameTypeMercuryAccountTransaction = "mercury_account_transaction",
+  IntegrationChartInternalNameTypeBrexAccount = "brex_account",
+  IntegrationChartInternalNameTypeBrexAccountTransaction = "brex_account_transaction",
+}
+
+export interface MalakIntegrationChartMetadata {
+  provider_id?: string;
+}
+
 export interface MalakIntegrationMetadata {
   endpoint?: string;
 }
@@ -534,6 +557,11 @@ export interface ServerListDashboardResponse {
   dashboards: MalakDashboard[];
   message: string;
   meta: ServerMeta;
+}
+
+export interface ServerListIntegrationChartsResponse {
+  charts: MalakIntegrationChart[];
+  message: string;
 }
 
 export interface ServerListIntegrationResponse {
@@ -990,6 +1018,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags dashboards
+     * @name ChartsList
+     * @summary List charts
+     * @request GET:/dashboards/charts
+     */
+    chartsList: (params: RequestParams = {}) =>
+      this.request<ServerListIntegrationChartsResponse, ServerAPIStatus>({
+        path: `/dashboards/charts`,
+        method: "GET",
         format: "json",
         ...params,
       }),
