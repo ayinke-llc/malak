@@ -153,7 +153,7 @@ func generateDashboardListRequest() []struct {
 					Times(1).
 					Return([]malak.Dashboard{
 						{
-							ID:          uuid.New(),
+							ID:          workspaceID,
 							Title:       "Test Dashboard",
 							Description: "Test description",
 							Reference:   "DASH_123",
