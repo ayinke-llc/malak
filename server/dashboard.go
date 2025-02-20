@@ -70,7 +70,7 @@ func (d *dashboardHandler) create(
 	w http.ResponseWriter,
 	r *http.Request) (render.Renderer, Status) {
 
-	logger.Debug("creating a new workspace")
+	logger.Debug("creating a new dashboard")
 
 	req := new(createDashboardRequest)
 
