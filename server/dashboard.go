@@ -233,6 +233,16 @@ func (d *dashboardHandler) addChart(
 
 	workspace := getWorkspaceFromContext(r.Context())
 
+	req := new(addChartToDashboardRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
 	ref := chi.URLParam(r, "reference")
 
 	if hermes.IsStringEmpty(ref) {
@@ -254,16 +264,6 @@ func (d *dashboardHandler) addChart(
 		}
 
 		return newAPIStatus(status, msg), StatusFailed
-	}
-
-	req := new(addChartToDashboardRequest)
-
-	if err := render.Bind(r, req); err != nil {
-		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
-	}
-
-	if err := req.Validate(); err != nil {
-		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
 	chart, err := d.integrationRepo.GetChart(ctx, malak.FetchChartOptions{
