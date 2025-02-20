@@ -17,6 +17,7 @@ import (
 type dashboardHandler struct {
 	cfg           config.Config
 	dashboardRepo malak.DashboardRepository
+	generator     malak.ReferenceGeneratorOperation
 }
 
 type createDashboardRequest struct {
@@ -31,8 +32,16 @@ func (c *createDashboardRequest) Validate() error {
 		return errors.New("please provide a description")
 	}
 
+	if len(c.Description) > 500 {
+		return errors.New("description cannot be more than 500 characters")
+	}
+
 	if hermes.IsStringEmpty(c.Title) {
 		return errors.New("please provide the title of the dashboard")
+	}
+
+	if len(c.Title) > 100 {
+		return errors.New("title cannot be more than 100 characters")
 	}
 
 	p := bluemonday.StrictPolicy()
@@ -47,8 +56,8 @@ func (c *createDashboardRequest) Validate() error {
 // @Tags dashboards
 // @Accept  json
 // @Produce  json
-// @Param message body createDeckRequest true "deck request body"
-// @Success 200 {object} uploadImageResponse
+// @Param message body createDashboardRequest true "dashboard request body"
+// @Success 200 {object} fetchDashboardResponse
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
@@ -67,10 +76,6 @@ func (d *dashboardHandler) create(
 
 	workspace := getWorkspaceFromContext(ctx)
 
-	user := getUserFromContext(ctx)
-
-	_, _ = workspace, user
-
 	if err := render.Bind(r, req); err != nil {
 		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
 	}
@@ -79,5 +84,22 @@ func (d *dashboardHandler) create(
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	return newAPIStatus(http.StatusOK, "deck was uploaded"), StatusSuccess
+	dashboard := &malak.Dashboard{
+		Description: req.Description,
+		Title:       req.Title,
+		Reference:   d.generator.Generate(malak.EntityTypeDashboard),
+		ChartCount:  0,
+		WorkspaceID: workspace.ID,
+	}
+
+	if err := d.dashboardRepo.Create(ctx, dashboard); err != nil {
+		logger.Error("could not create dashboard", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not create dashboard"),
+			StatusFailed
+	}
+
+	return fetchDashboardResponse{
+		APIStatus: newAPIStatus(http.StatusOK, "dashboard was successfully created"),
+		Dashboard: hermes.DeRef(dashboard),
+	}, StatusSuccess
 }

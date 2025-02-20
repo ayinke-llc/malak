@@ -159,6 +159,23 @@ components:
       additionalProperties:
         type: string
       type: object
+    malak.Dashboard:
+      properties:
+        chart_count:
+          type: integer
+        created_at:
+          type: string
+        description:
+          type: string
+        id:
+          type: string
+        reference:
+          type: string
+        title:
+          type: string
+        updated_at:
+          type: string
+      type: object
     malak.Deck:
       properties:
         created_at:
@@ -662,6 +679,13 @@ components:
         last_name:
           type: string
       type: object
+    server.createDashboardRequest:
+      properties:
+        description:
+          type: string
+        title:
+          type: string
+      type: object
     server.createDeckRequest:
       properties:
         deck_url:
@@ -780,6 +804,16 @@ components:
           type: string
       required:
       - contact
+      - message
+      type: object
+    server.fetchDashboardResponse:
+      properties:
+        dashboard:
+          $ref: '#/components/schemas/malak.Dashboard'
+        message:
+          type: string
+      required:
+      - dashboard
       - message
       type: object
     server.fetchDeckResponse:
@@ -1532,6 +1566,50 @@ paths:
       summary: Edit a contact list
       tags:
       - contacts
+  /dashboards:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.createDashboardRequest'
+        description: dashboard request body
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchDashboardResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: create a new dashboard
+      tags:
+      - dashboards
   /decks:
     get:
       responses:

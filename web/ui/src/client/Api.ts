@@ -104,6 +104,16 @@ export enum MalakContactShareItemType {
 
 export type MalakCustomContactMetadata = Record<string, string>;
 
+export interface MalakDashboard {
+  chart_count?: number;
+  created_at?: string;
+  description?: string;
+  id?: string;
+  reference?: string;
+  title?: string;
+  updated_at?: string;
+}
+
 export interface MalakDeck {
   created_at?: string;
   created_by?: string;
@@ -409,6 +419,11 @@ export interface ServerCreateContactRequest {
   last_name?: string;
 }
 
+export interface ServerCreateDashboardRequest {
+  description?: string;
+  title?: string;
+}
+
 export interface ServerCreateDeckRequest {
   deck_url?: string;
   title?: string;
@@ -463,6 +478,11 @@ export interface ServerFetchContactListsResponse {
 
 export interface ServerFetchContactResponse {
   contact: MalakContact;
+  message: string;
+}
+
+export interface ServerFetchDashboardResponse {
+  dashboard: MalakDashboard;
   message: string;
 }
 
@@ -917,6 +937,25 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerFetchContactListResponse, ServerAPIStatus>({
         path: `/contacts/lists/${reference}`,
         method: "PUT",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  dashboards = {
+    /**
+     * No description
+     *
+     * @tags dashboards
+     * @name DashboardsCreate
+     * @summary create a new dashboard
+     * @request POST:/dashboards
+     */
+    dashboardsCreate: (data: ServerCreateDashboardRequest, params: RequestParams = {}) =>
+      this.request<ServerFetchDashboardResponse, ServerAPIStatus>({
+        path: `/dashboards`,
+        method: "POST",
         body: data,
         type: ContentType.Json,
         format: "json",

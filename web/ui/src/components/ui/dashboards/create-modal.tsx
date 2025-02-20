@@ -21,23 +21,14 @@ import { toast } from "sonner";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
-import type { AxiosError, AxiosResponse } from "axios";
+import type { AxiosError } from "axios";
 import client from "@/lib/client";
-import { ContentType } from "@/client/Api";
+import { CREATE_DASHBOARD } from "@/lib/query-constants";
 
 type CreateDashboardInput = {
   name: string;
   description?: string;
 };
-
-interface CreateDashboardResponse {
-  message: string;
-  dashboard: {
-    id: string;
-    name: string;
-    description?: string;
-  };
-}
 
 const schema = yup.object().shape({
   name: yup.string().required("Dashboard name is required"),
@@ -57,27 +48,20 @@ export default function CreateDashboardModal() {
     resolver: yupResolver(schema),
   });
 
-  const createMutation = useMutation<
-    AxiosResponse<CreateDashboardResponse>,
-    AxiosError<ServerAPIStatus>,
-    CreateDashboardInput
-  >({
-    mutationKey: ["CREATE_DASHBOARD"],
-    mutationFn: async (data) => {
-      return client.request<CreateDashboardResponse, ServerAPIStatus>({
-        path: `/dashboards`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-      });
+  const createMutation = useMutation({
+    mutationKey: [CREATE_DASHBOARD],
+    mutationFn: (data: CreateDashboardInput) => {
+      return client.dashboards.dashboardsCreate({
+        title: data.name,
+        ...data
+      })
     },
     onSuccess: ({ data }) => {
       toast.success(data.message);
       setOpen(false);
       reset();
     },
-    onError(err) {
+    onError: (err: AxiosError<ServerAPIStatus>) => {
       let msg = err.message;
       if (err.response?.data) {
         msg = err.response.data.message;

@@ -31,6 +31,7 @@ func New(logger *zap.Logger,
 	db *bun.DB,
 	jwtTokenManager jwttoken.JWTokenManager,
 	googleAuthProvider socialauth.SocialAuthProvider,
+	dashboardRepo malak.DashboardRepository,
 	userRepo malak.UserRepository,
 	workspaceRepo malak.WorkspaceRepository,
 	planRepo malak.PlanRepository,
@@ -56,6 +57,7 @@ func New(logger *zap.Logger,
 
 	srv := &http.Server{
 		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
+			dashboardRepo,
 			userRepo, workspaceRepo, planRepo,
 			contactRepo, updateRepo, contactListRepo,
 			deckRepo, shareRepo, preferenceRepo, integrationRepo,
@@ -93,6 +95,7 @@ func buildRoutes(
 	_ *bun.DB,
 	cfg config.Config,
 	jwtTokenManager jwttoken.JWTokenManager,
+	dashboardRepo malak.DashboardRepository,
 	userRepo malak.UserRepository,
 	workspaceRepo malak.WorkspaceRepository,
 	planRepo malak.PlanRepository,
@@ -195,6 +198,12 @@ func buildRoutes(
 		cache:              redisCache,
 		deckRepo:           deckRepo,
 		cfg:                cfg,
+	}
+
+	dashHandler := &dashboardHandler{
+		cfg:           cfg,
+		dashboardRepo: dashboardRepo,
+		generator:     referenceGenerator,
 	}
 
 	router.Use(middleware.RequestID)
@@ -376,10 +385,7 @@ func buildRoutes(
 			r.Use(requireWorkspaceValidSubscription(cfg))
 
 			r.Post("/",
-				WrapMalakHTTPHandler(logger, contactHandler.Create, cfg, "contacts.create"))
-
-			r.Get("/",
-				WrapMalakHTTPHandler(logger, contactHandler.list, cfg, "contacts.list"))
+				WrapMalakHTTPHandler(logger, dashHandler.create, cfg, "dashboards.create"))
 		})
 
 		r.Route("/uploads", func(r chi.Router) {

@@ -41,6 +41,20 @@ func (m *MockDashboardRepository) EXPECT() *MockDashboardRepositoryMockRecorder 
 	return m.recorder
 }
 
+// AddChart mocks base method.
+func (m *MockDashboardRepository) AddChart(arg0 context.Context, arg1 *malak.DashboardChart) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddChart", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddChart indicates an expected call of AddChart.
+func (mr *MockDashboardRepositoryMockRecorder) AddChart(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddChart", reflect.TypeOf((*MockDashboardRepository)(nil).AddChart), arg0, arg1)
+}
+
 // Create mocks base method.
 func (m *MockDashboardRepository) Create(arg0 context.Context, arg1 *malak.Dashboard) error {
 	m.ctrl.T.Helper()

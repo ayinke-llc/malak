@@ -661,6 +661,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/dashboards": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "create a new dashboard",
+                "parameters": [
+                    {
+                        "description": "dashboard request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createDashboardRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchDashboardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/decks": {
             "get": {
                 "consumes": [
@@ -2767,6 +2824,32 @@ const docTemplate = `{
                 "type": "string"
             }
         },
+        "malak.Dashboard": {
+            "type": "object",
+            "properties": {
+                "chart_count": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.Deck": {
             "type": "object",
             "properties": {
@@ -3503,6 +3586,17 @@ const docTemplate = `{
                 }
             }
         },
+        "server.createDashboardRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "server.createDeckRequest": {
             "type": "object",
             "properties": {
@@ -3677,6 +3771,21 @@ const docTemplate = `{
             "properties": {
                 "contact": {
                     "$ref": "#/definitions/malak.Contact"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.fetchDashboardResponse": {
+            "type": "object",
+            "required": [
+                "dashboard",
+                "message"
+            ],
+            "properties": {
+                "dashboard": {
+                    "$ref": "#/definitions/malak.Dashboard"
                 },
                 "message": {
                     "type": "string"

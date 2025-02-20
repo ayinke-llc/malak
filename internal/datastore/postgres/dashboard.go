@@ -28,6 +28,8 @@ func (d *dashboardRepo) Create(ctx context.Context,
 	return d.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
 
+			dashboard.ChartCount = 0
+
 			_, err := tx.NewInsert().
 				Model(dashboard).
 				Exec(ctx)

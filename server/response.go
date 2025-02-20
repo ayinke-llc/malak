@@ -141,3 +141,8 @@ type fetchBillingPortalResponse struct {
 	Link string `json:"link,omitempty" validate:"required"`
 	APIStatus
 }
+
+type fetchDashboardResponse struct {
+	Dashboard malak.Dashboard `json:"dashboard,omitempty" validate:"required"`
+	APIStatus
+}
