@@ -110,7 +110,7 @@ type IntegrationChart struct {
 	UserFacingName         string                           `json:"user_facing_name,omitempty"`
 	InternalName           IntegrationChartInternalNameType `json:"internal_name,omitempty"`
 	Metadata               IntegrationChartMetadata         `json:"metadata,omitempty"`
-	Frequency              IntegrationChartFrequencyType    `json:"frequency,omitempty"`
+	// Frequency              IntegrationChartFrequencyType    `json:"frequency,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
