@@ -96,6 +96,50 @@ func ParseIntegrationChartInternalNameType(name string) (IntegrationChartInterna
 }
 
 const (
+	// IntegrationChartTypeBar is a IntegrationChartType of type Bar.
+	IntegrationChartTypeBar IntegrationChartType = iota
+	// IntegrationChartTypePie is a IntegrationChartType of type Pie.
+	IntegrationChartTypePie
+)
+
+var ErrInvalidIntegrationChartType = errors.New("not a valid IntegrationChartType")
+
+const _IntegrationChartTypeName = "barpie"
+
+var _IntegrationChartTypeMap = map[IntegrationChartType]string{
+	IntegrationChartTypeBar: _IntegrationChartTypeName[0:3],
+	IntegrationChartTypePie: _IntegrationChartTypeName[3:6],
+}
+
+// String implements the Stringer interface.
+func (x IntegrationChartType) String() string {
+	if str, ok := _IntegrationChartTypeMap[x]; ok {
+		return str
+	}
+	return fmt.Sprintf("IntegrationChartType(%d)", x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x IntegrationChartType) IsValid() bool {
+	_, ok := _IntegrationChartTypeMap[x]
+	return ok
+}
+
+var _IntegrationChartTypeValue = map[string]IntegrationChartType{
+	_IntegrationChartTypeName[0:3]: IntegrationChartTypeBar,
+	_IntegrationChartTypeName[3:6]: IntegrationChartTypePie,
+}
+
+// ParseIntegrationChartType attempts to convert a string to a IntegrationChartType.
+func ParseIntegrationChartType(name string) (IntegrationChartType, error) {
+	if x, ok := _IntegrationChartTypeValue[name]; ok {
+		return x, nil
+	}
+	return IntegrationChartType(0), fmt.Errorf("%s is %w", name, ErrInvalidIntegrationChartType)
+}
+
+const (
 	// IntegrationDataPointTypeCurrency is a IntegrationDataPointType of type currency.
 	IntegrationDataPointTypeCurrency IntegrationDataPointType = "currency"
 	// IntegrationDataPointTypeOthers is a IntegrationDataPointType of type others.

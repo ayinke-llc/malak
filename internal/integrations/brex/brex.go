@@ -199,11 +199,13 @@ func (m *brexClient) Ping(
 			InternalName:   malak.IntegrationChartInternalNameTypeBrexAccount,
 			UserFacingName: account.Name,
 			ProviderID:     account.ID,
+			ChartType:      malak.IntegrationChartTypeBar,
 		})
 
 		charts = append(charts, malak.IntegrationChartValues{
 			InternalName:   malak.IntegrationChartInternalNameTypeBrexAccount,
 			UserFacingName: "Transactions count for " + account.Name,
+			ChartType:      malak.IntegrationChartTypeBar,
 		})
 	}
 

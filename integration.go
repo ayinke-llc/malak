@@ -22,6 +22,9 @@ type IntegrationProvider string
 // ENUM(mercury_account,mercury_account_transaction,brex_account,brex_account_transaction)
 type IntegrationChartInternalNameType string
 
+// ENUM(bar,pie)
+type IntegrationChartType uint8
+
 // ENUM(daily,monthly)
 type IntegrationChartFrequencyType uint8
 
@@ -110,7 +113,7 @@ type IntegrationChart struct {
 	UserFacingName         string                           `json:"user_facing_name,omitempty"`
 	InternalName           IntegrationChartInternalNameType `json:"internal_name,omitempty"`
 	Metadata               IntegrationChartMetadata         `json:"metadata,omitempty"`
-	// Frequency              IntegrationChartFrequencyType    `json:"frequency,omitempty"`
+	ChartType              IntegrationChartType             `json:"chart_type,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
@@ -135,6 +138,7 @@ type IntegrationChartValues struct {
 	InternalName   IntegrationChartInternalNameType
 	UserFacingName string
 	ProviderID     string
+	ChartType      IntegrationChartType
 }
 
 type IntegrationFetchDataOptions struct {

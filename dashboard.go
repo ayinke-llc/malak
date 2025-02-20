@@ -8,9 +8,6 @@ import (
 	"github.com/uptrace/bun"
 )
 
-// ENUM(barchart,piechart)
-type DashboardChartType uint8
-
 type Dashboard struct {
 	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 	Reference   Reference `json:"reference,omitempty"`
@@ -29,12 +26,11 @@ type Dashboard struct {
 }
 
 type DashboardChart struct {
-	ID                     uuid.UUID          `json:"id,omitempty"`
-	WorkspaceIntegrationID uuid.UUID          `json:"workspace_integration_id,omitempty"`
-	Reference              Reference          `json:"reference,omitempty"`
-	WorkspaceID            uuid.UUID          `json:"workspace_id,omitempty"`
-	DashboardID            uuid.UUID          `json:"dashboard_id,omitempty"`
-	DashboardType          DashboardChartType `json:"dashboard_type,omitempty"`
+	ID                     uuid.UUID `json:"id,omitempty"`
+	WorkspaceIntegrationID uuid.UUID `json:"workspace_integration_id,omitempty"`
+	Reference              Reference `json:"reference,omitempty"`
+	WorkspaceID            uuid.UUID `json:"workspace_id,omitempty"`
+	DashboardID            uuid.UUID `json:"dashboard_id,omitempty"`
 
 	CreatedAt time.Time  `json:"created_at,omitempty"`
 	UpdatedAt time.Time  `json:"updated_at,omitempty"`

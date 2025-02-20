@@ -262,11 +262,13 @@ func TestIntegration_CreateCharts(t *testing.T) {
 			UserFacingName: "Revenue Chart",
 			InternalName:   "revenue_chart",
 			ProviderID:     "stripe_revenue",
+			ChartType:      malak.IntegrationChartTypeBar,
 		},
 		{
 			UserFacingName: "Customer Growth",
 			InternalName:   "customer_growth",
 			ProviderID:     "stripe_customers",
+			ChartType:      malak.IntegrationChartTypeBar,
 		},
 	}
 
@@ -315,6 +317,7 @@ func TestIntegration_AddDataPoint(t *testing.T) {
 			UserFacingName: "Revenue Chart",
 			InternalName:   "revenue_chart",
 			ProviderID:     "stripe_revenue",
+			ChartType:      malak.IntegrationChartTypeBar,
 		},
 	}
 
@@ -395,11 +398,13 @@ func TestIntegration_ListCharts(t *testing.T) {
 			UserFacingName: "Monthly Revenue",
 			InternalName:   "monthly_revenue",
 			ProviderID:     "stripe_monthly_revenue",
+			ChartType:      malak.IntegrationChartTypeBar,
 		},
 		{
 			UserFacingName: "Customer Count",
 			InternalName:   "customer_count",
 			ProviderID:     "stripe_customer_count",
+			ChartType:      malak.IntegrationChartTypeBar,
 		},
 	}
 
