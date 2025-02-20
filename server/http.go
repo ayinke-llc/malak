@@ -386,6 +386,9 @@ func buildRoutes(
 
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, dashHandler.create, cfg, "dashboards.create"))
+
+			r.Get("/",
+				WrapMalakHTTPHandler(logger, dashHandler.list, cfg, "dashboards.list"))
 		})
 
 		r.Route("/uploads", func(r chi.Router) {

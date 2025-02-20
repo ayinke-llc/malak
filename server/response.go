@@ -77,6 +77,12 @@ type listUpdateResponse struct {
 	APIStatus
 }
 
+type listDashboardResponse struct {
+	Meta       meta              `json:"meta,omitempty" validate:"required"`
+	Dashboards []malak.Dashboard `json:"dashboards,omitempty" validate:"required"`
+	APIStatus
+}
+
 type uploadImageResponse struct {
 	URL string `json:"url,omitempty" validate:"required"`
 	APIStatus

@@ -43,7 +43,13 @@ type DashboardChart struct {
 	bun.BaseModel `json:"-"`
 }
 
+type ListDashboardOptions struct {
+	Paginator   Paginator
+	WorkspaceID uuid.UUID
+}
+
 type DashboardRepository interface {
 	Create(context.Context, *Dashboard) error
 	AddChart(context.Context, *DashboardChart) error
+	List(context.Context, ListDashboardOptions) ([]Dashboard, int64, error)
 }

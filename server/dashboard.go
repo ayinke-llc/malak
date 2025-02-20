@@ -103,3 +103,55 @@ func (d *dashboardHandler) create(
 		Dashboard: hermes.DeRef(dashboard),
 	}, StatusSuccess
 }
+
+// @Summary List dashboards
+// @Tags dashboards
+// @Accept  json
+// @Produce  json
+// @Param page query int false "Page to query data from. Defaults to 1"
+// @Param per_page query int false "Number to items to return. Defaults to 10 items"
+// @Success 200 {object} listDashboardResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /dashboards [get]
+func (d *dashboardHandler) list(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("Listing dashboards")
+
+	workspace := getWorkspaceFromContext(r.Context())
+
+	opts := malak.ListDashboardOptions{
+		Paginator:   malak.PaginatorFromRequest(r),
+		WorkspaceID: workspace.ID,
+	}
+
+	dashboards, total, err := d.dashboardRepo.List(ctx, opts)
+	if err != nil {
+
+		logger.Error("could not list dashboards",
+			zap.Error(err))
+
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"could not list dashboards"), StatusFailed
+	}
+
+	return listDashboardResponse{
+		APIStatus:  newAPIStatus(http.StatusOK, "dashboards fetched"),
+		Dashboards: dashboards,
+		Meta: meta{
+			Paging: pagingInfo{
+				PerPage: opts.Paginator.PerPage,
+				Page:    opts.Paginator.Page,
+				Total:   total,
+			},
+		},
+	}, StatusSuccess
+}

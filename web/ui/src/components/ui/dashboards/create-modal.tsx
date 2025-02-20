@@ -20,10 +20,10 @@ import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import client from "@/lib/client";
-import { CREATE_DASHBOARD } from "@/lib/query-constants";
+import { CREATE_DASHBOARD, LIST_DASHBOARDS } from "@/lib/query-constants";
 
 type CreateDashboardInput = {
   name: string;
@@ -38,6 +38,7 @@ const schema = yup.object().shape({
 export default function CreateDashboardModal() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -60,6 +61,7 @@ export default function CreateDashboardModal() {
       toast.success(data.message);
       setOpen(false);
       reset();
+      queryClient.invalidateQueries({ queryKey: [LIST_DASHBOARDS] });
     },
     onError: (err: AxiosError<ServerAPIStatus>) => {
       let msg = err.message;

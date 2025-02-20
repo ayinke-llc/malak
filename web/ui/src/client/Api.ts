@@ -112,6 +112,7 @@ export interface MalakDashboard {
   reference?: string;
   title?: string;
   updated_at?: string;
+  workspace_id?: string;
 }
 
 export interface MalakDeck {
@@ -525,6 +526,12 @@ export interface ServerFetchWorkspaceResponse {
 
 export interface ServerListContactsResponse {
   contacts: MalakContact[];
+  message: string;
+  meta: ServerMeta;
+}
+
+export interface ServerListDashboardResponse {
+  dashboards: MalakDashboard[];
   message: string;
   meta: ServerMeta;
 }
@@ -944,6 +951,31 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
   };
   dashboards = {
+    /**
+     * No description
+     *
+     * @tags dashboards
+     * @name DashboardsList
+     * @summary List dashboards
+     * @request GET:/dashboards
+     */
+    dashboardsList: (
+      query?: {
+        /** Page to query data from. Defaults to 1 */
+        page?: number;
+        /** Number to items to return. Defaults to 10 items */
+        per_page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerListDashboardResponse, ServerAPIStatus>({
+        path: `/dashboards`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *
