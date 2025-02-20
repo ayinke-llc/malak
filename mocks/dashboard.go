@@ -84,6 +84,21 @@ func (mr *MockDashboardRepositoryMockRecorder) Get(arg0, arg1 any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockDashboardRepository)(nil).Get), arg0, arg1)
 }
 
+// GetCharts mocks base method.
+func (m *MockDashboardRepository) GetCharts(arg0 context.Context, arg1 malak.FetchDashboardChartsOption) ([]malak.DashboardChart, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCharts", arg0, arg1)
+	ret0, _ := ret[0].([]malak.DashboardChart)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCharts indicates an expected call of GetCharts.
+func (mr *MockDashboardRepositoryMockRecorder) GetCharts(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCharts", reflect.TypeOf((*MockDashboardRepository)(nil).GetCharts), arg0, arg1)
+}
+
 // List mocks base method.
 func (m *MockDashboardRepository) List(arg0 context.Context, arg1 malak.ListDashboardOptions) ([]malak.Dashboard, int64, error) {
 	m.ctrl.T.Helper()

@@ -115,6 +115,18 @@ export interface MalakDashboard {
   workspace_id?: string;
 }
 
+export interface MalakDashboardChart {
+  chart?: MalakIntegrationChart;
+  chart_id?: string;
+  created_at?: string;
+  dashboard_id?: string;
+  id?: string;
+  reference?: string;
+  updated_at?: string;
+  workspace_id?: string;
+  workspace_integration_id?: string;
+}
+
 export interface MalakDeck {
   created_at?: string;
   created_by?: string;
@@ -562,6 +574,12 @@ export interface ServerListContactsResponse {
   contacts: MalakContact[];
   message: string;
   meta: ServerMeta;
+}
+
+export interface ServerListDashboardChartsResponse {
+  charts: MalakDashboardChart[];
+  dashboard: MalakDashboard;
+  message: string;
 }
 
 export interface ServerListDashboardResponse {
@@ -1029,6 +1047,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags dashboards
+     * @name DashboardsDetail
+     * @summary fetch dashboard
+     * @request GET:/dashboards/{reference}
+     */
+    dashboardsDetail: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerListDashboardChartsResponse, ServerAPIStatus>({
+        path: `/dashboards/${reference}`,
+        method: "GET",
         format: "json",
         ...params,
       }),

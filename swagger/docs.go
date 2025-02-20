@@ -822,6 +822,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/dashboards/{reference}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "fetch dashboard",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dashboard unique reference.. e.g dashboard_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.listDashboardChartsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/dashboards/{reference}/charts": {
             "put": {
                 "consumes": [
@@ -3021,6 +3076,38 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.DashboardChart": {
+            "type": "object",
+            "properties": {
+                "chart": {
+                    "$ref": "#/definitions/malak.IntegrationChart"
+                },
+                "chart_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "dashboard_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                },
+                "workspace_integration_id": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.Deck": {
             "type": "object",
             "properties": {
@@ -4191,6 +4278,28 @@ const docTemplate = `{
                 },
                 "meta": {
                     "$ref": "#/definitions/server.meta"
+                }
+            }
+        },
+        "server.listDashboardChartsResponse": {
+            "type": "object",
+            "required": [
+                "charts",
+                "dashboard",
+                "message"
+            ],
+            "properties": {
+                "charts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.DashboardChart"
+                    }
+                },
+                "dashboard": {
+                    "$ref": "#/definitions/malak.Dashboard"
+                },
+                "message": {
+                    "type": "string"
                 }
             }
         },

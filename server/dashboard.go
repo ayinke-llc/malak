@@ -302,3 +302,69 @@ func (d *dashboardHandler) addChart(
 	return newAPIStatus(http.StatusOK, "chart added to dashboard"),
 		StatusSuccess
 }
+
+// @Summary fetch dashboard
+// @Tags dashboards
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "dashboard unique reference.. e.g dashboard_"
+// @Success 200 {object} listDashboardChartsResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /dashboards/{reference} [GET]
+func (d *dashboardHandler) fetchDashboard(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("Fetching dashboard")
+
+	workspace := getWorkspaceFromContext(r.Context())
+
+	ref := chi.URLParam(r, "reference")
+
+	if hermes.IsStringEmpty(ref) {
+		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
+	}
+
+	dashboard, err := d.dashboardRepo.Get(ctx, malak.FetchDashboardOption{
+		Reference:   malak.Reference(ref),
+		WorkspaceID: workspace.ID,
+	})
+	if err != nil {
+		logger.Error("could not fetch dashboard", zap.Error(err))
+		status := http.StatusInternalServerError
+		msg := "an error occurred while fetching dashboard"
+
+		if errors.Is(err, malak.ErrDashboardNotFound) {
+			status = http.StatusNotFound
+			msg = err.Error()
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	charts, err := d.dashboardRepo.GetCharts(ctx, malak.FetchDashboardChartsOption{
+		WorkspaceID: workspace.ID,
+		DashboardID: dashboard.ID,
+	})
+	if err != nil {
+
+		logger.Error("could not list dashboard charts",
+			zap.Error(err))
+
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"could not list dashboard charts"), StatusFailed
+	}
+
+	return listDashboardChartsResponse{
+		APIStatus: newAPIStatus(http.StatusOK, "dashboards fetched"),
+		Dashboard: dashboard,
+		Charts:    charts,
+	}, StatusSuccess
+}

@@ -35,7 +35,9 @@ type DashboardChart struct {
 	Reference              Reference `json:"reference,omitempty"`
 	WorkspaceID            uuid.UUID `json:"workspace_id,omitempty"`
 	DashboardID            uuid.UUID `json:"dashboard_id,omitempty"`
-	ChartID                uuid.UUID `json:"chart_id,omitempty"`
+
+	ChartID          uuid.UUID         `json:"chart_id,omitempty"`
+	IntegrationChart *IntegrationChart `json:"chart,omitempty" bun:"rel:belongs-to,join:chart_id=id"`
 
 	CreatedAt time.Time `json:"created_at,omitempty" bun:",default:current_timestamp"`
 	UpdatedAt time.Time `json:"updated_at,omitempty" bun:",default:current_timestamp"`
@@ -55,9 +57,15 @@ type FetchDashboardOption struct {
 	Reference   Reference
 }
 
+type FetchDashboardChartsOption struct {
+	WorkspaceID uuid.UUID
+	DashboardID uuid.UUID
+}
+
 type DashboardRepository interface {
 	Create(context.Context, *Dashboard) error
 	Get(context.Context, FetchDashboardOption) (Dashboard, error)
 	AddChart(context.Context, *DashboardChart) error
 	List(context.Context, ListDashboardOptions) ([]Dashboard, int64, error)
+	GetCharts(context.Context, FetchDashboardChartsOption) ([]DashboardChart, error)
 }

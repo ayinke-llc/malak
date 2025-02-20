@@ -178,6 +178,27 @@ components:
         workspace_id:
           type: string
       type: object
+    malak.DashboardChart:
+      properties:
+        chart:
+          $ref: '#/components/schemas/malak.IntegrationChart'
+        chart_id:
+          type: string
+        created_at:
+          type: string
+        dashboard_id:
+          type: string
+        id:
+          type: string
+        reference:
+          type: string
+        updated_at:
+          type: string
+        workspace_id:
+          type: string
+        workspace_integration_id:
+          type: string
+      type: object
     malak.Deck:
       properties:
         created_at:
@@ -975,6 +996,21 @@ components:
       - message
       - meta
       type: object
+    server.listDashboardChartsResponse:
+      properties:
+        charts:
+          items:
+            $ref: '#/components/schemas/malak.DashboardChart'
+          type: array
+        dashboard:
+          $ref: '#/components/schemas/malak.Dashboard'
+        message:
+          type: string
+      required:
+      - charts
+      - dashboard
+      - message
+      type: object
     server.listDashboardResponse:
       properties:
         dashboards:
@@ -1743,6 +1779,49 @@ paths:
                 $ref: '#/components/schemas/server.APIStatus'
           description: Internal Server Error
       summary: create a new dashboard
+      tags:
+      - dashboards
+  /dashboards/{reference}:
+    get:
+      parameters:
+      - description: dashboard unique reference.. e.g dashboard_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.listDashboardChartsResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: fetch dashboard
       tags:
       - dashboards
   /dashboards/{reference}/charts:

@@ -34,3 +34,4 @@ export const DISABLE_INTEGRATION = 'DISABLE_INTEGRATION' as const;
 export const CREATE_DASHBOARD = 'CREATE_DASHBOARD' as const;
 export const LIST_DASHBOARDS = "LIST_DASHBOARDS" as const;
 export const LIST_CHARTS = "LIST_CHARTS";
+export const DASHBOARD_DETAIL = "DASHBOARD_DETAIL" as const;

@@ -1,9 +1,16 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { RiBarChart2Line, RiPieChartLine, RiSettings4Line, RiArrowDownSLine, RiLoader4Line } from "@remixicon/react";
+import {
+  RiBarChart2Line, RiPieChartLine, RiSettings4Line,
+  RiArrowDownSLine, RiLoader4Line
+} from "@remixicon/react";
 import { useParams } from "next/navigation";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from "recharts";
+import {
+  Bar, BarChart, ResponsiveContainer,
+  XAxis, YAxis, Tooltip, PieChart,
+  Pie, Cell
+} from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
 import {
   DropdownMenu,
@@ -38,99 +45,13 @@ import {
 } from "@/components/ui/command";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import client from "@/lib/client";
-import { LIST_CHARTS } from "@/lib/query-constants";
-import type { ServerAPIStatus, ServerListIntegrationChartsResponse } from "@/client/Api";
+import { LIST_CHARTS, DASHBOARD_DETAIL } from "@/lib/query-constants";
+import type {
+  ServerAPIStatus, ServerListIntegrationChartsResponse,
+  ServerListDashboardChartsResponse, MalakDashboardChart
+} from "@/client/Api";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
-
-// Mock type for demonstration
-type Chart = {
-  id: string;
-  title: string;
-  type: "bar" | "line" | "pie";
-  description: string;
-};
-
-type Dashboard = {
-  id: string;
-  title: string;
-  description: string;
-};
-
-type DashboardsMap = {
-  [key: string]: Dashboard;
-};
-
-// Mock dashboard data
-const mockDashboards: DashboardsMap = {
-  "dashboard_lLDM9lfnEk": {
-    id: "dashboard_C5B_LEc_D7",
-    title: "Revenue Overview",
-    description: "Monthly revenue trends and projections",
-  },
-  "2": {
-    id: "2",
-    title: "User Analytics",
-    description: "User engagement and activity metrics",
-  },
-  "3": {
-    id: "3",
-    title: "Cost Distribution",
-    description: "Breakdown of operational costs",
-  }
-};
-
-// Mock data for demonstration
-const mockCharts: Chart[] = [
-  {
-    id: "1",
-    title: "Monthly Revenue",
-    type: "bar",
-    description: "Revenue trends over the past 12 months"
-  },
-  {
-    id: "2",
-    title: "User Growth",
-    type: "bar",
-    description: "Daily active users growth"
-  },
-  {
-    id: "3",
-    title: "Cost Distribution",
-    type: "pie",
-    description: "Distribution of operational costs"
-  },
-  {
-    id: "4",
-    title: "Conversion Rate",
-    type: "bar",
-    description: "User conversion metrics"
-  },
-  {
-    id: "5",
-    title: "Team Distribution",
-    type: "pie",
-    description: "Team members by department"
-  },
-  {
-    id: "6",
-    title: "Storage Usage",
-    type: "pie",
-    description: "Storage allocation by type"
-  },
-  {
-    id: "7",
-    title: "Support Tickets",
-    type: "bar",
-    description: "Monthly support ticket volume"
-  },
-  {
-    id: "8",
-    title: "API Requests",
-    type: "bar",
-    description: "Daily API request count"
-  }
-];
 
 // Mock data for bar charts
 const revenueData = [
@@ -166,68 +87,6 @@ const revenueData = [
   { month: "Day 30", revenue: 3600 }
 ];
 
-const userGrowthData = [
-  { month: "Day 1", users: 1200 },
-  { month: "Day 2", users: 1800 },
-  { month: "Day 3", users: 2400 },
-  { month: "Day 4", users: 3600 },
-  { month: "Day 5", users: 4200 },
-  { month: "Day 6", users: 5000 },
-  { month: "Day 7", users: 5500 },
-  { month: "Day 8", users: 4800 },
-  { month: "Day 9", users: 6200 },
-  { month: "Day 10", users: 5800 },
-  { month: "Day 11", users: 4900 },
-  { month: "Day 12", users: 4100 },
-  { month: "Day 13", users: 5900 },
-  { month: "Day 14", users: 5100 },
-  { month: "Day 15", users: 6400 },
-  { month: "Day 16", users: 5600 },
-  { month: "Day 17", users: 4700 },
-  { month: "Day 18", users: 3900 },
-  { month: "Day 19", users: 6100 },
-  { month: "Day 20", users: 4400 },
-  { month: "Day 21", users: 6600 },
-  { month: "Day 22", users: 5700 },
-  { month: "Day 23", users: 4800 },
-  { month: "Day 24", users: 4000 },
-  { month: "Day 25", users: 5900 },
-  { month: "Day 26", users: 5100 },
-  { month: "Day 27", users: 6400 },
-  { month: "Day 28", users: 5300 },
-  { month: "Day 29", users: 4500 },
-  { month: "Day 30", users: 3800 },
-  { month: "Day 31", users: 6200 },
-  { month: "Day 32", users: 5400 }
-];
-
-const conversionData = [
-  { month: "Jan", rate: 45 },
-  { month: "Feb", rate: 52 },
-  { month: "Mar", rate: 48 },
-  { month: "Apr", rate: 61 },
-  { month: "May", rate: 55 },
-  { month: "Jun", rate: 67 },
-];
-
-const ticketData = [
-  { month: "Jan", tickets: 145 },
-  { month: "Feb", tickets: 132 },
-  { month: "Mar", tickets: 164 },
-  { month: "Apr", tickets: 128 },
-  { month: "May", tickets: 155 },
-  { month: "Jun", tickets: 147 },
-];
-
-const apiRequestData = [
-  { month: "Jan", requests: 25000 },
-  { month: "Feb", requests: 32000 },
-  { month: "Mar", requests: 38000 },
-  { month: "Apr", requests: 42000 },
-  { month: "May", requests: 45000 },
-  { month: "Jun", requests: 51000 },
-];
-
 // Mock data for pie charts
 const costData = [
   { name: "Infrastructure", value: 400, color: "#0088FE" },
@@ -236,162 +95,37 @@ const costData = [
   { name: "Operations", value: 200, color: "#FF8042" },
 ];
 
-const teamData = [
-  { name: "Engineering", value: 40, color: "#0088FE" },
-  { name: "Product", value: 15, color: "#00C49F" },
-  { name: "Marketing", value: 20, color: "#FFBB28" },
-  { name: "Sales", value: 25, color: "#FF8042" },
-];
-
-const storageData = [
-  { name: "Documents", value: 450, color: "#0088FE" },
-  { name: "Media", value: 800, color: "#00C49F" },
-  { name: "Backups", value: 300, color: "#FFBB28" },
-  { name: "Other", value: 150, color: "#FF8042" },
-];
-
-// Rename from availableCharts to chartOptions
-const chartOptions = [
-  {
-    title: "Bar Charts",
-    items: [
-      {
-        id: "revenue",
-        title: "Revenue Chart",
-        description: "Track revenue over time",
-        type: "bar",
-        icon: <RiBarChart2Line className="h-4 w-4" />,
-      },
-      {
-        id: "users",
-        title: "User Growth",
-        description: "Monitor user growth trends",
-        type: "bar",
-        icon: <RiBarChart2Line className="h-4 w-4" />,
-      },
-      {
-        id: "conversion",
-        title: "Conversion Rate",
-        description: "Track conversion metrics",
-        type: "bar",
-        icon: <RiBarChart2Line className="h-4 w-4" />,
-      },
-    ],
-  },
-  {
-    title: "Pie Charts",
-    items: [
-      {
-        id: "distribution",
-        title: "Cost Distribution",
-        description: "Analyze cost breakdown",
-        type: "pie",
-        icon: <RiPieChartLine className="h-4 w-4" />,
-      },
-      {
-        id: "team",
-        title: "Team Distribution",
-        description: "View team composition",
-        type: "pie",
-        icon: <RiPieChartLine className="h-4 w-4" />,
-      },
-    ],
-  },
-];
-
-function ChartCard({ chart }: { chart: Chart }) {
-  const getChartIcon = (type: Chart["type"]) => {
+function ChartCard({ chart }: { chart: MalakDashboardChart }) {
+  const getChartIcon = (type: string) => {
     switch (type) {
       case "bar":
         return <RiBarChart2Line className="h-4 w-4" />;
       case "pie":
         return <RiPieChartLine className="h-4 w-4" />;
-    }
-  };
-
-  const getBarData = (chartId: string) => {
-    switch (chartId) {
-      case "1":
-        return { data: revenueData, key: "revenue" };
-      case "2":
-        return { data: userGrowthData, key: "users" };
-      case "4":
-        return { data: conversionData, key: "rate" };
-      case "7":
-        return { data: ticketData, key: "tickets" };
-      case "8":
-        return { data: apiRequestData, key: "requests" };
       default:
-        return { data: revenueData, key: "revenue" };
+        return <RiBarChart2Line className="h-4 w-4" />;
     }
   };
 
-  const getPieData = (chartId: string) => {
-    switch (chartId) {
-      case "3":
-        return costData;
-      case "5":
-        return teamData;
-      case "6":
-        return storageData;
-      default:
-        return costData;
-    }
+  const getChartData = (chart: MalakDashboardChart) => {
+    // TODO: Replace with real data from the chart's data source
+    return chart.chart?.chart_type === "bar" ? revenueData : costData;
   };
 
-  const renderChart = (type: Chart["type"]) => {
-    switch (type) {
-      case "bar":
-        const { data, key } = getBarData(chart.id);
-        return (
-          <ChartContainer className="w-full h-full" config={{}}>
-            <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={data} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
-                <XAxis dataKey="month" stroke="#888888" fontSize={11} />
-                <YAxis stroke="#888888" fontSize={11} />
-                <Tooltip />
-                <Bar dataKey={key} fill="#8884d8" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        );
-      case "pie":
-        const pieData = getPieData(chart.id);
-        return (
-          <ChartContainer className="w-full h-full" config={{}}>
-            <ResponsiveContainer width="100%" height={160}>
-              <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={60}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        );
-    }
-  };
+  if (!chart.chart) {
+    return null;
+  }
 
   return (
     <Card className="p-3">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <div className="text-muted-foreground">
-            {getChartIcon(chart.type)}
+            {getChartIcon(chart.chart.chart_type || "bar")}
           </div>
           <div>
-            <h3 className="text-sm font-medium">{chart.title}</h3>
-            <p className="text-xs text-muted-foreground">{chart.description}</p>
+            <h3 className="text-sm font-medium">{chart.chart.user_facing_name}</h3>
+            <p className="text-xs text-muted-foreground">{chart.chart.internal_name}</p>
           </div>
         </div>
         <DropdownMenu>
@@ -408,7 +142,39 @@ function ChartCard({ chart }: { chart: Chart }) {
         </DropdownMenu>
       </div>
       <div className="w-full">
-        {renderChart(chart.type)}
+        {chart.chart.chart_type === "bar" ? (
+          <ChartContainer className="w-full h-full" config={{}}>
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={getChartData(chart)} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+                <XAxis dataKey="month" stroke="#888888" fontSize={11} />
+                <YAxis stroke="#888888" fontSize={11} />
+                <Tooltip />
+                <Bar dataKey="revenue" fill="#8884d8" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        ) : (
+          <ChartContainer className="w-full h-full" config={{}}>
+            <ResponsiveContainer width="100%" height={160}>
+              <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                <Pie
+                  data={getChartData(chart)}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={60}
+                  dataKey="value"
+                >
+                  {costData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        )}
       </div>
     </Card>
   );
@@ -418,12 +184,18 @@ export default function DashboardPage() {
   const params = useParams();
   const dashboardId = params.slug as string;
 
-  const dashboard = mockDashboards[dashboardId];
-
   const [isOpen, setIsOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [selectedChart, setSelectedChart] = useState<string>("");
   const [selectedChartLabel, setSelectedChartLabel] = useState<string>("");
+
+  const { data: dashboardData, isLoading: isLoadingDashboard } = useQuery<ServerListDashboardChartsResponse>({
+    queryKey: [DASHBOARD_DETAIL, dashboardId],
+    queryFn: async () => {
+      const response = await client.dashboards.dashboardsDetail(dashboardId);
+      return response.data;
+    },
+  });
 
   const { data: chartsData, isLoading: isLoadingCharts } = useQuery<ServerListIntegrationChartsResponse>({
     queryKey: [LIST_CHARTS],
@@ -464,7 +236,18 @@ export default function DashboardPage() {
     addChartMutation.mutate(selectedChart);
   };
 
-  if (!dashboard) {
+  if (isLoadingDashboard) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <div className="text-center">
+          <RiLoader4Line className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+          <h1 className="text-2xl font-bold text-muted-foreground mt-4">Loading dashboard...</h1>
+        </div>
+      </div>
+    );
+  }
+
+  if (!dashboardData?.dashboard) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
         <div className="text-center">
@@ -479,8 +262,8 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{dashboard.title}</h1>
-          <p className="text-muted-foreground">{dashboard.description}</p>
+          <h1 className="text-2xl font-bold">{dashboardData.dashboard.title}</h1>
+          <p className="text-muted-foreground">{dashboardData.dashboard.description}</p>
         </div>
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
@@ -593,8 +376,8 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {mockCharts.map((chart) => (
-          <ChartCard key={chart.id} chart={chart} />
+        {dashboardData.charts.map((chart) => (
+          <ChartCard key={chart.reference} chart={chart} />
         ))}
       </div>
     </div>

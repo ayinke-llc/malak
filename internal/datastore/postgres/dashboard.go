@@ -109,3 +109,22 @@ func (d *dashboardRepo) Get(ctx context.Context,
 
 	return dashboard, err
 }
+
+func (d *dashboardRepo) GetCharts(ctx context.Context,
+	opts malak.FetchDashboardChartsOption) ([]malak.DashboardChart, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	charts := make([]malak.DashboardChart, 0)
+
+	err := d.inner.NewSelect().
+		Model(&charts).
+		Relation("IntegrationChart").
+		Order("dashboard_chart.created_at DESC").
+		Where("dashboard_chart.workspace_id = ?", opts.WorkspaceID).
+		Where("dashboard_id = ?", opts.DashboardID).
+		Scan(ctx)
+
+	return charts, err
+}

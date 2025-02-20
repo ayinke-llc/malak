@@ -82,6 +82,12 @@ type listIntegrationChartsResponse struct {
 	APIStatus
 }
 
+type listDashboardChartsResponse struct {
+	Charts    []malak.DashboardChart `json:"charts,omitempty" validate:"required"`
+	Dashboard malak.Dashboard        `json:"dashboard,omitempty" validate:"required"`
+	APIStatus
+}
+
 type listDashboardResponse struct {
 	Meta       meta              `json:"meta,omitempty" validate:"required"`
 	Dashboards []malak.Dashboard `json:"dashboards,omitempty" validate:"required"`
