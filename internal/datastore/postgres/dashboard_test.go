@@ -34,43 +34,219 @@ func TestDashboard_Create(t *testing.T) {
 	require.Equal(t, int64(0), dashboard.ChartCount)
 }
 
-// func TestDashboard_AddChart(t *testing.T) {
-// 	client, teardownFunc := setupDatabase(t)
-// 	defer teardownFunc()
-//
-// 	dashboardRepo := NewDashboardRepo(client)
-// 	workspaceRepo := NewWorkspaceRepository(client)
-//
-// 	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
-// 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
-// 	})
-// 	require.NoError(t, err)
-//
-// 	dashboard := &malak.Dashboard{
-// 		WorkspaceID: workspace.ID,
-// 		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
-// 		Title:       "Test Dashboard",
-// 		Description: "Test Dashboard Description",
-// 	}
-//
-// 	err = dashboardRepo.Create(context.Background(), dashboard)
-// 	require.NoError(t, err)
-// 	require.Equal(t, int64(0), dashboard.ChartCount)
-//
-// 	workspaceIntegrationID := uuid.New()
-//
-// 	chart := &malak.DashboardChart{
-// 		WorkspaceIntegrationID: workspaceIntegrationID,
-// 		Reference:              malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
-// 		WorkspaceID:            workspace.ID,
-// 		DashboardID:            dashboard.ID,
-// 		DashboardType:          malak.DashboardChartTypeBarchart,
-// 	}
-//
-// 	err = dashboardRepo.AddChart(context.Background(), chart)
-// 	require.NoError(t, err)
-// 	require.NotEmpty(t, chart.ID)
-// }
+func TestDashboard_AddChart(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	dashboardRepo := NewDashboardRepo(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	dashboard := &malak.Dashboard{
+		WorkspaceID: workspace.ID,
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
+		Title:       "Test Dashboard",
+		Description: "Test Dashboard Description",
+	}
+
+	err = dashboardRepo.Create(context.Background(), dashboard)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), dashboard.ChartCount)
+
+	workspaceIntegrationID := uuid.New()
+	chartID := uuid.New()
+
+	chart := &malak.DashboardChart{
+		WorkspaceIntegrationID: workspaceIntegrationID,
+		ChartID:                chartID,
+		Reference:              malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
+		WorkspaceID:            workspace.ID,
+		DashboardID:            dashboard.ID,
+	}
+
+	err = dashboardRepo.AddChart(context.Background(), chart)
+	require.NoError(t, err)
+	require.NotEmpty(t, chart.ID)
+
+	// Verify chart count was incremented
+	updatedDashboard, err := dashboardRepo.Get(context.Background(), malak.FetchDashboardOption{
+		WorkspaceID: workspace.ID,
+		Reference:   dashboard.Reference,
+	})
+	require.NoError(t, err)
+	require.Equal(t, int64(1), updatedDashboard.ChartCount)
+}
+
+func TestDashboard_Get(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	dashboardRepo := NewDashboardRepo(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	dashboard := &malak.Dashboard{
+		WorkspaceID: workspace.ID,
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
+		Title:       "Test Dashboard",
+		Description: "Test Dashboard Description",
+	}
+
+	err = dashboardRepo.Create(context.Background(), dashboard)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name          string
+		opts          malak.FetchDashboardOption
+		expectedError error
+	}{
+		{
+			name: "existing dashboard",
+			opts: malak.FetchDashboardOption{
+				WorkspaceID: workspace.ID,
+				Reference:   dashboard.Reference,
+			},
+			expectedError: nil,
+		},
+		{
+			name: "non-existent dashboard",
+			opts: malak.FetchDashboardOption{
+				WorkspaceID: workspace.ID,
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
+			},
+			expectedError: malak.ErrDashboardNotFound,
+		},
+		{
+			name: "wrong workspace",
+			opts: malak.FetchDashboardOption{
+				WorkspaceID: uuid.New(),
+				Reference:   dashboard.Reference,
+			},
+			expectedError: malak.ErrDashboardNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := dashboardRepo.Get(context.Background(), tt.opts)
+			if tt.expectedError != nil {
+				require.ErrorIs(t, err, tt.expectedError)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.opts.WorkspaceID, result.WorkspaceID)
+				require.Equal(t, tt.opts.Reference, result.Reference)
+				require.Equal(t, dashboard.Title, result.Title)
+				require.Equal(t, dashboard.Description, result.Description)
+			}
+		})
+	}
+}
+
+func TestDashboard_GetCharts(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	dashboardRepo := NewDashboardRepo(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	dashboard := &malak.Dashboard{
+		WorkspaceID: workspace.ID,
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
+		Title:       "Test Dashboard",
+		Description: "Test Dashboard Description",
+	}
+
+	err = dashboardRepo.Create(context.Background(), dashboard)
+	require.NoError(t, err)
+
+	workspaceIntegrationID := uuid.New()
+	chartID := uuid.New()
+
+	// Add multiple charts
+	charts := []*malak.DashboardChart{
+		{
+			WorkspaceIntegrationID: workspaceIntegrationID,
+			ChartID:                chartID,
+			Reference:              malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
+			WorkspaceID:            workspace.ID,
+			DashboardID:            dashboard.ID,
+		},
+		{
+			WorkspaceIntegrationID: workspaceIntegrationID,
+			ChartID:                uuid.New(),
+			Reference:              malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
+			WorkspaceID:            workspace.ID,
+			DashboardID:            dashboard.ID,
+		},
+	}
+
+	for _, chart := range charts {
+		err = dashboardRepo.AddChart(context.Background(), chart)
+		require.NoError(t, err)
+	}
+
+	// Test getting charts
+	tests := []struct {
+		name          string
+		opts          malak.FetchDashboardChartsOption
+		expectedCount int
+	}{
+		{
+			name: "existing dashboard charts",
+			opts: malak.FetchDashboardChartsOption{
+				WorkspaceID: workspace.ID,
+				DashboardID: dashboard.ID,
+			},
+			expectedCount: 2,
+		},
+		{
+			name: "non-existent dashboard",
+			opts: malak.FetchDashboardChartsOption{
+				WorkspaceID: workspace.ID,
+				DashboardID: uuid.New(),
+			},
+			expectedCount: 0,
+		},
+		{
+			name: "wrong workspace",
+			opts: malak.FetchDashboardChartsOption{
+				WorkspaceID: uuid.New(),
+				DashboardID: dashboard.ID,
+			},
+			expectedCount: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			results, err := dashboardRepo.GetCharts(context.Background(), tt.opts)
+			require.NoError(t, err)
+			require.Equal(t, tt.expectedCount, len(results))
+
+			if tt.expectedCount > 0 {
+				for _, result := range results {
+					require.Equal(t, tt.opts.WorkspaceID, result.WorkspaceID)
+					require.Equal(t, tt.opts.DashboardID, result.DashboardID)
+					require.NotEmpty(t, result.ID)
+					require.NotEmpty(t, result.Reference)
+				}
+			}
+		})
+	}
+}
 
 func TestDashboard_List(t *testing.T) {
 	client, teardownFunc := setupDatabase(t)
@@ -223,4 +399,120 @@ func TestDashboard_List(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 0, len(nonExistentResults))
 	require.Equal(t, int64(0), total)
+}
+
+func TestDashboard_GetChartsWithIntegration(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	dashboardRepo := NewDashboardRepo(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+	integrationRepo := NewIntegrationRepo(client)
+
+	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	// Create integration
+	integration := &malak.Integration{
+		IntegrationName: "Mercury",
+		Reference:       malak.NewReferenceGenerator().Generate(malak.EntityTypeIntegration),
+		Description:     "Mercury Banking Integration",
+		IsEnabled:       true,
+		IntegrationType: malak.IntegrationTypeOauth2,
+		LogoURL:         "https://mercury.com/logo.png",
+	}
+	err = integrationRepo.Create(context.Background(), integration)
+	require.NoError(t, err)
+
+	// Get workspace integration
+	integrations, err := integrationRepo.List(context.Background(), workspace)
+	require.NoError(t, err)
+	require.Len(t, integrations, 1)
+	workspaceIntegration := integrations[0]
+
+	// Create integration charts
+	chartValues := []malak.IntegrationChartValues{
+		{
+			UserFacingName: "Account Balance",
+			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
+			ProviderID:     "account_123",
+			ChartType:      malak.IntegrationChartTypeBar,
+		},
+		{
+			UserFacingName: "Transaction History",
+			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccountTransaction,
+			ProviderID:     "account_123",
+			ChartType:      malak.IntegrationChartTypeBar,
+		},
+	}
+	err = integrationRepo.CreateCharts(context.Background(), &workspaceIntegration, chartValues)
+	require.NoError(t, err)
+
+	// Get created charts
+	charts, err := integrationRepo.ListCharts(context.Background(), workspace.ID)
+	require.NoError(t, err)
+	require.Len(t, charts, 2)
+
+	// Create dashboard
+	dashboard := &malak.Dashboard{
+		WorkspaceID: workspace.ID,
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
+		Title:       "Mercury Dashboard",
+		Description: "Mercury Banking Dashboard",
+	}
+	err = dashboardRepo.Create(context.Background(), dashboard)
+	require.NoError(t, err)
+
+	// Add charts to dashboard
+	for _, chart := range charts {
+		dashboardChart := &malak.DashboardChart{
+			WorkspaceIntegrationID: workspaceIntegration.ID,
+			ChartID:                chart.ID,
+			Reference:              malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardChart),
+			WorkspaceID:            workspace.ID,
+			DashboardID:            dashboard.ID,
+		}
+		err = dashboardRepo.AddChart(context.Background(), dashboardChart)
+		require.NoError(t, err)
+	}
+
+	// Test getting charts with integration data
+	dashboardCharts, err := dashboardRepo.GetCharts(context.Background(), malak.FetchDashboardChartsOption{
+		WorkspaceID: workspace.ID,
+		DashboardID: dashboard.ID,
+	})
+	require.NoError(t, err)
+	require.Len(t, dashboardCharts, 2)
+
+	// Verify integration chart data is loaded
+	for _, dashboardChart := range dashboardCharts {
+		require.NotNil(t, dashboardChart.IntegrationChart)
+		require.NotEmpty(t, dashboardChart.IntegrationChart.UserFacingName)
+		require.NotEmpty(t, dashboardChart.IntegrationChart.InternalName)
+		require.NotEmpty(t, dashboardChart.IntegrationChart.ChartType)
+		require.Equal(t, workspaceIntegration.ID, dashboardChart.IntegrationChart.WorkspaceIntegrationID)
+		require.Equal(t, workspace.ID, dashboardChart.IntegrationChart.WorkspaceID)
+	}
+
+	// Verify specific chart data
+	foundAccountBalance := false
+	foundTransactionHistory := false
+
+	for _, dashboardChart := range dashboardCharts {
+		switch dashboardChart.IntegrationChart.InternalName {
+		case malak.IntegrationChartInternalNameTypeMercuryAccount:
+			foundAccountBalance = true
+			require.Equal(t, "Account Balance", dashboardChart.IntegrationChart.UserFacingName)
+			require.Equal(t, malak.IntegrationChartTypeBar, dashboardChart.IntegrationChart.ChartType)
+		case malak.IntegrationChartInternalNameTypeMercuryAccountTransaction:
+			foundTransactionHistory = true
+			require.Equal(t, "Transaction History", dashboardChart.IntegrationChart.UserFacingName)
+			require.Equal(t, malak.IntegrationChartTypeBar, dashboardChart.IntegrationChart.ChartType)
+		}
+	}
+
+	require.True(t, foundAccountBalance, "Account Balance chart not found")
+	require.True(t, foundTransactionHistory, "Transaction History chart not found")
 }
