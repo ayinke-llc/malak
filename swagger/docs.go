@@ -3077,6 +3077,9 @@ const docTemplate = `{
         "malak.IntegrationChart": {
             "type": "object",
             "properties": {
+                "chart_type": {
+                    "$ref": "#/definitions/malak.IntegrationChartType"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -3128,6 +3131,17 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "malak.IntegrationChartType": {
+            "type": "string",
+            "enum": [
+                "bar",
+                "pie"
+            ],
+            "x-enum-varnames": [
+                "IntegrationChartTypeBar",
+                "IntegrationChartTypePie"
+            ]
         },
         "malak.IntegrationMetadata": {
             "type": "object",

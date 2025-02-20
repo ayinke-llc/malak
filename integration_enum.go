@@ -96,39 +96,29 @@ func ParseIntegrationChartInternalNameType(name string) (IntegrationChartInterna
 }
 
 const (
-	// IntegrationChartTypeBar is a IntegrationChartType of type Bar.
-	IntegrationChartTypeBar IntegrationChartType = iota
-	// IntegrationChartTypePie is a IntegrationChartType of type Pie.
-	IntegrationChartTypePie
+	// IntegrationChartTypeBar is a IntegrationChartType of type bar.
+	IntegrationChartTypeBar IntegrationChartType = "bar"
+	// IntegrationChartTypePie is a IntegrationChartType of type pie.
+	IntegrationChartTypePie IntegrationChartType = "pie"
 )
 
 var ErrInvalidIntegrationChartType = errors.New("not a valid IntegrationChartType")
 
-const _IntegrationChartTypeName = "barpie"
-
-var _IntegrationChartTypeMap = map[IntegrationChartType]string{
-	IntegrationChartTypeBar: _IntegrationChartTypeName[0:3],
-	IntegrationChartTypePie: _IntegrationChartTypeName[3:6],
-}
-
 // String implements the Stringer interface.
 func (x IntegrationChartType) String() string {
-	if str, ok := _IntegrationChartTypeMap[x]; ok {
-		return str
-	}
-	return fmt.Sprintf("IntegrationChartType(%d)", x)
+	return string(x)
 }
 
 // IsValid provides a quick way to determine if the typed value is
 // part of the allowed enumerated values
 func (x IntegrationChartType) IsValid() bool {
-	_, ok := _IntegrationChartTypeMap[x]
-	return ok
+	_, err := ParseIntegrationChartType(string(x))
+	return err == nil
 }
 
 var _IntegrationChartTypeValue = map[string]IntegrationChartType{
-	_IntegrationChartTypeName[0:3]: IntegrationChartTypeBar,
-	_IntegrationChartTypeName[3:6]: IntegrationChartTypePie,
+	"bar": IntegrationChartTypeBar,
+	"pie": IntegrationChartTypePie,
 }
 
 // ParseIntegrationChartType attempts to convert a string to a IntegrationChartType.
@@ -136,7 +126,7 @@ func ParseIntegrationChartType(name string) (IntegrationChartType, error) {
 	if x, ok := _IntegrationChartTypeValue[name]; ok {
 		return x, nil
 	}
-	return IntegrationChartType(0), fmt.Errorf("%s is %w", name, ErrInvalidIntegrationChartType)
+	return IntegrationChartType(""), fmt.Errorf("%s is %w", name, ErrInvalidIntegrationChartType)
 }
 
 const (

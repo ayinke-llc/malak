@@ -382,6 +382,9 @@
 			},
 			"malak.IntegrationChart": {
 				"properties": {
+					"chart_type": {
+						"$ref": "#/components/schemas/malak.IntegrationChartType"
+					},
 					"created_at": {
 						"type": "string"
 					},
@@ -434,6 +437,17 @@
 					}
 				},
 				"type": "object"
+			},
+			"malak.IntegrationChartType": {
+				"enum": [
+					"bar",
+					"pie"
+				],
+				"type": "string",
+				"x-enum-varnames": [
+					"IntegrationChartTypeBar",
+					"IntegrationChartTypePie"
+				]
 			},
 			"malak.IntegrationMetadata": {
 				"properties": {

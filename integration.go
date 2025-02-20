@@ -23,7 +23,7 @@ type IntegrationProvider string
 type IntegrationChartInternalNameType string
 
 // ENUM(bar,pie)
-type IntegrationChartType uint8
+type IntegrationChartType string
 
 // ENUM(daily,monthly)
 type IntegrationChartFrequencyType uint8

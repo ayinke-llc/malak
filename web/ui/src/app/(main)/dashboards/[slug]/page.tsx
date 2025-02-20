@@ -441,7 +441,7 @@ export default function DashboardPage() {
   const availableCharts: ChartOption[] = (chartsData?.charts || []).map(chart => ({
     value: chart.reference || "",
     label: chart.user_facing_name || "",
-    type: chart.internal_name?.toLowerCase().includes("transaction") ? "bar" : "pie",
+    type: chart.chart_type as "bar" | "pie",
     description: chart.internal_name || "",
   }));
 

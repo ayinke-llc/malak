@@ -159,6 +159,7 @@ export interface MalakIntegration {
 }
 
 export interface MalakIntegrationChart {
+  chart_type?: MalakIntegrationChartType;
   created_at?: string;
   id?: string;
   internal_name?: MalakIntegrationChartInternalNameType;
@@ -179,6 +180,11 @@ export enum MalakIntegrationChartInternalNameType {
 
 export interface MalakIntegrationChartMetadata {
   provider_id?: string;
+}
+
+export enum MalakIntegrationChartType {
+  IntegrationChartTypeBar = "bar",
+  IntegrationChartTypePie = "pie",
 }
 
 export interface MalakIntegrationMetadata {
