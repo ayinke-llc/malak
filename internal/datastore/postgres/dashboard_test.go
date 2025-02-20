@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"context"
 	"testing"
 
 	"github.com/ayinke-llc/malak"
@@ -16,7 +15,7 @@ func TestDashboard_Create(t *testing.T) {
 	dashboardRepo := NewDashboardRepo(client)
 	workspaceRepo := NewWorkspaceRepository(client)
 
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
 	})
 	require.NoError(t, err)
@@ -28,7 +27,7 @@ func TestDashboard_Create(t *testing.T) {
 		Description: "Test Dashboard Description",
 	}
 
-	err = dashboardRepo.Create(context.Background(), dashboard)
+	err = dashboardRepo.Create(t.Context(), dashboard)
 	require.NoError(t, err)
 	require.NotEmpty(t, dashboard.ID)
 	require.Equal(t, int64(0), dashboard.ChartCount)
@@ -42,7 +41,7 @@ func TestDashboard_AddChart(t *testing.T) {
 	workspaceRepo := NewWorkspaceRepository(client)
 	integrationRepo := NewIntegrationRepo(client)
 
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
@@ -55,10 +54,10 @@ func TestDashboard_AddChart(t *testing.T) {
 		IntegrationType: malak.IntegrationTypeOauth2,
 		LogoURL:         "https://mercury.com/logo.png",
 	}
-	err = integrationRepo.Create(context.Background(), integration)
+	err = integrationRepo.Create(t.Context(), integration)
 	require.NoError(t, err)
 
-	integrations, err := integrationRepo.List(context.Background(), workspace)
+	integrations, err := integrationRepo.List(t.Context(), workspace)
 	require.NoError(t, err)
 	require.Len(t, integrations, 1)
 	workspaceIntegration := integrations[0]
@@ -71,10 +70,10 @@ func TestDashboard_AddChart(t *testing.T) {
 			ChartType:      malak.IntegrationChartTypeBar,
 		},
 	}
-	err = integrationRepo.CreateCharts(context.Background(), &workspaceIntegration, chartValues)
+	err = integrationRepo.CreateCharts(t.Context(), &workspaceIntegration, chartValues)
 	require.NoError(t, err)
 
-	charts, err := integrationRepo.ListCharts(context.Background(), workspace.ID)
+	charts, err := integrationRepo.ListCharts(t.Context(), workspace.ID)
 	require.NoError(t, err)
 	require.Len(t, charts, 1)
 	createdChart := charts[0]
@@ -86,7 +85,7 @@ func TestDashboard_AddChart(t *testing.T) {
 		Description: "Test Dashboard Description",
 	}
 
-	err = dashboardRepo.Create(context.Background(), dashboard)
+	err = dashboardRepo.Create(t.Context(), dashboard)
 	require.NoError(t, err)
 	require.Equal(t, int64(0), dashboard.ChartCount)
 
@@ -98,12 +97,12 @@ func TestDashboard_AddChart(t *testing.T) {
 		DashboardID:            dashboard.ID,
 	}
 
-	err = dashboardRepo.AddChart(context.Background(), chart)
+	err = dashboardRepo.AddChart(t.Context(), chart)
 	require.NoError(t, err)
 	require.NotEmpty(t, chart.ID)
 
 	// verify chart count was incremented
-	updatedDashboard, err := dashboardRepo.Get(context.Background(), malak.FetchDashboardOption{
+	updatedDashboard, err := dashboardRepo.Get(t.Context(), malak.FetchDashboardOption{
 		WorkspaceID: workspace.ID,
 		Reference:   dashboard.Reference,
 	})
@@ -118,7 +117,7 @@ func TestDashboard_Get(t *testing.T) {
 	dashboardRepo := NewDashboardRepo(client)
 	workspaceRepo := NewWorkspaceRepository(client)
 
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
@@ -130,7 +129,7 @@ func TestDashboard_Get(t *testing.T) {
 		Description: "Test Dashboard Description",
 	}
 
-	err = dashboardRepo.Create(context.Background(), dashboard)
+	err = dashboardRepo.Create(t.Context(), dashboard)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -166,7 +165,7 @@ func TestDashboard_Get(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := dashboardRepo.Get(context.Background(), tt.opts)
+			result, err := dashboardRepo.Get(t.Context(), tt.opts)
 			if tt.expectedError != nil {
 				require.ErrorIs(t, err, tt.expectedError)
 			} else {
@@ -188,7 +187,7 @@ func TestDashboard_GetCharts(t *testing.T) {
 	workspaceRepo := NewWorkspaceRepository(client)
 	integrationRepo := NewIntegrationRepo(client)
 
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
@@ -201,10 +200,10 @@ func TestDashboard_GetCharts(t *testing.T) {
 		IntegrationType: malak.IntegrationTypeOauth2,
 		LogoURL:         "https://mercury.com/logo.png",
 	}
-	err = integrationRepo.Create(context.Background(), integration)
+	err = integrationRepo.Create(t.Context(), integration)
 	require.NoError(t, err)
 
-	integrations, err := integrationRepo.List(context.Background(), workspace)
+	integrations, err := integrationRepo.List(t.Context(), workspace)
 	require.NoError(t, err)
 	require.Len(t, integrations, 1)
 	workspaceIntegration := integrations[0]
@@ -223,10 +222,10 @@ func TestDashboard_GetCharts(t *testing.T) {
 			ChartType:      malak.IntegrationChartTypeBar,
 		},
 	}
-	err = integrationRepo.CreateCharts(context.Background(), &workspaceIntegration, chartValues)
+	err = integrationRepo.CreateCharts(t.Context(), &workspaceIntegration, chartValues)
 	require.NoError(t, err)
 
-	createdCharts, err := integrationRepo.ListCharts(context.Background(), workspace.ID)
+	createdCharts, err := integrationRepo.ListCharts(t.Context(), workspace.ID)
 	require.NoError(t, err)
 	require.Len(t, createdCharts, 2)
 
@@ -237,7 +236,7 @@ func TestDashboard_GetCharts(t *testing.T) {
 		Description: "Test Dashboard Description",
 	}
 
-	err = dashboardRepo.Create(context.Background(), dashboard)
+	err = dashboardRepo.Create(t.Context(), dashboard)
 	require.NoError(t, err)
 
 	// Add multiple charts
@@ -259,7 +258,7 @@ func TestDashboard_GetCharts(t *testing.T) {
 	}
 
 	for _, chart := range charts {
-		err = dashboardRepo.AddChart(context.Background(), chart)
+		err = dashboardRepo.AddChart(t.Context(), chart)
 		require.NoError(t, err)
 	}
 
@@ -297,7 +296,7 @@ func TestDashboard_GetCharts(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			results, err := dashboardRepo.GetCharts(context.Background(), tt.opts)
+			results, err := dashboardRepo.GetCharts(t.Context(), tt.opts)
 			require.NoError(t, err)
 			require.Equal(t, tt.expectedCount, len(results))
 
@@ -324,15 +323,15 @@ func TestDashboard_List(t *testing.T) {
 	_, err := client.NewDelete().
 		Table("dashboards").
 		Where("1=1").
-		Exec(context.Background())
+		Exec(t.Context())
 	require.NoError(t, err)
 
-	workspace1, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace1, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
 
-	workspace2, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace2, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
 	})
 	require.NoError(t, err)
@@ -374,13 +373,13 @@ func TestDashboard_List(t *testing.T) {
 	}
 
 	for _, d := range dashboards1 {
-		err = dashboardRepo.Create(context.Background(), d)
+		err = dashboardRepo.Create(t.Context(), d)
 		require.NoError(t, err)
 		require.NotEmpty(t, d.ID)
 	}
 
 	for _, d := range dashboards2 {
-		err = dashboardRepo.Create(context.Background(), d)
+		err = dashboardRepo.Create(t.Context(), d)
 		require.NoError(t, err)
 		require.NotEmpty(t, d.ID)
 	}
@@ -443,7 +442,7 @@ func TestDashboard_List(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			results, total, err := dashboardRepo.List(context.Background(), tt.opts)
+			results, total, err := dashboardRepo.List(t.Context(), tt.opts)
 			require.NoError(t, err)
 			require.Equal(t, tt.expectedCount, len(results))
 			require.Equal(t, tt.totalCount, total)
@@ -454,7 +453,7 @@ func TestDashboard_List(t *testing.T) {
 		})
 	}
 
-	nonExistentResults, total, err := dashboardRepo.List(context.Background(), malak.ListDashboardOptions{
+	nonExistentResults, total, err := dashboardRepo.List(t.Context(), malak.ListDashboardOptions{
 		WorkspaceID: uuid.New(),
 		Paginator: malak.Paginator{
 			Page:    1,
@@ -474,7 +473,7 @@ func TestDashboard_GetChartsWithIntegration(t *testing.T) {
 	workspaceRepo := NewWorkspaceRepository(client)
 	integrationRepo := NewIntegrationRepo(client)
 
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
@@ -487,10 +486,10 @@ func TestDashboard_GetChartsWithIntegration(t *testing.T) {
 		IntegrationType: malak.IntegrationTypeOauth2,
 		LogoURL:         "https://mercury.com/logo.png",
 	}
-	err = integrationRepo.Create(context.Background(), integration)
+	err = integrationRepo.Create(t.Context(), integration)
 	require.NoError(t, err)
 
-	integrations, err := integrationRepo.List(context.Background(), workspace)
+	integrations, err := integrationRepo.List(t.Context(), workspace)
 	require.NoError(t, err)
 	require.Len(t, integrations, 1)
 	workspaceIntegration := integrations[0]
@@ -509,10 +508,10 @@ func TestDashboard_GetChartsWithIntegration(t *testing.T) {
 			ChartType:      malak.IntegrationChartTypeBar,
 		},
 	}
-	err = integrationRepo.CreateCharts(context.Background(), &workspaceIntegration, chartValues)
+	err = integrationRepo.CreateCharts(t.Context(), &workspaceIntegration, chartValues)
 	require.NoError(t, err)
 
-	charts, err := integrationRepo.ListCharts(context.Background(), workspace.ID)
+	charts, err := integrationRepo.ListCharts(t.Context(), workspace.ID)
 	require.NoError(t, err)
 	require.Len(t, charts, 2)
 
@@ -522,7 +521,7 @@ func TestDashboard_GetChartsWithIntegration(t *testing.T) {
 		Title:       "Mercury Dashboard",
 		Description: "Mercury Banking Dashboard",
 	}
-	err = dashboardRepo.Create(context.Background(), dashboard)
+	err = dashboardRepo.Create(t.Context(), dashboard)
 	require.NoError(t, err)
 
 	for _, chart := range charts {
@@ -533,11 +532,11 @@ func TestDashboard_GetChartsWithIntegration(t *testing.T) {
 			WorkspaceID:            workspace.ID,
 			DashboardID:            dashboard.ID,
 		}
-		err = dashboardRepo.AddChart(context.Background(), dashboardChart)
+		err = dashboardRepo.AddChart(t.Context(), dashboardChart)
 		require.NoError(t, err)
 	}
 
-	dashboardCharts, err := dashboardRepo.GetCharts(context.Background(), malak.FetchDashboardChartsOption{
+	dashboardCharts, err := dashboardRepo.GetCharts(t.Context(), malak.FetchDashboardChartsOption{
 		WorkspaceID: workspace.ID,
 		DashboardID: dashboard.ID,
 	})

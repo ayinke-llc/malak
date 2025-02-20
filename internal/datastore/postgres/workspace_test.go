@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"context"
 	"testing"
 
 	"github.com/ayinke-llc/malak"
@@ -21,17 +20,17 @@ func TestWorkspace_Create(t *testing.T) {
 	planRepo := NewPlanRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
 
-	plan, err := planRepo.Get(context.Background(), &malak.FetchPlanOptions{
+	plan, err := planRepo.Get(t.Context(), &malak.FetchPlanOptions{
 		Reference: "prod_QmtErtydaJZymT",
 	})
 	require.NoError(t, err)
 
-	require.NoError(t, repo.Create(context.Background(), &malak.CreateWorkspaceOptions{
+	require.NoError(t, repo.Create(t.Context(), &malak.CreateWorkspaceOptions{
 		User:      user,
 		Workspace: malak.NewWorkspace("oops", user, plan, malak.GenerateReference(malak.EntityTypeWorkspace)),
 	}))
@@ -45,7 +44,7 @@ func TestWorkspace_Update(t *testing.T) {
 	repo := NewWorkspaceRepository(client)
 
 	// from workspaces.yml migration
-	workspace, err := repo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := repo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
@@ -54,9 +53,9 @@ func TestWorkspace_Update(t *testing.T) {
 
 	workspace.Reference = newReference
 
-	require.NoError(t, repo.Update(context.TODO(), workspace))
+	require.NoError(t, repo.Update(t.Context(), workspace))
 
-	newWorkspace, err := repo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	newWorkspace, err := repo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
@@ -72,21 +71,21 @@ func TestWorkspace_Get(t *testing.T) {
 	repo := NewWorkspaceRepository(client)
 
 	// from workspaces.yml migration
-	workspace, err := repo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := repo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
 
 	require.Equal(t, workspace.WorkspaceName, "First workspace")
 
-	workspaceFromRef, err := repo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspaceFromRef, err := repo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		Reference: malak.Reference(workspace.Reference),
 	})
 	require.NoError(t, err)
 
 	require.Equal(t, workspaceFromRef.WorkspaceName, "First workspace")
 
-	_, err = repo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	_, err = repo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("cb5955cc-be42-4fe9-9155-250f4cc0ecc8"),
 	})
 	require.Error(t, err)
@@ -100,7 +99,7 @@ func TestWorkspace_List(t *testing.T) {
 
 	repo := NewWorkspaceRepository(client)
 
-	workspaces, err := repo.List(context.Background(), &malak.User{
+	workspaces, err := repo.List(t.Context(), &malak.User{
 		ID: uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
 	})
 	require.NoError(t, err)
@@ -115,12 +114,12 @@ func TestWorkspace_MarkActive(t *testing.T) {
 	repo := NewWorkspaceRepository(client)
 
 	// from workspaces.yml migration
-	workspace, err := repo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := repo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
 
-	require.NoError(t, repo.MarkActive(context.Background(), workspace))
+	require.NoError(t, repo.MarkActive(t.Context(), workspace))
 }
 
 func TestWorkspace_MarkInActive(t *testing.T) {
@@ -131,10 +130,10 @@ func TestWorkspace_MarkInActive(t *testing.T) {
 	repo := NewWorkspaceRepository(client)
 
 	// from workspaces.yml migration
-	workspace, err := repo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := repo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
 
-	require.NoError(t, repo.MarkInActive(context.Background(), workspace))
+	require.NoError(t, repo.MarkInActive(t.Context(), workspace))
 }

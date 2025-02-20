@@ -218,10 +218,10 @@ func TestAESClient(t *testing.T) {
 			require.NotNil(t, client)
 
 			secretClient := client.(*aesClient)
-			encrypted, err := secretClient.Create(context.TODO(), &secret.CreateSecretOptions{Value: tt.plaintext})
+			encrypted, err := secretClient.Create(t.Context(), &secret.CreateSecretOptions{Value: tt.plaintext})
 			require.NoError(t, err)
 
-			decrypted, err := secretClient.Get(context.TODO(), encrypted)
+			decrypted, err := secretClient.Get(t.Context(), encrypted)
 			require.NoError(t, err)
 			require.Equal(t, tt.plaintext, decrypted)
 		})
@@ -237,11 +237,11 @@ func TestAESClientContextCancellation(t *testing.T) {
 
 	// First create a valid encrypted value
 	plaintext := "test value"
-	encrypted, err := client.Create(context.Background(), &secret.CreateSecretOptions{Value: plaintext})
+	encrypted, err := client.Create(t.Context(), &secret.CreateSecretOptions{Value: plaintext})
 	require.NoError(t, err)
 
 	// Now test with cancelled context
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	cancel() // Cancel context immediately
 
 	// Test Create with cancelled context

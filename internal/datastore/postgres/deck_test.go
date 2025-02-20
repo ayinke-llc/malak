@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"context"
 	"testing"
 
 	"github.com/ayinke-llc/malak"
@@ -24,13 +23,13 @@ func TestDeck_Create(t *testing.T) {
 	userRepo := NewUserRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
 
 	// from workspaces.yml migration
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
@@ -44,7 +43,7 @@ func TestDeck_Create(t *testing.T) {
 		ObjectKey:   uuid.NewString(),
 	}
 
-	err = deck.Create(context.Background(), decks, opts)
+	err = deck.Create(t.Context(), decks, opts)
 	require.NoError(t, err)
 }
 
@@ -59,7 +58,7 @@ func TestDeck_List(t *testing.T) {
 	userRepo := NewUserRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
@@ -67,17 +66,17 @@ func TestDeck_List(t *testing.T) {
 	_ = user
 
 	// from workspaces.yml migration
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
 
-	decks, err := deck.List(context.Background(), workspace)
+	decks, err := deck.List(t.Context(), workspace)
 
 	require.NoError(t, err)
 	require.Len(t, decks, 0)
 
-	err = deck.Create(context.Background(), &malak.Deck{
+	err = deck.Create(t.Context(), &malak.Deck{
 		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck),
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
@@ -90,7 +89,7 @@ func TestDeck_List(t *testing.T) {
 
 	require.NoError(t, err)
 
-	decks, err = deck.List(context.Background(), workspace)
+	decks, err = deck.List(t.Context(), workspace)
 
 	require.NoError(t, err)
 	require.Len(t, decks, 1)
@@ -107,7 +106,7 @@ func TestDeck_Get(t *testing.T) {
 	userRepo := NewUserRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
@@ -115,12 +114,12 @@ func TestDeck_Get(t *testing.T) {
 	_ = user
 
 	// from workspaces.yml migration
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
 
-	_, err = deck.Get(context.Background(), malak.FetchDeckOptions{
+	_, err = deck.Get(t.Context(), malak.FetchDeckOptions{
 		Reference:   "oops",
 		WorkspaceID: workspace.ID,
 	})
@@ -129,7 +128,7 @@ func TestDeck_Get(t *testing.T) {
 
 	ref := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck)
 
-	err = deck.Create(context.Background(), &malak.Deck{
+	err = deck.Create(t.Context(), &malak.Deck{
 		Reference:   ref,
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
@@ -142,7 +141,7 @@ func TestDeck_Get(t *testing.T) {
 
 	require.NoError(t, err)
 
-	_, err = deck.Get(context.Background(), malak.FetchDeckOptions{
+	_, err = deck.Get(t.Context(), malak.FetchDeckOptions{
 		Reference:   ref.String(),
 		WorkspaceID: workspace.ID,
 	})
@@ -160,7 +159,7 @@ func TestDeck_Delete(t *testing.T) {
 	userRepo := NewUserRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
@@ -168,14 +167,14 @@ func TestDeck_Delete(t *testing.T) {
 	_ = user
 
 	// from workspaces.yml migration
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
 
 	ref := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck)
 
-	err = deck.Create(context.Background(), &malak.Deck{
+	err = deck.Create(t.Context(), &malak.Deck{
 		Reference:   ref,
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
@@ -188,15 +187,15 @@ func TestDeck_Delete(t *testing.T) {
 
 	require.NoError(t, err)
 
-	deckFromDB, err := deck.Get(context.Background(), malak.FetchDeckOptions{
+	deckFromDB, err := deck.Get(t.Context(), malak.FetchDeckOptions{
 		Reference:   ref.String(),
 		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
 
-	require.NoError(t, deck.Delete(context.Background(), deckFromDB))
+	require.NoError(t, deck.Delete(t.Context(), deckFromDB))
 
-	_, err = deck.Get(context.Background(), malak.FetchDeckOptions{
+	_, err = deck.Get(t.Context(), malak.FetchDeckOptions{
 		Reference:   ref.String(),
 		WorkspaceID: workspace.ID,
 	})
@@ -215,7 +214,7 @@ func TestDeck_UpdatePreferences(t *testing.T) {
 	userRepo := NewUserRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
@@ -223,14 +222,14 @@ func TestDeck_UpdatePreferences(t *testing.T) {
 	_ = user
 
 	// from workspaces.yml migration
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
 
 	ref := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck)
 
-	err = deck.Create(context.Background(), &malak.Deck{
+	err = deck.Create(t.Context(), &malak.Deck{
 		Reference:   ref,
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
@@ -245,7 +244,7 @@ func TestDeck_UpdatePreferences(t *testing.T) {
 
 	require.NoError(t, err)
 
-	deckFromDB, err := deck.Get(context.Background(), malak.FetchDeckOptions{
+	deckFromDB, err := deck.Get(t.Context(), malak.FetchDeckOptions{
 		Reference:   ref.String(),
 		WorkspaceID: workspace.ID,
 	})
@@ -254,9 +253,9 @@ func TestDeck_UpdatePreferences(t *testing.T) {
 	deckFromDB.DeckPreference.RequireEmail = true
 	deckFromDB.DeckPreference.EnableDownloading = true
 
-	require.NoError(t, deck.UpdatePreferences(context.Background(), deckFromDB))
+	require.NoError(t, deck.UpdatePreferences(t.Context(), deckFromDB))
 
-	deckFromDatabase, err := deck.Get(context.Background(), malak.FetchDeckOptions{
+	deckFromDatabase, err := deck.Get(t.Context(), malak.FetchDeckOptions{
 		Reference:   ref.String(),
 		WorkspaceID: workspace.ID,
 	})
@@ -275,13 +274,13 @@ func TestDeck_ToggleArchive(t *testing.T) {
 	userRepo := NewUserRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
 
 	// from workspaces.yml migration
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
@@ -289,7 +288,7 @@ func TestDeck_ToggleArchive(t *testing.T) {
 	ref := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck)
 
 	// Create a new deck
-	err = deck.Create(context.Background(), &malak.Deck{
+	err = deck.Create(t.Context(), &malak.Deck{
 		Reference:   ref,
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
@@ -302,7 +301,7 @@ func TestDeck_ToggleArchive(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get the deck
-	deckFromDB, err := deck.Get(context.Background(), malak.FetchDeckOptions{
+	deckFromDB, err := deck.Get(t.Context(), malak.FetchDeckOptions{
 		Reference:   ref.String(),
 		WorkspaceID: workspace.ID,
 	})
@@ -310,11 +309,11 @@ func TestDeck_ToggleArchive(t *testing.T) {
 	require.False(t, deckFromDB.IsArchived)
 
 	// Toggle archive (true)
-	err = deck.ToggleArchive(context.Background(), deckFromDB)
+	err = deck.ToggleArchive(t.Context(), deckFromDB)
 	require.NoError(t, err)
 
 	// Verify it's archived
-	deckFromDB, err = deck.Get(context.Background(), malak.FetchDeckOptions{
+	deckFromDB, err = deck.Get(t.Context(), malak.FetchDeckOptions{
 		Reference:   ref.String(),
 		WorkspaceID: workspace.ID,
 	})
@@ -322,11 +321,11 @@ func TestDeck_ToggleArchive(t *testing.T) {
 	require.True(t, deckFromDB.IsArchived)
 
 	// Toggle archive again (false)
-	err = deck.ToggleArchive(context.Background(), deckFromDB)
+	err = deck.ToggleArchive(t.Context(), deckFromDB)
 	require.NoError(t, err)
 
 	// Verify it's unarchived
-	deckFromDB, err = deck.Get(context.Background(), malak.FetchDeckOptions{
+	deckFromDB, err = deck.Get(t.Context(), malak.FetchDeckOptions{
 		Reference:   ref.String(),
 		WorkspaceID: workspace.ID,
 	})
@@ -345,13 +344,13 @@ func TestDecks_TogglePinned(t *testing.T) {
 	deck := NewDeckRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
 
 	// from workspaces.yml migration
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
@@ -372,7 +371,7 @@ func TestDecks_TogglePinned(t *testing.T) {
 			ObjectKey:   uuid.NewString(),
 		}
 
-		err = deck.Create(context.Background(), decks, opts)
+		err = deck.Create(t.Context(), decks, opts)
 		require.NoError(t, err)
 	}
 
@@ -390,11 +389,11 @@ func TestDecks_TogglePinned(t *testing.T) {
 	}
 
 	// create another without pinning
-	err = deck.Create(context.Background(), decks, opts)
+	err = deck.Create(t.Context(), decks, opts)
 	require.NoError(t, err)
 
 	// cannot add a 5th pinned item
-	err = deck.TogglePinned(context.Background(), decks)
+	err = deck.TogglePinned(t.Context(), decks)
 	require.Error(t, err)
 	require.Equal(t, malak.ErrPinnedDeckCapacityExceeded, err)
 }
@@ -408,26 +407,26 @@ func TestDeck_PublicDetails(t *testing.T) {
 	userRepo := NewUserRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
 
 	// from workspaces.yml migration
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
 
 	// Test non-existent deck
 	nonExistentRef := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck)
-	_, err = deck.PublicDetails(context.Background(), nonExistentRef)
+	_, err = deck.PublicDetails(t.Context(), nonExistentRef)
 	require.Error(t, err)
 	require.ErrorIs(t, err, malak.ErrDeckNotFound)
 
 	// Create a new deck
 	ref := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck)
-	err = deck.Create(context.Background(), &malak.Deck{
+	err = deck.Create(t.Context(), &malak.Deck{
 		Reference:   ref,
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
@@ -449,7 +448,7 @@ func TestDeck_PublicDetails(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test fetching the deck's public details
-	deckFromDB, err := deck.PublicDetails(context.Background(), ref)
+	deckFromDB, err := deck.PublicDetails(t.Context(), ref)
 	require.NoError(t, err)
 	require.NotNil(t, deckFromDB)
 	require.Equal(t, ref.String(), deckFromDB.Reference.String())

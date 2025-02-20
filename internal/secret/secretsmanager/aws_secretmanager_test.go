@@ -21,7 +21,7 @@ type testSuite struct {
 }
 
 func setupTest(t *testing.T) *testSuite {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	container, err := localstack.Run(ctx, "localstack/localstack:4.1.0",
 		testcontainers.WithEnv(map[string]string{

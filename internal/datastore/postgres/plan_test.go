@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"context"
 	"testing"
 
 	"github.com/ayinke-llc/malak"
@@ -15,7 +14,7 @@ func TestPlan_List(t *testing.T) {
 
 	plan := NewPlanRepository(client)
 
-	plans, err := plan.List(context.Background())
+	plans, err := plan.List(t.Context())
 	require.NoError(t, err)
 
 	require.Len(t, plans, 2)
@@ -28,12 +27,12 @@ func TestPlan_Get(t *testing.T) {
 
 	plan := NewPlanRepository(client)
 
-	_, err := plan.Get(context.Background(), &malak.FetchPlanOptions{
+	_, err := plan.Get(t.Context(), &malak.FetchPlanOptions{
 		Reference: "prod_QmtErtydaJZymT",
 	})
 	require.NoError(t, err)
 
-	_, err = plan.Get(context.Background(), &malak.FetchPlanOptions{
+	_, err = plan.Get(t.Context(), &malak.FetchPlanOptions{
 		Reference: "prod_QmtErtyda",
 	})
 	require.Error(t, err)
@@ -47,23 +46,23 @@ func TestPlan_SetDefault(t *testing.T) {
 
 	planRepo := NewPlanRepository(client)
 
-	plan, err := planRepo.Get(context.Background(), &malak.FetchPlanOptions{
+	plan, err := planRepo.Get(t.Context(), &malak.FetchPlanOptions{
 		Reference: "prod_QmtErtydaJZymT",
 	})
 	require.NoError(t, err)
 	require.NotNil(t, plan)
 	require.False(t, plan.IsDefault)
 
-	secondPlan, err := planRepo.Get(context.Background(), &malak.FetchPlanOptions{
+	secondPlan, err := planRepo.Get(t.Context(), &malak.FetchPlanOptions{
 		Reference: "prod_QmtFLR9JvXLryD",
 	})
 	require.NoError(t, err)
 	require.NotNil(t, secondPlan)
 	require.False(t, secondPlan.IsDefault)
 
-	require.NoError(t, planRepo.SetDefault(context.Background(), plan))
+	require.NoError(t, planRepo.SetDefault(t.Context(), plan))
 
-	plan1FromDB, err := planRepo.Get(context.Background(), &malak.FetchPlanOptions{
+	plan1FromDB, err := planRepo.Get(t.Context(), &malak.FetchPlanOptions{
 		Reference: plan.Reference,
 	})
 	require.NoError(t, err)

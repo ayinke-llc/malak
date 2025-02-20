@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"context"
 	"testing"
 
 	"github.com/ayinke-llc/malak"
@@ -17,7 +16,7 @@ func TestUser_Update(t *testing.T) {
 	userRepo := NewUserRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
@@ -26,10 +25,10 @@ func TestUser_Update(t *testing.T) {
 	newName := "Lebron James"
 
 	user.FullName = newName
-	require.NoError(t, userRepo.Update(context.TODO(), user))
+	require.NoError(t, userRepo.Update(t.Context(), user))
 
 	// fetch the user again and check the name
-	fetchUser, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	fetchUser, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
@@ -61,7 +60,7 @@ func TestUser_Create(t *testing.T) {
 
 	for _, v := range tt {
 		t.Run(v.name, func(t *testing.T) {
-			err := userRepo.Create(context.Background(), &malak.User{
+			err := userRepo.Create(t.Context(), &malak.User{
 				Email:    malak.Email(v.email),
 				FullName: "Lanre",
 			})
@@ -100,7 +99,7 @@ func TestUser_GetUserID(t *testing.T) {
 
 	for _, v := range tt {
 		t.Run(v.name, func(t *testing.T) {
-			user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+			user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 				ID: uuid.MustParse(v.id),
 			})
 			if v.hasError {
@@ -139,7 +138,7 @@ func TestUser_Get(t *testing.T) {
 
 	for _, v := range tt {
 		t.Run(v.name, func(t *testing.T) {
-			user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+			user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 				Email: malak.Email(v.email),
 			})
 			if v.hasError {

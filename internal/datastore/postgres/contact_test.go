@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"context"
 	"testing"
 
 	"github.com/ayinke-llc/malak"
@@ -29,11 +28,11 @@ func TestContact_Delete(t *testing.T) {
 	}
 
 	// Test successful creation
-	err := contactRepo.Create(context.Background(), contact)
+	err := contactRepo.Create(t.Context(), contact)
 	require.NoError(t, err)
 
 	// Verify contact was created
-	savedContact, err := contactRepo.Get(context.Background(), malak.FetchContactOptions{
+	savedContact, err := contactRepo.Get(t.Context(), malak.FetchContactOptions{
 		Reference:   contact.Reference,
 		WorkspaceID: workspaceID,
 	})
@@ -43,11 +42,11 @@ func TestContact_Delete(t *testing.T) {
 	require.Equal(t, contact.Reference, savedContact.Reference)
 
 	// Delete
-	err = contactRepo.Delete(context.Background(), contact)
+	err = contactRepo.Delete(t.Context(), contact)
 	require.NoError(t, err)
 
 	//  contact was deleted, it should not be found
-	_, err = contactRepo.Get(context.Background(), malak.FetchContactOptions{
+	_, err = contactRepo.Get(t.Context(), malak.FetchContactOptions{
 		Reference:   contact.Reference,
 		WorkspaceID: workspaceID,
 	})
@@ -55,7 +54,7 @@ func TestContact_Delete(t *testing.T) {
 	require.Equal(t, malak.ErrContactNotFound, err)
 
 	// get contact from db
-	contact, err = contactRepo.Get(context.Background(), malak.FetchContactOptions{
+	contact, err = contactRepo.Get(t.Context(), malak.FetchContactOptions{
 		Reference:   "contact_kCoC286IR", // contacts.yml
 		WorkspaceID: workspaceID,
 	})
@@ -64,7 +63,7 @@ func TestContact_Delete(t *testing.T) {
 	require.Equal(t, "contact_kCoC286IR", contact.Reference.String())
 
 	// Delete again
-	err = contactRepo.Delete(context.Background(), contact)
+	err = contactRepo.Delete(t.Context(), contact)
 	require.NoError(t, err)
 }
 
@@ -74,7 +73,7 @@ func TestContact_Get(t *testing.T) {
 
 	contactRepo := NewContactRepository(client)
 
-	contact, err := contactRepo.Get(context.Background(), malak.FetchContactOptions{
+	contact, err := contactRepo.Get(t.Context(), malak.FetchContactOptions{
 		Reference:   "contact_kCoC286IR", // contacts.yml
 		WorkspaceID: workspaceID,
 	})
@@ -82,28 +81,28 @@ func TestContact_Get(t *testing.T) {
 	require.NotNil(t, contact)
 	require.Equal(t, "contact_kCoC286IR", contact.Reference.String())
 
-	contactByID, err := contactRepo.Get(context.Background(), malak.FetchContactOptions{
+	contactByID, err := contactRepo.Get(t.Context(), malak.FetchContactOptions{
 		ID:          contact.ID,
 		WorkspaceID: workspaceID,
 	})
 	require.NoError(t, err)
 	require.Equal(t, contact.ID, contactByID.ID)
 
-	contactByEmail, err := contactRepo.Get(context.Background(), malak.FetchContactOptions{
+	contactByEmail, err := contactRepo.Get(t.Context(), malak.FetchContactOptions{
 		Email:       contact.Email,
 		WorkspaceID: workspaceID,
 	})
 	require.NoError(t, err)
 	require.Equal(t, contact.Email, contactByEmail.Email)
 
-	_, err = contactRepo.Get(context.Background(), malak.FetchContactOptions{
+	_, err = contactRepo.Get(t.Context(), malak.FetchContactOptions{
 		Reference:   "contact_kCo",
 		WorkspaceID: workspaceID,
 	})
 	require.Error(t, err)
 	require.Equal(t, err, malak.ErrContactNotFound)
 
-	_, err = contactRepo.Get(context.Background(), malak.FetchContactOptions{
+	_, err = contactRepo.Get(t.Context(), malak.FetchContactOptions{
 		Reference:   malak.Reference(contact.Reference.String()),
 		WorkspaceID: uuid.New(),
 	})
@@ -126,11 +125,11 @@ func TestContact_Create(t *testing.T) {
 	}
 
 	// Test successful creation
-	err := contactRepo.Create(context.Background(), contact)
+	err := contactRepo.Create(t.Context(), contact)
 	require.NoError(t, err)
 
 	// Verify contact was created
-	savedContact, err := contactRepo.Get(context.Background(), malak.FetchContactOptions{
+	savedContact, err := contactRepo.Get(t.Context(), malak.FetchContactOptions{
 		Reference:   contact.Reference,
 		WorkspaceID: workspaceID,
 	})
@@ -140,7 +139,7 @@ func TestContact_Create(t *testing.T) {
 	require.Equal(t, contact.Reference, savedContact.Reference)
 
 	// Test duplicate creation
-	err = contactRepo.Create(context.Background(), contact)
+	err = contactRepo.Create(t.Context(), contact)
 	require.Error(t, err)
 	require.Equal(t, err, malak.ErrContactExists)
 }
@@ -169,7 +168,7 @@ func TestContact_List(t *testing.T) {
 	}
 
 	for _, c := range contacts {
-		err := contactRepo.Create(context.Background(), c)
+		err := contactRepo.Create(t.Context(), c)
 		require.NoError(t, err)
 	}
 
@@ -204,14 +203,14 @@ func TestContact_List(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, total, err := contactRepo.List(context.Background(), tt.opts)
+			result, total, err := contactRepo.List(t.Context(), tt.opts)
 			require.NoError(t, err)
 			require.Greater(t, total, int64(0))
 			require.Len(t, result, tt.expectedCount)
 		})
 	}
 
-	result, total, err := contactRepo.List(context.Background(), malak.ListContactOptions{
+	result, total, err := contactRepo.List(t.Context(), malak.ListContactOptions{
 		WorkspaceID: uuid.New(),
 		Paginator: malak.Paginator{
 			Page:    1,
@@ -229,7 +228,7 @@ func TestContact_Update(t *testing.T) {
 
 	contactRepo := NewContactRepository(client)
 
-	contact, err := contactRepo.Get(context.Background(), malak.FetchContactOptions{
+	contact, err := contactRepo.Get(t.Context(), malak.FetchContactOptions{
 		Reference:   "contact_kCoC286IR", // contacts.yml
 		WorkspaceID: workspaceID,
 	})
@@ -239,7 +238,7 @@ func TestContact_Update(t *testing.T) {
 
 	newEmail := faker.Email()
 
-	_, err = contactRepo.Get(context.Background(), malak.FetchContactOptions{
+	_, err = contactRepo.Get(t.Context(), malak.FetchContactOptions{
 		ID:          contact.ID,
 		WorkspaceID: workspaceID,
 		Email:       malak.Email(newEmail),
@@ -248,9 +247,9 @@ func TestContact_Update(t *testing.T) {
 	require.Equal(t, malak.ErrContactNotFound, err)
 
 	contact.Email = malak.Email(newEmail)
-	require.NoError(t, contactRepo.Update(context.Background(), contact))
+	require.NoError(t, contactRepo.Update(t.Context(), contact))
 
-	_, err = contactRepo.Get(context.Background(), malak.FetchContactOptions{
+	_, err = contactRepo.Get(t.Context(), malak.FetchContactOptions{
 		ID:          contact.ID,
 		WorkspaceID: workspaceID,
 		Email:       malak.Email(newEmail),
