@@ -254,3 +254,23 @@ func (i *integrationRepo) ListCharts(ctx context.Context,
 		Order("created_at ASC").
 		Scan(ctx)
 }
+
+func (i *integrationRepo) GetChart(ctx context.Context,
+	opts malak.FetchChartOptions) (malak.IntegrationChart, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	chart := malak.IntegrationChart{}
+
+	err := i.inner.NewSelect().
+		Model(&chart).
+		Where("workspace_id = ?", opts.WorkspaceID).
+		Where("reference = ?", opts.Reference).
+		Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = malak.ErrChartNotFound
+	}
+
+	return chart, err
+}

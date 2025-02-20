@@ -8,6 +8,10 @@ import (
 	"github.com/uptrace/bun"
 )
 
+var (
+	ErrDashboardNotFound = MalakError("dashboard not found")
+)
+
 type Dashboard struct {
 	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 	Reference   Reference `json:"reference,omitempty"`
@@ -26,14 +30,16 @@ type Dashboard struct {
 }
 
 type DashboardChart struct {
-	ID                     uuid.UUID `json:"id,omitempty"`
+	ID                     uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 	WorkspaceIntegrationID uuid.UUID `json:"workspace_integration_id,omitempty"`
 	Reference              Reference `json:"reference,omitempty"`
 	WorkspaceID            uuid.UUID `json:"workspace_id,omitempty"`
 	DashboardID            uuid.UUID `json:"dashboard_id,omitempty"`
+	ChartID                uuid.UUID `json:"chart_id,omitempty"`
 
-	CreatedAt time.Time  `json:"created_at,omitempty"`
-	UpdatedAt time.Time  `json:"updated_at,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty" bun:",default:current_timestamp"`
+	UpdatedAt time.Time `json:"updated_at,omitempty" bun:",default:current_timestamp"`
+
 	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
 
 	bun.BaseModel `json:"-"`
@@ -44,8 +50,14 @@ type ListDashboardOptions struct {
 	WorkspaceID uuid.UUID
 }
 
+type FetchDashboardOption struct {
+	WorkspaceID uuid.UUID
+	Reference   Reference
+}
+
 type DashboardRepository interface {
 	Create(context.Context, *Dashboard) error
+	Get(context.Context, FetchDashboardOption) (Dashboard, error)
 	AddChart(context.Context, *DashboardChart) error
 	List(context.Context, ListDashboardOptions) ([]Dashboard, int64, error)
 }

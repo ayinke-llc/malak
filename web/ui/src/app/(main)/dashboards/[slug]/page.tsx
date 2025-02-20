@@ -36,10 +36,12 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import client from "@/lib/client";
 import { LIST_CHARTS } from "@/lib/query-constants";
-import type { ServerListIntegrationChartsResponse } from "@/client/Api";
+import type { ServerAPIStatus, ServerListIntegrationChartsResponse } from "@/client/Api";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 // Mock type for demonstration
 type Chart = {
@@ -412,22 +414,16 @@ function ChartCard({ chart }: { chart: Chart }) {
   );
 }
 
-interface ChartOption {
-  value: string;
-  label: string;
-  type: "bar" | "pie";
-  description: string;
-}
-
 export default function DashboardPage() {
   const params = useParams();
   const dashboardId = params.slug as string;
+
   const dashboard = mockDashboards[dashboardId];
+
   const [isOpen, setIsOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [selectedChart, setSelectedChart] = useState<string>("");
   const [selectedChartLabel, setSelectedChartLabel] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
 
   const { data: chartsData, isLoading: isLoadingCharts } = useQuery<ServerListIntegrationChartsResponse>({
     queryKey: [LIST_CHARTS],
@@ -435,27 +431,37 @@ export default function DashboardPage() {
       const response = await client.dashboards.chartsList();
       return response.data;
     },
-    enabled: isPopoverOpen, // Only fetch when popover is open
+    enabled: isPopoverOpen,
   });
 
-  const availableCharts: ChartOption[] = (chartsData?.charts || []).map(chart => ({
-    value: chart.reference || "",
-    label: chart.user_facing_name || "",
-    type: chart.chart_type as "bar" | "pie",
-    description: chart.internal_name || "",
-  }));
+  const addChartMutation = useMutation({
+    mutationFn: async (chartReference: string) => {
+      const response = await client.dashboards.chartsUpdate(dashboardId, {
+        chart_reference: chartReference
+      });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setSelectedChart("");
+      setSelectedChartLabel("");
+      setIsOpen(false);
+      toast.success(data.message);
+    },
+    onError: (err: AxiosError<ServerAPIStatus>): void => {
+      toast.error(err?.response?.data?.message || "Failed to add chart to dashboard");
+    }
+  });
 
-  const barCharts = availableCharts.filter(chart => chart.type === "bar");
-  const pieCharts = availableCharts.filter(chart => chart.type === "pie");
+  const barCharts = chartsData?.charts?.filter(chart => chart.chart_type === "bar") ?? [];
+  const pieCharts = chartsData?.charts?.filter(chart => chart.chart_type === "pie") ?? [];
 
   const handleAddChart = () => {
-    if (!selectedChart) return;
+    if (!selectedChart) {
+      toast.warning("Select a chart before adding to dashboard")
+      return
+    };
 
-    const chartToAdd = availableCharts.find(chart => chart.value === selectedChart);
-
-    setSelectedChart("");
-    setSelectedChartLabel("");
-    setIsOpen(false);
+    addChartMutation.mutate(selectedChart);
   };
 
   if (!dashboard) {
@@ -519,17 +525,17 @@ export default function DashboardPage() {
                                 <CommandGroup heading="Bar Charts">
                                   {barCharts.map(chart => (
                                     <CommandItem
-                                      key={chart.value}
-                                      value={`${chart.label} ${chart.description}`}
-                                      onSelect={(currentValue) => {
-                                        setSelectedChart(chart.value);
-                                        setSelectedChartLabel(chart.label);
+                                      key={chart.reference}
+                                      value={`${chart.user_facing_name} ${chart.internal_name}`}
+                                      onSelect={() => {
+                                        setSelectedChart(chart.reference || "");
+                                        setSelectedChartLabel(chart.user_facing_name || "");
                                         setIsPopoverOpen(false);
                                       }}
                                       className="flex items-center gap-2"
                                     >
                                       <RiBarChart2Line className="h-4 w-4" />
-                                      <span>{chart.label}</span>
+                                      <span>{chart.user_facing_name}</span>
                                     </CommandItem>
                                   ))}
                                 </CommandGroup>
@@ -538,17 +544,17 @@ export default function DashboardPage() {
                                 <CommandGroup heading="Pie Charts">
                                   {pieCharts.map(chart => (
                                     <CommandItem
-                                      key={chart.value}
-                                      value={`${chart.label} ${chart.description}`}
-                                      onSelect={(currentValue) => {
-                                        setSelectedChart(chart.value);
-                                        setSelectedChartLabel(chart.label);
+                                      key={chart.reference}
+                                      value={`${chart.user_facing_name} ${chart.internal_name}`}
+                                      onSelect={() => {
+                                        setSelectedChart(chart.reference || "");
+                                        setSelectedChartLabel(chart.user_facing_name || "");
                                         setIsPopoverOpen(false);
                                       }}
                                       className="flex items-center gap-2"
                                     >
                                       <RiPieChartLine className="h-4 w-4" />
-                                      <span>{chart.label}</span>
+                                      <span>{chart.user_facing_name}</span>
                                     </CommandItem>
                                   ))}
                                 </CommandGroup>
@@ -570,9 +576,16 @@ export default function DashboardPage() {
             <SheetFooter className="mt-4">
               <Button
                 onClick={handleAddChart}
-                disabled={!selectedChart || isLoading}
+                disabled={!selectedChart || addChartMutation.isPending}
               >
-                Add to Dashboard
+                {addChartMutation.isPending ? (
+                  <div className="flex items-center gap-2">
+                    <RiLoader4Line className="h-4 w-4 animate-spin" />
+                    Adding Chart...
+                  </div>
+                ) : (
+                  "Add to Dashboard"
+                )}
               </Button>
             </SheetFooter>
           </SheetContent>

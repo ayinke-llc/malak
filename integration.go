@@ -11,6 +11,7 @@ import (
 
 var (
 	ErrWorkspaceIntegrationNotFound = MalakError("integration not found")
+	ErrChartNotFound                = MalakError("chart not found")
 )
 
 // ENUM(oauth2,api_key)
@@ -169,6 +170,11 @@ type FindWorkspaceIntegrationOptions struct {
 	ID        uuid.UUID
 }
 
+type FetchChartOptions struct {
+	WorkspaceID uuid.UUID
+	Reference   Reference
+}
+
 type IntegrationRepository interface {
 	Create(context.Context, *Integration) error
 	System(context.Context) ([]Integration, error)
@@ -181,4 +187,5 @@ type IntegrationRepository interface {
 	CreateCharts(context.Context, *WorkspaceIntegration, []IntegrationChartValues) error
 	AddDataPoint(context.Context, *WorkspaceIntegration, []IntegrationDataValues) error
 	ListCharts(context.Context, uuid.UUID) ([]IntegrationChart, error)
+	GetChart(context.Context, FetchChartOptions) (IntegrationChart, error)
 }

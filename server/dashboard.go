@@ -8,6 +8,7 @@ import (
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/microcosm-cc/bluemonday"
 	"go.opentelemetry.io/otel/trace"
@@ -24,8 +25,8 @@ type dashboardHandler struct {
 type createDashboardRequest struct {
 	GenericRequest
 
-	Title       string `json:"title,omitempty"`
-	Description string `json:"description,omitempty"`
+	Title       string `json:"title,omitempty" validate:"required"`
+	Description string `json:"description,omitempty" validate:"required"`
 }
 
 func (c *createDashboardRequest) Validate() error {
@@ -193,4 +194,111 @@ func (d *dashboardHandler) listAllCharts(
 		APIStatus: newAPIStatus(http.StatusOK, "dashboards fetched"),
 		Charts:    charts,
 	}, StatusSuccess
+}
+
+type addChartToDashboardRequest struct {
+	GenericRequest
+
+	ChartReference malak.Reference `json:"chart_reference,omitempty" validate:"required"`
+}
+
+func (c *addChartToDashboardRequest) Validate() error {
+	if hermes.IsStringEmpty(c.ChartReference.String()) {
+		return errors.New("please provide a valid chart reference")
+	}
+
+	return nil
+}
+
+// @Summary add a chart to a dashboard
+// @Tags dashboards
+// @Accept  json
+// @Produce  json
+// @Param message body addChartToDashboardRequest true "dashboard request chart data"
+// @Param reference path string required "dashboard unique reference.. e.g dashboard_"
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /dashboards/{reference}/charts [PUT]
+func (d *dashboardHandler) addChart(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("adding a chart to the dashboard")
+
+	workspace := getWorkspaceFromContext(r.Context())
+
+	ref := chi.URLParam(r, "reference")
+
+	if hermes.IsStringEmpty(ref) {
+		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
+	}
+
+	dashboard, err := d.dashboardRepo.Get(ctx, malak.FetchDashboardOption{
+		Reference:   malak.Reference(ref),
+		WorkspaceID: workspace.ID,
+	})
+	if err != nil {
+		logger.Error("could not fetch dashboard", zap.Error(err))
+		status := http.StatusInternalServerError
+		msg := "an error occurred while fetching dashboard"
+
+		if errors.Is(err, malak.ErrDashboardNotFound) {
+			status = http.StatusNotFound
+			msg = err.Error()
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	req := new(addChartToDashboardRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	chart, err := d.integrationRepo.GetChart(ctx, malak.FetchChartOptions{
+		WorkspaceID: workspace.ID,
+		Reference:   req.ChartReference,
+	})
+	if err != nil {
+		var status = http.StatusInternalServerError
+		var message = "an error occurred while fetching chart"
+
+		logger.Error("could not fetch chart from db",
+			zap.Error(err))
+
+		if errors.Is(err, malak.ErrChartNotFound) {
+			status = http.StatusNotFound
+			message = err.Error()
+		}
+
+		return newAPIStatus(status, message), StatusFailed
+	}
+
+	dashChart := &malak.DashboardChart{
+		Reference:              d.generator.Generate(malak.EntityTypeDashboardChart),
+		WorkspaceIntegrationID: chart.WorkspaceIntegrationID,
+		WorkspaceID:            workspace.ID,
+		DashboardID:            dashboard.ID,
+		ChartID:                chart.ID,
+	}
+
+	if err := d.dashboardRepo.AddChart(ctx, dashChart); err != nil {
+		logger.Error("could not add chart to dashboard", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "an error occurred while adding chart to dashboard"),
+			StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "chart added to dashboard"),
+		StatusSuccess
 }

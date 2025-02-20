@@ -360,6 +360,8 @@ components:
           properties:
             embed_dashboard:
               type: boolean
+            max_charts_per_dashboard:
+              type: integer
             share_dashboard_via_link:
               type: boolean
           type: object
@@ -689,6 +691,13 @@ components:
       required:
       - message
       type: object
+    server.addChartToDashboardRequest:
+      properties:
+        chart_reference:
+          type: string
+      required:
+      - chart_reference
+      type: object
     server.addContactToListRequest:
       properties:
         reference:
@@ -735,6 +744,9 @@ components:
           type: string
         title:
           type: string
+      required:
+      - description
+      - title
       type: object
     server.createDeckRequest:
       properties:
@@ -1731,6 +1743,57 @@ paths:
                 $ref: '#/components/schemas/server.APIStatus'
           description: Internal Server Error
       summary: create a new dashboard
+      tags:
+      - dashboards
+  /dashboards/{reference}/charts:
+    put:
+      parameters:
+      - description: dashboard unique reference.. e.g dashboard_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.addChartToDashboardRequest'
+        description: dashboard request chart data
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      summary: add a chart to a dashboard
       tags:
       - dashboards
   /dashboards/charts:

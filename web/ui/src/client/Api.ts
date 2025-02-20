@@ -228,6 +228,7 @@ export interface MalakPlan {
 export interface MalakPlanMetadata {
   dashboard?: {
     embed_dashboard?: boolean;
+    max_charts_per_dashboard?: number;
     share_dashboard_via_link?: boolean;
   };
   data_room?: {
@@ -426,6 +427,10 @@ export interface ServerAPIStatus {
   message: string;
 }
 
+export interface ServerAddChartToDashboardRequest {
+  chart_reference: string;
+}
+
 export interface ServerAddContactToListRequest {
   reference?: string;
 }
@@ -450,8 +455,8 @@ export interface ServerCreateContactRequest {
 }
 
 export interface ServerCreateDashboardRequest {
-  description?: string;
-  title?: string;
+  description: string;
+  title: string;
 }
 
 export interface ServerCreateDeckRequest {
@@ -1022,6 +1027,24 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerFetchDashboardResponse, ServerAPIStatus>({
         path: `/dashboards`,
         method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags dashboards
+     * @name ChartsUpdate
+     * @summary add a chart to a dashboard
+     * @request PUT:/dashboards/{reference}/charts
+     */
+    chartsUpdate: (reference: string, data: ServerAddChartToDashboardRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/dashboards/${reference}/charts`,
+        method: "PUT",
         body: data,
         type: ContentType.Json,
         format: "json",

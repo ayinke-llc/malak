@@ -822,6 +822,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/dashboards/{reference}/charts": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "add a chart to a dashboard",
+                "parameters": [
+                    {
+                        "description": "dashboard request chart data",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.addChartToDashboardRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "dashboard unique reference.. e.g dashboard_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/decks": {
             "get": {
                 "consumes": [
@@ -3218,6 +3282,9 @@ const docTemplate = `{
                         "embed_dashboard": {
                             "type": "boolean"
                         },
+                        "max_charts_per_dashboard": {
+                            "type": "integer"
+                        },
                         "share_dashboard_via_link": {
                             "type": "boolean"
                         }
@@ -3700,6 +3767,17 @@ const docTemplate = `{
                 }
             }
         },
+        "server.addChartToDashboardRequest": {
+            "type": "object",
+            "required": [
+                "chart_reference"
+            ],
+            "properties": {
+                "chart_reference": {
+                    "type": "string"
+                }
+            }
+        },
         "server.addContactToListRequest": {
             "type": "object",
             "properties": {
@@ -3764,6 +3842,10 @@ const docTemplate = `{
         },
         "server.createDashboardRequest": {
             "type": "object",
+            "required": [
+                "description",
+                "title"
+            ],
             "properties": {
                 "description": {
                     "type": "string"

@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/ayinke-llc/malak"
@@ -87,4 +88,24 @@ func (d *dashboardRepo) List(ctx context.Context,
 		Scan(ctx)
 
 	return dashboards, int64(total), err
+}
+
+func (d *dashboardRepo) Get(ctx context.Context,
+	opts malak.FetchDashboardOption) (malak.Dashboard, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	dashboard := malak.Dashboard{}
+
+	err := d.inner.NewSelect().
+		Model(&dashboard).
+		Where("workspace_id = ?", opts.WorkspaceID).
+		Where("reference = ?", opts.Reference).
+		Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = malak.ErrDashboardNotFound
+	}
+
+	return dashboard, err
 }
