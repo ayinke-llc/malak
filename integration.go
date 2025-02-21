@@ -188,4 +188,5 @@ type IntegrationRepository interface {
 	AddDataPoint(context.Context, *WorkspaceIntegration, []IntegrationDataValues) error
 	ListCharts(context.Context, uuid.UUID) ([]IntegrationChart, error)
 	GetChart(context.Context, FetchChartOptions) (IntegrationChart, error)
+	GetDataPoints(context.Context, IntegrationChart) ([]IntegrationDataPoint, error)
 }

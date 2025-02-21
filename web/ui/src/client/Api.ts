@@ -199,6 +199,27 @@ export enum MalakIntegrationChartType {
   IntegrationChartTypePie = "pie",
 }
 
+export interface MalakIntegrationDataPoint {
+  created_at?: string;
+  data_point_type?: MalakIntegrationDataPointType;
+  id?: string;
+  integration_chart_id?: string;
+  metadata?: MalakIntegrationDataPointMetadata;
+  point_name?: string;
+  point_value?: number;
+  reference?: string;
+  updated_at?: string;
+  workspace_id?: string;
+  workspace_integration_id?: string;
+}
+
+export type MalakIntegrationDataPointMetadata = object;
+
+export enum MalakIntegrationDataPointType {
+  IntegrationDataPointTypeCurrency = "currency",
+  IntegrationDataPointTypeOthers = "others",
+}
+
 export interface MalakIntegrationMetadata {
   endpoint?: string;
 }
@@ -568,6 +589,11 @@ export interface ServerFetchUpdateReponse {
 export interface ServerFetchWorkspaceResponse {
   message: string;
   workspace: MalakWorkspace;
+}
+
+export interface ServerListChartDataPointsResponse {
+  data_points: MalakIntegrationDataPoint[];
+  message: string;
 }
 
 export interface ServerListContactsResponse {
@@ -1096,6 +1122,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     chartsList: (params: RequestParams = {}) =>
       this.request<ServerListIntegrationChartsResponse, ServerAPIStatus>({
         path: `/dashboards/charts`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags dashboards
+     * @name ChartsDetail
+     * @summary fetch charting data
+     * @request GET:/dashboards/charts/{reference}
+     */
+    chartsDetail: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerListChartDataPointsResponse, ServerAPIStatus>({
+        path: `/dashboards/charts/${reference}`,
         method: "GET",
         format: "json",
         ...params,

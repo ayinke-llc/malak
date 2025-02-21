@@ -481,6 +481,58 @@
 					"IntegrationChartTypePie"
 				]
 			},
+			"malak.IntegrationDataPoint": {
+				"properties": {
+					"created_at": {
+						"type": "string"
+					},
+					"data_point_type": {
+						"$ref": "#/components/schemas/malak.IntegrationDataPointType"
+					},
+					"id": {
+						"type": "string"
+					},
+					"integration_chart_id": {
+						"type": "string"
+					},
+					"metadata": {
+						"$ref": "#/components/schemas/malak.IntegrationDataPointMetadata"
+					},
+					"point_name": {
+						"type": "string"
+					},
+					"point_value": {
+						"type": "integer"
+					},
+					"reference": {
+						"type": "string"
+					},
+					"updated_at": {
+						"type": "string"
+					},
+					"workspace_id": {
+						"type": "string"
+					},
+					"workspace_integration_id": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"malak.IntegrationDataPointMetadata": {
+				"type": "object"
+			},
+			"malak.IntegrationDataPointType": {
+				"enum": [
+					"currency",
+					"others"
+				],
+				"type": "string",
+				"x-enum-varnames": [
+					"IntegrationDataPointTypeCurrency",
+					"IntegrationDataPointTypeOthers"
+				]
+			},
 			"malak.IntegrationMetadata": {
 				"properties": {
 					"endpoint": {
@@ -1443,6 +1495,24 @@
 				"required": [
 					"message",
 					"workspace"
+				],
+				"type": "object"
+			},
+			"server.listChartDataPointsResponse": {
+				"properties": {
+					"data_points": {
+						"items": {
+							"$ref": "#/components/schemas/malak.IntegrationDataPoint"
+						},
+						"type": "array"
+					},
+					"message": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"data_points",
+					"message"
 				],
 				"type": "object"
 			},
@@ -2781,6 +2851,77 @@
 					}
 				},
 				"summary": "List charts",
+				"tags": [
+					"dashboards"
+				]
+			}
+		},
+		"/dashboards/charts/{reference}": {
+			"get": {
+				"parameters": [
+					{
+						"description": "chart unique reference.. e.g integration_chart_km31C.e6xV",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.listChartDataPointsResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"summary": "fetch charting data",
 				"tags": [
 					"dashboards"
 				]

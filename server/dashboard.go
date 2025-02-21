@@ -368,3 +368,65 @@ func (d *dashboardHandler) fetchDashboard(
 		Charts:    charts,
 	}, StatusSuccess
 }
+
+// @Summary fetch charting data
+// @Tags dashboards
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "chart unique reference.. e.g integration_chart_km31C.e6xV"
+// @Success 200 {object} listChartDataPointsResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /dashboards/charts/{reference} [GET]
+func (d *dashboardHandler) fetchChartingData(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("fetch charting data")
+
+	workspace := getWorkspaceFromContext(r.Context())
+
+	ref := chi.URLParam(r, "reference")
+
+	if hermes.IsStringEmpty(ref) {
+		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
+	}
+
+	chart, err := d.integrationRepo.GetChart(ctx, malak.FetchChartOptions{
+		WorkspaceID: workspace.ID,
+		Reference:   malak.Reference(ref),
+	})
+	if err != nil {
+		logger.Error("could not fetch chart", zap.Error(err))
+		status := http.StatusInternalServerError
+		msg := "an error occurred while fetching chart"
+
+		if errors.Is(err, malak.ErrChartNotFound) {
+			status = http.StatusNotFound
+			msg = err.Error()
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	dataPoints, err := d.integrationRepo.GetDataPoints(ctx, chart)
+	if err != nil {
+
+		logger.Error("could not charting data",
+			zap.Error(err))
+
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"could not fetch charting data"), StatusFailed
+	}
+
+	return listChartDataPointsResponse{
+		APIStatus:  newAPIStatus(http.StatusOK, "datapoints fetched"),
+		DataPoints: dataPoints,
+	}, StatusSuccess
+}

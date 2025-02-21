@@ -274,3 +274,18 @@ func (i *integrationRepo) GetChart(ctx context.Context,
 
 	return chart, err
 }
+
+func (i *integrationRepo) GetDataPoints(ctx context.Context,
+	chart malak.IntegrationChart) ([]malak.IntegrationDataPoint, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	dataValues := make([]malak.IntegrationDataPoint, 0)
+
+	return dataValues, i.inner.NewSelect().
+		Model(&dataValues).
+		Where("integration_chart_id = ?", chart.ID).
+		Order("created_at ASC").
+		Scan(ctx)
+}

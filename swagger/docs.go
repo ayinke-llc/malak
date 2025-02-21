@@ -822,6 +822,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/dashboards/charts/{reference}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "fetch charting data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "chart unique reference.. e.g integration_chart_km31C.e6xV",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.listChartDataPointsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/dashboards/{reference}": {
             "get": {
                 "consumes": [
@@ -3294,6 +3349,58 @@ const docTemplate = `{
                 "IntegrationChartTypePie"
             ]
         },
+        "malak.IntegrationDataPoint": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "data_point_type": {
+                    "$ref": "#/definitions/malak.IntegrationDataPointType"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "integration_chart_id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/malak.IntegrationDataPointMetadata"
+                },
+                "point_name": {
+                    "type": "string"
+                },
+                "point_value": {
+                    "type": "integer"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                },
+                "workspace_integration_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.IntegrationDataPointMetadata": {
+            "type": "object"
+        },
+        "malak.IntegrationDataPointType": {
+            "type": "string",
+            "enum": [
+                "currency",
+                "others"
+            ],
+            "x-enum-varnames": [
+                "IntegrationDataPointTypeCurrency",
+                "IntegrationDataPointTypeOthers"
+            ]
+        },
         "malak.IntegrationMetadata": {
             "type": "object",
             "properties": {
@@ -4256,6 +4363,24 @@ const docTemplate = `{
                 },
                 "workspace": {
                     "$ref": "#/definitions/malak.Workspace"
+                }
+            }
+        },
+        "server.listChartDataPointsResponse": {
+            "type": "object",
+            "required": [
+                "data_points",
+                "message"
+            ],
+            "properties": {
+                "data_points": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.IntegrationDataPoint"
+                    }
+                },
+                "message": {
+                    "type": "string"
                 }
             }
         },
