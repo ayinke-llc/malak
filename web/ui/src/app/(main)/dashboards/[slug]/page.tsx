@@ -68,7 +68,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   Bar, BarChart,
   Cell,
@@ -345,6 +345,7 @@ export default function DashboardPage() {
   };
 
   const [charts, setCharts] = useState<MalakDashboardChart[]>([]);
+  const isUpdatingRef = useRef(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -363,25 +364,39 @@ export default function DashboardPage() {
     }
   }, [dashboardData?.charts]);
 
+  const updatePositionsDebounced = useCallback(
+    (positions: { chart_id: string; index: number }[]) => {
+      if (isUpdatingRef.current) return;
+      isUpdatingRef.current = true;
+      
+      setTimeout(() => {
+        updatePositionsMutation.mutate(positions);
+        isUpdatingRef.current = false;
+      }, 100);
+    },
+    [updatePositionsMutation]
+  );
+
   function handleDragEnd(event: any) {
     const { active, over } = event;
 
-    if (active.id !== over?.id) {
-      setCharts((items) => {
-        const oldIndex = items.findIndex((item) => item.reference === active.id);
-        const newIndex = items.findIndex((item) => item.reference === over.id);
-        const newItems = arrayMove(items, oldIndex, newIndex);
-
-        const positions = newItems.map((item, index) => ({
-          chart_id: item.id || '',
-          index
-        }));
-
-        updatePositionsMutation.mutate(positions);
-
-        return newItems;
-      });
+    if (!active || !over || active.id === over.id) {
+      return;
     }
+
+    setCharts((items) => {
+      const oldIndex = items.findIndex((item) => item.reference === active.id);
+      const newIndex = items.findIndex((item) => item.reference === over.id);
+      const newItems = arrayMove(items, oldIndex, newIndex);
+
+      const positions = newItems.map((item, index) => ({
+        chart_id: item.id || '',
+        index
+      }));
+
+      updatePositionsDebounced(positions);
+      return newItems;
+    });
   }
 
   if (isLoadingDashboard) {
