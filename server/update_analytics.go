@@ -16,7 +16,7 @@ import (
 )
 
 // @Tags updates
-// @Summary Fetch analytics for a specific update
+// @Description Fetch analytics for a specific update
 // @id fetchUpdateAnalytics
 // @Accept  json
 // @Produce  json

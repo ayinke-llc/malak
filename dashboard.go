@@ -47,6 +47,15 @@ type DashboardChart struct {
 	bun.BaseModel `json:"-"`
 }
 
+type DashboardChartPosition struct {
+	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	DashboardID uuid.UUID `json:"dashboard_id,omitempty"`
+	ChartID     uuid.UUID `json:"chart_id,omitempty"`
+	OrderIndex  int64     `json:"order_index,omitempty"`
+
+	bun.BaseModel `json:"-"`
+}
+
 type ListDashboardOptions struct {
 	Paginator   Paginator
 	WorkspaceID uuid.UUID
@@ -68,4 +77,7 @@ type DashboardRepository interface {
 	AddChart(context.Context, *DashboardChart) error
 	List(context.Context, ListDashboardOptions) ([]Dashboard, int64, error)
 	GetCharts(context.Context, FetchDashboardChartsOption) ([]DashboardChart, error)
+
+	UpdateDashboardPositions(context.Context, uuid.UUID, []DashboardChartPosition) error
+	GetDashboardPositions(context.Context, uuid.UUID) ([]DashboardChartPosition, error)
 }

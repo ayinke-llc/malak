@@ -43,7 +43,7 @@ func (a *authenticateUserRequest) Validate() error {
 	return nil
 }
 
-// @Summary Sign in with a social login provider
+// @Description Sign in with a social login provider
 // @Tags auth
 // @Accept  json
 // @Produce  json
@@ -155,7 +155,7 @@ func (a *authHandler) Login(
 	return resp, StatusSuccess
 }
 
-// @Summary Fetch current user. This api should also double as a token validation api
+// @Description Fetch current user. This api should also double as a token validation api
 // @Tags user
 // @Accept  json
 // @Produce  json

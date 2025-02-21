@@ -82,9 +82,15 @@ type listIntegrationChartsResponse struct {
 	APIStatus
 }
 
+type listChartDataPointsResponse struct {
+	DataPoints []malak.IntegrationDataPoint `json:"data_points,omitempty" validate:"required"`
+	APIStatus
+}
+
 type listDashboardChartsResponse struct {
-	Charts    []malak.DashboardChart `json:"charts,omitempty" validate:"required"`
-	Dashboard malak.Dashboard        `json:"dashboard,omitempty" validate:"required"`
+	Charts    []malak.DashboardChart         `json:"charts,omitempty" validate:"required"`
+	Positions []malak.DashboardChartPosition `json:"positions,omitempty" validate:"required"`
+	Dashboard malak.Dashboard                `json:"dashboard,omitempty" validate:"required"`
 	APIStatus
 }
 

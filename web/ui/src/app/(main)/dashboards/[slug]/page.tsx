@@ -1,40 +1,14 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import {
-  RiBarChart2Line, RiPieChartLine, RiSettings4Line,
-  RiArrowDownSLine, RiLoader4Line
-} from "@remixicon/react";
-import { useParams } from "next/navigation";
-import {
-  Bar, BarChart, ResponsiveContainer,
-  XAxis, YAxis, Tooltip, PieChart,
-  Pie, Cell
-} from "recharts";
-import { ChartContainer } from "@/components/ui/chart";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetFooter,
-} from "@/components/ui/sheet";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { useState } from "react";
+import type {
+  MalakDashboardChart, MalakIntegrationDataPoint,
+  ServerAPIStatus,
+  ServerListDashboardChartsResponse,
+  ServerListIntegrationChartsResponse,
+} from "@/client/Api";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
+import { ChartContainer } from "@/components/ui/chart";
 import {
   Command,
   CommandEmpty,
@@ -43,60 +17,81 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import client from "@/lib/client";
-import { LIST_CHARTS, DASHBOARD_DETAIL } from "@/lib/query-constants";
-import type {
-  ServerAPIStatus, ServerListIntegrationChartsResponse,
-  ServerListDashboardChartsResponse, MalakDashboardChart
-} from "@/client/Api";
-import { toast } from "sonner";
+import {
+  DASHBOARD_DETAIL, FETCH_CHART_DATA_POINTS,
+  LIST_CHARTS
+} from "@/lib/query-constants";
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  rectSortingStrategy,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
+  RiArrowDownSLine,
+  RiBarChart2Line,
+  RiLoader4Line,
+  RiPieChartLine, RiSettings4Line
+} from "@remixicon/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-
-// Mock data for bar charts
-const revenueData = [
-  { month: "Day 1", revenue: 2400 },
-  { month: "Day 2", revenue: 1398 },
-  { month: "Day 3", revenue: 9800 },
-  { month: "Day 4", revenue: 3908 },
-  { month: "Day 5", revenue: 4800 },
-  { month: "Day 6", revenue: 3800 },
-  { month: "Day 7", revenue: 5200 },
-  { month: "Day 8", revenue: 4100 },
-  { month: "Day 9", revenue: 6300 },
-  { month: "Day 10", revenue: 5400 },
-  { month: "Day 11", revenue: 4700 },
-  { month: "Day 12", revenue: 3900 },
-  { month: "Day 13", revenue: 5600 },
-  { month: "Day 14", revenue: 4800 },
-  { month: "Day 15", revenue: 6100 },
-  { month: "Day 16", revenue: 5300 },
-  { month: "Day 17", revenue: 4500 },
-  { month: "Day 18", revenue: 3700 },
-  { month: "Day 19", revenue: 5900 },
-  { month: "Day 20", revenue: 4200 },
-  { month: "Day 21", revenue: 6400 },
-  { month: "Day 22", revenue: 5500 },
-  { month: "Day 23", revenue: 4600 },
-  { month: "Day 24", revenue: 3800 },
-  { month: "Day 25", revenue: 5700 },
-  { month: "Day 26", revenue: 4900 },
-  { month: "Day 27", revenue: 6200 },
-  { month: "Day 28", revenue: 5100 },
-  { month: "Day 29", revenue: 4300 },
-  { month: "Day 30", revenue: 3600 }
-];
-
-// Mock data for pie charts
-const costData = [
-  { name: "Infrastructure", value: 400, color: "#0088FE" },
-  { name: "Marketing", value: 300, color: "#00C49F" },
-  { name: "Development", value: 500, color: "#FFBB28" },
-  { name: "Operations", value: 200, color: "#FF8042" },
-];
+import { useParams } from "next/navigation";
+import { useEffect, useState, useRef, useCallback } from "react";
+import {
+  Bar, BarChart,
+  Cell,
+  Pie,
+  PieChart,
+  Tooltip,
+  XAxis, YAxis
+} from "recharts";
+import { toast } from "sonner";
+import styles from "./styles.module.css";
 
 function ChartCard({ chart }: { chart: MalakDashboardChart }) {
-  const getChartIcon = (type: string) => {
+  const { data: chartData, isLoading: isLoadingChartData, error } = useQuery({
+    queryKey: [FETCH_CHART_DATA_POINTS, chart.chart?.reference],
+    queryFn: async () => {
+      if (!chart.chart?.reference) return null;
+      const response = await client.dashboards.chartsDetail(chart.chart.reference);
+      return response.data;
+    },
+    enabled: !!chart.chart?.reference,
+  });
+
+  const getChartIcon = (type: string | undefined) => {
     switch (type) {
       case "bar":
         return <RiBarChart2Line className="h-4 w-4" />;
@@ -107,72 +102,120 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
     }
   };
 
-  const getChartData = (chart: MalakDashboardChart) => {
-    // TODO: Replace with real data from the chart's data source
-    return chart.chart?.chart_type === "bar" ? revenueData : costData;
-  };
+  const formatChartData =
+    (dataPoints: MalakIntegrationDataPoint[] | undefined): Array<{
+      name: string;
+      value: number;
+    }> => {
+      if (!dataPoints) return [];
+
+      return dataPoints.map(point => {
+        const value = point.data_point_type === 'currency'
+          ? (point.point_value || 0) / 100
+          : point.point_value || 0;
+
+        return {
+          name: point.point_name || '',
+          value,
+        };
+      });
+    };
 
   if (!chart.chart) {
     return null;
   }
 
+  const formattedData = formatChartData(chartData?.data_points);
+
+  if (isLoadingChartData) {
+    return (
+      <Card className="p-3">
+        <div className="flex items-center justify-center h-[160px]">
+          <RiLoader4Line className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="p-3">
+        <div className="flex flex-col items-center justify-center h-[160px] text-center p-4">
+          <RiBarChart2Line className="h-8 w-8 text-muted-foreground mb-2" />
+          <p className="text-sm text-muted-foreground">Failed to load chart data</p>
+          <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
+        </div>
+      </Card>
+    );
+  }
+
+  const hasNoData = !formattedData || formattedData.length === 0;
+
   return (
-    <Card className="p-3">
+    <Card className="p-3 transition-colors duration-200 hover:bg-accent/5">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <div className="text-muted-foreground">
-            {getChartIcon(chart.chart.chart_type || "bar")}
+            {getChartIcon(chart.chart.chart_type)}
           </div>
           <div>
-            <h3 className="text-sm font-medium">{chart.chart.user_facing_name}</h3>
-            <p className="text-xs text-muted-foreground">{chart.chart.internal_name}</p>
+            <h3 className="text-sm font-bold">{chart.chart.user_facing_name}</h3>
           </div>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="p-1.5 hover:bg-muted rounded-md">
-              <RiSettings4Line className="h-4 w-4 text-muted-foreground" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>Edit Chart</DropdownMenuItem>
-            <DropdownMenuItem>Duplicate</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
       <div className="w-full">
-        {chart.chart.chart_type === "bar" ? (
+        {hasNoData ? (
+          <div className="flex flex-col items-center justify-center h-[160px] text-center p-4">
+            <RiBarChart2Line className="h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-sm text-muted-foreground">No data available</p>
+            <p className="text-xs text-muted-foreground mt-1">Check back later for updates</p>
+          </div>
+        ) : chart.chart.chart_type === "bar" ? (
           <ChartContainer className="w-full h-full" config={{}}>
-            <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={getChartData(chart)} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
-                <XAxis dataKey="month" stroke="#888888" fontSize={11} />
-                <YAxis stroke="#888888" fontSize={11} />
-                <Tooltip />
-                <Bar dataKey="revenue" fill="#8884d8" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <BarChart
+              width={390}
+              height={160}
+              data={formattedData}
+              margin={{ top: 5, right: 5, left: -15, bottom: 0 }}
+            >
+              <XAxis dataKey="name" stroke="#888888" fontSize={11} />
+              <YAxis stroke="#888888" fontSize={11} />
+              <Tooltip formatter={(value: number) => {
+                if (chartData?.data_points?.[0]?.data_point_type === 'currency') {
+                  return [`$${value.toFixed(2)}`, 'Value'];
+                }
+                return [value, 'Value'];
+              }} />
+              <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+            </BarChart>
           </ChartContainer>
         ) : (
           <ChartContainer className="w-full h-full" config={{}}>
-            <ResponsiveContainer width="100%" height={160}>
-              <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                <Pie
-                  data={getChartData(chart)}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={60}
-                  dataKey="value"
-                >
-                  {costData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <PieChart
+              width={390}
+              height={160}
+              margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+            >
+              <Pie
+                data={formattedData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                outerRadius={60}
+                dataKey="value"
+              >
+                {formattedData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={`hsl(${index * 45}, 70%, 50%)`} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value: number) => {
+                if (chartData?.data_points?.[0]?.data_point_type === 'currency') {
+                  return [`$${value.toFixed(2)}`, 'Value'];
+                }
+                return [value, 'Value'];
+              }} />
+            </PieChart>
           </ChartContainer>
         )}
       </div>
@@ -180,9 +223,54 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
   );
 }
 
+function SortableChartCard({ chart }: { chart: MalakDashboardChart }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: chart.reference || '' });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    position: 'relative' as const,
+    opacity: isDragging ? 0.5 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`touch-none ${styles.sortableChart} ${isDragging ? styles.sortableChartDragging : ''} cursor-grab active:cursor-grabbing`}
+    >
+      <div className="absolute top-2 right-2 z-50">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="p-1.5 hover:bg-muted rounded-md" onClick={(e) => e.stopPropagation()}>
+              <RiSettings4Line className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem className="text-destructive cursor-pointer">Remove from dashboard</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      <ChartCard chart={chart} />
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const params = useParams();
-  const dashboardId = params.slug as string;
+  const dashboardID = params.slug as string;
+
+  const queryClient = useQueryClient();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -190,9 +278,9 @@ export default function DashboardPage() {
   const [selectedChartLabel, setSelectedChartLabel] = useState<string>("");
 
   const { data: dashboardData, isLoading: isLoadingDashboard } = useQuery<ServerListDashboardChartsResponse>({
-    queryKey: [DASHBOARD_DETAIL, dashboardId],
+    queryKey: [DASHBOARD_DETAIL, dashboardID],
     queryFn: async () => {
-      const response = await client.dashboards.dashboardsDetail(dashboardId);
+      const response = await client.dashboards.dashboardsDetail(dashboardID);
       return response.data;
     },
   });
@@ -208,19 +296,39 @@ export default function DashboardPage() {
 
   const addChartMutation = useMutation({
     mutationFn: async (chartReference: string) => {
-      const response = await client.dashboards.chartsUpdate(dashboardId, {
+      const response = await client.dashboards.chartsUpdate(dashboardID, {
         chart_reference: chartReference
       });
       return response.data;
     },
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: [DASHBOARD_DETAIL, dashboardID] });
       setSelectedChart("");
       setSelectedChartLabel("");
       setIsOpen(false);
+
       toast.success(data.message);
     },
     onError: (err: AxiosError<ServerAPIStatus>): void => {
       toast.error(err?.response?.data?.message || "Failed to add chart to dashboard");
+    }
+  });
+
+  const updatePositionsMutation = useMutation({
+    mutationFn: async (positions: { chart_id: string; index: number }[]) => {
+      const response = await client.dashboards.positionsCreate(dashboardID, { positions });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [DASHBOARD_DETAIL, dashboardID] });
+      toast.success("chart positions updated")
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err?.response?.data?.message || "Failed to update chart positions");
+      // Revert to the previous state on error
+      if (dashboardData?.charts) {
+        setCharts(dashboardData.charts);
+      }
     }
   });
 
@@ -235,6 +343,67 @@ export default function DashboardPage() {
 
     addChartMutation.mutate(selectedChart);
   };
+
+  const [charts, setCharts] = useState<MalakDashboardChart[]>([]);
+  const isUpdatingRef = useRef(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement is required before drag starts
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  useEffect(() => {
+    if (dashboardData?.charts) {
+      // Sort charts based on their positions if available
+      const sortedCharts = [...dashboardData.charts].sort((a, b) => {
+        const posA = dashboardData.positions?.find(p => p.chart_id === a.id)?.order_index ?? 0;
+        const posB = dashboardData.positions?.find(p => p.chart_id === b.id)?.order_index ?? 0;
+        return posA - posB;
+      });
+      setCharts(sortedCharts);
+    }
+  }, [dashboardData?.charts, dashboardData?.positions]);
+
+  const updatePositionsDebounced = useCallback(
+    (positions: { chart_id: string; index: number }[]) => {
+      if (isUpdatingRef.current) return;
+      isUpdatingRef.current = true;
+      
+      setTimeout(() => {
+        updatePositionsMutation.mutate(positions);
+        isUpdatingRef.current = false;
+      }, 100);
+    },
+    [updatePositionsMutation]
+  );
+
+  function handleDragEnd(event: any) {
+    const { active, over } = event;
+
+    if (!active || !over || active.id === over.id) {
+      return;
+    }
+
+    setCharts((items) => {
+      const oldIndex = items.findIndex((item) => item.reference === active.id);
+      const newIndex = items.findIndex((item) => item.reference === over.id);
+      const newItems = arrayMove(items, oldIndex, newIndex);
+
+      const positions = newItems.map((item, index) => ({
+        chart_id: item.id || '',
+        index
+      }));
+
+      updatePositionsDebounced(positions);
+      return newItems;
+    });
+  }
 
   if (isLoadingDashboard) {
     return (
@@ -375,11 +544,37 @@ export default function DashboardPage() {
         </Sheet>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {dashboardData.charts.map((chart) => (
-          <ChartCard key={chart.reference} chart={chart} />
-        ))}
-      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        onDragStart={() => {
+          // Add haptic feedback on mobile
+          if (window.navigator.vibrate) {
+            window.navigator.vibrate(100);
+          }
+        }}
+      >
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {!charts || charts.length === 0 ? (
+            <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+              <RiBarChart2Line className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium">No charts yet</h3>
+              <p className="text-sm text-muted-foreground mt-1 mb-4">Get started by adding your first chart to this dashboard.</p>
+              <Button onClick={() => setIsOpen(true)}>Add Your First Chart</Button>
+            </div>
+          ) : (
+            <SortableContext
+              items={charts.map(chart => chart.reference || '')}
+              strategy={rectSortingStrategy}
+            >
+              {charts.map((chart) => (
+                <SortableChartCard key={chart.reference} chart={chart} />
+              ))}
+            </SortableContext>
+          )}
+        </div>
+      </DndContext>
     </div>
   );
 }

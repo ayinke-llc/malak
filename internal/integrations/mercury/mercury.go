@@ -185,8 +185,9 @@ func (m *mercuryClient) Data(ctx context.Context,
 
 	for _, account := range response.Accounts {
 		dataPoints = append(dataPoints, malak.IntegrationDataValues{
-			InternalName: malak.IntegrationChartInternalNameTypeMercuryAccount,
-			ProviderID:   account.ID,
+			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
+			ProviderID:     account.ID,
+			UserFacingName: account.Name,
 			Data: malak.IntegrationDataPoint{
 				DataPointType:          malak.IntegrationDataPointTypeCurrency,
 				WorkspaceIntegrationID: opts.IntegrationID,
@@ -237,7 +238,8 @@ func (m *mercuryClient) Data(ctx context.Context,
 			}
 
 			dataPoints = append(dataPoints, malak.IntegrationDataValues{
-				InternalName: malak.IntegrationChartInternalNameTypeMercuryAccountTransaction,
+				InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccountTransaction,
+				UserFacingName: "Transactions count for " + account.Name,
 				Data: malak.IntegrationDataPoint{
 					DataPointType:          malak.IntegrationDataPointTypeOthers,
 					WorkspaceIntegrationID: opts.IntegrationID,

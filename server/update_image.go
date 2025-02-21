@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// @Summary Upload an image
+// @Description Upload an image
 // @Tags images
 // @id uploadImage
 // @Accept  json

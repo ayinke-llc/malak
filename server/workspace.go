@@ -55,7 +55,7 @@ func (c *createWorkspaceRequest) Validate() error {
 	return nil
 }
 
-// @Summary Create a new workspace
+// @Description Create a new workspace
 // @Tags workspace
 // @Accept  json
 // @Produce  json
@@ -136,7 +136,7 @@ func (wo *workspaceHandler) createWorkspace(
 	}, StatusSuccess
 }
 
-// @Summary Switch current workspace
+// @Description Switch current workspace
 // @Tags workspace
 // @Accept  json
 // @Produce  json
@@ -247,7 +247,7 @@ func (u *updateWorkspaceRequest) Validate() error {
 	return nil
 }
 
-// @Summary update workspace details
+// @Description update workspace details
 // @Tags workspace
 // @Accept  json
 // @Produce  json
@@ -320,7 +320,7 @@ func (wo *workspaceHandler) updateWorkspace(
 	}, StatusSuccess
 }
 
-// @Summary fetch workspace preferences
+// @Description fetch workspace preferences
 // @Tags workspace
 // @Accept  json
 // @Produce  json
@@ -378,7 +378,7 @@ func (u *updatePreferencesRequest) Make(current *malak.Preference) *malak.Prefer
 	return current
 }
 
-// @Summary update workspace preferences
+// @Description update workspace preferences
 // @Tags workspace
 // @Accept  json
 // @Produce  json
@@ -429,7 +429,7 @@ func (wo *workspaceHandler) updatePreferences(
 	}, StatusSuccess
 }
 
-// @Summary get billing portal
+// @Description get billing portal
 // @Tags billing
 // @Accept  json
 // @Produce  json

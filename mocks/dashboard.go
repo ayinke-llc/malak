@@ -14,6 +14,7 @@ import (
 	reflect "reflect"
 
 	malak "github.com/ayinke-llc/malak"
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -99,6 +100,21 @@ func (mr *MockDashboardRepositoryMockRecorder) GetCharts(arg0, arg1 any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCharts", reflect.TypeOf((*MockDashboardRepository)(nil).GetCharts), arg0, arg1)
 }
 
+// GetDashboardPositions mocks base method.
+func (m *MockDashboardRepository) GetDashboardPositions(arg0 context.Context, arg1 uuid.UUID) ([]malak.DashboardChartPosition, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDashboardPositions", arg0, arg1)
+	ret0, _ := ret[0].([]malak.DashboardChartPosition)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDashboardPositions indicates an expected call of GetDashboardPositions.
+func (mr *MockDashboardRepositoryMockRecorder) GetDashboardPositions(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDashboardPositions", reflect.TypeOf((*MockDashboardRepository)(nil).GetDashboardPositions), arg0, arg1)
+}
+
 // List mocks base method.
 func (m *MockDashboardRepository) List(arg0 context.Context, arg1 malak.ListDashboardOptions) ([]malak.Dashboard, int64, error) {
 	m.ctrl.T.Helper()
@@ -113,4 +129,18 @@ func (m *MockDashboardRepository) List(arg0 context.Context, arg1 malak.ListDash
 func (mr *MockDashboardRepositoryMockRecorder) List(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockDashboardRepository)(nil).List), arg0, arg1)
+}
+
+// UpdateDashboardPositions mocks base method.
+func (m *MockDashboardRepository) UpdateDashboardPositions(arg0 context.Context, arg1 uuid.UUID, arg2 []malak.DashboardChartPosition) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateDashboardPositions", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateDashboardPositions indicates an expected call of UpdateDashboardPositions.
+func (mr *MockDashboardRepositoryMockRecorder) UpdateDashboardPositions(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateDashboardPositions", reflect.TypeOf((*MockDashboardRepository)(nil).UpdateDashboardPositions), arg0, arg1, arg2)
 }

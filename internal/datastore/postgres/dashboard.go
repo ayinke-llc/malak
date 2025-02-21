@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ayinke-llc/malak"
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
@@ -25,6 +26,10 @@ func (d *dashboardRepo) Create(ctx context.Context,
 
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
+
+	if dashboard.Title == "" {
+		return errors.New("dashboard title is required")
+	}
 
 	return d.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
@@ -127,4 +132,59 @@ func (d *dashboardRepo) GetCharts(ctx context.Context,
 		Scan(ctx)
 
 	return charts, err
+}
+
+func (d *dashboardRepo) GetDashboardPositions(ctx context.Context,
+	dashboardID uuid.UUID) ([]malak.DashboardChartPosition, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	positions := make([]malak.DashboardChartPosition, 0)
+
+	err := d.inner.NewSelect().
+		Model(&positions).
+		Where("dashboard_id = ?", dashboardID).
+		Scan(ctx)
+
+	return positions, err
+}
+
+func (d *dashboardRepo) UpdateDashboardPositions(ctx context.Context,
+	dashboardID uuid.UUID,
+	positions []malak.DashboardChartPosition) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return d.inner.RunInTx(ctx, &sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+			// First check if dashboard exists
+			exists, err := tx.NewSelect().
+				Model((*malak.Dashboard)(nil)).
+				Where("id = ?", dashboardID).
+				Exists(ctx)
+			if err != nil {
+				return err
+			}
+			if !exists {
+				return malak.ErrDashboardNotFound
+			}
+
+			_, err = tx.NewDelete().
+				Model(new(malak.DashboardChartPosition)).
+				Where("dashboard_id = ?", dashboardID).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+
+			if len(positions) > 0 {
+				_, err = tx.NewInsert().Model(&positions).
+					Exec(ctx)
+				return err
+			}
+
+			return nil
+		})
 }

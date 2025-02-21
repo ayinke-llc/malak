@@ -338,8 +338,9 @@ func TestIntegration_AddDataPoint(t *testing.T) {
 
 	dataPoints := []malak.IntegrationDataValues{
 		{
-			InternalName: "revenue_chart",
-			ProviderID:   "stripe_revenue",
+			UserFacingName: "Revenue Chart",
+			InternalName:   "revenue_chart",
+			ProviderID:     "stripe_revenue",
 			Data: malak.IntegrationDataPoint{
 				PointName:     malak.GetTodayFormatted(),
 				PointValue:    10050, // 100.50 * 100 to store as integer cents
@@ -354,8 +355,9 @@ func TestIntegration_AddDataPoint(t *testing.T) {
 
 	invalidDataPoints := []malak.IntegrationDataValues{
 		{
-			InternalName: "non_existent_chart",
-			ProviderID:   "stripe_revenue",
+			UserFacingName: "Non Existent Chart",
+			InternalName:   "non_existent_chart",
+			ProviderID:     "stripe_revenue",
 			Data: malak.IntegrationDataPoint{
 				PointName:     malak.GetTodayFormatted(),
 				PointValue:    20000, // 200.00 * 100 to store as integer cents
@@ -596,8 +598,9 @@ func TestIntegration_AddDataPointErrors(t *testing.T) {
 	// Try to add data point for non-existent chart
 	dataPoints := []malak.IntegrationDataValues{
 		{
-			InternalName: malak.IntegrationChartInternalNameTypeMercuryAccount,
-			ProviderID:   "account_123",
+			UserFacingName: "Balance",
+			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
+			ProviderID:     "account_123",
 			Data: malak.IntegrationDataPoint{
 				PointName:     "Balance",
 				PointValue:    1000,
@@ -646,4 +649,121 @@ func TestIntegration_ListChartsErrors(t *testing.T) {
 	charts, err = integrationRepo.ListCharts(t.Context(), uuid.Nil)
 	require.NoError(t, err)
 	require.Empty(t, charts)
+}
+
+func TestIntegration_GetDataPoints(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	integrationRepo := NewIntegrationRepo(client)
+	repo := NewWorkspaceRepository(client)
+
+	workspace, err := repo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	// Create integration
+	integration := &malak.Integration{
+		IntegrationName: "Mercury",
+		Reference:       malak.NewReferenceGenerator().Generate(malak.EntityTypeIntegration),
+		Description:     "Mercury Banking Integration",
+		IsEnabled:       true,
+		IntegrationType: malak.IntegrationTypeOauth2,
+		LogoURL:         "https://mercury.com/logo.png",
+	}
+	err = integrationRepo.Create(t.Context(), integration)
+	require.NoError(t, err)
+
+	integrations, err := integrationRepo.List(t.Context(), workspace)
+	require.NoError(t, err)
+	require.Len(t, integrations, 1)
+	workspaceIntegration := integrations[0]
+
+	// Create chart
+	chartValues := []malak.IntegrationChartValues{
+		{
+			UserFacingName: "Account Balance",
+			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
+			ProviderID:     "account_123",
+			ChartType:      malak.IntegrationChartTypeBar,
+		},
+	}
+	err = integrationRepo.CreateCharts(t.Context(), &workspaceIntegration, chartValues)
+	require.NoError(t, err)
+
+	// Get the created chart
+	charts, err := integrationRepo.ListCharts(t.Context(), workspace.ID)
+	require.NoError(t, err)
+	require.Len(t, charts, 1)
+	chart := charts[0]
+
+	// Initially there should be no data points
+	dataPoints, err := integrationRepo.GetDataPoints(t.Context(), chart)
+	require.NoError(t, err)
+	require.Empty(t, dataPoints)
+
+	// Add data points
+	dataPointValues := []malak.IntegrationDataValues{
+		{
+			UserFacingName: "Account Balance",
+			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
+			ProviderID:     "account_123",
+			Data: malak.IntegrationDataPoint{
+				PointName:     "Day 1",
+				PointValue:    10000, // $100.00
+				DataPointType: malak.IntegrationDataPointTypeCurrency,
+				Metadata:      malak.IntegrationDataPointMetadata{},
+			},
+		},
+	}
+	err = integrationRepo.AddDataPoint(t.Context(), &workspaceIntegration, dataPointValues)
+	require.NoError(t, err)
+
+	// Add another data point
+	dataPointValues = []malak.IntegrationDataValues{
+		{
+			UserFacingName: "Account Balance",
+			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
+			ProviderID:     "account_123",
+			Data: malak.IntegrationDataPoint{
+				PointName:     "Day 2",
+				PointValue:    20000, // $200.00
+				DataPointType: malak.IntegrationDataPointTypeCurrency,
+				Metadata:      malak.IntegrationDataPointMetadata{},
+			},
+		},
+	}
+	err = integrationRepo.AddDataPoint(t.Context(), &workspaceIntegration, dataPointValues)
+	require.NoError(t, err)
+
+	// Verify data points are returned in order
+	dataPoints, err = integrationRepo.GetDataPoints(t.Context(), chart)
+	require.NoError(t, err)
+	require.Len(t, dataPoints, 2)
+
+	// Verify data points are ordered by creation date
+	require.Equal(t, int64(10000), dataPoints[0].PointValue)
+	require.Equal(t, "Day 1", dataPoints[0].PointName)
+	require.Equal(t, int64(20000), dataPoints[1].PointValue)
+	require.Equal(t, "Day 2", dataPoints[1].PointName)
+
+	// Verify data point fields
+	for _, dp := range dataPoints {
+		require.NotEmpty(t, dp.ID)
+		require.Equal(t, workspaceIntegration.ID, dp.WorkspaceIntegrationID)
+		require.Equal(t, workspace.ID, dp.WorkspaceID)
+		require.Equal(t, chart.ID, dp.IntegrationChartID)
+		require.NotEmpty(t, dp.Reference)
+		require.Equal(t, malak.IntegrationDataPointTypeCurrency, dp.DataPointType)
+		require.NotZero(t, dp.CreatedAt)
+		require.NotZero(t, dp.UpdatedAt)
+	}
+
+	// Test with non-existent chart ID
+	nonExistentChart := chart
+	nonExistentChart.ID = uuid.New()
+	dataPoints, err = integrationRepo.GetDataPoints(t.Context(), nonExistentChart)
+	require.NoError(t, err)
+	require.Empty(t, dataPoints)
 }

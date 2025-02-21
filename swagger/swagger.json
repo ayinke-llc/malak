@@ -295,6 +295,23 @@
 				},
 				"type": "object"
 			},
+			"malak.DashboardChartPosition": {
+				"properties": {
+					"chart_id": {
+						"type": "string"
+					},
+					"dashboard_id": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"order_index": {
+						"type": "integer"
+					}
+				},
+				"type": "object"
+			},
 			"malak.Deck": {
 				"properties": {
 					"created_at": {
@@ -479,6 +496,58 @@
 				"x-enum-varnames": [
 					"IntegrationChartTypeBar",
 					"IntegrationChartTypePie"
+				]
+			},
+			"malak.IntegrationDataPoint": {
+				"properties": {
+					"created_at": {
+						"type": "string"
+					},
+					"data_point_type": {
+						"$ref": "#/components/schemas/malak.IntegrationDataPointType"
+					},
+					"id": {
+						"type": "string"
+					},
+					"integration_chart_id": {
+						"type": "string"
+					},
+					"metadata": {
+						"$ref": "#/components/schemas/malak.IntegrationDataPointMetadata"
+					},
+					"point_name": {
+						"type": "string"
+					},
+					"point_value": {
+						"type": "integer"
+					},
+					"reference": {
+						"type": "string"
+					},
+					"updated_at": {
+						"type": "string"
+					},
+					"workspace_id": {
+						"type": "string"
+					},
+					"workspace_integration_id": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"malak.IntegrationDataPointMetadata": {
+				"type": "object"
+			},
+			"malak.IntegrationDataPointType": {
+				"enum": [
+					"currency",
+					"others"
+				],
+				"type": "string",
+				"x-enum-varnames": [
+					"IntegrationDataPointTypeCurrency",
+					"IntegrationDataPointTypeOthers"
 				]
 			},
 			"malak.IntegrationMetadata": {
@@ -1446,6 +1515,24 @@
 				],
 				"type": "object"
 			},
+			"server.listChartDataPointsResponse": {
+				"properties": {
+					"data_points": {
+						"items": {
+							"$ref": "#/components/schemas/malak.IntegrationDataPoint"
+						},
+						"type": "array"
+					},
+					"message": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"data_points",
+					"message"
+				],
+				"type": "object"
+			},
 			"server.listContactsResponse": {
 				"properties": {
 					"contacts": {
@@ -1481,12 +1568,19 @@
 					},
 					"message": {
 						"type": "string"
+					},
+					"positions": {
+						"items": {
+							"$ref": "#/components/schemas/malak.DashboardChartPosition"
+						},
+						"type": "array"
 					}
 				},
 				"required": [
 					"charts",
 					"dashboard",
-					"message"
+					"message",
+					"positions"
 				],
 				"type": "object"
 			},
@@ -1651,6 +1745,32 @@
 				],
 				"type": "object"
 			},
+			"server.updateDashboardPositionsRequest": {
+				"properties": {
+					"positions": {
+						"items": {
+							"properties": {
+								"chart_id": {
+									"type": "string"
+								},
+								"index": {
+									"type": "integer"
+								}
+							},
+							"required": [
+								"chart_id",
+								"index"
+							],
+							"type": "object"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"positions"
+				],
+				"type": "object"
+			},
 			"server.updateDeckPreferencesRequest": {
 				"properties": {
 					"enable_downloading": {
@@ -1749,6 +1869,7 @@
 	"paths": {
 		"/auth/connect/{provider}": {
 			"post": {
+				"description": "Sign in with a social login provider",
 				"parameters": [
 					{
 						"description": "oauth2 provider",
@@ -1824,7 +1945,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Sign in with a social login provider",
 				"tags": [
 					"auth"
 				]
@@ -1832,6 +1952,7 @@
 		},
 		"/contacts": {
 			"get": {
+				"description": "list your contacts",
 				"parameters": [
 					{
 						"description": "Page to query data from. Defaults to 1",
@@ -1902,12 +2023,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "list your contacts",
 				"tags": [
 					"contacts"
 				]
 			},
 			"post": {
+				"description": "Creates a new contact",
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -1972,7 +2093,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Creates a new contact",
 				"tags": [
 					"contacts"
 				]
@@ -1980,6 +2100,7 @@
 		},
 		"/contacts/lists": {
 			"get": {
+				"description": "List all created contact lists",
 				"operationId": "fetchContactLists",
 				"parameters": [
 					{
@@ -2043,12 +2164,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "List all created contact lists",
 				"tags": [
 					"contacts"
 				]
 			},
 			"post": {
+				"description": "Create a new contact list",
 				"operationId": "createContactList",
 				"requestBody": {
 					"content": {
@@ -2114,7 +2235,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Create a new contact list",
 				"tags": [
 					"contacts"
 				]
@@ -2122,6 +2242,7 @@
 		},
 		"/contacts/lists/{reference}": {
 			"delete": {
+				"description": "delete a contact list",
 				"operationId": "deleteContactList",
 				"parameters": [
 					{
@@ -2186,12 +2307,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "delete a contact list",
 				"tags": [
 					"contacts"
 				]
 			},
 			"post": {
+				"description": "add a new contact to a list",
 				"operationId": "addEmailToContactList",
 				"parameters": [
 					{
@@ -2268,12 +2389,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "add a new contact to a list",
 				"tags": [
 					"contacts"
 				]
 			},
 			"put": {
+				"description": "Edit a contact list",
 				"operationId": "editContactList",
 				"parameters": [
 					{
@@ -2350,7 +2471,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Edit a contact list",
 				"tags": [
 					"contacts"
 				]
@@ -2358,6 +2478,7 @@
 		},
 		"/contacts/{reference}": {
 			"delete": {
+				"description": "delete a contact",
 				"operationId": "deleteContact",
 				"parameters": [
 					{
@@ -2422,12 +2543,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "delete a contact",
 				"tags": [
 					"contacts"
 				]
 			},
 			"get": {
+				"description": "fetch a contact by reference",
 				"parameters": [
 					{
 						"description": "contact unique reference.. e.g contact_",
@@ -2491,12 +2612,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "fetch a contact by reference",
 				"tags": [
 					"contacts"
 				]
 			},
 			"put": {
+				"description": "edit a contact",
 				"parameters": [
 					{
 						"description": "contact unique reference.. e.g contact_",
@@ -2572,7 +2693,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "edit a contact",
 				"tags": [
 					"contacts"
 				]
@@ -2580,6 +2700,7 @@
 		},
 		"/dashboards": {
 			"get": {
+				"description": "List dashboards",
 				"parameters": [
 					{
 						"description": "Page to query data from. Defaults to 1",
@@ -2650,12 +2771,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "List dashboards",
 				"tags": [
 					"dashboards"
 				]
 			},
 			"post": {
+				"description": "create a new dashboard",
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -2720,7 +2841,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "create a new dashboard",
 				"tags": [
 					"dashboards"
 				]
@@ -2728,6 +2848,7 @@
 		},
 		"/dashboards/charts": {
 			"get": {
+				"description": "List charts",
 				"responses": {
 					"200": {
 						"content": {
@@ -2780,7 +2901,77 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "List charts",
+				"tags": [
+					"dashboards"
+				]
+			}
+		},
+		"/dashboards/charts/{reference}": {
+			"get": {
+				"description": "fetch charting data",
+				"parameters": [
+					{
+						"description": "chart unique reference.. e.g integration_chart_km31C.e6xV",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.listChartDataPointsResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
 				"tags": [
 					"dashboards"
 				]
@@ -2788,6 +2979,7 @@
 		},
 		"/dashboards/{reference}": {
 			"get": {
+				"description": "fetch dashboard",
 				"parameters": [
 					{
 						"description": "dashboard unique reference.. e.g dashboard_",
@@ -2851,7 +3043,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "fetch dashboard",
 				"tags": [
 					"dashboards"
 				]
@@ -2859,6 +3050,7 @@
 		},
 		"/dashboards/{reference}/charts": {
 			"put": {
+				"description": "add a chart to a dashboard",
 				"parameters": [
 					{
 						"description": "dashboard unique reference.. e.g dashboard_",
@@ -2934,7 +3126,68 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "add a chart to a dashboard",
+				"tags": [
+					"dashboards"
+				]
+			}
+		},
+		"/dashboards/{reference}/positions": {
+			"post": {
+				"description": "update dashboard chart positioning",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.updateDashboardPositionsRequest"
+							}
+						}
+					},
+					"description": "dashboard chart positions",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
 				"tags": [
 					"dashboards"
 				]
@@ -2942,6 +3195,7 @@
 		},
 		"/decks": {
 			"get": {
+				"description": "list all decks. No pagination",
 				"responses": {
 					"200": {
 						"content": {
@@ -2994,12 +3248,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "list all decks. No pagination",
 				"tags": [
 					"decks"
 				]
 			},
 			"post": {
+				"description": "Creates a new deck",
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -3064,7 +3318,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Creates a new deck",
 				"tags": [
 					"decks"
 				]
@@ -3072,6 +3325,7 @@
 		},
 		"/decks/{reference}": {
 			"delete": {
+				"description": "delete a deck",
 				"parameters": [
 					{
 						"description": "deck unique reference.. e.g deck_",
@@ -3135,12 +3389,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "delete a deck",
 				"tags": [
 					"decks"
 				]
 			},
 			"get": {
+				"description": "fetch a deck",
 				"parameters": [
 					{
 						"description": "deck unique reference.. e.g deck_",
@@ -3204,7 +3458,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "fetch a deck",
 				"tags": [
 					"decks"
 				]
@@ -3212,6 +3465,7 @@
 		},
 		"/decks/{reference}/archive": {
 			"post": {
+				"description": "toggle archive status of a deck",
 				"operationId": "toggleArchive",
 				"parameters": [
 					{
@@ -3276,7 +3530,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "toggle archive status of a deck",
 				"tags": [
 					"decks"
 				]
@@ -3284,6 +3537,7 @@
 		},
 		"/decks/{reference}/pin": {
 			"post": {
+				"description": "toggle pinned status of a deck",
 				"operationId": "togglePin",
 				"parameters": [
 					{
@@ -3348,7 +3602,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "toggle pinned status of a deck",
 				"tags": [
 					"decks"
 				]
@@ -3356,6 +3609,7 @@
 		},
 		"/decks/{reference}/preferences": {
 			"put": {
+				"description": "update a deck preferences",
 				"parameters": [
 					{
 						"description": "deck unique reference.. e.g deck_",
@@ -3431,7 +3685,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "update a deck preferences",
 				"tags": [
 					"decks"
 				]
@@ -3439,6 +3692,7 @@
 		},
 		"/public/decks/{reference}": {
 			"get": {
+				"description": "public api to fetch a deck",
 				"parameters": [
 					{
 						"description": "deck unique reference.. e.g deck_",
@@ -3502,7 +3756,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "public api to fetch a deck",
 				"tags": [
 					"decks-viewer"
 				]
@@ -3510,6 +3763,7 @@
 		},
 		"/updates/react": {
 			"get": {
+				"description": "Fetch a specific update",
 				"operationId": "reactPost",
 				"parameters": [
 					{
@@ -3583,7 +3837,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Fetch a specific update",
 				"tags": [
 					"updates"
 				]
@@ -3591,6 +3844,7 @@
 		},
 		"/uploads/decks": {
 			"post": {
+				"description": "Upload a deck",
 				"operationId": "uploadDeck",
 				"requestBody": {
 					"content": {
@@ -3664,7 +3918,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Upload a deck",
 				"tags": [
 					"decks"
 				]
@@ -3672,6 +3925,7 @@
 		},
 		"/uploads/images": {
 			"post": {
+				"description": "Upload an image",
 				"operationId": "uploadImage",
 				"requestBody": {
 					"content": {
@@ -3745,7 +3999,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Upload an image",
 				"tags": [
 					"images"
 				]
@@ -3753,6 +4006,7 @@
 		},
 		"/user": {
 			"get": {
+				"description": "Fetch current user. This api should also double as a token validation api",
 				"responses": {
 					"200": {
 						"content": {
@@ -3805,7 +4059,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Fetch current user. This api should also double as a token validation api",
 				"tags": [
 					"user"
 				]
@@ -3813,6 +4066,7 @@
 		},
 		"/workspaces": {
 			"patch": {
+				"description": "update workspace details",
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -3877,12 +4131,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "update workspace details",
 				"tags": [
 					"workspace"
 				]
 			},
 			"post": {
+				"description": "Create a new workspace",
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -3947,7 +4201,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Create a new workspace",
 				"tags": [
 					"workspace"
 				]
@@ -3955,6 +4208,7 @@
 		},
 		"/workspaces/billing": {
 			"post": {
+				"description": "get billing portal",
 				"responses": {
 					"200": {
 						"content": {
@@ -4007,7 +4261,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "get billing portal",
 				"tags": [
 					"billing"
 				]
@@ -4015,6 +4268,7 @@
 		},
 		"/workspaces/integrations": {
 			"get": {
+				"description": "fetch workspace preferences",
 				"responses": {
 					"200": {
 						"content": {
@@ -4067,7 +4321,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "fetch workspace preferences",
 				"tags": [
 					"integrations"
 				]
@@ -4075,6 +4328,7 @@
 		},
 		"/workspaces/integrations/{reference}": {
 			"delete": {
+				"description": "disable integration",
 				"responses": {
 					"200": {
 						"content": {
@@ -4127,12 +4381,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "disable integration",
 				"tags": [
 					"integrations"
 				]
 			},
 			"post": {
+				"description": "enable integration",
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -4197,12 +4451,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "enable integration",
 				"tags": [
 					"integrations"
 				]
 			},
 			"put": {
+				"description": "update integration api key",
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -4267,7 +4521,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "update integration api key",
 				"tags": [
 					"integrations"
 				]
@@ -4275,6 +4528,7 @@
 		},
 		"/workspaces/integrations/{reference}/ping": {
 			"post": {
+				"description": "test an api key is valid and can reach the integration",
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -4339,7 +4593,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "test an api key is valid and can reach the integration",
 				"tags": [
 					"integrations"
 				]
@@ -4347,6 +4600,7 @@
 		},
 		"/workspaces/preferences": {
 			"get": {
+				"description": "fetch workspace preferences",
 				"responses": {
 					"200": {
 						"content": {
@@ -4399,12 +4653,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "fetch workspace preferences",
 				"tags": [
 					"workspace"
 				]
 			},
 			"put": {
+				"description": "update workspace preferences",
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -4469,7 +4723,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "update workspace preferences",
 				"tags": [
 					"workspace"
 				]
@@ -4477,6 +4730,7 @@
 		},
 		"/workspaces/switch/{reference}": {
 			"post": {
+				"description": "Switch current workspace",
 				"operationId": "switchworkspace",
 				"parameters": [
 					{
@@ -4541,7 +4795,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Switch current workspace",
 				"tags": [
 					"workspace"
 				]
@@ -4549,6 +4802,7 @@
 		},
 		"/workspaces/updates": {
 			"get": {
+				"description": "List updates",
 				"parameters": [
 					{
 						"description": "Page to query data from. Defaults to 1",
@@ -4627,12 +4881,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "List updates",
 				"tags": [
 					"updates"
 				]
 			},
 			"post": {
+				"description": "Create a new update",
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -4697,7 +4951,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Create a new update",
 				"tags": [
 					"updates"
 				]
@@ -4705,6 +4958,7 @@
 		},
 		"/workspaces/updates/pins": {
 			"get": {
+				"description": "List pinned updates",
 				"responses": {
 					"200": {
 						"content": {
@@ -4757,7 +5011,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "List pinned updates",
 				"tags": [
 					"updates"
 				]
@@ -4765,6 +5018,7 @@
 		},
 		"/workspaces/updates/{reference}": {
 			"delete": {
+				"description": "Delete a specific update",
 				"operationId": "deleteUpdate",
 				"parameters": [
 					{
@@ -4829,12 +5083,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Delete a specific update",
 				"tags": [
 					"updates"
 				]
 			},
 			"get": {
+				"description": "Fetch a specific update",
 				"operationId": "fetchUpdate",
 				"parameters": [
 					{
@@ -4899,12 +5153,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Fetch a specific update",
 				"tags": [
 					"updates"
 				]
 			},
 			"post": {
+				"description": "Send an update to real users",
 				"operationId": "sendUpdate",
 				"parameters": [
 					{
@@ -4981,12 +5235,12 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Send an update to real users",
 				"tags": [
 					"updates"
 				]
 			},
 			"put": {
+				"description": "Update a specific update",
 				"operationId": "updateContent",
 				"parameters": [
 					{
@@ -5063,7 +5317,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Update a specific update",
 				"tags": [
 					"updates"
 				]
@@ -5071,6 +5324,7 @@
 		},
 		"/workspaces/updates/{reference}/analytics": {
 			"get": {
+				"description": "Fetch analytics for a specific update",
 				"operationId": "fetchUpdateAnalytics",
 				"parameters": [
 					{
@@ -5135,7 +5389,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Fetch analytics for a specific update",
 				"tags": [
 					"updates"
 				]
@@ -5143,6 +5396,7 @@
 		},
 		"/workspaces/updates/{reference}/duplicate": {
 			"post": {
+				"description": "Duplicate a specific update",
 				"operationId": "duplicateUpdate",
 				"parameters": [
 					{
@@ -5207,7 +5461,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Duplicate a specific update",
 				"tags": [
 					"updates"
 				]
@@ -5215,6 +5468,7 @@
 		},
 		"/workspaces/updates/{reference}/pin": {
 			"post": {
+				"description": "Toggle pinned status a specific update",
 				"operationId": "toggleUpdatePin",
 				"parameters": [
 					{
@@ -5279,7 +5533,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Toggle pinned status a specific update",
 				"tags": [
 					"updates"
 				]
@@ -5287,6 +5540,7 @@
 		},
 		"/workspaces/updates/{reference}/preview": {
 			"post": {
+				"description": "Send preview of an update",
 				"operationId": "previewUpdate",
 				"parameters": [
 					{
@@ -5363,7 +5617,6 @@
 						"description": "Internal Server Error"
 					}
 				},
-				"summary": "Send preview of an update",
 				"tags": [
 					"updates"
 				]

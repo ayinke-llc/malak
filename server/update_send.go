@@ -38,7 +38,7 @@ func (p *previewUpdateRequest) Validate() error {
 }
 
 // @Tags updates
-// @Summary Send preview of an update
+// @Description Send preview of an update
 // @id previewUpdate
 // @Accept  json
 // @Produce  json
@@ -190,7 +190,7 @@ func (s *sendUpdateRequest) Validate() error {
 }
 
 // @Tags updates
-// @Summary Send an update to real users
+// @Description Send an update to real users
 // @id sendUpdate
 // @Accept  json
 // @Produce  json
