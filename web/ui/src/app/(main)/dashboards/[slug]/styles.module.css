@@ -1,0 +1,21 @@
+.sortableChart {
+  transition: transform 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.sortableChartDragging {
+  z-index: 50;
+  transition: none;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.1);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+} 

@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import {
   RiBarChart2Line, RiPieChartLine, RiSettings4Line,
-  RiArrowDownSLine, RiLoader4Line
+  RiArrowDownSLine, RiLoader4Line, RiDragMove2Line
 } from "@remixicon/react";
 import { useParams } from "next/navigation";
 import {
@@ -32,7 +32,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -52,6 +52,23 @@ import type {
 } from "@/client/Api";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import styles from "./styles.module.css";
 
 function ChartCard({ chart }: { chart: MalakDashboardChart }) {
   const { data: chartData, isLoading: isLoadingChartData, error } = useQuery({
@@ -75,24 +92,24 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
     }
   };
 
-  const formatChartData = (dataPoints: MalakIntegrationDataPoint[] | undefined): Array<{
-    name: string;
-    value: number;
-  }> => {
-    if (!dataPoints) return [];
+  const formatChartData =
+    (dataPoints: MalakIntegrationDataPoint[] | undefined): Array<{
+      name: string;
+      value: number;
+    }> => {
+      if (!dataPoints) return [];
 
-    // Transform data points into the format expected by recharts
-    return dataPoints.map(point => {
-      const value = point.data_point_type === 'currency'
-        ? (point.point_value || 0) / 100
-        : point.point_value || 0;
+      return dataPoints.map(point => {
+        const value = point.data_point_type === 'currency'
+          ? (point.point_value || 0) / 100
+          : point.point_value || 0;
 
-      return {
-        name: point.point_name || '',
-        value,
-      };
-    });
-  };
+        return {
+          name: point.point_name || '',
+          value,
+        };
+      });
+    };
 
   if (!chart.chart) {
     return null;
@@ -125,7 +142,7 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
   const hasNoData = !formattedData || formattedData.length === 0;
 
   return (
-    <Card className="p-3">
+    <Card className="p-3 transition-colors duration-200 hover:bg-accent/5">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <div className="text-muted-foreground">
@@ -155,49 +172,90 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
           </div>
         ) : chart.chart.chart_type === "bar" ? (
           <ChartContainer className="w-full h-full" config={{}}>
-            <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={formattedData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
-                <XAxis dataKey="name" stroke="#888888" fontSize={11} />
-                <YAxis stroke="#888888" fontSize={11} />
-                <Tooltip formatter={(value: number) => {
-                  if (chartData?.data_points?.[0]?.data_point_type === 'currency') {
-                    return [`$${value.toFixed(2)}`, 'Value'];
-                  }
-                  return [value, 'Value'];
-                }} />
-                <Bar dataKey="value" fill="#8884d8" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <BarChart 
+              width={390} 
+              height={160} 
+              data={formattedData} 
+              margin={{ top: 5, right: 5, left: -15, bottom: 0 }}
+            >
+              <XAxis dataKey="name" stroke="#888888" fontSize={11} />
+              <YAxis stroke="#888888" fontSize={11} />
+              <Tooltip formatter={(value: number) => {
+                if (chartData?.data_points?.[0]?.data_point_type === 'currency') {
+                  return [`$${value.toFixed(2)}`, 'Value'];
+                }
+                return [value, 'Value'];
+              }} />
+              <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+            </BarChart>
           </ChartContainer>
         ) : (
           <ChartContainer className="w-full h-full" config={{}}>
-            <ResponsiveContainer width="100%" height={160}>
-              <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                <Pie
-                  data={formattedData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={60}
-                  dataKey="value"
-                >
-                  {formattedData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={`hsl(${index * 45}, 70%, 50%)`} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value: number) => {
-                  if (chartData?.data_points?.[0]?.data_point_type === 'currency') {
-                    return [`$${value.toFixed(2)}`, 'Value'];
-                  }
-                  return [value, 'Value'];
-                }} />
-              </PieChart>
-            </ResponsiveContainer>
+            <PieChart 
+              width={390} 
+              height={160}
+              margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+            >
+              <Pie
+                data={formattedData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                outerRadius={60}
+                dataKey="value"
+              >
+                {formattedData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={`hsl(${index * 45}, 70%, 50%)`} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value: number) => {
+                if (chartData?.data_points?.[0]?.data_point_type === 'currency') {
+                  return [`$${value.toFixed(2)}`, 'Value'];
+                }
+                return [value, 'Value'];
+              }} />
+            </PieChart>
           </ChartContainer>
         )}
       </div>
     </Card>
+  );
+}
+
+function SortableChartCard({ chart }: { chart: MalakDashboardChart }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: chart.reference || '' });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    position: 'relative' as const,
+    opacity: isDragging ? 0.5 : undefined,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      {...attributes}
+      className={`touch-none ${styles.sortableChart} ${isDragging ? styles.sortableChartDragging : ''}`}
+    >
+      <div 
+        {...listeners} 
+        className="absolute top-2 right-2 z-50 p-1.5 rounded-md hover:bg-muted cursor-grab active:cursor-grabbing group"
+      >
+        <RiDragMove2Line className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+      <ChartCard chart={chart} />
+    </div>
   );
 }
 
@@ -260,6 +318,48 @@ export default function DashboardPage() {
 
     addChartMutation.mutate(selectedChart);
   };
+
+  const [charts, setCharts] = useState<MalakDashboardChart[]>([]);
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement required before drag starts
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  useEffect(() => {
+    if (dashboardData?.charts) {
+      setCharts(dashboardData.charts);
+    }
+  }, [dashboardData?.charts]);
+
+  function handleDragEnd(event: any) {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      setCharts((items) => {
+        const oldIndex = items.findIndex((item) => item.reference === active.id);
+        const newIndex = items.findIndex((item) => item.reference === over.id);
+        const newItems = arrayMove(items, oldIndex, newIndex);
+
+        // Log the new positions
+        const positions = newItems.map((item, index) => ({
+          chart_id: item.reference,
+          index
+        }));
+        console.log('New chart positions:', positions);
+
+        return newItems;
+      });
+
+      // TODO: Call API to update chart positions
+    }
+  }
 
   if (isLoadingDashboard) {
     return (
@@ -400,20 +500,37 @@ export default function DashboardPage() {
         </Sheet>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {!dashboardData?.charts || dashboardData.charts.length === 0 ? (
-          <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
-            <RiBarChart2Line className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No charts yet</h3>
-            <p className="text-sm text-muted-foreground mt-1 mb-4">Get started by adding your first chart to this dashboard.</p>
-            <Button onClick={() => setIsOpen(true)}>Add Your First Chart</Button>
-          </div>
-        ) : (
-          dashboardData.charts.map((chart) => (
-            <ChartCard key={chart.reference} chart={chart} />
-          ))
-        )}
-      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        onDragStart={() => {
+          // Add haptic feedback on mobile
+          if (window.navigator.vibrate) {
+            window.navigator.vibrate(100);
+          }
+        }}
+      >
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {!charts || charts.length === 0 ? (
+            <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+              <RiBarChart2Line className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium">No charts yet</h3>
+              <p className="text-sm text-muted-foreground mt-1 mb-4">Get started by adding your first chart to this dashboard.</p>
+              <Button onClick={() => setIsOpen(true)}>Add Your First Chart</Button>
+            </div>
+          ) : (
+            <SortableContext
+              items={charts.map(chart => chart.reference || '')}
+              strategy={rectSortingStrategy}
+            >
+              {charts.map((chart) => (
+                <SortableChartCard key={chart.reference} chart={chart} />
+              ))}
+            </SortableContext>
+          )}
+        </div>
+      </DndContext>
     </div>
   );
 }
