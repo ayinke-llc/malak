@@ -210,6 +210,21 @@ func (mr *MockIntegrationRepositoryMockRecorder) GetChart(arg0, arg1 any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChart", reflect.TypeOf((*MockIntegrationRepository)(nil).GetChart), arg0, arg1)
 }
 
+// GetDataPoints mocks base method.
+func (m *MockIntegrationRepository) GetDataPoints(arg0 context.Context, arg1 malak.IntegrationChart) ([]malak.IntegrationDataPoint, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDataPoints", arg0, arg1)
+	ret0, _ := ret[0].([]malak.IntegrationDataPoint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDataPoints indicates an expected call of GetDataPoints.
+func (mr *MockIntegrationRepositoryMockRecorder) GetDataPoints(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDataPoints", reflect.TypeOf((*MockIntegrationRepository)(nil).GetDataPoints), arg0, arg1)
+}
+
 // List mocks base method.
 func (m *MockIntegrationRepository) List(arg0 context.Context, arg1 *malak.Workspace) ([]malak.WorkspaceIntegration, error) {
 	m.ctrl.T.Helper()

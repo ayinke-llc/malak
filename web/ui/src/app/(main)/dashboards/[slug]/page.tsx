@@ -43,60 +43,28 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import client from "@/lib/client";
-import { LIST_CHARTS, DASHBOARD_DETAIL } from "@/lib/query-constants";
+import { LIST_CHARTS, DASHBOARD_DETAIL, FETCH_CHART_DATA_POINTS } from "@/lib/query-constants";
 import type {
   ServerAPIStatus, ServerListIntegrationChartsResponse,
-  ServerListDashboardChartsResponse, MalakDashboardChart
+  ServerListDashboardChartsResponse, MalakDashboardChart, MalakIntegrationDataPoint
 } from "@/client/Api";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 
-// Mock data for bar charts
-const revenueData = [
-  { month: "Day 1", revenue: 2400 },
-  { month: "Day 2", revenue: 1398 },
-  { month: "Day 3", revenue: 9800 },
-  { month: "Day 4", revenue: 3908 },
-  { month: "Day 5", revenue: 4800 },
-  { month: "Day 6", revenue: 3800 },
-  { month: "Day 7", revenue: 5200 },
-  { month: "Day 8", revenue: 4100 },
-  { month: "Day 9", revenue: 6300 },
-  { month: "Day 10", revenue: 5400 },
-  { month: "Day 11", revenue: 4700 },
-  { month: "Day 12", revenue: 3900 },
-  { month: "Day 13", revenue: 5600 },
-  { month: "Day 14", revenue: 4800 },
-  { month: "Day 15", revenue: 6100 },
-  { month: "Day 16", revenue: 5300 },
-  { month: "Day 17", revenue: 4500 },
-  { month: "Day 18", revenue: 3700 },
-  { month: "Day 19", revenue: 5900 },
-  { month: "Day 20", revenue: 4200 },
-  { month: "Day 21", revenue: 6400 },
-  { month: "Day 22", revenue: 5500 },
-  { month: "Day 23", revenue: 4600 },
-  { month: "Day 24", revenue: 3800 },
-  { month: "Day 25", revenue: 5700 },
-  { month: "Day 26", revenue: 4900 },
-  { month: "Day 27", revenue: 6200 },
-  { month: "Day 28", revenue: 5100 },
-  { month: "Day 29", revenue: 4300 },
-  { month: "Day 30", revenue: 3600 }
-];
-
-// Mock data for pie charts
-const costData = [
-  { name: "Infrastructure", value: 400, color: "#0088FE" },
-  { name: "Marketing", value: 300, color: "#00C49F" },
-  { name: "Development", value: 500, color: "#FFBB28" },
-  { name: "Operations", value: 200, color: "#FF8042" },
-];
-
 function ChartCard({ chart }: { chart: MalakDashboardChart }) {
-  const getChartIcon = (type: string) => {
+  const { data: chartData, isLoading: isLoadingChartData, error } = useQuery({
+    queryKey: [FETCH_CHART_DATA_POINTS, chart.chart?.reference],
+    queryFn: async () => {
+      if (!chart.chart?.reference) return null;
+      const response = await client.dashboards.chartsDetail(chart.chart.reference);
+      return response.data;
+    },
+    enabled: !!chart.chart?.reference,
+  });
+
+  const getChartIcon = (type: string | undefined) => {
     switch (type) {
       case "bar":
         return <RiBarChart2Line className="h-4 w-4" />;
@@ -107,25 +75,64 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
     }
   };
 
-  const getChartData = (chart: MalakDashboardChart) => {
-    // TODO: Replace with real data from the chart's data source
-    return chart.chart?.chart_type === "bar" ? revenueData : costData;
+  const formatChartData = (dataPoints: MalakIntegrationDataPoint[] | undefined): Array<{
+    name: string;
+    value: number;
+  }> => {
+    if (!dataPoints) return [];
+
+    // Transform data points into the format expected by recharts
+    return dataPoints.map(point => {
+      const value = point.data_point_type === 'currency'
+        ? (point.point_value || 0) / 100
+        : point.point_value || 0;
+
+      return {
+        name: point.point_name || '',
+        value,
+      };
+    });
   };
 
   if (!chart.chart) {
     return null;
   }
 
+  const formattedData = formatChartData(chartData?.data_points);
+
+  if (isLoadingChartData) {
+    return (
+      <Card className="p-3">
+        <div className="flex items-center justify-center h-[160px]">
+          <RiLoader4Line className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="p-3">
+        <div className="flex flex-col items-center justify-center h-[160px] text-center p-4">
+          <RiBarChart2Line className="h-8 w-8 text-muted-foreground mb-2" />
+          <p className="text-sm text-muted-foreground">Failed to load chart data</p>
+          <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
+        </div>
+      </Card>
+    );
+  }
+
+  const hasNoData = !formattedData || formattedData.length === 0;
+
   return (
     <Card className="p-3">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <div className="text-muted-foreground">
-            {getChartIcon(chart.chart.chart_type || "bar")}
+            {getChartIcon(chart.chart.chart_type)}
           </div>
           <div>
-            <h3 className="text-sm font-medium">{chart.chart.user_facing_name}</h3>
-            <p className="text-xs text-muted-foreground">{chart.chart.internal_name}</p>
+            <h3 className="text-sm font-bold">{chart.chart.user_facing_name}</h3>
           </div>
         </div>
         <DropdownMenu>
@@ -135,21 +142,30 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>Edit Chart</DropdownMenuItem>
-            <DropdownMenuItem>Duplicate</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive cursor-pointer">Remove from dashboard</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
       <div className="w-full">
-        {chart.chart.chart_type === "bar" ? (
+        {hasNoData ? (
+          <div className="flex flex-col items-center justify-center h-[160px] text-center p-4">
+            <RiBarChart2Line className="h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-sm text-muted-foreground">No data available</p>
+            <p className="text-xs text-muted-foreground mt-1">Check back later for updates</p>
+          </div>
+        ) : chart.chart.chart_type === "bar" ? (
           <ChartContainer className="w-full h-full" config={{}}>
             <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={getChartData(chart)} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
-                <XAxis dataKey="month" stroke="#888888" fontSize={11} />
+              <BarChart data={formattedData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+                <XAxis dataKey="name" stroke="#888888" fontSize={11} />
                 <YAxis stroke="#888888" fontSize={11} />
-                <Tooltip />
-                <Bar dataKey="revenue" fill="#8884d8" radius={[4, 4, 0, 0]} />
+                <Tooltip formatter={(value: number) => {
+                  if (chartData?.data_points?.[0]?.data_point_type === 'currency') {
+                    return [`$${value.toFixed(2)}`, 'Value'];
+                  }
+                  return [value, 'Value'];
+                }} />
+                <Bar dataKey="value" fill="#8884d8" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
@@ -158,7 +174,7 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
             <ResponsiveContainer width="100%" height={160}>
               <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                 <Pie
-                  data={getChartData(chart)}
+                  data={formattedData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -166,11 +182,16 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
                   outerRadius={60}
                   dataKey="value"
                 >
-                  {costData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  {formattedData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={`hsl(${index * 45}, 70%, 50%)`} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip formatter={(value: number) => {
+                  if (chartData?.data_points?.[0]?.data_point_type === 'currency') {
+                    return [`$${value.toFixed(2)}`, 'Value'];
+                  }
+                  return [value, 'Value'];
+                }} />
               </PieChart>
             </ResponsiveContainer>
           </ChartContainer>
@@ -182,7 +203,9 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
 
 export default function DashboardPage() {
   const params = useParams();
-  const dashboardId = params.slug as string;
+  const dashboardID = params.slug as string;
+
+  const queryClient = useQueryClient();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -190,9 +213,9 @@ export default function DashboardPage() {
   const [selectedChartLabel, setSelectedChartLabel] = useState<string>("");
 
   const { data: dashboardData, isLoading: isLoadingDashboard } = useQuery<ServerListDashboardChartsResponse>({
-    queryKey: [DASHBOARD_DETAIL, dashboardId],
+    queryKey: [DASHBOARD_DETAIL, dashboardID],
     queryFn: async () => {
-      const response = await client.dashboards.dashboardsDetail(dashboardId);
+      const response = await client.dashboards.dashboardsDetail(dashboardID);
       return response.data;
     },
   });
@@ -208,15 +231,17 @@ export default function DashboardPage() {
 
   const addChartMutation = useMutation({
     mutationFn: async (chartReference: string) => {
-      const response = await client.dashboards.chartsUpdate(dashboardId, {
+      const response = await client.dashboards.chartsUpdate(dashboardID, {
         chart_reference: chartReference
       });
       return response.data;
     },
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: [DASHBOARD_DETAIL, dashboardID] });
       setSelectedChart("");
       setSelectedChartLabel("");
       setIsOpen(false);
+
       toast.success(data.message);
     },
     onError: (err: AxiosError<ServerAPIStatus>): void => {
@@ -376,9 +401,18 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {dashboardData.charts.map((chart) => (
-          <ChartCard key={chart.reference} chart={chart} />
-        ))}
+        {!dashboardData?.charts || dashboardData.charts.length === 0 ? (
+          <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+            <RiBarChart2Line className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium">No charts yet</h3>
+            <p className="text-sm text-muted-foreground mt-1 mb-4">Get started by adding your first chart to this dashboard.</p>
+            <Button onClick={() => setIsOpen(true)}>Add Your First Chart</Button>
+          </div>
+        ) : (
+          dashboardData.charts.map((chart) => (
+            <ChartCard key={chart.reference} chart={chart} />
+          ))
+        )}
       </div>
     </div>
   );

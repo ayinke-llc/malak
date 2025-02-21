@@ -394,6 +394,9 @@ func buildRoutes(
 			r.Get("/charts",
 				WrapMalakHTTPHandler(logger, dashHandler.listAllCharts, cfg, "dashboards.list.charts"))
 
+			r.Get("/charts/{reference}",
+				WrapMalakHTTPHandler(logger, dashHandler.fetchChartingData, cfg, "dashboards.charts.datapoints"))
+
 			r.Get("/{reference}",
 				WrapMalakHTTPHandler(logger, dashHandler.fetchDashboard, cfg, "dashboards.fetch"))
 

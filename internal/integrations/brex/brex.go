@@ -305,8 +305,9 @@ func (m *brexClient) Data(ctx context.Context,
 
 	for _, account := range accountsResponse.Items {
 		dataPoints = append(dataPoints, malak.IntegrationDataValues{
-			InternalName: malak.IntegrationChartInternalNameTypeBrexAccount,
-			ProviderID:   account.ID,
+			InternalName:   malak.IntegrationChartInternalNameTypeBrexAccount,
+			ProviderID:     account.ID,
+			UserFacingName: account.Name,
 			Data: malak.IntegrationDataPoint{
 				DataPointType:          malak.IntegrationDataPointTypeCurrency,
 				WorkspaceIntegrationID: opts.IntegrationID,
@@ -327,7 +328,8 @@ func (m *brexClient) Data(ctx context.Context,
 			}
 
 			dataPoints = append(dataPoints, malak.IntegrationDataValues{
-				InternalName: malak.IntegrationChartInternalNameTypeBrexAccountTransaction,
+				InternalName:   malak.IntegrationChartInternalNameTypeBrexAccountTransaction,
+				UserFacingName: "Transactions count for " + account.Name,
 				Data: malak.IntegrationDataPoint{
 					DataPointType:          malak.IntegrationDataPointTypeOthers,
 					WorkspaceIntegrationID: opts.IntegrationID,
