@@ -88,8 +88,9 @@ type listChartDataPointsResponse struct {
 }
 
 type listDashboardChartsResponse struct {
-	Charts    []malak.DashboardChart `json:"charts,omitempty" validate:"required"`
-	Dashboard malak.Dashboard        `json:"dashboard,omitempty" validate:"required"`
+	Charts    []malak.DashboardChart         `json:"charts,omitempty" validate:"required"`
+	Positions []malak.DashboardChartPosition `json:"positions,omitempty" validate:"required"`
+	Dashboard malak.Dashboard                `json:"dashboard,omitempty" validate:"required"`
 	APIStatus
 }
 

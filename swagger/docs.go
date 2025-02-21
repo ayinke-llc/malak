@@ -3163,6 +3163,23 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.DashboardChartPosition": {
+            "type": "object",
+            "properties": {
+                "chart_id": {
+                    "type": "string"
+                },
+                "dashboard_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "order_index": {
+                    "type": "integer"
+                }
+            }
+        },
         "malak.Deck": {
             "type": "object",
             "properties": {
@@ -4411,7 +4428,8 @@ const docTemplate = `{
             "required": [
                 "charts",
                 "dashboard",
-                "message"
+                "message",
+                "positions"
             ],
             "properties": {
                 "charts": {
@@ -4425,6 +4443,12 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                },
+                "positions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.DashboardChartPosition"
+                    }
                 }
             }
         },

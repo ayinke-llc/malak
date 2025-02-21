@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ayinke-llc/malak"
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
@@ -127,4 +128,49 @@ func (d *dashboardRepo) GetCharts(ctx context.Context,
 		Scan(ctx)
 
 	return charts, err
+}
+
+func (d *dashboardRepo) GetDashboardPositions(ctx context.Context,
+	dashboardID uuid.UUID) ([]malak.DashboardChartPosition, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	positions := make([]malak.DashboardChartPosition, 0)
+
+	err := d.inner.NewSelect().
+		Model(&positions).
+		Where("dashboard_id = ?", dashboardID).
+		Scan(ctx)
+
+	return positions, err
+}
+
+func (d *dashboardRepo) UpdateDashboardPositions(ctx context.Context,
+	positions []malak.DashboardChartPosition) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return d.inner.RunInTx(ctx, &sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+
+			dashboardIDs := []uuid.UUID{}
+
+			for _, v := range positions {
+				dashboardIDs = append(dashboardIDs, v.DashboardID)
+			}
+
+			_, err := tx.NewDelete().
+				Model(new(malak.DashboardChartPosition)).
+				Where("dashboard_id IN (?)", bun.In(dashboardIDs)).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+
+			_, err = tx.NewInsert().Model(&positions).
+				Exec(ctx)
+			return err
+		})
 }

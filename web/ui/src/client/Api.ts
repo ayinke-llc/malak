@@ -127,6 +127,13 @@ export interface MalakDashboardChart {
   workspace_integration_id?: string;
 }
 
+export interface MalakDashboardChartPosition {
+  chart_id?: string;
+  dashboard_id?: string;
+  id?: string;
+  order_index?: number;
+}
+
 export interface MalakDeck {
   created_at?: string;
   created_by?: string;
@@ -606,6 +613,7 @@ export interface ServerListDashboardChartsResponse {
   charts: MalakDashboardChart[];
   dashboard: MalakDashboard;
   message: string;
+  positions: MalakDashboardChartPosition[];
 }
 
 export interface ServerListDashboardResponse {

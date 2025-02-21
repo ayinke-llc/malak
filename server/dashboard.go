@@ -13,6 +13,7 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 type dashboardHandler struct {
@@ -348,24 +349,53 @@ func (d *dashboardHandler) fetchDashboard(
 		return newAPIStatus(status, msg), StatusFailed
 	}
 
-	charts, err := d.dashboardRepo.GetCharts(ctx, malak.FetchDashboardChartsOption{
-		WorkspaceID: workspace.ID,
-		DashboardID: dashboard.ID,
+	var g errgroup.Group
+
+	var charts []malak.DashboardChart
+	var positions []malak.DashboardChartPosition
+
+	g.Go(func() error {
+
+		charts, err = d.dashboardRepo.GetCharts(ctx, malak.FetchDashboardChartsOption{
+			WorkspaceID: workspace.ID,
+			DashboardID: dashboard.ID,
+		})
+		if err != nil {
+
+			logger.Error("could not list dashboard charts",
+				zap.Error(err))
+
+			return errors.New("could not list dashboard charts")
+		}
+
+		return nil
 	})
-	if err != nil {
 
-		logger.Error("could not list dashboard charts",
-			zap.Error(err))
+	g.Go(func() error {
 
-		return newAPIStatus(
-			http.StatusInternalServerError,
-			"could not list dashboard charts"), StatusFailed
+		positions, err = d.dashboardRepo.GetDashboardPositions(ctx, dashboard.ID)
+
+		if err != nil {
+
+			logger.Error("could not list dashboard positions",
+				zap.Error(err))
+
+			return errors.New("could not list dashboard positions")
+		}
+
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return newAPIStatus(http.StatusInternalServerError, err.Error()),
+			StatusFailed
 	}
 
 	return listDashboardChartsResponse{
 		APIStatus: newAPIStatus(http.StatusOK, "dashboards fetched"),
 		Dashboard: dashboard,
 		Charts:    charts,
+		Positions: positions,
 	}, StatusSuccess
 }
 

@@ -1,40 +1,14 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import {
-  RiBarChart2Line, RiPieChartLine, RiSettings4Line,
-  RiArrowDownSLine, RiLoader4Line, RiDragMove2Line
-} from "@remixicon/react";
-import { useParams } from "next/navigation";
-import {
-  Bar, BarChart, ResponsiveContainer,
-  XAxis, YAxis, Tooltip, PieChart,
-  Pie, Cell
-} from "recharts";
-import { ChartContainer } from "@/components/ui/chart";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetFooter,
-} from "@/components/ui/sheet";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { useState, useEffect } from "react";
+import type {
+  MalakDashboardChart, MalakIntegrationDataPoint,
+  ServerAPIStatus,
+  ServerListDashboardChartsResponse,
+  ServerListIntegrationChartsResponse
+} from "@/client/Api";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
+import { ChartContainer } from "@/components/ui/chart";
 import {
   Command,
   CommandEmpty,
@@ -43,18 +17,35 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import client from "@/lib/client";
-import { LIST_CHARTS, DASHBOARD_DETAIL, FETCH_CHART_DATA_POINTS } from "@/lib/query-constants";
-import type {
-  ServerAPIStatus, ServerListIntegrationChartsResponse,
-  ServerListDashboardChartsResponse, MalakDashboardChart, MalakIntegrationDataPoint
-} from "@/client/Api";
-import { toast } from "sonner";
-import { AxiosError } from "axios";
 import {
-  DndContext,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import client from "@/lib/client";
+import {
+  DASHBOARD_DETAIL, FETCH_CHART_DATA_POINTS,
+  LIST_CHARTS
+} from "@/lib/query-constants";
+import {
   closestCenter,
+  DndContext,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -62,12 +53,31 @@ import {
 } from '@dnd-kit/core';
 import {
   arrayMove,
+  rectSortingStrategy,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
-  rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import {
+  RiArrowDownSLine,
+  RiBarChart2Line,
+  RiLoader4Line,
+  RiPieChartLine, RiSettings4Line
+} from "@remixicon/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  Bar, BarChart,
+  Cell,
+  Pie,
+  PieChart,
+  Tooltip,
+  XAxis, YAxis
+} from "recharts";
+import { toast } from "sonner";
 import styles from "./styles.module.css";
 
 function ChartCard({ chart }: { chart: MalakDashboardChart }) {
@@ -162,10 +172,10 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
           </div>
         ) : chart.chart.chart_type === "bar" ? (
           <ChartContainer className="w-full h-full" config={{}}>
-            <BarChart 
-              width={390} 
-              height={160} 
-              data={formattedData} 
+            <BarChart
+              width={390}
+              height={160}
+              data={formattedData}
               margin={{ top: 5, right: 5, left: -15, bottom: 0 }}
             >
               <XAxis dataKey="name" stroke="#888888" fontSize={11} />
@@ -181,8 +191,8 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
           </ChartContainer>
         ) : (
           <ChartContainer className="w-full h-full" config={{}}>
-            <PieChart 
-              width={390} 
+            <PieChart
+              width={390}
               height={160}
               margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
             >
@@ -232,9 +242,9 @@ function SortableChartCard({ chart }: { chart: MalakDashboardChart }) {
   };
 
   return (
-    <div 
-      ref={setNodeRef} 
-      style={style} 
+    <div
+      ref={setNodeRef}
+      style={style}
       {...attributes}
       {...listeners}
       className={`touch-none ${styles.sortableChart} ${isDragging ? styles.sortableChartDragging : ''} cursor-grab active:cursor-grabbing`}
@@ -317,7 +327,7 @@ export default function DashboardPage() {
   };
 
   const [charts, setCharts] = useState<MalakDashboardChart[]>([]);
-  
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {

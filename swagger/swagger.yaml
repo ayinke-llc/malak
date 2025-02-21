@@ -199,6 +199,17 @@ components:
         workspace_integration_id:
           type: string
       type: object
+    malak.DashboardChartPosition:
+      properties:
+        chart_id:
+          type: string
+        dashboard_id:
+          type: string
+        id:
+          type: string
+        order_index:
+          type: integer
+      type: object
     malak.Deck:
       properties:
         created_at:
@@ -1053,10 +1064,15 @@ components:
           $ref: '#/components/schemas/malak.Dashboard'
         message:
           type: string
+        positions:
+          items:
+            $ref: '#/components/schemas/malak.DashboardChartPosition'
+          type: array
       required:
       - charts
       - dashboard
       - message
+      - positions
       type: object
     server.listDashboardResponse:
       properties:
