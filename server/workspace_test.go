@@ -474,11 +474,64 @@ func generateWorkspaceGetIntegrationsTestTable() []struct {
 			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
-			name: "listed integrations successfully",
+			name: "empty integrations list",
 			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository) {
 				integrationRepo.EXPECT().List(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return([]malak.WorkspaceIntegration{}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "successfully listed multiple integrations",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository) {
+				integrationRepo.EXPECT().List(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]malak.WorkspaceIntegration{
+						{
+							ID:          workspaceID,
+							Reference:   "INT_123",
+							WorkspaceID: workspaceID,
+							IsEnabled:   true,
+							Integration: &malak.Integration{
+								IntegrationName: "mercury",
+								IsEnabled:       true,
+								IntegrationType: malak.IntegrationTypeApiKey,
+							},
+						},
+						{
+							ID:          workspaceID,
+							Reference:   "INT_456",
+							WorkspaceID: workspaceID,
+							IsEnabled:   false,
+							Integration: &malak.Integration{
+								IntegrationName: "brex",
+								IsEnabled:       true,
+								IntegrationType: malak.IntegrationTypeOauth2,
+							},
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "listed integrations with disabled root integration",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository) {
+				integrationRepo.EXPECT().List(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]malak.WorkspaceIntegration{
+						{
+							ID:          workspaceID,
+							Reference:   "INT_123",
+							WorkspaceID: workspaceID,
+							IsEnabled:   true,
+							Integration: &malak.Integration{
+								IntegrationName: "mercury",
+								IsEnabled:       false, // Root integration disabled
+								IntegrationType: malak.IntegrationTypeApiKey,
+							},
+						},
+					}, nil)
 			},
 			expectedStatusCode: http.StatusOK,
 		},
