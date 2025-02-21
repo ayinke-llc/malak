@@ -43,7 +43,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import client from "@/lib/client";
 import { LIST_CHARTS, DASHBOARD_DETAIL } from "@/lib/query-constants";
 import type {
@@ -182,7 +182,9 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
 
 export default function DashboardPage() {
   const params = useParams();
-  const dashboardId = params.slug as string;
+  const dashboardID = params.slug as string;
+
+  const queryClient = useQueryClient();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -190,9 +192,9 @@ export default function DashboardPage() {
   const [selectedChartLabel, setSelectedChartLabel] = useState<string>("");
 
   const { data: dashboardData, isLoading: isLoadingDashboard } = useQuery<ServerListDashboardChartsResponse>({
-    queryKey: [DASHBOARD_DETAIL, dashboardId],
+    queryKey: [DASHBOARD_DETAIL, dashboardID],
     queryFn: async () => {
-      const response = await client.dashboards.dashboardsDetail(dashboardId);
+      const response = await client.dashboards.dashboardsDetail(dashboardID);
       return response.data;
     },
   });
@@ -208,15 +210,17 @@ export default function DashboardPage() {
 
   const addChartMutation = useMutation({
     mutationFn: async (chartReference: string) => {
-      const response = await client.dashboards.chartsUpdate(dashboardId, {
+      const response = await client.dashboards.chartsUpdate(dashboardID, {
         chart_reference: chartReference
       });
       return response.data;
     },
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: [DASHBOARD_DETAIL, dashboardID] });
       setSelectedChart("");
       setSelectedChartLabel("");
       setIsOpen(false);
+
       toast.success(data.message);
     },
     onError: (err: AxiosError<ServerAPIStatus>): void => {
