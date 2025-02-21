@@ -338,8 +338,9 @@ func TestIntegration_AddDataPoint(t *testing.T) {
 
 	dataPoints := []malak.IntegrationDataValues{
 		{
-			InternalName: "revenue_chart",
-			ProviderID:   "stripe_revenue",
+			UserFacingName: "Revenue Chart",
+			InternalName:   "revenue_chart",
+			ProviderID:     "stripe_revenue",
 			Data: malak.IntegrationDataPoint{
 				PointName:     malak.GetTodayFormatted(),
 				PointValue:    10050, // 100.50 * 100 to store as integer cents
@@ -354,8 +355,9 @@ func TestIntegration_AddDataPoint(t *testing.T) {
 
 	invalidDataPoints := []malak.IntegrationDataValues{
 		{
-			InternalName: "non_existent_chart",
-			ProviderID:   "stripe_revenue",
+			UserFacingName: "Non Existent Chart",
+			InternalName:   "non_existent_chart",
+			ProviderID:     "stripe_revenue",
 			Data: malak.IntegrationDataPoint{
 				PointName:     malak.GetTodayFormatted(),
 				PointValue:    20000, // 200.00 * 100 to store as integer cents
@@ -596,8 +598,9 @@ func TestIntegration_AddDataPointErrors(t *testing.T) {
 	// Try to add data point for non-existent chart
 	dataPoints := []malak.IntegrationDataValues{
 		{
-			InternalName: malak.IntegrationChartInternalNameTypeMercuryAccount,
-			ProviderID:   "account_123",
+			UserFacingName: "Balance",
+			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
+			ProviderID:     "account_123",
 			Data: malak.IntegrationDataPoint{
 				PointName:     "Balance",
 				PointValue:    1000,
