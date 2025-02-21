@@ -63,7 +63,7 @@ func (c *createContactRequest) Validate() error {
 	return nil
 }
 
-// @Summary Creates a new contact
+// @Description Creates a new contact
 // @Tags contacts
 // @Accept  json
 // @Produce  json
@@ -148,7 +148,7 @@ func (c *createContactListRequest) Validate() error {
 	return nil
 }
 
-// @Summary Create a new contact list
+// @Description Create a new contact list
 // @Tags contacts
 // @id createContactList
 // @Accept  json
@@ -202,7 +202,7 @@ func (c *contactHandler) createContactList(
 	}, StatusSuccess
 }
 
-// @Summary List all created contact lists
+// @Description List all created contact lists
 // @Tags contacts
 // @id fetchContactLists
 // @Accept  json
@@ -261,7 +261,7 @@ func (c *contactHandler) fetchContactLists(
 	}, StatusSuccess
 }
 
-// @Summary Edit a contact list
+// @Description Edit a contact list
 // @Tags contacts
 // @id editContactList
 // @Accept  json
@@ -329,7 +329,7 @@ func (c *contactHandler) editContactList(
 	}, StatusSuccess
 }
 
-// @Summary delete a contact list
+// @Description delete a contact list
 // @Tags contacts
 // @id deleteContactList
 // @Accept  json
@@ -394,7 +394,7 @@ func (c *addContactToListRequest) Validate() error {
 	return nil
 }
 
-// @Summary add a new contact to a list
+// @Description add a new contact to a list
 // @Tags contacts
 // @id addEmailToContactList
 // @Accept  json
@@ -479,7 +479,7 @@ func (c *contactHandler) addUserToContactList(
 	return newAPIStatus(http.StatusCreated, "list was successfully updated with contact"), StatusSuccess
 }
 
-// @Summary list your contacts
+// @Description list your contacts
 // @Tags contacts
 // @Accept  json
 // @Produce  json
@@ -532,7 +532,7 @@ func (c *contactHandler) list(
 	}, StatusSuccess
 }
 
-// @Summary fetch a contact by reference
+// @Description fetch a contact by reference
 // @Tags contacts
 // @Accept  json
 // @Produce  json
@@ -601,7 +601,7 @@ func (c *contactHandler) fetchContact(
 	}, StatusSuccess
 }
 
-// @Summary delete a contact
+// @Description delete a contact
 // @Tags contacts
 // @id deleteContact
 // @Accept  json
@@ -731,7 +731,7 @@ func (c *editContactRequest) Validate() error {
 	return nil
 }
 
-// @Summary edit a contact
+// @Description edit a contact
 // @Tags contacts
 // @Accept  json
 // @Produce  json

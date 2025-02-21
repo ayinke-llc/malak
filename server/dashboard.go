@@ -10,6 +10,7 @@ import (
 	"github.com/ayinke-llc/malak/config"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -55,7 +56,7 @@ func (c *createDashboardRequest) Validate() error {
 	return nil
 }
 
-// @Summary create a new dashboard
+// @Description create a new dashboard
 // @Tags dashboards
 // @Accept  json
 // @Produce  json
@@ -107,7 +108,7 @@ func (d *dashboardHandler) create(
 	}, StatusSuccess
 }
 
-// @Summary List dashboards
+// @Description List dashboards
 // @Tags dashboards
 // @Accept  json
 // @Produce  json
@@ -159,7 +160,7 @@ func (d *dashboardHandler) list(
 	}, StatusSuccess
 }
 
-// @Summary List charts
+// @Description List charts
 // @Tags dashboards
 // @Accept  json
 // @Produce  json
@@ -211,7 +212,7 @@ func (c *addChartToDashboardRequest) Validate() error {
 	return nil
 }
 
-// @Summary add a chart to a dashboard
+// @Description add a chart to a dashboard
 // @Tags dashboards
 // @Accept  json
 // @Produce  json
@@ -304,7 +305,7 @@ func (d *dashboardHandler) addChart(
 		StatusSuccess
 }
 
-// @Summary fetch dashboard
+// @Description fetch dashboard
 // @Tags dashboards
 // @Accept  json
 // @Produce  json
@@ -399,7 +400,7 @@ func (d *dashboardHandler) fetchDashboard(
 	}, StatusSuccess
 }
 
-// @Summary fetch charting data
+// @Description fetch charting data
 // @Tags dashboards
 // @Accept  json
 // @Produce  json
@@ -459,4 +460,87 @@ func (d *dashboardHandler) fetchChartingData(
 		APIStatus:  newAPIStatus(http.StatusOK, "datapoints fetched"),
 		DataPoints: dataPoints,
 	}, StatusSuccess
+}
+
+type updateDashboardPositionsRequest struct {
+	Positions []struct {
+		ChartID uuid.UUID `json:"chart_id,omitempty" validate:"required"`
+		Index   int64     `json:"index,omitempty" validate:"required"`
+	} `json:"positions,omitempty" validate:"required"`
+	GenericRequest
+}
+
+// @Description update dashboard chart positioning
+// @Tags dashboards
+// @Accept  json
+// @Produce  json
+// @Param message body updateDashboardPositionsRequest true "dashboard chart positions" @Param reference path string required "dashboard unique reference.. e.g dashboard_22" @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /dashboards/{reference}/positions [POST]
+func (d *dashboardHandler) updateDashboardPositions(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("updating dashboard chart positions")
+
+	workspace := getWorkspaceFromContext(r.Context())
+
+	ref := chi.URLParam(r, "reference")
+
+	if hermes.IsStringEmpty(ref) {
+		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
+	}
+
+	req := new(updateDashboardPositionsRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	dashboard, err := d.dashboardRepo.Get(ctx, malak.FetchDashboardOption{
+		Reference:   malak.Reference(ref),
+		WorkspaceID: workspace.ID,
+	})
+	if err != nil {
+		logger.Error("could not fetch dashboard", zap.Error(err))
+		status := http.StatusInternalServerError
+		msg := "an error occurred while fetching dashboard"
+
+		if errors.Is(err, malak.ErrDashboardNotFound) {
+			status = http.StatusNotFound
+			msg = err.Error()
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	// No validation here but leaving it to the db layer since we have relationship
+	// mapping guarantees
+	positions := make([]malak.DashboardChartPosition, 0, len(req.Positions))
+
+	for _, v := range req.Positions {
+		positions = append(positions, malak.DashboardChartPosition{
+			OrderIndex:  v.Index,
+			ChartID:     v.ChartID,
+			DashboardID: dashboard.ID,
+		})
+	}
+
+	if err := d.dashboardRepo.UpdateDashboardPositions(ctx, dashboard.ID, positions); err != nil {
+
+		logger.Error("could not update dashboard positions",
+			zap.Error(err))
+
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"could not update dashboard positions"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "datapoints fetched"), StatusSuccess
 }

@@ -147,6 +147,7 @@ func (d *dashboardRepo) GetDashboardPositions(ctx context.Context,
 }
 
 func (d *dashboardRepo) UpdateDashboardPositions(ctx context.Context,
+	dashboardID uuid.UUID,
 	positions []malak.DashboardChartPosition) error {
 
 	ctx, cancelFn := withContext(ctx)
@@ -155,15 +156,9 @@ func (d *dashboardRepo) UpdateDashboardPositions(ctx context.Context,
 	return d.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
 
-			dashboardIDs := []uuid.UUID{}
-
-			for _, v := range positions {
-				dashboardIDs = append(dashboardIDs, v.DashboardID)
-			}
-
 			_, err := tx.NewDelete().
 				Model(new(malak.DashboardChartPosition)).
-				Where("dashboard_id IN (?)", bun.In(dashboardIDs)).
+				Where("dashboard_id = ?", dashboardID).
 				Exec(ctx)
 			if err != nil {
 				return err

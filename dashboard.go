@@ -78,6 +78,6 @@ type DashboardRepository interface {
 	List(context.Context, ListDashboardOptions) ([]Dashboard, int64, error)
 	GetCharts(context.Context, FetchDashboardChartsOption) ([]DashboardChart, error)
 
-	UpdateDashboardPositions(context.Context, []DashboardChartPosition) error
+	UpdateDashboardPositions(context.Context, uuid.UUID, []DashboardChartPosition) error
 	GetDashboardPositions(context.Context, uuid.UUID) ([]DashboardChartPosition, error)
 }

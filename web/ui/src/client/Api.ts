@@ -666,6 +666,13 @@ export interface ServerTestAPIIntegrationRequest {
   api_key: string;
 }
 
+export interface ServerUpdateDashboardPositionsRequest {
+  positions: {
+    chart_id: string;
+    index: number;
+  }[];
+}
+
 export interface ServerUpdateDeckPreferencesRequest {
   enable_downloading?: boolean;
   password_protection?: {
@@ -837,11 +844,10 @@ export class HttpClient<SecurityDataType = unknown> {
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
   auth = {
     /**
-     * No description
+     * @description Sign in with a social login provider
      *
      * @tags auth
      * @name ConnectCreate
-     * @summary Sign in with a social login provider
      * @request POST:/auth/connect/{provider}
      */
     connectCreate: (provider: string, data: ServerAuthenticateUserRequest, params: RequestParams = {}) =>
@@ -856,11 +862,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   contacts = {
     /**
-     * No description
+     * @description list your contacts
      *
      * @tags contacts
      * @name ContactsList
-     * @summary list your contacts
      * @request GET:/contacts
      */
     contactsList: (
@@ -881,11 +886,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Creates a new contact
      *
      * @tags contacts
      * @name ContactsCreate
-     * @summary Creates a new contact
      * @request POST:/contacts
      */
     contactsCreate: (data: ServerCreateContactRequest, params: RequestParams = {}) =>
@@ -899,11 +903,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description delete a contact
      *
      * @tags contacts
      * @name DeleteContact
-     * @summary delete a contact
      * @request DELETE:/contacts/{reference}
      */
     deleteContact: (reference: string, params: RequestParams = {}) =>
@@ -915,11 +918,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description fetch a contact by reference
      *
      * @tags contacts
      * @name ContactsDetail
-     * @summary fetch a contact by reference
      * @request GET:/contacts/{reference}
      */
     contactsDetail: (reference: string, params: RequestParams = {}) =>
@@ -931,11 +933,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description edit a contact
      *
      * @tags contacts
      * @name ContactsUpdate
-     * @summary edit a contact
      * @request PUT:/contacts/{reference}
      */
     contactsUpdate: (reference: string, data: ServerEditContactRequest, params: RequestParams = {}) =>
@@ -949,11 +950,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description List all created contact lists
      *
      * @tags contacts
      * @name FetchContactLists
-     * @summary List all created contact lists
      * @request GET:/contacts/lists
      */
     fetchContactLists: (
@@ -972,11 +972,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Create a new contact list
      *
      * @tags contacts
      * @name CreateContactList
-     * @summary Create a new contact list
      * @request POST:/contacts/lists
      */
     createContactList: (data: ServerCreateContactListRequest, params: RequestParams = {}) =>
@@ -990,11 +989,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description delete a contact list
      *
      * @tags contacts
      * @name DeleteContactList
-     * @summary delete a contact list
      * @request DELETE:/contacts/lists/{reference}
      */
     deleteContactList: (reference: string, params: RequestParams = {}) =>
@@ -1006,11 +1004,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description add a new contact to a list
      *
      * @tags contacts
      * @name AddEmailToContactList
-     * @summary add a new contact to a list
      * @request POST:/contacts/lists/{reference}
      */
     addEmailToContactList: (reference: string, data: ServerAddContactToListRequest, params: RequestParams = {}) =>
@@ -1024,11 +1021,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Edit a contact list
      *
      * @tags contacts
      * @name EditContactList
-     * @summary Edit a contact list
      * @request PUT:/contacts/lists/{reference}
      */
     editContactList: (reference: string, data: ServerCreateContactListRequest, params: RequestParams = {}) =>
@@ -1043,11 +1039,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   dashboards = {
     /**
-     * No description
+     * @description List dashboards
      *
      * @tags dashboards
      * @name DashboardsList
-     * @summary List dashboards
      * @request GET:/dashboards
      */
     dashboardsList: (
@@ -1068,11 +1063,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description create a new dashboard
      *
      * @tags dashboards
      * @name DashboardsCreate
-     * @summary create a new dashboard
      * @request POST:/dashboards
      */
     dashboardsCreate: (data: ServerCreateDashboardRequest, params: RequestParams = {}) =>
@@ -1086,11 +1080,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description fetch dashboard
      *
      * @tags dashboards
      * @name DashboardsDetail
-     * @summary fetch dashboard
      * @request GET:/dashboards/{reference}
      */
     dashboardsDetail: (reference: string, params: RequestParams = {}) =>
@@ -1102,11 +1095,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description add a chart to a dashboard
      *
      * @tags dashboards
      * @name ChartsUpdate
-     * @summary add a chart to a dashboard
      * @request PUT:/dashboards/{reference}/charts
      */
     chartsUpdate: (reference: string, data: ServerAddChartToDashboardRequest, params: RequestParams = {}) =>
@@ -1120,11 +1112,27 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description update dashboard chart positioning
+     *
+     * @tags dashboards
+     * @name PositionsCreate
+     * @request POST:/dashboards/{reference}/positions
+     */
+    positionsCreate: (reference: string, data: ServerUpdateDashboardPositionsRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/dashboards/${reference}/positions`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description List charts
      *
      * @tags dashboards
      * @name ChartsList
-     * @summary List charts
      * @request GET:/dashboards/charts
      */
     chartsList: (params: RequestParams = {}) =>
@@ -1136,11 +1144,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description fetch charting data
      *
      * @tags dashboards
      * @name ChartsDetail
-     * @summary fetch charting data
      * @request GET:/dashboards/charts/{reference}
      */
     chartsDetail: (reference: string, params: RequestParams = {}) =>
@@ -1153,11 +1160,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   decks = {
     /**
-     * No description
+     * @description list all decks. No pagination
      *
      * @tags decks
      * @name DecksList
-     * @summary list all decks. No pagination
      * @request GET:/decks
      */
     decksList: (params: RequestParams = {}) =>
@@ -1169,11 +1175,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Creates a new deck
      *
      * @tags decks
      * @name DecksCreate
-     * @summary Creates a new deck
      * @request POST:/decks
      */
     decksCreate: (data: ServerCreateDeckRequest, params: RequestParams = {}) =>
@@ -1187,11 +1192,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description delete a deck
      *
      * @tags decks
      * @name DecksDelete
-     * @summary delete a deck
      * @request DELETE:/decks/{reference}
      */
     decksDelete: (reference: string, params: RequestParams = {}) =>
@@ -1203,11 +1207,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description fetch a deck
      *
      * @tags decks
      * @name DecksDetail
-     * @summary fetch a deck
      * @request GET:/decks/{reference}
      */
     decksDetail: (reference: string, params: RequestParams = {}) =>
@@ -1219,11 +1222,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description toggle archive status of a deck
      *
      * @tags decks
      * @name ToggleArchive
-     * @summary toggle archive status of a deck
      * @request POST:/decks/{reference}/archive
      */
     toggleArchive: (reference: string, params: RequestParams = {}) =>
@@ -1235,11 +1237,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description toggle pinned status of a deck
      *
      * @tags decks
      * @name TogglePin
-     * @summary toggle pinned status of a deck
      * @request POST:/decks/{reference}/pin
      */
     togglePin: (reference: string, params: RequestParams = {}) =>
@@ -1251,11 +1252,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description update a deck preferences
      *
      * @tags decks
      * @name PreferencesUpdate
-     * @summary update a deck preferences
      * @request PUT:/decks/{reference}/preferences
      */
     preferencesUpdate: (reference: string, data: ServerUpdateDeckPreferencesRequest, params: RequestParams = {}) =>
@@ -1270,11 +1270,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   public = {
     /**
-     * No description
+     * @description public api to fetch a deck
      *
      * @tags decks-viewer
      * @name DecksDetail
-     * @summary public api to fetch a deck
      * @request GET:/public/decks/{reference}
      */
     decksDetail: (reference: string, params: RequestParams = {}) =>
@@ -1287,11 +1286,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   updates = {
     /**
-     * No description
+     * @description Fetch a specific update
      *
      * @tags updates
      * @name ReactPost
-     * @summary Fetch a specific update
      * @request GET:/updates/react
      */
     reactPost: (
@@ -1313,11 +1311,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   uploads = {
     /**
-     * No description
+     * @description Upload a deck
      *
      * @tags decks
      * @name UploadDeck
-     * @summary Upload a deck
      * @request POST:/uploads/decks
      */
     uploadDeck: (
@@ -1340,11 +1337,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Upload an image
      *
      * @tags images
      * @name UploadImage
-     * @summary Upload an image
      * @request POST:/uploads/images
      */
     uploadImage: (
@@ -1368,11 +1364,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   user = {
     /**
-     * No description
+     * @description Fetch current user. This api should also double as a token validation api
      *
      * @tags user
      * @name UserList
-     * @summary Fetch current user. This api should also double as a token validation api
      * @request GET:/user
      */
     userList: (params: RequestParams = {}) =>
@@ -1385,11 +1380,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   workspaces = {
     /**
-     * No description
+     * @description update workspace details
      *
      * @tags workspace
      * @name WorkspacesPartialUpdate
-     * @summary update workspace details
      * @request PATCH:/workspaces
      */
     workspacesPartialUpdate: (data: ServerUpdateWorkspaceRequest, params: RequestParams = {}) =>
@@ -1403,11 +1397,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Create a new workspace
      *
      * @tags workspace
      * @name WorkspacesCreate
-     * @summary Create a new workspace
      * @request POST:/workspaces
      */
     workspacesCreate: (data: ServerCreateWorkspaceRequest, params: RequestParams = {}) =>
@@ -1421,11 +1414,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description get billing portal
      *
      * @tags billing
      * @name BillingCreate
-     * @summary get billing portal
      * @request POST:/workspaces/billing
      */
     billingCreate: (params: RequestParams = {}) =>
@@ -1437,11 +1429,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description fetch workspace preferences
      *
      * @tags integrations
      * @name IntegrationsList
-     * @summary fetch workspace preferences
      * @request GET:/workspaces/integrations
      */
     integrationsList: (params: RequestParams = {}) =>
@@ -1453,11 +1444,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description disable integration
      *
      * @tags integrations
      * @name IntegrationsDelete
-     * @summary disable integration
      * @request DELETE:/workspaces/integrations/{reference}
      */
     integrationsDelete: (reference: string, params: RequestParams = {}) =>
@@ -1469,11 +1459,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description enable integration
      *
      * @tags integrations
      * @name IntegrationsCreate
-     * @summary enable integration
      * @request POST:/workspaces/integrations/{reference}
      */
     integrationsCreate: (reference: string, data: ServerTestAPIIntegrationRequest, params: RequestParams = {}) =>
@@ -1487,11 +1476,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description update integration api key
      *
      * @tags integrations
      * @name IntegrationsUpdate
-     * @summary update integration api key
      * @request PUT:/workspaces/integrations/{reference}
      */
     integrationsUpdate: (reference: string, data: ServerTestAPIIntegrationRequest, params: RequestParams = {}) =>
@@ -1505,11 +1493,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description test an api key is valid and can reach the integration
      *
      * @tags integrations
      * @name IntegrationsPingCreate
-     * @summary test an api key is valid and can reach the integration
      * @request POST:/workspaces/integrations/{reference}/ping
      */
     integrationsPingCreate: (reference: string, data: ServerTestAPIIntegrationRequest, params: RequestParams = {}) =>
@@ -1523,11 +1510,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description fetch workspace preferences
      *
      * @tags workspace
      * @name PreferencesList
-     * @summary fetch workspace preferences
      * @request GET:/workspaces/preferences
      */
     preferencesList: (params: RequestParams = {}) =>
@@ -1539,11 +1525,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description update workspace preferences
      *
      * @tags workspace
      * @name PreferencesUpdate
-     * @summary update workspace preferences
      * @request PUT:/workspaces/preferences
      */
     preferencesUpdate: (data: ServerUpdatePreferencesRequest, params: RequestParams = {}) =>
@@ -1557,11 +1542,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Switch current workspace
      *
      * @tags workspace
      * @name Switchworkspace
-     * @summary Switch current workspace
      * @request POST:/workspaces/switch/{reference}
      */
     switchworkspace: (reference: string, params: RequestParams = {}) =>
@@ -1573,11 +1557,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description List updates
      *
      * @tags updates
      * @name UpdatesList
-     * @summary List updates
      * @request GET:/workspaces/updates
      */
     updatesList: (
@@ -1600,11 +1583,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Create a new update
      *
      * @tags updates
      * @name UpdatesCreate
-     * @summary Create a new update
      * @request POST:/workspaces/updates
      */
     updatesCreate: (data: ServerCreateUpdateContent, params: RequestParams = {}) =>
@@ -1618,11 +1600,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Delete a specific update
      *
      * @tags updates
      * @name DeleteUpdate
-     * @summary Delete a specific update
      * @request DELETE:/workspaces/updates/{reference}
      */
     deleteUpdate: (reference: string, params: RequestParams = {}) =>
@@ -1634,11 +1615,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Fetch a specific update
      *
      * @tags updates
      * @name FetchUpdate
-     * @summary Fetch a specific update
      * @request GET:/workspaces/updates/{reference}
      */
     fetchUpdate: (reference: string, params: RequestParams = {}) =>
@@ -1650,11 +1630,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Send an update to real users
      *
      * @tags updates
      * @name SendUpdate
-     * @summary Send an update to real users
      * @request POST:/workspaces/updates/{reference}
      */
     sendUpdate: (reference: string, data: ServerSendUpdateRequest, params: RequestParams = {}) =>
@@ -1668,11 +1647,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Update a specific update
      *
      * @tags updates
      * @name UpdateContent
-     * @summary Update a specific update
      * @request PUT:/workspaces/updates/{reference}
      */
     updateContent: (reference: string, data: ServerContentUpdateRequest, params: RequestParams = {}) =>
@@ -1686,11 +1664,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Fetch analytics for a specific update
      *
      * @tags updates
      * @name FetchUpdateAnalytics
-     * @summary Fetch analytics for a specific update
      * @request GET:/workspaces/updates/{reference}/analytics
      */
     fetchUpdateAnalytics: (reference: string, params: RequestParams = {}) =>
@@ -1702,11 +1679,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Duplicate a specific update
      *
      * @tags updates
      * @name DuplicateUpdate
-     * @summary Duplicate a specific update
      * @request POST:/workspaces/updates/{reference}/duplicate
      */
     duplicateUpdate: (reference: string, params: RequestParams = {}) =>
@@ -1718,11 +1694,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Toggle pinned status a specific update
      *
      * @tags updates
      * @name ToggleUpdatePin
-     * @summary Toggle pinned status a specific update
      * @request POST:/workspaces/updates/{reference}/pin
      */
     toggleUpdatePin: (reference: string, params: RequestParams = {}) =>
@@ -1734,11 +1709,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description Send preview of an update
      *
      * @tags updates
      * @name PreviewUpdate
-     * @summary Send preview of an update
      * @request POST:/workspaces/updates/{reference}/preview
      */
     previewUpdate: (reference: string, data: ServerPreviewUpdateRequest, params: RequestParams = {}) =>
@@ -1752,11 +1726,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * No description
+     * @description List pinned updates
      *
      * @tags updates
      * @name UpdatesPinsList
-     * @summary List pinned updates
      * @request GET:/workspaces/updates/pins
      */
     updatesPinsList: (params: RequestParams = {}) =>

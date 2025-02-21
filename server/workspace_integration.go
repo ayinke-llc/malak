@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// @Summary fetch workspace preferences
+// @Description fetch workspace preferences
 // @Tags integrations
 // @Accept  json
 // @Produce  json
@@ -66,7 +66,7 @@ func (t *testAPIIntegrationRequest) Validate() error {
 	return nil
 }
 
-// @Summary test an api key is valid and can reach the integration
+// @Description test an api key is valid and can reach the integration
 // @Tags integrations
 // @Accept  json
 // @Produce  json
@@ -154,7 +154,7 @@ func (wo *workspaceHandler) pingIntegration(
 		StatusSuccess
 }
 
-// @Summary enable integration
+// @Description enable integration
 // @Tags integrations
 // @Accept  json
 // @Produce  json
@@ -274,7 +274,7 @@ func (wo *workspaceHandler) enableIntegration(
 // TODO: maybe have just one endpoint for updateAPIKeyForIntegration and enableIntegration?
 // They are pretty much the same except for validation criterias.
 //
-// @Summary update integration api key
+// @Description update integration api key
 // @Tags integrations
 // @Accept  json
 // @Produce  json
@@ -390,7 +390,7 @@ func (wo *workspaceHandler) updateAPIKeyForIntegration(
 		StatusSuccess
 }
 
-// @Summary disable integration
+// @Description disable integration
 // @Tags integrations
 // @Accept  json
 // @Produce  json

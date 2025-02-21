@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// @Summary Duplicate a specific update
+// @Description Duplicate a specific update
 // @Tags updates
 // @id duplicateUpdate
 // @Accept  json
@@ -80,7 +80,7 @@ func (u *updatesHandler) duplicate(
 }
 
 // @Tags updates
-// @Summary Delete a specific update
+// @Description Delete a specific update
 // @id deleteUpdate
 // @Accept  json
 // @Produce  json
@@ -134,7 +134,7 @@ func (u *updatesHandler) delete(
 }
 
 // @Tags updates
-// @Summary Toggle pinned status a specific update
+// @Description Toggle pinned status a specific update
 // @id toggleUpdatePin
 // @Accept  json
 // @Produce  json
@@ -195,7 +195,7 @@ func (u *updatesHandler) togglePinned(
 }
 
 // @Tags updates
-// @Summary Fetch a specific update
+// @Description Fetch a specific update
 // @id fetchUpdate
 // @Accept  json
 // @Produce  json
@@ -243,7 +243,7 @@ func (u *updatesHandler) fetchUpdate(
 }
 
 // @Tags updates
-// @Summary Fetch a specific update
+// @Description Fetch a specific update
 // @Id reactPost
 // @Accept  json
 // @Produce  json

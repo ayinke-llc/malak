@@ -50,7 +50,7 @@ func (c *createUpdateContent) Validate() error {
 	return nil
 }
 
-// @Summary Create a new update
+// @Description Create a new update
 // @Tags updates
 // @Accept  json
 // @Produce  json
@@ -142,7 +142,7 @@ func (u *updatesHandler) create(
 	}, StatusSuccess
 }
 
-// @Summary List updates
+// @Description List updates
 // @Tags updates
 // @Accept  json
 // @Produce  json
@@ -269,7 +269,7 @@ type BlockContentItem struct {
 	Attrs map[string]interface{} `json:"attrs,omitempty"`
 }
 
-// @Summary Update a specific update
+// @Description Update a specific update
 // @Tags updates
 // @id updateContent
 // @Accept  json
@@ -335,7 +335,7 @@ func (u *updatesHandler) update(
 		"updates stored"), StatusSuccess
 }
 
-// @Summary List pinned updates
+// @Description List pinned updates
 // @Tags updates
 // @Accept  json
 // @Produce  json

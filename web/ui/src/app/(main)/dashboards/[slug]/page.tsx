@@ -4,7 +4,7 @@ import type {
   MalakDashboardChart, MalakIntegrationDataPoint,
   ServerAPIStatus,
   ServerListDashboardChartsResponse,
-  ServerListIntegrationChartsResponse
+  ServerListIntegrationChartsResponse,
 } from "@/client/Api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -314,6 +314,24 @@ export default function DashboardPage() {
     }
   });
 
+  const updatePositionsMutation = useMutation({
+    mutationFn: async (positions: { chart_id: string; index: number }[]) => {
+      const response = await client.dashboards.positionsCreate(dashboardID, { positions });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [DASHBOARD_DETAIL, dashboardID] });
+      toast.success("chart positions updated")
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err?.response?.data?.message || "Failed to update chart positions");
+      // Revert to the previous state on error
+      if (dashboardData?.charts) {
+        setCharts(dashboardData.charts);
+      }
+    }
+  });
+
   const barCharts = chartsData?.charts?.filter(chart => chart.chart_type === "bar") ?? [];
   const pieCharts = chartsData?.charts?.filter(chart => chart.chart_type === "pie") ?? [];
 
@@ -331,7 +349,7 @@ export default function DashboardPage() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // 8px movement required before drag starts
+        distance: 8, // 8px movement is required before drag starts
       },
     }),
     useSensor(KeyboardSensor, {
@@ -354,17 +372,15 @@ export default function DashboardPage() {
         const newIndex = items.findIndex((item) => item.reference === over.id);
         const newItems = arrayMove(items, oldIndex, newIndex);
 
-        // Log the new positions
         const positions = newItems.map((item, index) => ({
-          chart_id: item.reference,
+          chart_id: item.id || '',
           index
         }));
-        console.log('New chart positions:', positions);
+
+        updatePositionsMutation.mutate(positions);
 
         return newItems;
       });
-
-      // TODO: Call API to update chart positions
     }
   }
 

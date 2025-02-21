@@ -20,6 +20,7 @@ const docTemplate = `{
     "paths": {
         "/auth/connect/{provider}": {
             "post": {
+                "description": "Sign in with a social login provider",
                 "consumes": [
                     "application/json"
                 ],
@@ -29,7 +30,6 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Sign in with a social login provider",
                 "parameters": [
                     {
                         "description": "auth exchange data",
@@ -84,6 +84,7 @@ const docTemplate = `{
         },
         "/contacts": {
             "get": {
+                "description": "list your contacts",
                 "consumes": [
                     "application/json"
                 ],
@@ -93,7 +94,6 @@ const docTemplate = `{
                 "tags": [
                     "contacts"
                 ],
-                "summary": "list your contacts",
                 "parameters": [
                     {
                         "type": "integer",
@@ -142,6 +142,7 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "description": "Creates a new contact",
                 "consumes": [
                     "application/json"
                 ],
@@ -151,7 +152,6 @@ const docTemplate = `{
                 "tags": [
                     "contacts"
                 ],
-                "summary": "Creates a new contact",
                 "parameters": [
                     {
                         "description": "contact request body",
@@ -199,6 +199,7 @@ const docTemplate = `{
         },
         "/contacts/lists": {
             "get": {
+                "description": "List all created contact lists",
                 "consumes": [
                     "application/json"
                 ],
@@ -208,7 +209,6 @@ const docTemplate = `{
                 "tags": [
                     "contacts"
                 ],
-                "summary": "List all created contact lists",
                 "operationId": "fetchContactLists",
                 "parameters": [
                     {
@@ -252,6 +252,7 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "description": "Create a new contact list",
                 "consumes": [
                     "application/json"
                 ],
@@ -261,7 +262,6 @@ const docTemplate = `{
                 "tags": [
                     "contacts"
                 ],
-                "summary": "Create a new contact list",
                 "operationId": "createContactList",
                 "parameters": [
                     {
@@ -310,6 +310,7 @@ const docTemplate = `{
         },
         "/contacts/lists/{reference}": {
             "put": {
+                "description": "Edit a contact list",
                 "consumes": [
                     "application/json"
                 ],
@@ -319,7 +320,6 @@ const docTemplate = `{
                 "tags": [
                     "contacts"
                 ],
-                "summary": "Edit a contact list",
                 "operationId": "editContactList",
                 "parameters": [
                     {
@@ -373,6 +373,7 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "description": "add a new contact to a list",
                 "consumes": [
                     "application/json"
                 ],
@@ -382,7 +383,6 @@ const docTemplate = `{
                 "tags": [
                     "contacts"
                 ],
-                "summary": "add a new contact to a list",
                 "operationId": "addEmailToContactList",
                 "parameters": [
                     {
@@ -436,6 +436,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "description": "delete a contact list",
                 "consumes": [
                     "application/json"
                 ],
@@ -445,7 +446,6 @@ const docTemplate = `{
                 "tags": [
                     "contacts"
                 ],
-                "summary": "delete a contact list",
                 "operationId": "deleteContactList",
                 "parameters": [
                     {
@@ -492,6 +492,7 @@ const docTemplate = `{
         },
         "/contacts/{reference}": {
             "get": {
+                "description": "fetch a contact by reference",
                 "consumes": [
                     "application/json"
                 ],
@@ -501,7 +502,6 @@ const docTemplate = `{
                 "tags": [
                     "contacts"
                 ],
-                "summary": "fetch a contact by reference",
                 "parameters": [
                     {
                         "type": "string",
@@ -545,6 +545,7 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "description": "edit a contact",
                 "consumes": [
                     "application/json"
                 ],
@@ -554,7 +555,6 @@ const docTemplate = `{
                 "tags": [
                     "contacts"
                 ],
-                "summary": "edit a contact",
                 "parameters": [
                     {
                         "description": "contact request body",
@@ -607,6 +607,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "description": "delete a contact",
                 "consumes": [
                     "application/json"
                 ],
@@ -616,7 +617,6 @@ const docTemplate = `{
                 "tags": [
                     "contacts"
                 ],
-                "summary": "delete a contact",
                 "operationId": "deleteContact",
                 "parameters": [
                     {
@@ -663,6 +663,7 @@ const docTemplate = `{
         },
         "/dashboards": {
             "get": {
+                "description": "List dashboards",
                 "consumes": [
                     "application/json"
                 ],
@@ -672,7 +673,6 @@ const docTemplate = `{
                 "tags": [
                     "dashboards"
                 ],
-                "summary": "List dashboards",
                 "parameters": [
                     {
                         "type": "integer",
@@ -721,6 +721,7 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "description": "create a new dashboard",
                 "consumes": [
                     "application/json"
                 ],
@@ -730,7 +731,6 @@ const docTemplate = `{
                 "tags": [
                     "dashboards"
                 ],
-                "summary": "create a new dashboard",
                 "parameters": [
                     {
                         "description": "dashboard request body",
@@ -778,6 +778,7 @@ const docTemplate = `{
         },
         "/dashboards/charts": {
             "get": {
+                "description": "List charts",
                 "consumes": [
                     "application/json"
                 ],
@@ -787,7 +788,6 @@ const docTemplate = `{
                 "tags": [
                     "dashboards"
                 ],
-                "summary": "List charts",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -824,6 +824,7 @@ const docTemplate = `{
         },
         "/dashboards/charts/{reference}": {
             "get": {
+                "description": "fetch charting data",
                 "consumes": [
                     "application/json"
                 ],
@@ -833,7 +834,6 @@ const docTemplate = `{
                 "tags": [
                     "dashboards"
                 ],
-                "summary": "fetch charting data",
                 "parameters": [
                     {
                         "type": "string",
@@ -879,6 +879,7 @@ const docTemplate = `{
         },
         "/dashboards/{reference}": {
             "get": {
+                "description": "fetch dashboard",
                 "consumes": [
                     "application/json"
                 ],
@@ -888,7 +889,6 @@ const docTemplate = `{
                 "tags": [
                     "dashboards"
                 ],
-                "summary": "fetch dashboard",
                 "parameters": [
                     {
                         "type": "string",
@@ -934,6 +934,7 @@ const docTemplate = `{
         },
         "/dashboards/{reference}/charts": {
             "put": {
+                "description": "add a chart to a dashboard",
                 "consumes": [
                     "application/json"
                 ],
@@ -943,7 +944,6 @@ const docTemplate = `{
                 "tags": [
                     "dashboards"
                 ],
-                "summary": "add a chart to a dashboard",
                 "parameters": [
                     {
                         "description": "dashboard request chart data",
@@ -996,8 +996,73 @@ const docTemplate = `{
                 }
             }
         },
+        "/dashboards/{reference}/positions": {
+            "post": {
+                "description": "update dashboard chart positioning",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "parameters": [
+                    {
+                        "description": "dashboard chart positions",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.updateDashboardPositionsRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "dashboard unique reference.. e.g dashboard_22",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/decks": {
             "get": {
+                "description": "list all decks. No pagination",
                 "consumes": [
                     "application/json"
                 ],
@@ -1007,7 +1072,6 @@ const docTemplate = `{
                 "tags": [
                     "decks"
                 ],
-                "summary": "list all decks. No pagination",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1042,6 +1106,7 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "description": "Creates a new deck",
                 "consumes": [
                     "application/json"
                 ],
@@ -1051,7 +1116,6 @@ const docTemplate = `{
                 "tags": [
                     "decks"
                 ],
-                "summary": "Creates a new deck",
                 "parameters": [
                     {
                         "description": "deck request body",
@@ -1099,6 +1163,7 @@ const docTemplate = `{
         },
         "/decks/{reference}": {
             "get": {
+                "description": "fetch a deck",
                 "consumes": [
                     "application/json"
                 ],
@@ -1108,7 +1173,6 @@ const docTemplate = `{
                 "tags": [
                     "decks"
                 ],
-                "summary": "fetch a deck",
                 "parameters": [
                     {
                         "type": "string",
@@ -1152,6 +1216,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "description": "delete a deck",
                 "consumes": [
                     "application/json"
                 ],
@@ -1161,7 +1226,6 @@ const docTemplate = `{
                 "tags": [
                     "decks"
                 ],
-                "summary": "delete a deck",
                 "parameters": [
                     {
                         "type": "string",
@@ -1207,6 +1271,7 @@ const docTemplate = `{
         },
         "/decks/{reference}/archive": {
             "post": {
+                "description": "toggle archive status of a deck",
                 "consumes": [
                     "application/json"
                 ],
@@ -1216,7 +1281,6 @@ const docTemplate = `{
                 "tags": [
                     "decks"
                 ],
-                "summary": "toggle archive status of a deck",
                 "operationId": "toggleArchive",
                 "parameters": [
                     {
@@ -1263,6 +1327,7 @@ const docTemplate = `{
         },
         "/decks/{reference}/pin": {
             "post": {
+                "description": "toggle pinned status of a deck",
                 "consumes": [
                     "application/json"
                 ],
@@ -1272,7 +1337,6 @@ const docTemplate = `{
                 "tags": [
                     "decks"
                 ],
-                "summary": "toggle pinned status of a deck",
                 "operationId": "togglePin",
                 "parameters": [
                     {
@@ -1319,6 +1383,7 @@ const docTemplate = `{
         },
         "/decks/{reference}/preferences": {
             "put": {
+                "description": "update a deck preferences",
                 "consumes": [
                     "application/json"
                 ],
@@ -1328,7 +1393,6 @@ const docTemplate = `{
                 "tags": [
                     "decks"
                 ],
-                "summary": "update a deck preferences",
                 "parameters": [
                     {
                         "type": "string",
@@ -1383,6 +1447,7 @@ const docTemplate = `{
         },
         "/public/decks/{reference}": {
             "get": {
+                "description": "public api to fetch a deck",
                 "consumes": [
                     "application/json"
                 ],
@@ -1392,7 +1457,6 @@ const docTemplate = `{
                 "tags": [
                     "decks-viewer"
                 ],
-                "summary": "public api to fetch a deck",
                 "parameters": [
                     {
                         "type": "string",
@@ -1438,6 +1502,7 @@ const docTemplate = `{
         },
         "/updates/react": {
             "get": {
+                "description": "Fetch a specific update",
                 "consumes": [
                     "application/json"
                 ],
@@ -1447,7 +1512,6 @@ const docTemplate = `{
                 "tags": [
                     "updates"
                 ],
-                "summary": "Fetch a specific update",
                 "operationId": "reactPost",
                 "parameters": [
                     {
@@ -1501,6 +1565,7 @@ const docTemplate = `{
         },
         "/uploads/decks": {
             "post": {
+                "description": "Upload a deck",
                 "consumes": [
                     "application/json"
                 ],
@@ -1510,7 +1575,6 @@ const docTemplate = `{
                 "tags": [
                     "decks"
                 ],
-                "summary": "Upload a deck",
                 "operationId": "uploadDeck",
                 "parameters": [
                     {
@@ -1557,6 +1621,7 @@ const docTemplate = `{
         },
         "/uploads/images": {
             "post": {
+                "description": "Upload an image",
                 "consumes": [
                     "application/json"
                 ],
@@ -1566,7 +1631,6 @@ const docTemplate = `{
                 "tags": [
                     "images"
                 ],
-                "summary": "Upload an image",
                 "operationId": "uploadImage",
                 "parameters": [
                     {
@@ -1613,6 +1677,7 @@ const docTemplate = `{
         },
         "/user": {
             "get": {
+                "description": "Fetch current user. This api should also double as a token validation api",
                 "consumes": [
                     "application/json"
                 ],
@@ -1622,7 +1687,6 @@ const docTemplate = `{
                 "tags": [
                     "user"
                 ],
-                "summary": "Fetch current user. This api should also double as a token validation api",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1659,6 +1723,7 @@ const docTemplate = `{
         },
         "/workspaces": {
             "post": {
+                "description": "Create a new workspace",
                 "consumes": [
                     "application/json"
                 ],
@@ -1668,7 +1733,6 @@ const docTemplate = `{
                 "tags": [
                     "workspace"
                 ],
-                "summary": "Create a new workspace",
                 "parameters": [
                     {
                         "description": "request body to create a workspace",
@@ -1714,6 +1778,7 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "description": "update workspace details",
                 "consumes": [
                     "application/json"
                 ],
@@ -1723,7 +1788,6 @@ const docTemplate = `{
                 "tags": [
                     "workspace"
                 ],
-                "summary": "update workspace details",
                 "parameters": [
                     {
                         "description": "request body to create a workspace",
@@ -1771,6 +1835,7 @@ const docTemplate = `{
         },
         "/workspaces/billing": {
             "post": {
+                "description": "get billing portal",
                 "consumes": [
                     "application/json"
                 ],
@@ -1780,7 +1845,6 @@ const docTemplate = `{
                 "tags": [
                     "billing"
                 ],
-                "summary": "get billing portal",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1817,6 +1881,7 @@ const docTemplate = `{
         },
         "/workspaces/integrations": {
             "get": {
+                "description": "fetch workspace preferences",
                 "consumes": [
                     "application/json"
                 ],
@@ -1826,7 +1891,6 @@ const docTemplate = `{
                 "tags": [
                     "integrations"
                 ],
-                "summary": "fetch workspace preferences",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1863,6 +1927,7 @@ const docTemplate = `{
         },
         "/workspaces/integrations/{reference}": {
             "put": {
+                "description": "update integration api key",
                 "consumes": [
                     "application/json"
                 ],
@@ -1872,7 +1937,6 @@ const docTemplate = `{
                 "tags": [
                     "integrations"
                 ],
-                "summary": "update integration api key",
                 "parameters": [
                     {
                         "description": "request body",
@@ -1918,6 +1982,7 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "description": "enable integration",
                 "consumes": [
                     "application/json"
                 ],
@@ -1927,7 +1992,6 @@ const docTemplate = `{
                 "tags": [
                     "integrations"
                 ],
-                "summary": "enable integration",
                 "parameters": [
                     {
                         "description": "request body",
@@ -1973,6 +2037,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "description": "disable integration",
                 "consumes": [
                     "application/json"
                 ],
@@ -1982,7 +2047,6 @@ const docTemplate = `{
                 "tags": [
                     "integrations"
                 ],
-                "summary": "disable integration",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2019,6 +2083,7 @@ const docTemplate = `{
         },
         "/workspaces/integrations/{reference}/ping": {
             "post": {
+                "description": "test an api key is valid and can reach the integration",
                 "consumes": [
                     "application/json"
                 ],
@@ -2028,7 +2093,6 @@ const docTemplate = `{
                 "tags": [
                     "integrations"
                 ],
-                "summary": "test an api key is valid and can reach the integration",
                 "parameters": [
                     {
                         "description": "request body to test an integration",
@@ -2076,6 +2140,7 @@ const docTemplate = `{
         },
         "/workspaces/preferences": {
             "get": {
+                "description": "fetch workspace preferences",
                 "consumes": [
                     "application/json"
                 ],
@@ -2085,7 +2150,6 @@ const docTemplate = `{
                 "tags": [
                     "workspace"
                 ],
-                "summary": "fetch workspace preferences",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2120,6 +2184,7 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "description": "update workspace preferences",
                 "consumes": [
                     "application/json"
                 ],
@@ -2129,7 +2194,6 @@ const docTemplate = `{
                 "tags": [
                     "workspace"
                 ],
-                "summary": "update workspace preferences",
                 "parameters": [
                     {
                         "description": "request body to updare a workspace preference",
@@ -2177,6 +2241,7 @@ const docTemplate = `{
         },
         "/workspaces/switch/{reference}": {
             "post": {
+                "description": "Switch current workspace",
                 "consumes": [
                     "application/json"
                 ],
@@ -2186,7 +2251,6 @@ const docTemplate = `{
                 "tags": [
                     "workspace"
                 ],
-                "summary": "Switch current workspace",
                 "operationId": "switchworkspace",
                 "parameters": [
                     {
@@ -2233,6 +2297,7 @@ const docTemplate = `{
         },
         "/workspaces/updates": {
             "get": {
+                "description": "List updates",
                 "consumes": [
                     "application/json"
                 ],
@@ -2242,7 +2307,6 @@ const docTemplate = `{
                 "tags": [
                     "updates"
                 ],
-                "summary": "List updates",
                 "parameters": [
                     {
                         "type": "integer",
@@ -2297,6 +2361,7 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "description": "Create a new update",
                 "consumes": [
                     "application/json"
                 ],
@@ -2306,7 +2371,6 @@ const docTemplate = `{
                 "tags": [
                     "updates"
                 ],
-                "summary": "Create a new update",
                 "parameters": [
                     {
                         "description": "update content body",
@@ -2354,6 +2418,7 @@ const docTemplate = `{
         },
         "/workspaces/updates/pins": {
             "get": {
+                "description": "List pinned updates",
                 "consumes": [
                     "application/json"
                 ],
@@ -2363,7 +2428,6 @@ const docTemplate = `{
                 "tags": [
                     "updates"
                 ],
-                "summary": "List pinned updates",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2400,6 +2464,7 @@ const docTemplate = `{
         },
         "/workspaces/updates/{reference}": {
             "get": {
+                "description": "Fetch a specific update",
                 "consumes": [
                     "application/json"
                 ],
@@ -2409,7 +2474,6 @@ const docTemplate = `{
                 "tags": [
                     "updates"
                 ],
-                "summary": "Fetch a specific update",
                 "operationId": "fetchUpdate",
                 "parameters": [
                     {
@@ -2454,6 +2518,7 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "description": "Update a specific update",
                 "consumes": [
                     "application/json"
                 ],
@@ -2463,7 +2528,6 @@ const docTemplate = `{
                 "tags": [
                     "updates"
                 ],
-                "summary": "Update a specific update",
                 "operationId": "updateContent",
                 "parameters": [
                     {
@@ -2517,6 +2581,7 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "description": "Send an update to real users",
                 "consumes": [
                     "application/json"
                 ],
@@ -2526,7 +2591,6 @@ const docTemplate = `{
                 "tags": [
                     "updates"
                 ],
-                "summary": "Send an update to real users",
                 "operationId": "sendUpdate",
                 "parameters": [
                     {
@@ -2580,6 +2644,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "description": "Delete a specific update",
                 "consumes": [
                     "application/json"
                 ],
@@ -2589,7 +2654,6 @@ const docTemplate = `{
                 "tags": [
                     "updates"
                 ],
-                "summary": "Delete a specific update",
                 "operationId": "deleteUpdate",
                 "parameters": [
                     {
@@ -2636,6 +2700,7 @@ const docTemplate = `{
         },
         "/workspaces/updates/{reference}/analytics": {
             "get": {
+                "description": "Fetch analytics for a specific update",
                 "consumes": [
                     "application/json"
                 ],
@@ -2645,7 +2710,6 @@ const docTemplate = `{
                 "tags": [
                     "updates"
                 ],
-                "summary": "Fetch analytics for a specific update",
                 "operationId": "fetchUpdateAnalytics",
                 "parameters": [
                     {
@@ -2692,6 +2756,7 @@ const docTemplate = `{
         },
         "/workspaces/updates/{reference}/duplicate": {
             "post": {
+                "description": "Duplicate a specific update",
                 "consumes": [
                     "application/json"
                 ],
@@ -2701,7 +2766,6 @@ const docTemplate = `{
                 "tags": [
                     "updates"
                 ],
-                "summary": "Duplicate a specific update",
                 "operationId": "duplicateUpdate",
                 "parameters": [
                     {
@@ -2748,6 +2812,7 @@ const docTemplate = `{
         },
         "/workspaces/updates/{reference}/pin": {
             "post": {
+                "description": "Toggle pinned status a specific update",
                 "consumes": [
                     "application/json"
                 ],
@@ -2757,7 +2822,6 @@ const docTemplate = `{
                 "tags": [
                     "updates"
                 ],
-                "summary": "Toggle pinned status a specific update",
                 "operationId": "toggleUpdatePin",
                 "parameters": [
                     {
@@ -2804,6 +2868,7 @@ const docTemplate = `{
         },
         "/workspaces/updates/{reference}/preview": {
             "post": {
+                "description": "Send preview of an update",
                 "consumes": [
                     "application/json"
                 ],
@@ -2813,7 +2878,6 @@ const docTemplate = `{
                 "tags": [
                     "updates"
                 ],
-                "summary": "Send preview of an update",
                 "operationId": "previewUpdate",
                 "parameters": [
                     {
@@ -4610,6 +4674,32 @@ const docTemplate = `{
             "properties": {
                 "api_key": {
                     "type": "string"
+                }
+            }
+        },
+        "server.updateDashboardPositionsRequest": {
+            "type": "object",
+            "required": [
+                "positions"
+            ],
+            "properties": {
+                "positions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "chart_id",
+                            "index"
+                        ],
+                        "properties": {
+                            "chart_id": {
+                                "type": "string"
+                            },
+                            "index": {
+                                "type": "integer"
+                            }
+                        }
+                    }
                 }
             }
         },

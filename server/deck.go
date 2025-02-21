@@ -45,7 +45,7 @@ func hashURL(rawURL string) (string, error) {
 	return "deck-" + fmt.Sprintf("%x", hasher.Sum64()), nil
 }
 
-// @Summary Upload a deck
+// @Description Upload a deck
 // @Tags decks
 // @id uploadDeck
 // @Accept  json
@@ -148,7 +148,7 @@ func (c *createDeckRequest) Validate() error {
 	return nil
 }
 
-// @Summary Creates a new deck
+// @Description Creates a new deck
 // @Tags decks
 // @Accept  json
 // @Produce  json
@@ -249,7 +249,7 @@ func (d *deckHandler) Create(
 	}, StatusSuccess
 }
 
-// @Summary list all decks. No pagination
+// @Description list all decks. No pagination
 // @Tags decks
 // @Accept  json
 // @Produce  json
@@ -283,7 +283,7 @@ func (d *deckHandler) List(
 	}, StatusSuccess
 }
 
-// @Summary delete a deck
+// @Description delete a deck
 // @Tags decks
 // @Accept  json
 // @Produce  json
@@ -336,7 +336,7 @@ func (d *deckHandler) Delete(
 	return newAPIStatus(http.StatusOK, "deleted your deck"), StatusSuccess
 }
 
-// @Summary fetch a deck
+// @Description fetch a deck
 // @Tags decks
 // @Accept  json
 // @Produce  json
@@ -407,7 +407,7 @@ func (u *updateDeckPreferencesRequest) Validate() error {
 	return nil
 }
 
-// @Summary update a deck preferences
+// @Description update a deck preferences
 // @Tags decks
 // @Accept  json
 // @Produce  json
@@ -482,7 +482,7 @@ func (d *deckHandler) updatePreferences(
 	}, StatusSuccess
 }
 
-// @Summary toggle archive status of a deck
+// @Description toggle archive status of a deck
 // @Tags decks
 // @Accept  json
 // @Produce  json
@@ -538,7 +538,7 @@ func (d *deckHandler) toggleArchive(
 	}, StatusSuccess
 }
 
-// @Summary toggle pinned status of a deck
+// @Description toggle pinned status of a deck
 // @Tags decks
 // @Accept  json
 // @Produce  json
@@ -594,7 +594,7 @@ func (d *deckHandler) togglePinned(
 	}, StatusSuccess
 }
 
-// @Summary public api to fetch a deck
+// @Description public api to fetch a deck
 // @Tags decks-viewer
 // @Accept  json
 // @Produce  json
