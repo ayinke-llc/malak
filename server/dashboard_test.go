@@ -517,6 +517,30 @@ func generateFetchDashboardRequest() []struct {
 			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
+			name: "error fetching dashboard positions",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository) {
+				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.Dashboard{
+						ID:          workspaceID,
+						Title:       "Test Dashboard",
+						Description: "Test description",
+						Reference:   "DASH_123",
+						ChartCount:  0,
+						WorkspaceID: workspaceID,
+					}, nil)
+
+				dashboard.EXPECT().GetCharts(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]malak.DashboardChart{}, nil)
+
+				dashboard.EXPECT().GetDashboardPositions(gomock.Any(), workspaceID).
+					Times(1).
+					Return(nil, errors.New("error fetching dashboard positions"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
 			name: "error fetching dashboard charts",
 			mockFn: func(dashboard *malak_mocks.MockDashboardRepository) {
 				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
