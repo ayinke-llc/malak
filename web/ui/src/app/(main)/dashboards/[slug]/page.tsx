@@ -360,9 +360,15 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (dashboardData?.charts) {
-      setCharts(dashboardData.charts);
+      // Sort charts based on their positions if available
+      const sortedCharts = [...dashboardData.charts].sort((a, b) => {
+        const posA = dashboardData.positions?.find(p => p.chart_id === a.id)?.order_index ?? 0;
+        const posB = dashboardData.positions?.find(p => p.chart_id === b.id)?.order_index ?? 0;
+        return posA - posB;
+      });
+      setCharts(sortedCharts);
     }
-  }, [dashboardData?.charts]);
+  }, [dashboardData?.charts, dashboardData?.positions]);
 
   const updatePositionsDebounced = useCallback(
     (positions: { chart_id: string; index: number }[]) => {
