@@ -212,6 +212,7 @@ func (i *integrationRepo) AddDataPoint(ctx context.Context,
 				Model(&chart).
 				Where("workspace_integration_id = ?", workspaceIntegration.ID).
 				Where("workspace_id = ?", workspaceIntegration.WorkspaceID).
+				Where("user_facing_name = ?", value.UserFacingName).
 				Where("internal_name = ?", value.InternalName)
 
 			if !hermes.IsStringEmpty(value.ProviderID) {

@@ -45,7 +45,7 @@ import {
 } from "@/components/ui/command";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import client from "@/lib/client";
-import { LIST_CHARTS, DASHBOARD_DETAIL } from "@/lib/query-constants";
+import { LIST_CHARTS, DASHBOARD_DETAIL, FETCH_CHART_DATA_POINTS } from "@/lib/query-constants";
 import type {
   ServerAPIStatus, ServerListIntegrationChartsResponse,
   ServerListDashboardChartsResponse, MalakDashboardChart
@@ -53,49 +53,17 @@ import type {
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 
-// Mock data for bar charts
-const revenueData = [
-  { month: "Day 1", revenue: 2400 },
-  { month: "Day 2", revenue: 1398 },
-  { month: "Day 3", revenue: 9800 },
-  { month: "Day 4", revenue: 3908 },
-  { month: "Day 5", revenue: 4800 },
-  { month: "Day 6", revenue: 3800 },
-  { month: "Day 7", revenue: 5200 },
-  { month: "Day 8", revenue: 4100 },
-  { month: "Day 9", revenue: 6300 },
-  { month: "Day 10", revenue: 5400 },
-  { month: "Day 11", revenue: 4700 },
-  { month: "Day 12", revenue: 3900 },
-  { month: "Day 13", revenue: 5600 },
-  { month: "Day 14", revenue: 4800 },
-  { month: "Day 15", revenue: 6100 },
-  { month: "Day 16", revenue: 5300 },
-  { month: "Day 17", revenue: 4500 },
-  { month: "Day 18", revenue: 3700 },
-  { month: "Day 19", revenue: 5900 },
-  { month: "Day 20", revenue: 4200 },
-  { month: "Day 21", revenue: 6400 },
-  { month: "Day 22", revenue: 5500 },
-  { month: "Day 23", revenue: 4600 },
-  { month: "Day 24", revenue: 3800 },
-  { month: "Day 25", revenue: 5700 },
-  { month: "Day 26", revenue: 4900 },
-  { month: "Day 27", revenue: 6200 },
-  { month: "Day 28", revenue: 5100 },
-  { month: "Day 29", revenue: 4300 },
-  { month: "Day 30", revenue: 3600 }
-];
-
-// Mock data for pie charts
-const costData = [
-  { name: "Infrastructure", value: 400, color: "#0088FE" },
-  { name: "Marketing", value: 300, color: "#00C49F" },
-  { name: "Development", value: 500, color: "#FFBB28" },
-  { name: "Operations", value: 200, color: "#FF8042" },
-];
-
 function ChartCard({ chart }: { chart: MalakDashboardChart }) {
+  const { data: chartData, isLoading: isLoadingChartData, error } = useQuery({
+    queryKey: [FETCH_CHART_DATA_POINTS, chart.chart?.reference],
+    queryFn: async () => {
+      if (!chart.chart?.reference) return null;
+      const response = await client.dashboards.chartsDetail(chart.chart.reference);
+      return response.data;
+    },
+    enabled: !!chart.chart?.reference,
+  });
+
   const getChartIcon = (type: string) => {
     switch (type) {
       case "bar":
@@ -107,14 +75,24 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
     }
   };
 
-  const getChartData = (chart: MalakDashboardChart) => {
-    // TODO: Replace with real data from the chart's data source
-    return chart.chart?.chart_type === "bar" ? revenueData : costData;
+  const formatChartData = (dataPoints: any[] | undefined) => {
+    if (!dataPoints) return [];
+    
+    // Transform data points into the format expected by recharts
+    return dataPoints.map(point => ({
+      name: point.point_name,
+      value: point.point_value,
+      // For bar charts, use a consistent key name
+      revenue: point.point_value,
+    }));
   };
 
   if (!chart.chart) {
     return null;
   }
+
+  const formattedData = formatChartData(chartData?.data_points);
+  const hasNoData = !formattedData || formattedData.length === 0;
 
   return (
     <Card className="p-3">
@@ -142,11 +120,27 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
         </DropdownMenu>
       </div>
       <div className="w-full">
-        {chart.chart.chart_type === "bar" ? (
+        {isLoadingChartData ? (
+          <div className="flex items-center justify-center h-[160px]">
+            <RiLoader4Line className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-[160px] text-center p-4">
+            <RiBarChart2Line className="h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-sm text-muted-foreground">Failed to load chart data</p>
+            <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
+          </div>
+        ) : hasNoData ? (
+          <div className="flex flex-col items-center justify-center h-[160px] text-center p-4">
+            <RiBarChart2Line className="h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-sm text-muted-foreground">No data available</p>
+            <p className="text-xs text-muted-foreground mt-1">Check back later for updates</p>
+          </div>
+        ) : chart.chart.chart_type === "bar" ? (
           <ChartContainer className="w-full h-full" config={{}}>
             <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={getChartData(chart)} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
-                <XAxis dataKey="month" stroke="#888888" fontSize={11} />
+              <BarChart data={formattedData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+                <XAxis dataKey="name" stroke="#888888" fontSize={11} />
                 <YAxis stroke="#888888" fontSize={11} />
                 <Tooltip />
                 <Bar dataKey="revenue" fill="#8884d8" radius={[4, 4, 0, 0]} />
@@ -158,7 +152,7 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
             <ResponsiveContainer width="100%" height={160}>
               <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                 <Pie
-                  data={getChartData(chart)}
+                  data={formattedData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -166,8 +160,8 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
                   outerRadius={60}
                   dataKey="value"
                 >
-                  {costData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  {formattedData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={`hsl(${index * 45}, 70%, 50%)`} />
                   ))}
                 </Pie>
                 <Tooltip />

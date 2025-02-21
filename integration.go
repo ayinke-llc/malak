@@ -130,9 +130,10 @@ type IntegrationDataValues struct {
 	// InternalName + ProviderID search in db
 	// We cannot use only InternalName becasue some integrations
 	// like mercury have the same InternalName twice ( each account has a savings and checkings which we track)
-	InternalName IntegrationChartInternalNameType
-	ProviderID   string
-	Data         IntegrationDataPoint
+	InternalName   IntegrationChartInternalNameType
+	UserFacingName string
+	ProviderID     string
+	Data           IntegrationDataPoint
 }
 
 type IntegrationChartValues struct {
