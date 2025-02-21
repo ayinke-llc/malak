@@ -27,6 +27,10 @@ func (d *dashboardRepo) Create(ctx context.Context,
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
 
+	if dashboard.Title == "" {
+		return errors.New("dashboard title is required")
+	}
+
 	return d.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
 
@@ -155,8 +159,19 @@ func (d *dashboardRepo) UpdateDashboardPositions(ctx context.Context,
 
 	return d.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
+			// First check if dashboard exists
+			exists, err := tx.NewSelect().
+				Model((*malak.Dashboard)(nil)).
+				Where("id = ?", dashboardID).
+				Exists(ctx)
+			if err != nil {
+				return err
+			}
+			if !exists {
+				return malak.ErrDashboardNotFound
+			}
 
-			_, err := tx.NewDelete().
+			_, err = tx.NewDelete().
 				Model(new(malak.DashboardChartPosition)).
 				Where("dashboard_id = ?", dashboardID).
 				Exec(ctx)
@@ -164,8 +179,12 @@ func (d *dashboardRepo) UpdateDashboardPositions(ctx context.Context,
 				return err
 			}
 
-			_, err = tx.NewInsert().Model(&positions).
-				Exec(ctx)
-			return err
+			if len(positions) > 0 {
+				_, err = tx.NewInsert().Model(&positions).
+					Exec(ctx)
+				return err
+			}
+
+			return nil
 		})
 }

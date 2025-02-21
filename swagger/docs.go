@@ -1017,22 +1017,9 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/server.updateDashboardPositionsRequest"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "dashboard unique reference.. e.g dashboard_22",
-                        "name": "reference",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/server.APIStatus"
-                        }
-                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {

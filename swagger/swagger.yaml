@@ -1958,13 +1958,6 @@ paths:
   /dashboards/{reference}/positions:
     post:
       description: update dashboard chart positioning
-      parameters:
-      - description: dashboard unique reference.. e.g dashboard_22
-        in: path
-        name: reference
-        required: true
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
@@ -1974,12 +1967,6 @@ paths:
         required: true
         x-originalParamName: message
       responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/server.APIStatus'
-          description: OK
         "400":
           content:
             application/json:

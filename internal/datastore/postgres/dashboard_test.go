@@ -20,17 +20,56 @@ func TestDashboard_Create(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	dashboard := &malak.Dashboard{
-		WorkspaceID: workspace.ID,
-		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
-		Title:       "Test Dashboard",
-		Description: "Test Dashboard Description",
+	tests := []struct {
+		name        string
+		dashboard   *malak.Dashboard
+		expectError bool
+	}{
+		{
+			name: "valid dashboard",
+			dashboard: &malak.Dashboard{
+				WorkspaceID: workspace.ID,
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
+				Title:       "Test Dashboard",
+				Description: "Test Dashboard Description",
+			},
+			expectError: false,
+		},
+		{
+			name: "dashboard with empty title",
+			dashboard: &malak.Dashboard{
+				WorkspaceID: workspace.ID,
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
+				Description: "Test Dashboard Description",
+			},
+			expectError: true,
+		},
+		{
+			name: "dashboard with invalid workspace ID",
+			dashboard: &malak.Dashboard{
+				WorkspaceID: uuid.New(),
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
+				Title:       "Test Dashboard",
+				Description: "Test Dashboard Description",
+			},
+			expectError: true,
+		},
 	}
 
-	err = dashboardRepo.Create(t.Context(), dashboard)
-	require.NoError(t, err)
-	require.NotEmpty(t, dashboard.ID)
-	require.Equal(t, int64(0), dashboard.ChartCount)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := dashboardRepo.Create(t.Context(), tt.dashboard)
+			if tt.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.NotEmpty(t, tt.dashboard.ID)
+				require.Equal(t, int64(0), tt.dashboard.ChartCount)
+				require.False(t, tt.dashboard.CreatedAt.IsZero())
+				require.False(t, tt.dashboard.UpdatedAt.IsZero())
+			}
+		})
+	}
 }
 
 func TestDashboard_AddChart(t *testing.T) {
@@ -87,27 +126,66 @@ func TestDashboard_AddChart(t *testing.T) {
 
 	err = dashboardRepo.Create(t.Context(), dashboard)
 	require.NoError(t, err)
-	require.Equal(t, int64(0), dashboard.ChartCount)
 
-	chart := &malak.DashboardChart{
-		WorkspaceIntegrationID: workspaceIntegration.ID,
-		ChartID:                createdChart.ID,
-		Reference:              malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardChart),
-		WorkspaceID:            workspace.ID,
-		DashboardID:            dashboard.ID,
+	tests := []struct {
+		name        string
+		chart       *malak.DashboardChart
+		expectError bool
+	}{
+		{
+			name: "valid chart",
+			chart: &malak.DashboardChart{
+				WorkspaceIntegrationID: workspaceIntegration.ID,
+				ChartID:                createdChart.ID,
+				Reference:              malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardChart),
+				WorkspaceID:            workspace.ID,
+				DashboardID:            dashboard.ID,
+			},
+			expectError: false,
+		},
+		{
+			name: "invalid workspace integration ID",
+			chart: &malak.DashboardChart{
+				WorkspaceIntegrationID: uuid.New(),
+				ChartID:                createdChart.ID,
+				Reference:              malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardChart),
+				WorkspaceID:            workspace.ID,
+				DashboardID:            dashboard.ID,
+			},
+			expectError: true,
+		},
+		{
+			name: "invalid chart ID",
+			chart: &malak.DashboardChart{
+				WorkspaceIntegrationID: workspaceIntegration.ID,
+				ChartID:                uuid.New(),
+				Reference:              malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardChart),
+				WorkspaceID:            workspace.ID,
+				DashboardID:            dashboard.ID,
+			},
+			expectError: true,
+		},
 	}
 
-	err = dashboardRepo.AddChart(t.Context(), chart)
-	require.NoError(t, err)
-	require.NotEmpty(t, chart.ID)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := dashboardRepo.AddChart(t.Context(), tt.chart)
+			if tt.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.NotEmpty(t, tt.chart.ID)
 
-	// verify chart count was incremented
-	updatedDashboard, err := dashboardRepo.Get(t.Context(), malak.FetchDashboardOption{
-		WorkspaceID: workspace.ID,
-		Reference:   dashboard.Reference,
-	})
-	require.NoError(t, err)
-	require.Equal(t, int64(1), updatedDashboard.ChartCount)
+				// Verify chart count was incremented
+				updatedDashboard, err := dashboardRepo.Get(t.Context(), malak.FetchDashboardOption{
+					WorkspaceID: workspace.ID,
+					Reference:   dashboard.Reference,
+				})
+				require.NoError(t, err)
+				require.Equal(t, int64(1), updatedDashboard.ChartCount)
+			}
+		})
+	}
 }
 
 func TestDashboard_Get(t *testing.T) {
@@ -133,9 +211,10 @@ func TestDashboard_Get(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		name          string
-		opts          malak.FetchDashboardOption
-		expectedError error
+		name        string
+		opts        malak.FetchDashboardOption
+		expectError bool
+		errorType   error
 	}{
 		{
 			name: "existing dashboard",
@@ -143,7 +222,7 @@ func TestDashboard_Get(t *testing.T) {
 				WorkspaceID: workspace.ID,
 				Reference:   dashboard.Reference,
 			},
-			expectedError: nil,
+			expectError: false,
 		},
 		{
 			name: "non-existent dashboard",
@@ -151,7 +230,8 @@ func TestDashboard_Get(t *testing.T) {
 				WorkspaceID: workspace.ID,
 				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
 			},
-			expectedError: malak.ErrDashboardNotFound,
+			expectError: true,
+			errorType:   malak.ErrDashboardNotFound,
 		},
 		{
 			name: "wrong workspace",
@@ -159,15 +239,19 @@ func TestDashboard_Get(t *testing.T) {
 				WorkspaceID: uuid.New(),
 				Reference:   dashboard.Reference,
 			},
-			expectedError: malak.ErrDashboardNotFound,
+			expectError: true,
+			errorType:   malak.ErrDashboardNotFound,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := dashboardRepo.Get(t.Context(), tt.opts)
-			if tt.expectedError != nil {
-				require.ErrorIs(t, err, tt.expectedError)
+			if tt.expectError {
+				require.Error(t, err)
+				if tt.errorType != nil {
+					require.ErrorIs(t, err, tt.errorType)
+				}
 			} else {
 				require.NoError(t, err)
 				require.Equal(t, tt.opts.WorkspaceID, result.WorkspaceID)
@@ -239,37 +323,26 @@ func TestDashboard_GetCharts(t *testing.T) {
 	err = dashboardRepo.Create(t.Context(), dashboard)
 	require.NoError(t, err)
 
-	// Add multiple charts
-	charts := []*malak.DashboardChart{
-		{
+	// Add charts to dashboard
+	for _, chart := range createdCharts {
+		dashboardChart := &malak.DashboardChart{
 			WorkspaceIntegrationID: workspaceIntegration.ID,
-			ChartID:                createdCharts[0].ID,
+			ChartID:                chart.ID,
 			Reference:              malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardChart),
 			WorkspaceID:            workspace.ID,
 			DashboardID:            dashboard.ID,
-		},
-		{
-			WorkspaceIntegrationID: workspaceIntegration.ID,
-			ChartID:                createdCharts[1].ID,
-			Reference:              malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardChart),
-			WorkspaceID:            workspace.ID,
-			DashboardID:            dashboard.ID,
-		},
-	}
-
-	for _, chart := range charts {
-		err = dashboardRepo.AddChart(t.Context(), chart)
+		}
+		err = dashboardRepo.AddChart(t.Context(), dashboardChart)
 		require.NoError(t, err)
 	}
 
-	// Test getting charts
 	tests := []struct {
 		name          string
 		opts          malak.FetchDashboardChartsOption
 		expectedCount int
 	}{
 		{
-			name: "existing dashboard charts",
+			name: "get existing charts",
 			opts: malak.FetchDashboardChartsOption{
 				WorkspaceID: workspace.ID,
 				DashboardID: dashboard.ID,
@@ -296,17 +369,39 @@ func TestDashboard_GetCharts(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			results, err := dashboardRepo.GetCharts(t.Context(), tt.opts)
+			charts, err := dashboardRepo.GetCharts(t.Context(), tt.opts)
 			require.NoError(t, err)
-			require.Equal(t, tt.expectedCount, len(results))
+			require.Len(t, charts, tt.expectedCount)
 
 			if tt.expectedCount > 0 {
-				for _, result := range results {
-					require.Equal(t, tt.opts.WorkspaceID, result.WorkspaceID)
-					require.Equal(t, tt.opts.DashboardID, result.DashboardID)
-					require.NotEmpty(t, result.ID)
-					require.NotEmpty(t, result.Reference)
+				for _, chart := range charts {
+					require.NotNil(t, chart.IntegrationChart)
+					require.NotEmpty(t, chart.IntegrationChart.UserFacingName)
+					require.NotEmpty(t, chart.IntegrationChart.InternalName)
+					require.NotEmpty(t, chart.IntegrationChart.ChartType)
+					require.Equal(t, workspaceIntegration.ID, chart.IntegrationChart.WorkspaceIntegrationID)
+					require.Equal(t, workspace.ID, chart.IntegrationChart.WorkspaceID)
 				}
+
+				// Verify specific chart data
+				foundAccountBalance := false
+				foundTransactionHistory := false
+
+				for _, chart := range charts {
+					switch chart.IntegrationChart.InternalName {
+					case malak.IntegrationChartInternalNameTypeMercuryAccount:
+						foundAccountBalance = true
+						require.Equal(t, "Account Balance", chart.IntegrationChart.UserFacingName)
+						require.Equal(t, malak.IntegrationChartTypeBar, chart.IntegrationChart.ChartType)
+					case malak.IntegrationChartInternalNameTypeMercuryAccountTransaction:
+						foundTransactionHistory = true
+						require.Equal(t, "Transaction History", chart.IntegrationChart.UserFacingName)
+						require.Equal(t, malak.IntegrationChartTypeBar, chart.IntegrationChart.ChartType)
+					}
+				}
+
+				require.True(t, foundAccountBalance, "Account Balance chart not found")
+				require.True(t, foundTransactionHistory, "Transaction History chart not found")
 			}
 		})
 	}
@@ -319,13 +414,6 @@ func TestDashboard_List(t *testing.T) {
 	dashboardRepo := NewDashboardRepo(client)
 	workspaceRepo := NewWorkspaceRepository(client)
 
-	// Clean up any existing dashboards first
-	_, err := client.NewDelete().
-		Table("dashboards").
-		Where("1=1").
-		Exec(t.Context())
-	require.NoError(t, err)
-
 	workspace1, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
@@ -336,6 +424,11 @@ func TestDashboard_List(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	// Clean up existing dashboards
+	_, err = client.NewDelete().Model((*malak.Dashboard)(nil)).Where("1=1").Exec(t.Context())
+	require.NoError(t, err)
+
+	// Create test dashboards
 	dashboards1 := []*malak.Dashboard{
 		{
 			WorkspaceID: workspace1.ID,
@@ -375,13 +468,11 @@ func TestDashboard_List(t *testing.T) {
 	for _, d := range dashboards1 {
 		err = dashboardRepo.Create(t.Context(), d)
 		require.NoError(t, err)
-		require.NotEmpty(t, d.ID)
 	}
 
 	for _, d := range dashboards2 {
 		err = dashboardRepo.Create(t.Context(), d)
 		require.NoError(t, err)
-		require.NotEmpty(t, d.ID)
 	}
 
 	tests := []struct {
@@ -438,6 +529,18 @@ func TestDashboard_List(t *testing.T) {
 			expectedCount: 2,
 			totalCount:    2,
 		},
+		{
+			name: "non-existent workspace",
+			opts: malak.ListDashboardOptions{
+				WorkspaceID: uuid.New(),
+				Paginator: malak.Paginator{
+					Page:    1,
+					PerPage: 10,
+				},
+			},
+			expectedCount: 0,
+			totalCount:    0,
+		},
 	}
 
 	for _, tt := range tests {
@@ -447,25 +550,22 @@ func TestDashboard_List(t *testing.T) {
 			require.Equal(t, tt.expectedCount, len(results))
 			require.Equal(t, tt.totalCount, total)
 
-			for _, result := range results {
-				require.Equal(t, tt.opts.WorkspaceID, result.WorkspaceID)
+			if tt.expectedCount > 0 {
+				for _, result := range results {
+					require.Equal(t, tt.opts.WorkspaceID, result.WorkspaceID)
+					require.NotEmpty(t, result.ID)
+					require.NotEmpty(t, result.Reference)
+					require.NotEmpty(t, result.Title)
+					require.NotEmpty(t, result.Description)
+					require.False(t, result.CreatedAt.IsZero())
+					require.False(t, result.UpdatedAt.IsZero())
+				}
 			}
 		})
 	}
-
-	nonExistentResults, total, err := dashboardRepo.List(t.Context(), malak.ListDashboardOptions{
-		WorkspaceID: uuid.New(),
-		Paginator: malak.Paginator{
-			Page:    1,
-			PerPage: 10,
-		},
-	})
-	require.NoError(t, err)
-	require.Equal(t, 0, len(nonExistentResults))
-	require.Equal(t, int64(0), total)
 }
 
-func TestDashboard_GetChartsWithIntegration(t *testing.T) {
+func TestDashboard_UpdatePositions(t *testing.T) {
 	client, teardownFunc := setupDatabase(t)
 	defer teardownFunc()
 
@@ -478,6 +578,7 @@ func TestDashboard_GetChartsWithIntegration(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	// Create integration
 	integration := &malak.Integration{
 		IntegrationName: "Mercury",
 		Reference:       malak.NewReferenceGenerator().Generate(malak.EntityTypeIntegration),
@@ -489,11 +590,13 @@ func TestDashboard_GetChartsWithIntegration(t *testing.T) {
 	err = integrationRepo.Create(t.Context(), integration)
 	require.NoError(t, err)
 
+	// Get workspace integration
 	integrations, err := integrationRepo.List(t.Context(), workspace)
 	require.NoError(t, err)
 	require.Len(t, integrations, 1)
 	workspaceIntegration := integrations[0]
 
+	// Create integration charts
 	chartValues := []malak.IntegrationChartValues{
 		{
 			UserFacingName: "Account Balance",
@@ -511,6 +614,7 @@ func TestDashboard_GetChartsWithIntegration(t *testing.T) {
 	err = integrationRepo.CreateCharts(t.Context(), &workspaceIntegration, chartValues)
 	require.NoError(t, err)
 
+	// Get created charts
 	charts, err := integrationRepo.ListCharts(t.Context(), workspace.ID)
 	require.NoError(t, err)
 	require.Len(t, charts, 2)
@@ -518,12 +622,15 @@ func TestDashboard_GetChartsWithIntegration(t *testing.T) {
 	dashboard := &malak.Dashboard{
 		WorkspaceID: workspace.ID,
 		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
-		Title:       "Mercury Dashboard",
-		Description: "Mercury Banking Dashboard",
+		Title:       "Test Dashboard",
+		Description: "Test Dashboard Description",
 	}
+
 	err = dashboardRepo.Create(t.Context(), dashboard)
 	require.NoError(t, err)
 
+	// Create dashboard charts
+	dashboardCharts := make([]*malak.DashboardChart, 0, len(charts))
 	for _, chart := range charts {
 		dashboardChart := &malak.DashboardChart{
 			WorkspaceIntegrationID: workspaceIntegration.ID,
@@ -534,42 +641,97 @@ func TestDashboard_GetChartsWithIntegration(t *testing.T) {
 		}
 		err = dashboardRepo.AddChart(t.Context(), dashboardChart)
 		require.NoError(t, err)
+		dashboardCharts = append(dashboardCharts, dashboardChart)
 	}
 
-	dashboardCharts, err := dashboardRepo.GetCharts(t.Context(), malak.FetchDashboardChartsOption{
-		WorkspaceID: workspace.ID,
-		DashboardID: dashboard.ID,
-	})
-	require.NoError(t, err)
-	require.Len(t, dashboardCharts, 2)
-
-	// verify integration chart data is loaded
-	for _, dashboardChart := range dashboardCharts {
-		require.NotNil(t, dashboardChart.IntegrationChart)
-		require.NotEmpty(t, dashboardChart.IntegrationChart.UserFacingName)
-		require.NotEmpty(t, dashboardChart.IntegrationChart.InternalName)
-		require.NotEmpty(t, dashboardChart.IntegrationChart.ChartType)
-		require.Equal(t, workspaceIntegration.ID, dashboardChart.IntegrationChart.WorkspaceIntegrationID)
-		require.Equal(t, workspace.ID, dashboardChart.IntegrationChart.WorkspaceID)
+	tests := []struct {
+		name          string
+		positions     []malak.DashboardChartPosition
+		expectedCount int
+		expectedOrder []int64
+		expectError   bool
+		dashboardID   uuid.UUID
+	}{
+		{
+			name: "update with valid positions",
+			positions: []malak.DashboardChartPosition{
+				{
+					DashboardID: dashboard.ID,
+					ChartID:     dashboardCharts[0].ID,
+					OrderIndex:  1,
+				},
+				{
+					DashboardID: dashboard.ID,
+					ChartID:     dashboardCharts[1].ID,
+					OrderIndex:  2,
+				},
+			},
+			expectedCount: 2,
+			expectedOrder: []int64{1, 2},
+			dashboardID:   dashboard.ID,
+		},
+		{
+			name:          "update with empty positions",
+			positions:     []malak.DashboardChartPosition{},
+			expectedCount: 0,
+			expectedOrder: []int64{},
+			dashboardID:   dashboard.ID,
+		},
+		{
+			name: "update with reversed order",
+			positions: []malak.DashboardChartPosition{
+				{
+					DashboardID: dashboard.ID,
+					ChartID:     dashboardCharts[1].ID,
+					OrderIndex:  1,
+				},
+				{
+					DashboardID: dashboard.ID,
+					ChartID:     dashboardCharts[0].ID,
+					OrderIndex:  2,
+				},
+			},
+			expectedCount: 2,
+			expectedOrder: []int64{1, 2},
+			dashboardID:   dashboard.ID,
+		},
+		{
+			name: "update with invalid dashboard ID",
+			positions: []malak.DashboardChartPosition{
+				{
+					DashboardID: uuid.New(),
+					ChartID:     dashboardCharts[0].ID,
+					OrderIndex:  1,
+				},
+			},
+			expectedCount: 0,
+			expectedOrder: []int64{},
+			expectError:   true,
+			dashboardID:   uuid.New(),
+		},
 	}
 
-	// vErify specific chart data
-	foundAccountBalance := false
-	foundTransactionHistory := false
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Update positions
+			err := dashboardRepo.UpdateDashboardPositions(t.Context(), tt.dashboardID, tt.positions)
+			if tt.expectError {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
 
-	for _, dashboardChart := range dashboardCharts {
-		switch dashboardChart.IntegrationChart.InternalName {
-		case malak.IntegrationChartInternalNameTypeMercuryAccount:
-			foundAccountBalance = true
-			require.Equal(t, "Account Balance", dashboardChart.IntegrationChart.UserFacingName)
-			require.Equal(t, malak.IntegrationChartTypeBar, dashboardChart.IntegrationChart.ChartType)
-		case malak.IntegrationChartInternalNameTypeMercuryAccountTransaction:
-			foundTransactionHistory = true
-			require.Equal(t, "Transaction History", dashboardChart.IntegrationChart.UserFacingName)
-			require.Equal(t, malak.IntegrationChartTypeBar, dashboardChart.IntegrationChart.ChartType)
-		}
+			// Verify positions were updated
+			savedPositions, err := dashboardRepo.GetDashboardPositions(t.Context(), tt.dashboardID)
+			require.NoError(t, err)
+			require.Len(t, savedPositions, tt.expectedCount)
+
+			// Verify position order if there are expected positions
+			if tt.expectedCount > 0 {
+				for i, expectedOrder := range tt.expectedOrder {
+					require.Equal(t, expectedOrder, savedPositions[i].OrderIndex)
+				}
+			}
+		})
 	}
-
-	require.True(t, foundAccountBalance, "Account Balance chart not found")
-	require.True(t, foundTransactionHistory, "Transaction History chart not found")
 }
