@@ -1,7 +1,6 @@
 package smtp
 
 import (
-	"context"
 	"testing"
 
 	"github.com/ayinke-llc/malak"
@@ -25,21 +24,21 @@ func TestSMTP_Send(t *testing.T) {
 	}
 
 	mailpitContainer, err := testcontainers.GenericContainer(
-		context.Background(),
+		t.Context(),
 		testcontainers.GenericContainerRequest{
 			ContainerRequest: containerReq,
 			Started:          true,
 		})
 	require.NoError(t, err)
 
-	port, err := mailpitContainer.MappedPort(context.Background(), "1025")
+	port, err := mailpitContainer.MappedPort(t.Context(), "1025")
 	require.NoError(t, err)
 
 	client, err := New(getConfig(port.Int()))
 
 	require.NoError(t, err)
 
-	_, err = client.Send(context.Background(), email.SendOptions{
+	_, err = client.Send(t.Context(), email.SendOptions{
 		HTML:      "This is my email in html format",
 		Sender:    "yo@lanre.wtf",
 		Recipient: "lanre@ayinke.ventures",

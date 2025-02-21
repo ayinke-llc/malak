@@ -104,6 +104,29 @@ export enum MalakContactShareItemType {
 
 export type MalakCustomContactMetadata = Record<string, string>;
 
+export interface MalakDashboard {
+  chart_count?: number;
+  created_at?: string;
+  description?: string;
+  id?: string;
+  reference?: string;
+  title?: string;
+  updated_at?: string;
+  workspace_id?: string;
+}
+
+export interface MalakDashboardChart {
+  chart?: MalakIntegrationChart;
+  chart_id?: string;
+  created_at?: string;
+  dashboard_id?: string;
+  id?: string;
+  reference?: string;
+  updated_at?: string;
+  workspace_id?: string;
+  workspace_integration_id?: string;
+}
+
 export interface MalakDeck {
   created_at?: string;
   created_by?: string;
@@ -147,6 +170,35 @@ export interface MalakIntegration {
   updated_at?: string;
 }
 
+export interface MalakIntegrationChart {
+  chart_type?: MalakIntegrationChartType;
+  created_at?: string;
+  id?: string;
+  internal_name?: MalakIntegrationChartInternalNameType;
+  metadata?: MalakIntegrationChartMetadata;
+  reference?: string;
+  updated_at?: string;
+  user_facing_name?: string;
+  workspace_id?: string;
+  workspace_integration_id?: string;
+}
+
+export enum MalakIntegrationChartInternalNameType {
+  IntegrationChartInternalNameTypeMercuryAccount = "mercury_account",
+  IntegrationChartInternalNameTypeMercuryAccountTransaction = "mercury_account_transaction",
+  IntegrationChartInternalNameTypeBrexAccount = "brex_account",
+  IntegrationChartInternalNameTypeBrexAccountTransaction = "brex_account_transaction",
+}
+
+export interface MalakIntegrationChartMetadata {
+  provider_id?: string;
+}
+
+export enum MalakIntegrationChartType {
+  IntegrationChartTypeBar = "bar",
+  IntegrationChartTypePie = "pie",
+}
+
 export interface MalakIntegrationMetadata {
   endpoint?: string;
 }
@@ -188,6 +240,7 @@ export interface MalakPlan {
 export interface MalakPlanMetadata {
   dashboard?: {
     embed_dashboard?: boolean;
+    max_charts_per_dashboard?: number;
     share_dashboard_via_link?: boolean;
   };
   data_room?: {
@@ -386,6 +439,10 @@ export interface ServerAPIStatus {
   message: string;
 }
 
+export interface ServerAddChartToDashboardRequest {
+  chart_reference: string;
+}
+
 export interface ServerAddContactToListRequest {
   reference?: string;
 }
@@ -407,6 +464,11 @@ export interface ServerCreateContactRequest {
   email?: string;
   first_name?: string;
   last_name?: string;
+}
+
+export interface ServerCreateDashboardRequest {
+  description: string;
+  title: string;
 }
 
 export interface ServerCreateDeckRequest {
@@ -466,6 +528,11 @@ export interface ServerFetchContactResponse {
   message: string;
 }
 
+export interface ServerFetchDashboardResponse {
+  dashboard: MalakDashboard;
+  message: string;
+}
+
 export interface ServerFetchDeckResponse {
   deck: MalakDeck;
   message: string;
@@ -507,6 +574,23 @@ export interface ServerListContactsResponse {
   contacts: MalakContact[];
   message: string;
   meta: ServerMeta;
+}
+
+export interface ServerListDashboardChartsResponse {
+  charts: MalakDashboardChart[];
+  dashboard: MalakDashboard;
+  message: string;
+}
+
+export interface ServerListDashboardResponse {
+  dashboards: MalakDashboard[];
+  message: string;
+  meta: ServerMeta;
+}
+
+export interface ServerListIntegrationChartsResponse {
+  charts: MalakIntegrationChart[];
+  message: string;
 }
 
 export interface ServerListIntegrationResponse {
@@ -919,6 +1003,100 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "PUT",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  dashboards = {
+    /**
+     * No description
+     *
+     * @tags dashboards
+     * @name DashboardsList
+     * @summary List dashboards
+     * @request GET:/dashboards
+     */
+    dashboardsList: (
+      query?: {
+        /** Page to query data from. Defaults to 1 */
+        page?: number;
+        /** Number to items to return. Defaults to 10 items */
+        per_page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerListDashboardResponse, ServerAPIStatus>({
+        path: `/dashboards`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags dashboards
+     * @name DashboardsCreate
+     * @summary create a new dashboard
+     * @request POST:/dashboards
+     */
+    dashboardsCreate: (data: ServerCreateDashboardRequest, params: RequestParams = {}) =>
+      this.request<ServerFetchDashboardResponse, ServerAPIStatus>({
+        path: `/dashboards`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags dashboards
+     * @name DashboardsDetail
+     * @summary fetch dashboard
+     * @request GET:/dashboards/{reference}
+     */
+    dashboardsDetail: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerListDashboardChartsResponse, ServerAPIStatus>({
+        path: `/dashboards/${reference}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags dashboards
+     * @name ChartsUpdate
+     * @summary add a chart to a dashboard
+     * @request PUT:/dashboards/{reference}/charts
+     */
+    chartsUpdate: (reference: string, data: ServerAddChartToDashboardRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/dashboards/${reference}/charts`,
+        method: "PUT",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags dashboards
+     * @name ChartsList
+     * @summary List charts
+     * @request GET:/dashboards/charts
+     */
+    chartsList: (params: RequestParams = {}) =>
+      this.request<ServerListIntegrationChartsResponse, ServerAPIStatus>({
+        path: `/dashboards/charts`,
+        method: "GET",
         format: "json",
         ...params,
       }),

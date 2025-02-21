@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -19,16 +18,16 @@ func TestUpdates_Delete(t *testing.T) {
 	id := uuid.MustParse("0902ef67-903e-47b8-8f9d-111a9e0ca0c7")
 
 	// workspaces.yml testdata
-	updateByID, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
+	updateByID, err := updatesRepo.Get(t.Context(), malak.FetchUpdateOptions{
 		ID:          id,
 		Reference:   "update_NCox_gRNg",
 		WorkspaceID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
 	})
 	require.NoError(t, err)
 
-	require.NoError(t, updatesRepo.Delete(context.Background(), updateByID))
+	require.NoError(t, updatesRepo.Delete(t.Context(), updateByID))
 
-	_, err = updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
+	_, err = updatesRepo.Get(t.Context(), malak.FetchUpdateOptions{
 		ID:          id,
 		Reference:   "update_NCox_gRNg",
 		WorkspaceID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
@@ -44,7 +43,7 @@ func TestUpdates_Update(t *testing.T) {
 
 	updatesRepo := NewUpdatesRepository(client)
 
-	update, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
+	update, err := updatesRepo.Get(t.Context(), malak.FetchUpdateOptions{
 		Reference:   "update_O-54dq6IR",
 		WorkspaceID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
 	})
@@ -61,9 +60,9 @@ func TestUpdates_Update(t *testing.T) {
 
 	update.Content = updatedContent
 
-	require.NoError(t, updatesRepo.Update(context.Background(), update))
+	require.NoError(t, updatesRepo.Update(t.Context(), update))
 
-	updatedItem, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
+	updatedItem, err := updatesRepo.Get(t.Context(), malak.FetchUpdateOptions{
 		Reference:   "update_O-54dq6IR",
 		WorkspaceID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
 	})
@@ -79,11 +78,11 @@ func TestUpdates_GetByID(t *testing.T) {
 
 	updatesRepo := NewUpdatesRepository(client)
 
-	_, err := updatesRepo.GetByID(context.Background(),
+	_, err := updatesRepo.GetByID(t.Context(),
 		uuid.MustParse("07b0c648-12fd-44fc-a280-946de2700e65"))
 	require.NoError(t, err)
 
-	_, err = updatesRepo.GetByID(context.Background(), uuid.New())
+	_, err = updatesRepo.GetByID(t.Context(), uuid.New())
 	require.Error(t, err)
 	require.Equal(t, err, malak.ErrUpdateNotFound)
 }
@@ -95,20 +94,20 @@ func TestUpdates_Get(t *testing.T) {
 
 	updatesRepo := NewUpdatesRepository(client)
 
-	_, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
+	_, err := updatesRepo.Get(t.Context(), malak.FetchUpdateOptions{
 		Reference:   "update_O-54dq6IR",
 		WorkspaceID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
 	})
 	require.NoError(t, err)
 
-	updateByID, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
+	updateByID, err := updatesRepo.Get(t.Context(), malak.FetchUpdateOptions{
 		ID:          uuid.MustParse("07b0c648-12fd-44fc-a280-946de2700e65"),
 		Reference:   "update_O-54dq6IR",
 		WorkspaceID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
 	})
 	require.NoError(t, err)
 
-	update, err := updatesRepo.Get(context.Background(), malak.FetchUpdateOptions{
+	update, err := updatesRepo.Get(t.Context(), malak.FetchUpdateOptions{
 		Status:      malak.UpdateStatusDraft,
 		ID:          uuid.MustParse("07b0c648-12fd-44fc-a280-946de2700e65"),
 		Reference:   "update_O-54dq6IR",
@@ -129,13 +128,13 @@ func TestUpdates_StatUpdate(t *testing.T) {
 	workspaceRepo := NewWorkspaceRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
 
 	// from workspaces.yml migration
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
@@ -148,18 +147,18 @@ func TestUpdates_StatUpdate(t *testing.T) {
 		Reference:   "update_ifjfkjfo",
 	}
 
-	err = updatesRepo.Create(context.Background(), update)
+	err = updatesRepo.Create(t.Context(), update)
 	require.NoError(t, err)
 
-	stat, err := updatesRepo.Stat(context.Background(), update)
+	stat, err := updatesRepo.Stat(t.Context(), update)
 	require.NoError(t, err)
 
 	require.Equal(t, int64(0), stat.TotalOpens)
 
 	stat.TotalOpens = 10
-	require.NoError(t, updatesRepo.UpdateStat(context.Background(), stat, nil))
+	require.NoError(t, updatesRepo.UpdateStat(t.Context(), stat, nil))
 
-	newStat, err := updatesRepo.Stat(context.Background(), update)
+	newStat, err := updatesRepo.Stat(t.Context(), update)
 	require.NoError(t, err)
 
 	require.Equal(t, int64(10), newStat.TotalOpens)
@@ -175,13 +174,13 @@ func TestUpdates_Stat(t *testing.T) {
 	workspaceRepo := NewWorkspaceRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
 
 	// from workspaces.yml migration
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
@@ -194,10 +193,10 @@ func TestUpdates_Stat(t *testing.T) {
 		Reference:   "update_ifjfkjfo",
 	}
 
-	err = updatesRepo.Create(context.Background(), update)
+	err = updatesRepo.Create(t.Context(), update)
 	require.NoError(t, err)
 
-	_, err = updatesRepo.Stat(context.Background(), update)
+	_, err = updatesRepo.Stat(t.Context(), update)
 	require.NoError(t, err)
 }
 
@@ -211,18 +210,18 @@ func TestUpdates_Create(t *testing.T) {
 	workspaceRepo := NewWorkspaceRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
 
 	// from workspaces.yml migration
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
 
-	err = updatesRepo.Create(context.Background(), &malak.Update{
+	err = updatesRepo.Create(t.Context(), &malak.Update{
 		WorkspaceID: workspace.ID,
 		Status:      malak.UpdateStatusDraft,
 		CreatedBy:   user.ID,
@@ -242,19 +241,19 @@ func TestUpdates_List(t *testing.T) {
 	workspaceRepo := NewWorkspaceRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
 	require.NotNil(t, user)
 
 	// from workspaces.yml migration
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
 
-	updates, total, err := updatesRepo.List(context.Background(), malak.ListUpdateOptions{
+	updates, total, err := updatesRepo.List(t.Context(), malak.ListUpdateOptions{
 		WorkspaceID: workspace.ID,
 		Status:      malak.ListUpdateFilterStatusAll,
 	})
@@ -263,7 +262,7 @@ func TestUpdates_List(t *testing.T) {
 	require.Len(t, updates, 0)
 	require.Equal(t, int64(0), total)
 
-	err = updatesRepo.Create(context.Background(), &malak.Update{
+	err = updatesRepo.Create(t.Context(), &malak.Update{
 		WorkspaceID: workspace.ID,
 		Status:      malak.UpdateStatusDraft,
 		CreatedBy:   user.ID,
@@ -272,7 +271,7 @@ func TestUpdates_List(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	updates, total, err = updatesRepo.List(context.Background(), malak.ListUpdateOptions{
+	updates, total, err = updatesRepo.List(t.Context(), malak.ListUpdateOptions{
 		WorkspaceID: workspace.ID,
 		Status:      malak.ListUpdateFilterStatusAll,
 	})
@@ -292,13 +291,13 @@ func TestUpdates_TogglePinned(t *testing.T) {
 	workspaceRepo := NewWorkspaceRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
 
 	// from workspaces.yml migration
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
@@ -307,7 +306,7 @@ func TestUpdates_TogglePinned(t *testing.T) {
 
 	// add 3 pinnned updates
 	for i := 0; i <= 3; i++ {
-		err = updatesRepo.Create(context.Background(), &malak.Update{
+		err = updatesRepo.Create(t.Context(), &malak.Update{
 			WorkspaceID: workspace.ID,
 			Status:      malak.UpdateStatusDraft,
 			CreatedBy:   user.ID,
@@ -328,11 +327,11 @@ func TestUpdates_TogglePinned(t *testing.T) {
 		Reference:   ref,
 	}
 
-	err = updatesRepo.Create(context.Background(), update)
+	err = updatesRepo.Create(t.Context(), update)
 	require.NoError(t, err)
 
 	// cannot add a 4th pinned item
-	err = updatesRepo.TogglePinned(context.Background(), update)
+	err = updatesRepo.TogglePinned(t.Context(), update)
 	require.Error(t, err)
 	require.Equal(t, malak.ErrPinnedUpdateCapacityExceeded, err)
 }
@@ -347,13 +346,13 @@ func TestUpdates_SendUpdate(t *testing.T) {
 	workspaceRepo := NewWorkspaceRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
 
 	// from workspaces.yml migration
-	workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
@@ -369,10 +368,10 @@ func TestUpdates_SendUpdate(t *testing.T) {
 		IsPinned:    true,
 	}
 
-	err = updatesRepo.Create(context.Background(), update)
+	err = updatesRepo.Create(t.Context(), update)
 	require.NoError(t, err)
 
-	err = updatesRepo.SendUpdate(context.Background(), &malak.CreateUpdateOptions{
+	err = updatesRepo.SendUpdate(t.Context(), &malak.CreateUpdateOptions{
 		Reference: func(et malak.EntityType) string {
 			return string(refGenerator.Generate(et))
 		},
@@ -405,20 +404,20 @@ func TestUpdates_ListPinned(t *testing.T) {
 		workspaceRepo := NewWorkspaceRepository(client)
 
 		// user from the fixtures
-		user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+		user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 			Email: "lanre@test.com",
 		})
 		require.NoError(t, err)
 		require.NotNil(t, user)
 
 		// from workspaces.yml migration
-		workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 			ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 		})
 		require.NoError(t, err)
 
 		for range []int{0, 1, 2, 3, 4, 5} {
-			err = updatesRepo.Create(context.Background(), &malak.Update{
+			err = updatesRepo.Create(t.Context(), &malak.Update{
 				WorkspaceID: workspace.ID,
 				Status:      malak.UpdateStatusDraft,
 				CreatedBy:   user.ID,
@@ -428,7 +427,7 @@ func TestUpdates_ListPinned(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		updates, err := updatesRepo.ListPinned(context.Background(), workspace.ID)
+		updates, err := updatesRepo.ListPinned(t.Context(), workspace.ID)
 		require.NoError(t, err)
 		require.Len(t, updates, 0)
 	})
@@ -443,14 +442,14 @@ func TestUpdates_ListPinned(t *testing.T) {
 		workspaceRepo := NewWorkspaceRepository(client)
 
 		// user from the fixtures
-		user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+		user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 			Email: "lanre@test.com",
 		})
 		require.NoError(t, err)
 		require.NotNil(t, user)
 
 		// from workspaces.yml migration
-		workspace, err := workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 			ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 		})
 		require.NoError(t, err)
@@ -464,10 +463,10 @@ func TestUpdates_ListPinned(t *testing.T) {
 				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeUpdate),
 			}
 
-			err = updatesRepo.Create(context.Background(), update)
+			err = updatesRepo.Create(t.Context(), update)
 			require.NoError(t, err)
 
-			require.NoError(t, updatesRepo.TogglePinned(context.Background(), update))
+			require.NoError(t, updatesRepo.TogglePinned(t.Context(), update))
 		}
 
 		update := &malak.Update{
@@ -478,13 +477,13 @@ func TestUpdates_ListPinned(t *testing.T) {
 			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeUpdate),
 		}
 
-		err = updatesRepo.Create(context.Background(), update)
+		err = updatesRepo.Create(t.Context(), update)
 		require.NoError(t, err)
 
 		// max 5 have been added as pinned items
-		require.Error(t, updatesRepo.TogglePinned(context.Background(), update))
+		require.Error(t, updatesRepo.TogglePinned(t.Context(), update))
 
-		updates, err := updatesRepo.ListPinned(context.Background(), workspace.ID)
+		updates, err := updatesRepo.ListPinned(t.Context(), workspace.ID)
 		require.NoError(t, err)
 		require.Len(t, updates, malak.MaximumNumberOfPinnedUpdates)
 	})
@@ -497,7 +496,7 @@ func TestUpdates_GetStatByEmailID(t *testing.T) {
 
 	updatesRepo := NewUpdatesRepository(client)
 
-	_, _, err := updatesRepo.GetStatByEmailID(context.Background(),
+	_, _, err := updatesRepo.GetStatByEmailID(t.Context(),
 		"random", malak.UpdateRecipientLogProviderResend)
 	require.Error(t, err)
 }

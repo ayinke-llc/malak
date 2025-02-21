@@ -1,7 +1,6 @@
 package vault
 
 import (
-	"context"
 	"testing"
 
 	"github.com/ayinke-llc/malak/config"
@@ -13,7 +12,7 @@ import (
 )
 
 func TestCreateAndGetSecret(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	vaultContainer, err := vault.Run(ctx,
 		"hashicorp/vault:1.18.4",
@@ -53,7 +52,7 @@ func TestCreateAndGetSecret(t *testing.T) {
 }
 
 func TestCreateAndGetNonexistentSecret(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	vaultContainer, err := vault.Run(ctx,
 		"hashicorp/vault:1.18.4",

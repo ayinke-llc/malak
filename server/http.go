@@ -31,6 +31,7 @@ func New(logger *zap.Logger,
 	db *bun.DB,
 	jwtTokenManager jwttoken.JWTokenManager,
 	googleAuthProvider socialauth.SocialAuthProvider,
+	dashboardRepo malak.DashboardRepository,
 	userRepo malak.UserRepository,
 	workspaceRepo malak.WorkspaceRepository,
 	planRepo malak.PlanRepository,
@@ -56,6 +57,7 @@ func New(logger *zap.Logger,
 
 	srv := &http.Server{
 		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
+			dashboardRepo,
 			userRepo, workspaceRepo, planRepo,
 			contactRepo, updateRepo, contactListRepo,
 			deckRepo, shareRepo, preferenceRepo, integrationRepo,
@@ -93,6 +95,7 @@ func buildRoutes(
 	_ *bun.DB,
 	cfg config.Config,
 	jwtTokenManager jwttoken.JWTokenManager,
+	dashboardRepo malak.DashboardRepository,
 	userRepo malak.UserRepository,
 	workspaceRepo malak.WorkspaceRepository,
 	planRepo malak.PlanRepository,
@@ -195,6 +198,13 @@ func buildRoutes(
 		cache:              redisCache,
 		deckRepo:           deckRepo,
 		cfg:                cfg,
+	}
+
+	dashHandler := &dashboardHandler{
+		cfg:             cfg,
+		dashboardRepo:   dashboardRepo,
+		generator:       referenceGenerator,
+		integrationRepo: integrationRepo,
 	}
 
 	router.Use(middleware.RequestID)
@@ -369,6 +379,26 @@ func buildRoutes(
 			r.Post("/{reference}/pin",
 				WrapMalakHTTPHandler(logger, deckHandler.togglePinned, cfg, "decks.togglePinned"))
 
+		})
+
+		r.Route("/dashboards", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
+
+			r.Post("/",
+				WrapMalakHTTPHandler(logger, dashHandler.create, cfg, "dashboards.create"))
+
+			r.Get("/",
+				WrapMalakHTTPHandler(logger, dashHandler.list, cfg, "dashboards.list"))
+
+			r.Get("/charts",
+				WrapMalakHTTPHandler(logger, dashHandler.listAllCharts, cfg, "dashboards.list.charts"))
+
+			r.Get("/{reference}",
+				WrapMalakHTTPHandler(logger, dashHandler.fetchDashboard, cfg, "dashboards.fetch"))
+
+			r.Put("/{reference}/charts",
+				WrapMalakHTTPHandler(logger, dashHandler.addChart, cfg, "dashboards.charts.add"))
 		})
 
 		r.Route("/uploads", func(r chi.Router) {

@@ -14,6 +14,7 @@ import (
 	reflect "reflect"
 
 	malak "github.com/ayinke-llc/malak"
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -194,6 +195,21 @@ func (mr *MockIntegrationRepositoryMockRecorder) Get(arg0, arg1 any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockIntegrationRepository)(nil).Get), arg0, arg1)
 }
 
+// GetChart mocks base method.
+func (m *MockIntegrationRepository) GetChart(arg0 context.Context, arg1 malak.FetchChartOptions) (malak.IntegrationChart, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetChart", arg0, arg1)
+	ret0, _ := ret[0].(malak.IntegrationChart)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetChart indicates an expected call of GetChart.
+func (mr *MockIntegrationRepositoryMockRecorder) GetChart(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChart", reflect.TypeOf((*MockIntegrationRepository)(nil).GetChart), arg0, arg1)
+}
+
 // List mocks base method.
 func (m *MockIntegrationRepository) List(arg0 context.Context, arg1 *malak.Workspace) ([]malak.WorkspaceIntegration, error) {
 	m.ctrl.T.Helper()
@@ -207,6 +223,21 @@ func (m *MockIntegrationRepository) List(arg0 context.Context, arg1 *malak.Works
 func (mr *MockIntegrationRepositoryMockRecorder) List(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockIntegrationRepository)(nil).List), arg0, arg1)
+}
+
+// ListCharts mocks base method.
+func (m *MockIntegrationRepository) ListCharts(arg0 context.Context, arg1 uuid.UUID) ([]malak.IntegrationChart, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListCharts", arg0, arg1)
+	ret0, _ := ret[0].([]malak.IntegrationChart)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListCharts indicates an expected call of ListCharts.
+func (mr *MockIntegrationRepositoryMockRecorder) ListCharts(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCharts", reflect.TypeOf((*MockIntegrationRepository)(nil).ListCharts), arg0, arg1)
 }
 
 // System mocks base method.

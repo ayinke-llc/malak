@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"context"
 	"testing"
 
 	"github.com/ayinke-llc/malak"
@@ -15,14 +14,14 @@ func TestShare_All(t *testing.T) {
 	shareRepo := NewShareRepository(client)
 	contactRepo := NewContactRepository(client)
 
-	contact, err := contactRepo.Get(context.Background(), malak.FetchContactOptions{
+	contact, err := contactRepo.Get(t.Context(), malak.FetchContactOptions{
 		Reference:   "contact_kCoC286IR", // contacts.yml
 		WorkspaceID: workspaceID,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, contact)
 
-	sharedContacts, err := shareRepo.All(context.Background(), contact)
+	sharedContacts, err := shareRepo.All(t.Context(), contact)
 	require.NoError(t, err)
 	require.Len(t, sharedContacts, 0)
 }

@@ -1,7 +1,6 @@
 package stripe
 
 import (
-	"context"
 	"os"
 	"testing"
 
@@ -46,17 +45,17 @@ func TestCreate_Integration(t *testing.T) {
 		Name:  faker.Name(),
 	}
 
-	customerID, err := stripeClient.CreateCustomer(context.Background(), opts)
+	customerID, err := stripeClient.CreateCustomer(t.Context(), opts)
 	require.NoError(t, err)
 	require.NotEmpty(t, customerID)
 
-	billingURL, err := stripeClient.Portal(context.Background(), &billing.CreateBillingPortalOptions{
+	billingURL, err := stripeClient.Portal(t.Context(), &billing.CreateBillingPortalOptions{
 		CustomerID: customerID,
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, billingURL)
 
-	subscriptionID, err := stripeClient.AddPlanToCustomer(context.Background(), &billing.AddPlanToCustomerOptions{
+	subscriptionID, err := stripeClient.AddPlanToCustomer(t.Context(), &billing.AddPlanToCustomerOptions{
 		Workspace: &malak.Workspace{
 			ID:               uuid.New(),
 			StripeCustomerID: customerID,

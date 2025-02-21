@@ -175,6 +175,7 @@ func (i *integrationRepo) CreateCharts(ctx context.Context,
 				Metadata: malak.IntegrationChartMetadata{
 					ProviderID: value.ProviderID,
 				},
+				ChartType: value.ChartType,
 			}
 
 			_, err := tx.NewInsert().Model(chart).
@@ -237,4 +238,39 @@ func (i *integrationRepo) AddDataPoint(ctx context.Context,
 
 		return nil
 	})
+}
+
+func (i *integrationRepo) ListCharts(ctx context.Context,
+	workspaceID uuid.UUID) ([]malak.IntegrationChart, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	charts := make([]malak.IntegrationChart, 0)
+
+	return charts, i.inner.NewSelect().
+		Model(&charts).
+		Where("workspace_id = ?", workspaceID).
+		Order("created_at ASC").
+		Scan(ctx)
+}
+
+func (i *integrationRepo) GetChart(ctx context.Context,
+	opts malak.FetchChartOptions) (malak.IntegrationChart, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	chart := malak.IntegrationChart{}
+
+	err := i.inner.NewSelect().
+		Model(&chart).
+		Where("workspace_id = ?", opts.WorkspaceID).
+		Where("reference = ?", opts.Reference).
+		Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = malak.ErrChartNotFound
+	}
+
+	return chart, err
 }

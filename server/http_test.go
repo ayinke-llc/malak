@@ -32,6 +32,7 @@ func TestServer_New(t *testing.T) {
 
 		srv, closeFn := New(getLogger(t), cfg, &bun.DB{},
 			jwttoken.New(cfg), socialauth.NewGoogle(cfg),
+			malak_mocks.NewMockDashboardRepository(controller),
 			malak_mocks.NewMockUserRepository(controller),
 			malak_mocks.NewMockWorkspaceRepository(controller),
 			malak_mocks.NewMockPlanRepository(controller),
@@ -77,6 +78,7 @@ func TestServer_New(t *testing.T) {
 
 		srv, closeFn := New(getLogger(t), cfg, &bun.DB{},
 			jwttoken.New(cfg), socialauth.NewGoogle(cfg),
+			malak_mocks.NewMockDashboardRepository(controller),
 			malak_mocks.NewMockUserRepository(controller),
 			malak_mocks.NewMockWorkspaceRepository(controller),
 			malak_mocks.NewMockPlanRepository(controller),
@@ -138,6 +140,7 @@ func TestNew(t *testing.T) {
 	db := &bun.DB{}
 
 	srv, closeFn := New(logger, cfg, db, jwttoken.New(cfg), socialauth.NewGoogle(cfg),
+		malak_mocks.NewMockDashboardRepository(controller),
 		userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
 		contactListRepo, deckRepo, contactShareRepo, preferenceRepo,
 		integrationRepo, &httplimit.Middleware{}, &gulter.Gulter{}, queueRepo, cacheRepo,
@@ -175,6 +178,7 @@ func TestNewWithInvalidConfig(t *testing.T) {
 	db := &bun.DB{}
 
 	srv, closeFn := New(logger, cfg, db, jwttoken.New(cfg), socialauth.NewGoogle(cfg),
+		malak_mocks.NewMockDashboardRepository(controller),
 		userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
 		contactListRepo, deckRepo, contactShareRepo, preferenceRepo,
 		integrationRepo, &httplimit.Middleware{}, &gulter.Gulter{}, queueRepo, cacheRepo,

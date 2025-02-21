@@ -86,7 +86,7 @@
     "react-resizable-panels": "^2.1.6",
     "react-select": "^5.8.0",
     "react-window": "^1.8.10",
-    "recharts": "^2.13.3",
+    "recharts": "^2.15.1",
     "sonner": "^1.7.0",
     "swagger-typescript-api": "^13.0.22",
     "tailwind-merge": "^2.5.4",

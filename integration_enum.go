@@ -12,6 +12,50 @@ import (
 )
 
 const (
+	// IntegrationChartFrequencyTypeDaily is a IntegrationChartFrequencyType of type Daily.
+	IntegrationChartFrequencyTypeDaily IntegrationChartFrequencyType = iota
+	// IntegrationChartFrequencyTypeMonthly is a IntegrationChartFrequencyType of type Monthly.
+	IntegrationChartFrequencyTypeMonthly
+)
+
+var ErrInvalidIntegrationChartFrequencyType = errors.New("not a valid IntegrationChartFrequencyType")
+
+const _IntegrationChartFrequencyTypeName = "dailymonthly"
+
+var _IntegrationChartFrequencyTypeMap = map[IntegrationChartFrequencyType]string{
+	IntegrationChartFrequencyTypeDaily:   _IntegrationChartFrequencyTypeName[0:5],
+	IntegrationChartFrequencyTypeMonthly: _IntegrationChartFrequencyTypeName[5:12],
+}
+
+// String implements the Stringer interface.
+func (x IntegrationChartFrequencyType) String() string {
+	if str, ok := _IntegrationChartFrequencyTypeMap[x]; ok {
+		return str
+	}
+	return fmt.Sprintf("IntegrationChartFrequencyType(%d)", x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x IntegrationChartFrequencyType) IsValid() bool {
+	_, ok := _IntegrationChartFrequencyTypeMap[x]
+	return ok
+}
+
+var _IntegrationChartFrequencyTypeValue = map[string]IntegrationChartFrequencyType{
+	_IntegrationChartFrequencyTypeName[0:5]:  IntegrationChartFrequencyTypeDaily,
+	_IntegrationChartFrequencyTypeName[5:12]: IntegrationChartFrequencyTypeMonthly,
+}
+
+// ParseIntegrationChartFrequencyType attempts to convert a string to a IntegrationChartFrequencyType.
+func ParseIntegrationChartFrequencyType(name string) (IntegrationChartFrequencyType, error) {
+	if x, ok := _IntegrationChartFrequencyTypeValue[name]; ok {
+		return x, nil
+	}
+	return IntegrationChartFrequencyType(0), fmt.Errorf("%s is %w", name, ErrInvalidIntegrationChartFrequencyType)
+}
+
+const (
 	// IntegrationChartInternalNameTypeMercuryAccount is a IntegrationChartInternalNameType of type mercury_account.
 	IntegrationChartInternalNameTypeMercuryAccount IntegrationChartInternalNameType = "mercury_account"
 	// IntegrationChartInternalNameTypeMercuryAccountTransaction is a IntegrationChartInternalNameType of type mercury_account_transaction.
@@ -49,6 +93,40 @@ func ParseIntegrationChartInternalNameType(name string) (IntegrationChartInterna
 		return x, nil
 	}
 	return IntegrationChartInternalNameType(""), fmt.Errorf("%s is %w", name, ErrInvalidIntegrationChartInternalNameType)
+}
+
+const (
+	// IntegrationChartTypeBar is a IntegrationChartType of type bar.
+	IntegrationChartTypeBar IntegrationChartType = "bar"
+	// IntegrationChartTypePie is a IntegrationChartType of type pie.
+	IntegrationChartTypePie IntegrationChartType = "pie"
+)
+
+var ErrInvalidIntegrationChartType = errors.New("not a valid IntegrationChartType")
+
+// String implements the Stringer interface.
+func (x IntegrationChartType) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x IntegrationChartType) IsValid() bool {
+	_, err := ParseIntegrationChartType(string(x))
+	return err == nil
+}
+
+var _IntegrationChartTypeValue = map[string]IntegrationChartType{
+	"bar": IntegrationChartTypeBar,
+	"pie": IntegrationChartTypePie,
+}
+
+// ParseIntegrationChartType attempts to convert a string to a IntegrationChartType.
+func ParseIntegrationChartType(name string) (IntegrationChartType, error) {
+	if x, ok := _IntegrationChartTypeValue[name]; ok {
+		return x, nil
+	}
+	return IntegrationChartType(""), fmt.Errorf("%s is %w", name, ErrInvalidIntegrationChartType)
 }
 
 const (

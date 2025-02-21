@@ -1,4 +1,4 @@
-FROM golang:1.23 AS build-env
+FROM golang:1.24 AS build-env
 WORKDIR /go/malak
 
 LABEL org.opencontainers.image.description="Open source Investors' relationship hub for Founders"

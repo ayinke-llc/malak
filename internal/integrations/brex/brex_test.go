@@ -1,7 +1,6 @@
 package brex
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -72,7 +71,7 @@ func TestBrexClient_Ping(t *testing.T) {
 			require.NoError(t, err)
 			defer client.Close()
 
-			charts, err := client.Ping(context.Background(), tt.token)
+			charts, err := client.Ping(t.Context(), tt.token)
 			if tt.wantErr {
 				require.Error(t, err)
 				require.Contains(t, err.Error(), tt.errMessage)
@@ -119,7 +118,7 @@ func TestBrexClient_buildRequest(t *testing.T) {
 			require.NoError(t, err)
 			brexClient := client.(*brexClient)
 
-			req, span, err := brexClient.buildRequest(context.Background(), tt.token, tt.spanName, tt.endpoint)
+			req, span, err := brexClient.buildRequest(t.Context(), tt.token, tt.spanName, tt.endpoint)
 			if tt.wantErr {
 				require.Error(t, err)
 				require.Contains(t, err.Error(), tt.errMessage)
@@ -188,7 +187,7 @@ func TestBrexClient_Data(t *testing.T) {
 			require.NoError(t, err)
 			defer client.Close()
 
-			dataPoints, err := client.Data(context.Background(), tt.token, tt.opts)
+			dataPoints, err := client.Data(t.Context(), tt.token, tt.opts)
 			if tt.wantErr {
 				require.Error(t, err)
 				require.Contains(t, err.Error(), tt.errMessage)

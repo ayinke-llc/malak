@@ -60,8 +60,9 @@ type PlanMetadata struct {
 	} `json:"integrations,omitempty"`
 
 	Dashboard struct {
-		ShareDashboardViaLink bool `json:"share_dashboard_via_link,omitempty"`
-		EmbedDashboard        bool `json:"embed_dashboard,omitempty"`
+		ShareDashboardViaLink bool    `json:"share_dashboard_via_link,omitempty"`
+		EmbedDashboard        bool    `json:"embed_dashboard,omitempty"`
+		MaxChartsPerDashboard Counter `json:"max_charts_per_dashboard,omitempty"`
 	} `json:"dashboard,omitempty"`
 
 	DataRoom struct {

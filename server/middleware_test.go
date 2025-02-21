@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -185,7 +184,7 @@ func TestHTTPThrottleKeyFunc(t *testing.T) {
 
 func TestContextHelpers(t *testing.T) {
 	t.Run("user context", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		user := &malak.User{ID: uuid.New()}
 
 		// Test writing and reading user
@@ -195,7 +194,7 @@ func TestContextHelpers(t *testing.T) {
 	})
 
 	t.Run("workspace context", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 		workspace := &malak.Workspace{ID: uuid.New()}
 
 		// Test writing and reading workspace

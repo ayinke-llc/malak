@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -106,14 +105,14 @@ func setupDatabase(t *testing.T) (*bun.DB, func()) {
 	}
 
 	dbContainer, err := testcontainers.GenericContainer(
-		context.Background(),
+		t.Context(),
 		testcontainers.GenericContainerRequest{
 			ContainerRequest: containerReq,
 			Started:          true,
 		})
 	require.NoError(t, err)
 
-	port, err := dbContainer.MappedPort(context.Background(), "5432")
+	port, err := dbContainer.MappedPort(t.Context(), "5432")
 	require.NoError(t, err)
 
 	dsn = fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", "malaktest", "malaktest",
@@ -128,7 +127,7 @@ func setupDatabase(t *testing.T) (*bun.DB, func()) {
 	require.NoError(t, err)
 
 	return db, func() {
-		err := dbContainer.Terminate(context.Background())
+		err := dbContainer.Terminate(t.Context())
 		require.NoError(t, err)
 	}
 }

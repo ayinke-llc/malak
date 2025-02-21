@@ -77,6 +77,23 @@ type listUpdateResponse struct {
 	APIStatus
 }
 
+type listIntegrationChartsResponse struct {
+	Charts []malak.IntegrationChart `json:"charts,omitempty" validate:"required"`
+	APIStatus
+}
+
+type listDashboardChartsResponse struct {
+	Charts    []malak.DashboardChart `json:"charts,omitempty" validate:"required"`
+	Dashboard malak.Dashboard        `json:"dashboard,omitempty" validate:"required"`
+	APIStatus
+}
+
+type listDashboardResponse struct {
+	Meta       meta              `json:"meta,omitempty" validate:"required"`
+	Dashboards []malak.Dashboard `json:"dashboards,omitempty" validate:"required"`
+	APIStatus
+}
+
 type uploadImageResponse struct {
 	URL string `json:"url,omitempty" validate:"required"`
 	APIStatus
@@ -139,5 +156,10 @@ type listIntegrationResponse struct {
 
 type fetchBillingPortalResponse struct {
 	Link string `json:"link,omitempty" validate:"required"`
+	APIStatus
+}
+
+type fetchDashboardResponse struct {
+	Dashboard malak.Dashboard `json:"dashboard,omitempty" validate:"required"`
 	APIStatus
 }

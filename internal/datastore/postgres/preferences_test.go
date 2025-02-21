@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"context"
 	"testing"
 
 	"github.com/ayinke-llc/malak"
@@ -25,12 +24,12 @@ func TestPreferences_Get(t *testing.T) {
 		planRepo := NewPlanRepository(client)
 
 		// user from the fixtures
-		user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+		user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 			Email: "lanre@test.com",
 		})
 		require.NoError(t, err)
 
-		plan, err := planRepo.Get(context.Background(), &malak.FetchPlanOptions{
+		plan, err := planRepo.Get(t.Context(), &malak.FetchPlanOptions{
 			Reference: "prod_QmtErtydaJZymT",
 		})
 		require.NoError(t, err)
@@ -40,9 +39,9 @@ func TestPreferences_Get(t *testing.T) {
 			Workspace: malak.NewWorkspace("oops", user, plan, malak.GenerateReference(malak.EntityTypeWorkspace)),
 		}
 
-		require.NoError(t, repo.Create(context.Background(), opts))
+		require.NoError(t, repo.Create(t.Context(), opts))
 
-		pref, err := prefRepo.Get(context.Background(), opts.Workspace)
+		pref, err := prefRepo.Get(t.Context(), opts.Workspace)
 		require.NoError(t, err)
 
 		require.True(t, pref.Communication.EnableMarketing)
@@ -56,7 +55,7 @@ func TestPreferences_Get(t *testing.T) {
 
 		prefRepo := NewPreferenceRepository(client)
 
-		_, err := prefRepo.Get(context.Background(), &malak.Workspace{
+		_, err := prefRepo.Get(t.Context(), &malak.Workspace{
 			ID: uuid.New(),
 		})
 		require.Error(t, err)
@@ -77,12 +76,12 @@ func TestPreferences_Update(t *testing.T) {
 	planRepo := NewPlanRepository(client)
 
 	// user from the fixtures
-	user, err := userRepo.Get(context.Background(), &malak.FindUserOptions{
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
 
-	plan, err := planRepo.Get(context.Background(), &malak.FetchPlanOptions{
+	plan, err := planRepo.Get(t.Context(), &malak.FetchPlanOptions{
 		Reference: "prod_QmtErtydaJZymT",
 	})
 	require.NoError(t, err)
@@ -92,21 +91,18 @@ func TestPreferences_Update(t *testing.T) {
 		Workspace: malak.NewWorkspace("oops", user, plan, malak.GenerateReference(malak.EntityTypeWorkspace)),
 	}
 
-	require.NoError(t, repo.Create(context.Background(), opts))
+	require.NoError(t, repo.Create(t.Context(), opts))
 
-	pref, err := prefRepo.Get(context.Background(), opts.Workspace)
+	pref, err := prefRepo.Get(t.Context(), opts.Workspace)
 	require.NoError(t, err)
 
 	require.True(t, pref.Communication.EnableMarketing)
 	require.True(t, pref.Communication.EnableProductUpdates)
 
-	//////////
-	// Update the pref now
-
 	pref.Communication.EnableMarketing = false
-	require.NoError(t, prefRepo.Update(context.Background(), pref))
+	require.NoError(t, prefRepo.Update(t.Context(), pref))
 
-	newPref, err := prefRepo.Get(context.Background(), opts.Workspace)
+	newPref, err := prefRepo.Get(t.Context(), opts.Workspace)
 	require.NoError(t, err)
 
 	require.False(t, newPref.Communication.EnableMarketing)

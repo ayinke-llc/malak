@@ -1,7 +1,6 @@
 package rediscache
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -14,7 +13,7 @@ import (
 )
 
 func setupRedis(t *testing.T) (*redis.Client, func()) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	redisContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
@@ -58,7 +57,7 @@ func TestAdd(t *testing.T) {
 	c, err := New(redisClient)
 	require.NoError(t, err)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	key := "testKey"
 	payload := []byte("testPayload")
 	ttl := time.Hour
@@ -84,7 +83,7 @@ func TestExists(t *testing.T) {
 	c, err := New(redisClient)
 	require.NoError(t, err)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	key := "testKey"
 	payload := []byte("testPayload")
 	ttl := time.Hour
@@ -112,7 +111,7 @@ func TestExistsError(t *testing.T) {
 	c, err := New(redisClient)
 	require.NoError(t, err)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	key := "testKey"
 
 	// Close Redis connection to simulate error

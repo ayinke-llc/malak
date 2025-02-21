@@ -1,7 +1,6 @@
 package infisical
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -110,7 +109,7 @@ func TestInfisicalClientInitialization(t *testing.T) {
 
 func TestInfisicalClient(t *testing.T) {
 	t.Skip("INFISICAL IS SO HARD TO RUN. NEED TO READ DOCS later for api endpoint, it seems they mapped it somehwere else")
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Create a Docker network
 	//nolint:staticcheck

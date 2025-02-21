@@ -2,6 +2,7 @@ import {
   RiArchiveStackLine,
   RiBook3Line,
   RiContactsLine,
+  RiDashboardHorizontalLine,
   RiHome2Line,
   RiMoneyDollarCircleLine,
   RiPieChartLine,
@@ -31,6 +32,16 @@ export const links = [
     icon: RiContactsLine,
   },
   {
+    title: "Integrations",
+    url: "/integrations",
+    icon: RiPlug2Line
+  },
+  {
+    title: "Data Dashboards",
+    url: "/dashboards",
+    icon: RiDashboardHorizontalLine
+  },
+  {
     title: "Fundraising",
     url: "/fundraising",
     icon: RiMoneyDollarCircleLine,
@@ -39,11 +50,6 @@ export const links = [
     title: "Captable",
     url: "/captable",
     icon: RiPieChartLine,
-  },
-  {
-    title: "Integrations",
-    url: "/integrations",
-    icon: RiPlug2Line
   },
   {
     title: "Settings",
