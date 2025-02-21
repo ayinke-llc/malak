@@ -152,16 +152,6 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
             <h3 className="text-sm font-bold">{chart.chart.user_facing_name}</h3>
           </div>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="p-1.5 hover:bg-muted rounded-md">
-              <RiSettings4Line className="h-4 w-4 text-muted-foreground" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem className="text-destructive cursor-pointer">Remove from dashboard</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
       <div className="w-full">
         {hasNoData ? (
@@ -246,13 +236,20 @@ function SortableChartCard({ chart }: { chart: MalakDashboardChart }) {
       ref={setNodeRef} 
       style={style} 
       {...attributes}
-      className={`touch-none ${styles.sortableChart} ${isDragging ? styles.sortableChartDragging : ''}`}
+      {...listeners}
+      className={`touch-none ${styles.sortableChart} ${isDragging ? styles.sortableChartDragging : ''} cursor-grab active:cursor-grabbing`}
     >
-      <div 
-        {...listeners} 
-        className="absolute top-2 right-2 z-50 p-1.5 rounded-md hover:bg-muted cursor-grab active:cursor-grabbing group"
-      >
-        <RiDragMove2Line className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="absolute top-2 right-2 z-50">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="p-1.5 hover:bg-muted rounded-md" onClick={(e) => e.stopPropagation()}>
+              <RiSettings4Line className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem className="text-destructive cursor-pointer">Remove from dashboard</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       <ChartCard chart={chart} />
     </div>
