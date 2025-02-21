@@ -48,7 +48,7 @@ import client from "@/lib/client";
 import { LIST_CHARTS, DASHBOARD_DETAIL, FETCH_CHART_DATA_POINTS } from "@/lib/query-constants";
 import type {
   ServerAPIStatus, ServerListIntegrationChartsResponse,
-  ServerListDashboardChartsResponse, MalakDashboardChart
+  ServerListDashboardChartsResponse, MalakDashboardChart, MalakIntegrationDataPoint
 } from "@/client/Api";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
@@ -64,7 +64,7 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
     enabled: !!chart.chart?.reference,
   });
 
-  const getChartIcon = (type: string) => {
+  const getChartIcon = (type: string | undefined) => {
     switch (type) {
       case "bar":
         return <RiBarChart2Line className="h-4 w-4" />;
@@ -75,16 +75,23 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
     }
   };
 
-  const formatChartData = (dataPoints: any[] | undefined) => {
+  const formatChartData = (dataPoints: MalakIntegrationDataPoint[] | undefined): Array<{
+    name: string;
+    value: number;
+  }> => {
     if (!dataPoints) return [];
     
     // Transform data points into the format expected by recharts
-    return dataPoints.map(point => ({
-      name: point.point_name,
-      value: point.point_value,
-      // For bar charts, use a consistent key name
-      revenue: point.point_value,
-    }));
+    return dataPoints.map(point => {
+      const value = point.data_point_type === 'currency' 
+        ? (point.point_value || 0) / 100
+        : point.point_value || 0;
+
+      return {
+        name: point.point_name || '',
+        value,
+      };
+    });
   };
 
   if (!chart.chart) {
@@ -92,6 +99,29 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
   }
 
   const formattedData = formatChartData(chartData?.data_points);
+
+  if (isLoadingChartData) {
+    return (
+      <Card className="p-3">
+        <div className="flex items-center justify-center h-[160px]">
+          <RiLoader4Line className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="p-3">
+        <div className="flex flex-col items-center justify-center h-[160px] text-center p-4">
+          <RiBarChart2Line className="h-8 w-8 text-muted-foreground mb-2" />
+          <p className="text-sm text-muted-foreground">Failed to load chart data</p>
+          <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
+        </div>
+      </Card>
+    );
+  }
+
   const hasNoData = !formattedData || formattedData.length === 0;
 
   return (
@@ -99,11 +129,11 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <div className="text-muted-foreground">
-            {getChartIcon(chart.chart.chart_type || "bar")}
+            {getChartIcon(chart.chart.chart_type)}
           </div>
           <div>
             <h3 className="text-sm font-medium">{chart.chart.user_facing_name}</h3>
-            <p className="text-xs text-muted-foreground">{chart.chart.internal_name}</p>
+           
           </div>
         </div>
         <DropdownMenu>
@@ -120,17 +150,7 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
         </DropdownMenu>
       </div>
       <div className="w-full">
-        {isLoadingChartData ? (
-          <div className="flex items-center justify-center h-[160px]">
-            <RiLoader4Line className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center h-[160px] text-center p-4">
-            <RiBarChart2Line className="h-8 w-8 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground">Failed to load chart data</p>
-            <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
-          </div>
-        ) : hasNoData ? (
+        {hasNoData ? (
           <div className="flex flex-col items-center justify-center h-[160px] text-center p-4">
             <RiBarChart2Line className="h-8 w-8 text-muted-foreground mb-2" />
             <p className="text-sm text-muted-foreground">No data available</p>
@@ -142,8 +162,13 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
               <BarChart data={formattedData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
                 <XAxis dataKey="name" stroke="#888888" fontSize={11} />
                 <YAxis stroke="#888888" fontSize={11} />
-                <Tooltip />
-                <Bar dataKey="revenue" fill="#8884d8" radius={[4, 4, 0, 0]} />
+                <Tooltip formatter={(value: number) => {
+                  if (chartData?.data_points?.[0]?.data_point_type === 'currency') {
+                    return [`$${value.toFixed(2)}`, 'Value'];
+                  }
+                  return [value, 'Value'];
+                }} />
+                <Bar dataKey="value" fill="#8884d8" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
@@ -164,7 +189,12 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
                     <Cell key={`cell-${index}`} fill={`hsl(${index * 45}, 70%, 50%)`} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip formatter={(value: number) => {
+                  if (chartData?.data_points?.[0]?.data_point_type === 'currency') {
+                    return [`$${value.toFixed(2)}`, 'Value'];
+                  }
+                  return [value, 'Value'];
+                }} />
               </PieChart>
             </ResponsiveContainer>
           </ChartContainer>
