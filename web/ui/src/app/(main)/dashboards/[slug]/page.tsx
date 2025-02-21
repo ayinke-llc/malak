@@ -80,10 +80,10 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
     value: number;
   }> => {
     if (!dataPoints) return [];
-    
+
     // Transform data points into the format expected by recharts
     return dataPoints.map(point => {
-      const value = point.data_point_type === 'currency' 
+      const value = point.data_point_type === 'currency'
         ? (point.point_value || 0) / 100
         : point.point_value || 0;
 
@@ -132,8 +132,7 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
             {getChartIcon(chart.chart.chart_type)}
           </div>
           <div>
-            <h3 className="text-sm font-medium">{chart.chart.user_facing_name}</h3>
-           
+            <h3 className="text-sm font-bold">{chart.chart.user_facing_name}</h3>
           </div>
         </div>
         <DropdownMenu>
@@ -143,9 +142,7 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>Edit Chart</DropdownMenuItem>
-            <DropdownMenuItem>Duplicate</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive cursor-pointer">Remove from dashboard</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
