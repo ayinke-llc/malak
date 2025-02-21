@@ -376,9 +376,18 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {dashboardData.charts.map((chart) => (
-          <ChartCard key={chart.reference} chart={chart} />
-        ))}
+        {!dashboardData?.charts || dashboardData.charts.length === 0 ? (
+          <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+            <RiBarChart2Line className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium">No charts yet</h3>
+            <p className="text-sm text-muted-foreground mt-1 mb-4">Get started by adding your first chart to this dashboard.</p>
+            <Button onClick={() => setIsOpen(true)}>Add Your First Chart</Button>
+          </div>
+        ) : (
+          dashboardData.charts.map((chart) => (
+            <ChartCard key={chart.reference} chart={chart} />
+          ))
+        )}
       </div>
     </div>
   );
