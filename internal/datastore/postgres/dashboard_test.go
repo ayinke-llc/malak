@@ -735,3 +735,136 @@ func TestDashboard_UpdatePositions(t *testing.T) {
 		})
 	}
 }
+
+func TestDashboard_RemoveChart(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	dashboardRepo := NewDashboardRepo(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+	integrationRepo := NewIntegrationRepo(client)
+
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	integration := &malak.Integration{
+		IntegrationName: "Mercury",
+		Reference:       malak.NewReferenceGenerator().Generate(malak.EntityTypeIntegration),
+		Description:     "Mercury Banking Integration",
+		IsEnabled:       true,
+		IntegrationType: malak.IntegrationTypeOauth2,
+		LogoURL:         "https://mercury.com/logo.png",
+	}
+	err = integrationRepo.Create(t.Context(), integration)
+	require.NoError(t, err)
+
+	integrations, err := integrationRepo.List(t.Context(), workspace)
+	require.NoError(t, err)
+	require.Len(t, integrations, 1)
+	workspaceIntegration := integrations[0]
+
+	chartValues := []malak.IntegrationChartValues{
+		{
+			UserFacingName: "Account Balance",
+			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
+			ProviderID:     "account_123",
+			ChartType:      malak.IntegrationChartTypeBar,
+		},
+	}
+	err = integrationRepo.CreateCharts(t.Context(), &workspaceIntegration, chartValues)
+	require.NoError(t, err)
+
+	charts, err := integrationRepo.ListCharts(t.Context(), workspace.ID)
+	require.NoError(t, err)
+	require.Len(t, charts, 1)
+	createdChart := charts[0]
+
+	dashboard := &malak.Dashboard{
+		WorkspaceID: workspace.ID,
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
+		Title:       "Test Dashboard",
+		Description: "Test Dashboard Description",
+	}
+	err = dashboardRepo.Create(t.Context(), dashboard)
+	require.NoError(t, err)
+
+	dashboardChart := &malak.DashboardChart{
+		WorkspaceIntegrationID: workspaceIntegration.ID,
+		ChartID:                createdChart.ID,
+		Reference:              malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardChart),
+		WorkspaceID:            workspace.ID,
+		DashboardID:            dashboard.ID,
+	}
+	err = dashboardRepo.AddChart(t.Context(), dashboardChart)
+	require.NoError(t, err)
+
+	positions := []malak.DashboardChartPosition{
+		{
+			DashboardID: dashboard.ID,
+			ChartID:     dashboardChart.ID,
+			OrderIndex:  1,
+		},
+	}
+	err = dashboardRepo.UpdateDashboardPositions(t.Context(), dashboard.ID, positions)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name        string
+		dashboardID uuid.UUID
+		chartID     uuid.UUID
+		expectError bool
+	}{
+		{
+			name:        "successfully remove chart",
+			dashboardID: dashboard.ID,
+			chartID:     createdChart.ID,
+			expectError: false,
+		},
+		{
+			name:        "non-existent chart",
+			dashboardID: dashboard.ID,
+			chartID:     uuid.New(),
+			expectError: true,
+		},
+		{
+			name:        "non-existent dashboard",
+			dashboardID: uuid.New(),
+			chartID:     createdChart.ID,
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := dashboardRepo.RemoveChart(t.Context(), tt.dashboardID, tt.chartID)
+			if tt.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+
+				// verify chart was removed
+				updatedDashboard, err := dashboardRepo.Get(t.Context(), malak.FetchDashboardOption{
+					WorkspaceID: workspace.ID,
+					Reference:   dashboard.Reference,
+				})
+				require.NoError(t, err)
+				require.Equal(t, int64(0), updatedDashboard.ChartCount)
+
+				// verify chart positions were removed
+				positions, err := dashboardRepo.GetDashboardPositions(t.Context(), dashboard.ID)
+				require.NoError(t, err)
+				require.Empty(t, positions)
+
+				// verify chart is no longer in dashboard charts
+				charts, err := dashboardRepo.GetCharts(t.Context(), malak.FetchDashboardChartsOption{
+					WorkspaceID: workspace.ID,
+					DashboardID: dashboard.ID,
+				})
+				require.NoError(t, err)
+				require.Empty(t, charts)
+			}
+		})
+	}
+}

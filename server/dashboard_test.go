@@ -909,3 +909,200 @@ func TestDashboardHandler_UpdateDashboardPositions(t *testing.T) {
 		})
 	}
 }
+
+func generateRemoveChartRequest() []struct {
+	name               string
+	mockFn             func(dashboard *malak_mocks.MockDashboardRepository, integration *malak_mocks.MockIntegrationRepository)
+	expectedStatusCode int
+	req                addChartToDashboardRequest
+} {
+	return []struct {
+		name               string
+		mockFn             func(dashboard *malak_mocks.MockDashboardRepository, integration *malak_mocks.MockIntegrationRepository)
+		expectedStatusCode int
+		req                addChartToDashboardRequest
+	}{
+		{
+			name: "no chart reference provided",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, integration *malak_mocks.MockIntegrationRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req:                addChartToDashboardRequest{},
+		},
+		{
+			name: "dashboard not found",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, integration *malak_mocks.MockIntegrationRepository) {
+				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.Dashboard{}, malak.ErrDashboardNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+			req: addChartToDashboardRequest{
+				ChartReference: "CHART_123",
+			},
+		},
+		{
+			name: "error fetching dashboard",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, integration *malak_mocks.MockIntegrationRepository) {
+				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.Dashboard{}, errors.New("error fetching dashboard"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: addChartToDashboardRequest{
+				ChartReference: "CHART_123",
+			},
+		},
+		{
+			name: "chart not found",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, integration *malak_mocks.MockIntegrationRepository) {
+				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.Dashboard{
+						ID:          workspaceID,
+						Title:       "Test Dashboard",
+						Description: "Test description",
+						Reference:   "DASH_123",
+						ChartCount:  0,
+						WorkspaceID: workspaceID,
+					}, nil)
+
+				integration.EXPECT().GetChart(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.IntegrationChart{}, malak.ErrChartNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+			req: addChartToDashboardRequest{
+				ChartReference: "CHART_123",
+			},
+		},
+		{
+			name: "error fetching chart",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, integration *malak_mocks.MockIntegrationRepository) {
+				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.Dashboard{
+						ID:          workspaceID,
+						Title:       "Test Dashboard",
+						Description: "Test description",
+						Reference:   "DASH_123",
+						ChartCount:  0,
+						WorkspaceID: workspaceID,
+					}, nil)
+
+				integration.EXPECT().GetChart(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.IntegrationChart{}, errors.New("error fetching chart"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: addChartToDashboardRequest{
+				ChartReference: "CHART_123",
+			},
+		},
+		{
+			name: "error removing chart from dashboard",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, integration *malak_mocks.MockIntegrationRepository) {
+				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.Dashboard{
+						ID:          workspaceID,
+						Title:       "Test Dashboard",
+						Description: "Test description",
+						Reference:   "DASH_123",
+						ChartCount:  0,
+						WorkspaceID: workspaceID,
+					}, nil)
+
+				integration.EXPECT().GetChart(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.IntegrationChart{
+						ID:                     workspaceID,
+						WorkspaceIntegrationID: workspaceID,
+						Reference:              "CHART_123",
+						WorkspaceID:            workspaceID,
+					}, nil)
+
+				dashboard.EXPECT().RemoveChart(gomock.Any(), workspaceID, workspaceID).
+					Times(1).
+					Return(errors.New("error removing chart"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: addChartToDashboardRequest{
+				ChartReference: "CHART_123",
+			},
+		},
+		{
+			name: "successfully removed chart from dashboard",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, integration *malak_mocks.MockIntegrationRepository) {
+				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.Dashboard{
+						ID:          workspaceID,
+						Title:       "Test Dashboard",
+						Description: "Test description",
+						Reference:   "DASH_123",
+						ChartCount:  0,
+						WorkspaceID: workspaceID,
+					}, nil)
+
+				integration.EXPECT().GetChart(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.IntegrationChart{
+						ID:                     workspaceID,
+						WorkspaceIntegrationID: workspaceID,
+						Reference:              "CHART_123",
+						WorkspaceID:            workspaceID,
+					}, nil)
+
+				dashboard.EXPECT().RemoveChart(gomock.Any(), workspaceID, workspaceID).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+			req: addChartToDashboardRequest{
+				ChartReference: "CHART_123",
+			},
+		},
+	}
+}
+
+func TestDashboardHandler_RemoveChart(t *testing.T) {
+	for _, v := range generateRemoveChartRequest() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			dashboardRepo := malak_mocks.NewMockDashboardRepository(controller)
+			integrationRepo := malak_mocks.NewMockIntegrationRepository(controller)
+			v.mockFn(dashboardRepo, integrationRepo)
+
+			h := &dashboardHandler{
+				dashboardRepo:   dashboardRepo,
+				integrationRepo: integrationRepo,
+				generator:       &mockReferenceGenerator{},
+				cfg:             getConfig(),
+			}
+
+			var b = bytes.NewBuffer(nil)
+			err := json.NewEncoder(b).Encode(v.req)
+			require.NoError(t, err)
+
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodDelete, "/dashboards/DASH_123/charts", b)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{ID: workspaceID}))
+
+			router := chi.NewRouter()
+			router.Delete("/dashboards/{reference}/charts", WrapMalakHTTPHandler(getLogger(t),
+				h.removeChart,
+				getConfig(), "dashboards.remove_chart").ServeHTTP)
+
+			router.ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
