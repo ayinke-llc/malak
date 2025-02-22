@@ -74,7 +74,10 @@ type FetchDashboardChartsOption struct {
 type DashboardRepository interface {
 	Create(context.Context, *Dashboard) error
 	Get(context.Context, FetchDashboardOption) (Dashboard, error)
+
 	AddChart(context.Context, *DashboardChart) error
+	RemoveChart(context.Context, uuid.UUID, uuid.UUID) error
+
 	List(context.Context, ListDashboardOptions) ([]Dashboard, int64, error)
 	GetCharts(context.Context, FetchDashboardChartsOption) ([]DashboardChart, error)
 

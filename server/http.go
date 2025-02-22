@@ -405,6 +405,9 @@ func buildRoutes(
 
 			r.Put("/{reference}/charts",
 				WrapMalakHTTPHandler(logger, dashHandler.addChart, cfg, "dashboards.charts.add"))
+
+			r.Delete("/{reference}/charts",
+				WrapMalakHTTPHandler(logger, dashHandler.removeChart, cfg, "dashboards.charts.remove"))
 		})
 
 		r.Route("/uploads", func(r chi.Router) {
