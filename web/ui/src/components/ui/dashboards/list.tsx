@@ -98,7 +98,7 @@ export default function ListDashboards() {
               <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <RiDashboardLine className="h-4 w-4" />
-                  <span>{dashboard.chart_count} charts</span>
+                  <span>{dashboard.chart_count || 0} charts</span>
                 </div>
                 <span>Created {format(new Date(dashboard.created_at!), "MMM d, yyyy")}</span>
               </div>

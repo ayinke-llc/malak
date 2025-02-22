@@ -307,14 +307,34 @@ export default function DashboardPage() {
       const response = await client.dashboards.chartsUpdate(dashboardID, {
         chart_reference: chartReference
       });
-      return response.data;
+      return { data: response.data, chartReference };
     },
-    onSuccess: (data) => {
+    onSuccess: (result) => {
+      // Find the chart details from available charts
+      const addedChart = [...(barCharts ?? []), ...(pieCharts ?? [])].find(
+        chart => chart.reference === result.chartReference
+      );
+      
+      if (addedChart) {
+        // Create a new dashboard chart object with a temporary reference
+        const newDashboardChart: MalakDashboardChart = {
+          reference: `dashboard_chart_${Date.now()}`, // Temporary reference
+          chart: addedChart,
+          workspace_id: addedChart.workspace_id,
+          dashboard_id: dashboardID,
+          chart_id: addedChart.id,
+          workspace_integration_id: addedChart.workspace_integration_id,
+        };
+        
+        // Update local state immediately
+        setCharts(prevCharts => [...prevCharts, newDashboardChart]);
+      }
+      
       queryClient.invalidateQueries({ queryKey: [DASHBOARD_DETAIL, dashboardID] });
       setSelectedChart("");
       setSelectedChartLabel("");
       setIsOpen(false);
-      toast.success(data.message);
+      toast.success(result.data.message);
     },
     onError: (err: AxiosError<ServerAPIStatus>): void => {
       toast.error(err?.response?.data?.message || "Failed to add chart to dashboard");
@@ -345,11 +365,13 @@ export default function DashboardPage() {
       const response = await client.dashboards.chartsDelete(dashboardID, {
         chart_reference: chartReference
       });
-      return response.data;
+      return { data: response.data, chartReference };
     },
-    onSuccess: (data) => {
+    onSuccess: (result) => {
+      // Update local state immediately
+      setCharts(prevCharts => prevCharts.filter(chart => chart.chart?.reference !== result.chartReference));
       queryClient.invalidateQueries({ queryKey: [DASHBOARD_DETAIL, dashboardID] });
-      toast.success(data.message);
+      toast.success(result.data.message);
     },
     onError: (err: AxiosError<ServerAPIStatus>) => {
       toast.error(err?.response?.data?.message || "Failed to remove chart from dashboard");
