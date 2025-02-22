@@ -49,9 +49,29 @@ func (d *dashboardRepo) RemoveChart(ctx context.Context,
 	return d.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
 
-			_, err := tx.NewDelete().
-				Model(new(malak.Dashboard)).
+			var chart malak.DashboardChart
+
+			err := tx.NewSelect().
+				Model(&chart).
 				Where("chart_id = ?", chartID).
+				Where("dashboard_id = ?", dashboardID).
+				Scan(ctx)
+			if err != nil {
+				return err
+			}
+
+			_, err = tx.NewDelete().
+				Model(new(malak.DashboardChartPosition)).
+				Where("chart_id = ?", chart.ID).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+
+			_, err = tx.NewDelete().
+				Model(new(malak.DashboardChart)).
+				Where("chart_id = ?", chartID).
+				Where("dashboard_id = ?", dashboardID).
 				Exec(ctx)
 			if err != nil {
 				return err

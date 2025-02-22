@@ -621,11 +621,11 @@ func (d *dashboardHandler) removeChart(
 	}
 
 	if err := d.dashboardRepo.RemoveChart(ctx, dashboard.ID, chart.ID); err != nil {
-		logger.Error("could not add chart to dashboard", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError, "an error occurred while adding chart to dashboard"),
+		logger.Error("could not remove chart to dashboard", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "an error occurred while removing chart to dashboard"),
 			StatusFailed
 	}
 
-	return newAPIStatus(http.StatusOK, "chart added to dashboard"),
+	return newAPIStatus(http.StatusOK, "chart removed from dashboard"),
 		StatusSuccess
 }

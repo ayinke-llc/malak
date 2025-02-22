@@ -42,8 +42,6 @@ type DashboardChart struct {
 	CreatedAt time.Time `json:"created_at,omitempty" bun:",default:current_timestamp"`
 	UpdatedAt time.Time `json:"updated_at,omitempty" bun:",default:current_timestamp"`
 
-	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
-
 	bun.BaseModel `json:"-"`
 }
 

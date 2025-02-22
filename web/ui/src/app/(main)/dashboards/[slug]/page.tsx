@@ -40,8 +40,10 @@ import {
 } from "@/components/ui/sheet";
 import client from "@/lib/client";
 import {
+  ADD_CHART_DASHBOARD,
   DASHBOARD_DETAIL, FETCH_CHART_DATA_POINTS,
-  LIST_CHARTS
+  LIST_CHARTS,
+  REMOVE_CHART_DASHBOARD
 } from "@/lib/query-constants";
 import {
   closestCenter,
@@ -223,7 +225,7 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
   );
 }
 
-function SortableChartCard({ chart }: { chart: MalakDashboardChart }) {
+function SortableChartCard({ chart, onRemove }: { chart: MalakDashboardChart; onRemove: (chartRef: string) => void }) {
   const {
     attributes,
     listeners,
@@ -257,7 +259,12 @@ function SortableChartCard({ chart }: { chart: MalakDashboardChart }) {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem className="text-destructive cursor-pointer">Remove from dashboard</DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive cursor-pointer"
+              onClick={() => onRemove(chart.chart?.reference || '')}
+            >
+              Remove from dashboard
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -295,6 +302,7 @@ export default function DashboardPage() {
   });
 
   const addChartMutation = useMutation({
+    mutationKey: [ADD_CHART_DASHBOARD],
     mutationFn: async (chartReference: string) => {
       const response = await client.dashboards.chartsUpdate(dashboardID, {
         chart_reference: chartReference
@@ -306,7 +314,6 @@ export default function DashboardPage() {
       setSelectedChart("");
       setSelectedChartLabel("");
       setIsOpen(false);
-
       toast.success(data.message);
     },
     onError: (err: AxiosError<ServerAPIStatus>): void => {
@@ -331,6 +338,31 @@ export default function DashboardPage() {
       }
     }
   });
+
+  const deleteChartMutation = useMutation({
+    mutationKey: [REMOVE_CHART_DASHBOARD],
+    mutationFn: async (chartReference: string) => {
+      const response = await client.dashboards.chartsDelete(dashboardID, {
+        chart_reference: chartReference
+      });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: [DASHBOARD_DETAIL, dashboardID] });
+      toast.success(data.message);
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err?.response?.data?.message || "Failed to remove chart from dashboard");
+    }
+  });
+
+  const handleRemoveChart = (chartReference: string) => {
+    if (!chartReference) {
+      return
+    };
+
+    deleteChartMutation.mutate(chartReference);
+  };
 
   const barCharts = chartsData?.charts?.filter(chart => chart.chart_type === "bar") ?? [];
   const pieCharts = chartsData?.charts?.filter(chart => chart.chart_type === "pie") ?? [];
@@ -374,7 +406,7 @@ export default function DashboardPage() {
     (positions: { chart_id: string; index: number }[]) => {
       if (isUpdatingRef.current) return;
       isUpdatingRef.current = true;
-      
+
       setTimeout(() => {
         updatePositionsMutation.mutate(positions);
         isUpdatingRef.current = false;
@@ -569,7 +601,11 @@ export default function DashboardPage() {
               strategy={rectSortingStrategy}
             >
               {charts.map((chart) => (
-                <SortableChartCard key={chart.reference} chart={chart} />
+                <SortableChartCard
+                  key={chart.reference}
+                  chart={chart}
+                  onRemove={handleRemoveChart}
+                />
               ))}
             </SortableContext>
           )}
