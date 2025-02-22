@@ -42,8 +42,6 @@ type DashboardChart struct {
 	CreatedAt time.Time `json:"created_at,omitempty" bun:",default:current_timestamp"`
 	UpdatedAt time.Time `json:"updated_at,omitempty" bun:",default:current_timestamp"`
 
-	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
-
 	bun.BaseModel `json:"-"`
 }
 
@@ -74,7 +72,10 @@ type FetchDashboardChartsOption struct {
 type DashboardRepository interface {
 	Create(context.Context, *Dashboard) error
 	Get(context.Context, FetchDashboardOption) (Dashboard, error)
+
 	AddChart(context.Context, *DashboardChart) error
+	RemoveChart(context.Context, uuid.UUID, uuid.UUID) error
+
 	List(context.Context, ListDashboardOptions) ([]Dashboard, int64, error)
 	GetCharts(context.Context, FetchDashboardChartsOption) ([]DashboardChart, error)
 

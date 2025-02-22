@@ -544,3 +544,88 @@ func (d *dashboardHandler) updateDashboardPositions(
 
 	return newAPIStatus(http.StatusOK, "datapoints fetched"), StatusSuccess
 }
+
+// @Description remove a chart from a dashboard
+// @Tags dashboards
+// @Accept  json
+// @Produce  json
+// @Param message body addChartToDashboardRequest true "dashboard request chart data"
+// @Param reference path string required "dashboard unique reference.. e.g dashboard_"
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /dashboards/{reference}/charts [DELETE]
+func (d *dashboardHandler) removeChart(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("removing a chart from the dashboard")
+
+	workspace := getWorkspaceFromContext(r.Context())
+
+	req := new(addChartToDashboardRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	ref := chi.URLParam(r, "reference")
+
+	if hermes.IsStringEmpty(ref) {
+		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
+	}
+
+	dashboard, err := d.dashboardRepo.Get(ctx, malak.FetchDashboardOption{
+		Reference:   malak.Reference(ref),
+		WorkspaceID: workspace.ID,
+	})
+	if err != nil {
+		logger.Error("could not fetch dashboard", zap.Error(err))
+		status := http.StatusInternalServerError
+		msg := "an error occurred while fetching dashboard"
+
+		if errors.Is(err, malak.ErrDashboardNotFound) {
+			status = http.StatusNotFound
+			msg = err.Error()
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	chart, err := d.integrationRepo.GetChart(ctx, malak.FetchChartOptions{
+		WorkspaceID: workspace.ID,
+		Reference:   req.ChartReference,
+	})
+	if err != nil {
+		var status = http.StatusInternalServerError
+		var message = "an error occurred while fetching chart"
+
+		logger.Error("could not fetch chart from db",
+			zap.Error(err))
+
+		if errors.Is(err, malak.ErrChartNotFound) {
+			status = http.StatusNotFound
+			message = err.Error()
+		}
+
+		return newAPIStatus(status, message), StatusFailed
+	}
+
+	if err := d.dashboardRepo.RemoveChart(ctx, dashboard.ID, chart.ID); err != nil {
+		logger.Error("could not remove chart to dashboard", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "an error occurred while removing chart to dashboard"),
+			StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "chart removed from dashboard"),
+		StatusSuccess
+}

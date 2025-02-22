@@ -1095,6 +1095,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
+     * @description remove a chart from a dashboard
+     *
+     * @tags dashboards
+     * @name ChartsDelete
+     * @request DELETE:/dashboards/{reference}/charts
+     */
+    chartsDelete: (reference: string, data: ServerAddChartToDashboardRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/dashboards/${reference}/charts`,
+        method: "DELETE",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description add a chart to a dashboard
      *
      * @tags dashboards
@@ -1119,12 +1136,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/dashboards/{reference}/positions
      */
     positionsCreate: (reference: string, data: ServerUpdateDashboardPositionsRequest, params: RequestParams = {}) =>
-      this.request<ServerAPIStatus, ServerAPIStatus>({
+      this.request<any, ServerAPIStatus>({
         path: `/dashboards/${reference}/positions`,
         method: "POST",
         body: data,
         type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 

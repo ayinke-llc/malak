@@ -36,3 +36,5 @@ export const LIST_DASHBOARDS = "LIST_DASHBOARDS" as const;
 export const LIST_CHARTS = "LIST_CHARTS" as const;
 export const DASHBOARD_DETAIL = "DASHBOARD_DETAIL" as const;
 export const FETCH_CHART_DATA_POINTS = "FETCH_CHART_DATA_POINTS" as const;
+export const ADD_CHART_DASHBOARD = 'ADD_CHART_DASHBOARD' as const;
+export const REMOVE_CHART_DASHBOARD = 'REMOVE_CHART_DASHBOARD' as const;

@@ -131,6 +131,20 @@ func (mr *MockDashboardRepositoryMockRecorder) List(arg0, arg1 any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockDashboardRepository)(nil).List), arg0, arg1)
 }
 
+// RemoveChart mocks base method.
+func (m *MockDashboardRepository) RemoveChart(arg0 context.Context, arg1, arg2 uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveChart", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveChart indicates an expected call of RemoveChart.
+func (mr *MockDashboardRepositoryMockRecorder) RemoveChart(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveChart", reflect.TypeOf((*MockDashboardRepository)(nil).RemoveChart), arg0, arg1, arg2)
+}
+
 // UpdateDashboardPositions mocks base method.
 func (m *MockDashboardRepository) UpdateDashboardPositions(arg0 context.Context, arg1 uuid.UUID, arg2 []malak.DashboardChartPosition) error {
 	m.ctrl.T.Helper()
