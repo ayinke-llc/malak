@@ -41,10 +41,12 @@ import {
 import client from "@/lib/client";
 import {
   ADD_CHART_DASHBOARD,
-  DASHBOARD_DETAIL, FETCH_CHART_DATA_POINTS,
+  DASHBOARD_DETAIL,
+  FETCH_CHART_DATA_POINTS,
   LIST_CHARTS,
   REMOVE_CHART_DASHBOARD
 } from "@/lib/query-constants";
+import { formatChartData, formatTooltipValue, getChartColors } from "@/lib/chart-utils";
 import {
   closestCenter,
   DndContext,
@@ -65,7 +67,8 @@ import {
   RiArrowDownSLine,
   RiBarChart2Line,
   RiLoader4Line,
-  RiPieChartLine, RiSettings4Line
+  RiPieChartLine,
+  RiSettings4Line
 } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
@@ -77,7 +80,8 @@ import {
   Pie,
   PieChart,
   Tooltip,
-  XAxis, YAxis
+  XAxis,
+  YAxis
 } from "recharts";
 import { toast } from "sonner";
 import styles from "./styles.module.css";
@@ -93,40 +97,6 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
     enabled: !!chart.chart?.reference,
   });
 
-  const getChartIcon = (type: string | undefined) => {
-    switch (type) {
-      case "bar":
-        return <RiBarChart2Line className="h-4 w-4" />;
-      case "pie":
-        return <RiPieChartLine className="h-4 w-4" />;
-      default:
-        return <RiBarChart2Line className="h-4 w-4" />;
-    }
-  };
-
-  const formatChartData =
-    (dataPoints: MalakIntegrationDataPoint[] | undefined): Array<{
-      name: string;
-      value: number;
-    }> => {
-      if (!dataPoints) return [];
-
-      return dataPoints.map(point => {
-        const value = point.data_point_type === 'currency'
-          ? (point.point_value || 0) / 100
-          : point.point_value || 0;
-
-        return {
-          name: point.point_name || '',
-          value,
-        };
-      });
-    };
-
-  if (!chart.chart) {
-    return null;
-  }
-
   const formattedData = formatChartData(chartData?.data_points);
 
   if (isLoadingChartData) {
@@ -139,7 +109,7 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
     );
   }
 
-  if (error) {
+  if (error || !chart.chart) {
     return (
       <Card className="p-3">
         <div className="flex flex-col items-center justify-center h-[160px] text-center p-4">
@@ -158,7 +128,11 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <div className="text-muted-foreground">
-            {getChartIcon(chart.chart.chart_type)}
+            {chart.chart.chart_type === "pie" ? (
+              <RiPieChartLine className="h-4 w-4" />
+            ) : (
+              <RiBarChart2Line className="h-4 w-4" />
+            )}
           </div>
           <div>
             <h3 className="text-sm font-bold">{chart.chart.user_facing_name}</h3>
@@ -182,12 +156,11 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
             >
               <XAxis dataKey="name" stroke="#888888" fontSize={11} />
               <YAxis stroke="#888888" fontSize={11} />
-              <Tooltip formatter={(value: number) => {
-                if (chartData?.data_points?.[0]?.data_point_type === 'currency') {
-                  return [`$${value.toFixed(2)}`, 'Value'];
-                }
-                return [value, 'Value'];
-              }} />
+              <Tooltip 
+                formatter={(value: number) => 
+                  formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
+                } 
+              />
               <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ChartContainer>
@@ -208,15 +181,14 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
                 dataKey="value"
               >
                 {formattedData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={`hsl(${index * 45}, 70%, 50%)`} />
+                  <Cell key={`cell-${index}`} fill={getChartColors(index)} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: number) => {
-                if (chartData?.data_points?.[0]?.data_point_type === 'currency') {
-                  return [`$${value.toFixed(2)}`, 'Value'];
-                }
-                return [value, 'Value'];
-              }} />
+              <Tooltip 
+                formatter={(value: number) => 
+                  formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
+                } 
+              />
             </PieChart>
           </ChartContainer>
         )}
@@ -276,13 +248,14 @@ function SortableChartCard({ chart, onRemove }: { chart: MalakDashboardChart; on
 export default function DashboardPage() {
   const params = useParams();
   const dashboardID = params.slug as string;
-
   const queryClient = useQueryClient();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [selectedChart, setSelectedChart] = useState<string>("");
   const [selectedChartLabel, setSelectedChartLabel] = useState<string>("");
+  const [charts, setCharts] = useState<MalakDashboardChart[]>([]);
+  const isUpdatingRef = useRef(false);
 
   const { data: dashboardData, isLoading: isLoadingDashboard } = useQuery<ServerListDashboardChartsResponse>({
     queryKey: [DASHBOARD_DETAIL, dashboardID],
@@ -301,117 +274,6 @@ export default function DashboardPage() {
     enabled: isPopoverOpen,
   });
 
-  const addChartMutation = useMutation({
-    mutationKey: [ADD_CHART_DASHBOARD],
-    mutationFn: async (chartReference: string) => {
-      const response = await client.dashboards.chartsUpdate(dashboardID, {
-        chart_reference: chartReference
-      });
-      return { data: response.data, chartReference };
-    },
-    onSuccess: (result) => {
-      // Find the chart details from available charts
-      const addedChart = [...(barCharts ?? []), ...(pieCharts ?? [])].find(
-        chart => chart.reference === result.chartReference
-      );
-      
-      if (addedChart) {
-        // Create a new dashboard chart object with a temporary reference
-        const newDashboardChart: MalakDashboardChart = {
-          reference: `dashboard_chart_${Date.now()}`, // Temporary reference
-          chart: addedChart,
-          workspace_id: addedChart.workspace_id,
-          dashboard_id: dashboardID,
-          chart_id: addedChart.id,
-          workspace_integration_id: addedChart.workspace_integration_id,
-        };
-        
-        // Update local state immediately
-        setCharts(prevCharts => [...prevCharts, newDashboardChart]);
-      }
-      
-      queryClient.invalidateQueries({ queryKey: [DASHBOARD_DETAIL, dashboardID] });
-      setSelectedChart("");
-      setSelectedChartLabel("");
-      setIsOpen(false);
-      toast.success(result.data.message);
-    },
-    onError: (err: AxiosError<ServerAPIStatus>): void => {
-      toast.error(err?.response?.data?.message || "Failed to add chart to dashboard");
-    }
-  });
-
-  const updatePositionsMutation = useMutation({
-    mutationFn: async (positions: { chart_id: string; index: number }[]) => {
-      const response = await client.dashboards.positionsCreate(dashboardID, { positions });
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [DASHBOARD_DETAIL, dashboardID] });
-      toast.success("chart positions updated")
-    },
-    onError: (err: AxiosError<ServerAPIStatus>) => {
-      toast.error(err?.response?.data?.message || "Failed to update chart positions");
-      // Revert to the previous state on error
-      if (dashboardData?.charts) {
-        setCharts(dashboardData.charts);
-      }
-    }
-  });
-
-  const deleteChartMutation = useMutation({
-    mutationKey: [REMOVE_CHART_DASHBOARD],
-    mutationFn: async (chartReference: string) => {
-      const response = await client.dashboards.chartsDelete(dashboardID, {
-        chart_reference: chartReference
-      });
-      return { data: response.data, chartReference };
-    },
-    onSuccess: (result) => {
-      // Update local state immediately
-      setCharts(prevCharts => prevCharts.filter(chart => chart.chart?.reference !== result.chartReference));
-      queryClient.invalidateQueries({ queryKey: [DASHBOARD_DETAIL, dashboardID] });
-      toast.success(result.data.message);
-    },
-    onError: (err: AxiosError<ServerAPIStatus>) => {
-      toast.error(err?.response?.data?.message || "Failed to remove chart from dashboard");
-    }
-  });
-
-  const handleRemoveChart = (chartReference: string) => {
-    if (!chartReference) {
-      return
-    };
-
-    deleteChartMutation.mutate(chartReference);
-  };
-
-  const barCharts = chartsData?.charts?.filter(chart => chart.chart_type === "bar") ?? [];
-  const pieCharts = chartsData?.charts?.filter(chart => chart.chart_type === "pie") ?? [];
-
-  const handleAddChart = () => {
-    if (!selectedChart) {
-      toast.warning("Select a chart before adding to dashboard")
-      return
-    };
-
-    addChartMutation.mutate(selectedChart);
-  };
-
-  const [charts, setCharts] = useState<MalakDashboardChart[]>([]);
-  const isUpdatingRef = useRef(false);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // 8px movement is required before drag starts
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
   useEffect(() => {
     if (dashboardData?.charts) {
       // Sort charts based on their positions if available
@@ -424,6 +286,24 @@ export default function DashboardPage() {
     }
   }, [dashboardData?.charts, dashboardData?.positions]);
 
+  const updatePositionsMutation = useMutation({
+    mutationFn: async (positions: { chart_id: string; index: number }[]) => {
+      const response = await client.dashboards.positionsCreate(dashboardID, { positions });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [DASHBOARD_DETAIL, dashboardID] });
+      toast.success("Chart positions updated");
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err?.response?.data?.message || "Failed to update chart positions");
+      // Revert to the previous state on error
+      if (dashboardData?.charts) {
+        setCharts(dashboardData.charts);
+      }
+    }
+  });
+
   const updatePositionsDebounced = useCallback(
     (positions: { chart_id: string; index: number }[]) => {
       if (isUpdatingRef.current) return;
@@ -435,6 +315,68 @@ export default function DashboardPage() {
       }, 100);
     },
     [updatePositionsMutation]
+  );
+
+  const addChartMutation = useMutation({
+    mutationKey: [ADD_CHART_DASHBOARD],
+    mutationFn: async (chartReference: string) => {
+      const response = await client.dashboards.chartsUpdate(dashboardID, {
+        chart_reference: chartReference
+      });
+      return { data: response.data, chartReference };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: [DASHBOARD_DETAIL, dashboardID] });
+      setSelectedChart("");
+      setSelectedChartLabel("");
+      setIsOpen(false);
+      toast.success(result.data.message);
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err?.response?.data?.message || "Failed to add chart to dashboard");
+    }
+  });
+
+  const deleteChartMutation = useMutation({
+    mutationKey: [REMOVE_CHART_DASHBOARD],
+    mutationFn: async (chartReference: string) => {
+      const response = await client.dashboards.chartsDelete(dashboardID, {
+        chart_reference: chartReference
+      });
+      return { data: response.data, chartReference };
+    },
+    onSuccess: (result) => {
+      setCharts(prevCharts => prevCharts.filter(chart => chart.chart?.reference !== result.chartReference));
+      queryClient.invalidateQueries({ queryKey: [DASHBOARD_DETAIL, dashboardID] });
+      toast.success(result.data.message);
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err?.response?.data?.message || "Failed to remove chart from dashboard");
+    }
+  });
+
+  const handleRemoveChart = (chartReference: string) => {
+    if (!chartReference) return;
+    deleteChartMutation.mutate(chartReference);
+  };
+
+  const handleAddChart = () => {
+    if (!selectedChart) {
+      toast.warning("Select a chart before adding to dashboard");
+      return;
+    }
+    addChartMutation.mutate(selectedChart);
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
   );
 
   function handleDragEnd(event: any) {
@@ -516,7 +458,7 @@ export default function DashboardPage() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start" side="bottom">
-                      <Command className="w-full">
+                      <Command>
                         <CommandInput placeholder="Search charts..." />
                         <CommandList>
                           <CommandEmpty>No charts found.</CommandEmpty>
@@ -527,9 +469,9 @@ export default function DashboardPage() {
                             </CommandItem>
                           ) : (
                             <>
-                              {barCharts.length > 0 && (
+                              {(chartsData?.charts || []).filter(chart => chart.chart_type === "bar").length > 0 && (
                                 <CommandGroup heading="Bar Charts">
-                                  {barCharts.map(chart => (
+                                  {(chartsData?.charts || []).filter(chart => chart.chart_type === "bar").map(chart => (
                                     <CommandItem
                                       key={chart.reference}
                                       value={`${chart.user_facing_name} ${chart.internal_name}`}
@@ -546,9 +488,9 @@ export default function DashboardPage() {
                                   ))}
                                 </CommandGroup>
                               )}
-                              {pieCharts.length > 0 && (
+                              {(chartsData?.charts || []).filter(chart => chart.chart_type === "pie").length > 0 && (
                                 <CommandGroup heading="Pie Charts">
-                                  {pieCharts.map(chart => (
+                                  {(chartsData?.charts || []).filter(chart => chart.chart_type === "pie").map(chart => (
                                     <CommandItem
                                       key={chart.reference}
                                       value={`${chart.user_facing_name} ${chart.internal_name}`}
@@ -603,7 +545,6 @@ export default function DashboardPage() {
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
         onDragStart={() => {
-          // Add haptic feedback on mobile
           if (window.navigator.vibrate) {
             window.navigator.vibrate(100);
           }

@@ -7,69 +7,32 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { TooltipContent, TooltipTrigger, Tooltip as UITooltip } from "@/components/ui/tooltip";
 import client from "@/lib/client";
-import { LIST_CHARTS } from "@/lib/query-constants";
+import { FETCH_CHART_DATA_POINTS, LIST_CHARTS } from "@/lib/query-constants";
 import { cn } from "@/lib/utils";
+import { formatChartData, formatTooltipValue, getChartColors } from "@/lib/chart-utils";
 import { defaultProps } from "@blocknote/core";
 import { createReactBlockSpec } from "@blocknote/react";
-import { RiBarChartBoxLine, RiPieChartLine, RiSearchLine } from "@remixicon/react";
+import { RiBarChartBoxLine, RiPieChartLine, RiSearchLine, RiLoader4Line } from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Bar, BarChart, Cell, Pie, PieChart, Tooltip, XAxis, YAxis } from "recharts";
-
-interface ChartDataPoint {
-  name: string;
-  value: number;
-}
-
-// Function to generate random bar chart data
-const generateBarData = (prefix: string, count: number = 5): ChartDataPoint[] => {
-  return Array.from({ length: count }, (_, i) => ({
-    name: `${prefix} ${i + 1}`,
-    value: Math.floor(Math.random() * 10000),
-  }));
-};
-
-// Function to generate random pie chart data
-const generatePieData = (categories: readonly string[], total: number = 1000): ChartDataPoint[] => {
-  const data = categories.map(name => ({
-    name,
-    value: Math.floor(Math.random() * (total / categories.length)),
-  }));
-
-  // Ensure values sum up to total
-  const currentSum = data.reduce((sum, item) => sum + item.value, 0);
-  const factor = total / currentSum;
-  return data.map(item => ({
-    ...item,
-    value: Math.floor(item.value * factor),
-  }));
-};
 
 interface ChartConfig {
   id: string;
   name: string;
   type: "bar" | "pie";
   description: string;
-  dataPrefix?: string;
-  dataCount?: number;
-  categories?: readonly string[];
+  reference: string;
 }
 
 // Convert API chart to internal chart config
 const convertApiChartToConfig = (chart: MalakIntegrationChart): ChartConfig => {
-  // Default to bar chart if type is not recognized
-  const type = chart.chart_type === "pie" ? "pie" : "bar";
-
   return {
     id: chart.reference || "",
     name: chart.user_facing_name || "Untitled Chart",
-    type,
+    type: chart.chart_type === "pie" ? "pie" : "bar",
     description: `${chart.user_facing_name || "Chart"} visualization`,
-    // Keep mock data generation parameters based on chart type
-    ...(type === "bar"
-      ? { dataPrefix: "Item", dataCount: 5 }
-      : { categories: ["Category A", "Category B", "Category C", "Category D"] }
-    )
+    reference: chart.reference || "",
   };
 };
 
@@ -78,9 +41,52 @@ interface ChartDisplayProps {
 }
 
 function ChartDisplay({ chart }: ChartDisplayProps) {
-  const chartData = chart.type === "bar"
-    ? generateBarData(chart.dataPrefix || "Item", chart.dataCount || 5)
-    : generatePieData(chart.categories || ["A", "B", "C"]);
+  const { data: chartData, isLoading: isLoadingChartData, error } = useQuery({
+    queryKey: [FETCH_CHART_DATA_POINTS, chart.reference],
+    queryFn: async () => {
+      const response = await client.dashboards.chartsDetail(chart.reference);
+      return response.data;
+    },
+    enabled: !!chart.reference,
+  });
+
+  const formattedData = formatChartData(chartData?.data_points);
+
+  if (isLoadingChartData) {
+    return (
+      <Card className="p-4">
+        <div className="flex items-center justify-center h-[300px]">
+          <RiLoader4Line className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="p-4">
+        <div className="flex flex-col items-center justify-center h-[300px] text-center">
+          <RiBarChartBoxLine className="h-8 w-8 text-muted-foreground mb-2" />
+          <p className="text-sm text-muted-foreground">Failed to load chart data</p>
+          <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
+        </div>
+      </Card>
+    );
+  }
+
+  const hasNoData = !formattedData || formattedData.length === 0;
+
+  if (hasNoData) {
+    return (
+      <Card className="p-4">
+        <div className="flex flex-col items-center justify-center h-[300px] text-center">
+          <RiBarChartBoxLine className="h-8 w-8 text-muted-foreground mb-2" />
+          <p className="text-sm text-muted-foreground">No data available</p>
+          <p className="text-xs text-muted-foreground mt-1">Check back later for updates</p>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-4">
@@ -99,12 +105,16 @@ function ChartDisplay({ chart }: ChartDisplayProps) {
             <BarChart
               width={500}
               height={300}
-              data={chartData}
+              data={formattedData}
               margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
               <XAxis dataKey="name" stroke="#888888" />
               <YAxis stroke="#888888" />
-              <Tooltip />
+              <Tooltip 
+                formatter={(value: number) => 
+                  formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
+                } 
+              />
               <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
             </BarChart>
           ) : (
@@ -114,25 +124,29 @@ function ChartDisplay({ chart }: ChartDisplayProps) {
               margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
             >
               <Pie
-                data={chartData}
+                data={formattedData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 outerRadius={120}
                 innerRadius={60}
                 paddingAngle={2}
                 dataKey="value"
               >
-                {chartData.map((entry, index) => (
+                {formattedData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={`hsl(${index * 45}, 70%, 50%)`}
+                    fill={getChartColors(index)}
                     strokeWidth={1}
                   />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip 
+                formatter={(value: number) => 
+                  formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
+                } 
+              />
             </PieChart>
           )}
         </ChartContainer>
