@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
-import { RiDashboard2Line, RiBarChartBoxLine, RiPieChartLine } from "@remixicon/react";
+import { RiDashboard2Line, RiBarChartBoxLine, RiPieChartLine, RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react";
 import { cn } from "@/lib/utils";
 import { Bar, BarChart, Cell, Pie, PieChart, Tooltip, XAxis, YAxis } from "recharts";
+import { useState } from "react";
 import "./styles.css";
 
 // Function to generate random bar chart data
@@ -260,6 +261,7 @@ export const Dashboard = createReactBlockSpec(
   },
   {
     render: (props) => {
+      const [isExpanded, setIsExpanded] = useState(false);
       const selectedItem = dashboardItems.find(
         (item) => item.value === props.block.props.selectedItem
       );
@@ -270,7 +272,7 @@ export const Dashboard = createReactBlockSpec(
 
       return (
         <Card className="dashboard">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between gap-4">
             <Popover>
               <PopoverTrigger asChild>
                 <Button 
@@ -301,12 +303,13 @@ export const Dashboard = createReactBlockSpec(
                         <CommandItem
                           key={item.value}
                           value={item.value}
-                          onSelect={() =>
+                          onSelect={() => {
                             props.editor.updateBlock(props.block, {
                               type: "dashboard",
                               props: { selectedItem: item.value },
-                            })
-                          }
+                            });
+                            setIsExpanded(true); // Auto-expand when selecting a new dashboard
+                          }}
                         >
                           <div className="flex items-center justify-between w-full">
                             <span>{item.title}</span>
@@ -322,9 +325,38 @@ export const Dashboard = createReactBlockSpec(
                 </Command>
               </PopoverContent>
             </Popover>
+            {selectedItem && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
+                onClick={() => setIsExpanded(!isExpanded)}
+              >
+                {isExpanded ? (
+                  <>
+                    <RiArrowUpSLine className="mr-1 h-4 w-4" />
+                    Hide Charts
+                  </>
+                ) : (
+                  <>
+                    <RiArrowDownSLine className="mr-1 h-4 w-4" />
+                    Show Charts
+                  </>
+                )}
+              </Button>
+            )}
           </div>
 
-          {selectedItem ? (
+          {selectedItem && !isExpanded && (
+            <div className="flex items-center justify-center p-4 mt-4 text-sm text-muted-foreground bg-muted/50 rounded-md border border-dashed cursor-pointer hover:bg-muted/70 transition-colors"
+              onClick={() => setIsExpanded(true)}
+            >
+              <RiBarChartBoxLine className="mr-2 h-4 w-4" />
+              Click to view {selectedItem.charts} charts
+            </div>
+          )}
+
+          {selectedItem && isExpanded && (
             <div className="grid grid-cols-2 gap-4 mt-4">
               {dashboardCharts.map((chart, index) => (
                 <MiniChartCard 
@@ -334,7 +366,9 @@ export const Dashboard = createReactBlockSpec(
                 />
               ))}
             </div>
-          ) : (
+          )}
+
+          {!selectedItem && (
             <div className="flex items-center justify-center p-6 text-sm text-muted-foreground bg-muted/50 rounded-md border border-dashed mt-4">
               Select a dashboard to view charts
             </div>
