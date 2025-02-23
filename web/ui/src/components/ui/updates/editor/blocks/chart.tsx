@@ -1,20 +1,20 @@
-import { defaultProps } from "@blocknote/core";
-import { createReactBlockSpec } from "@blocknote/react";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
+import type { MalakIntegrationChart } from "@/client/Api";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
-import { RiBarChartBoxLine, RiPieChartLine, RiSearchLine } from "@remixicon/react";
-import { cn } from "@/lib/utils";
-import { Bar, BarChart, Cell, Pie, PieChart, Tooltip, XAxis, YAxis } from "recharts";
-import { useState } from "react";
-import { Tooltip as UITooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useQuery } from "@tanstack/react-query";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { TooltipContent, TooltipTrigger, Tooltip as UITooltip } from "@/components/ui/tooltip";
 import client from "@/lib/client";
 import { LIST_CHARTS } from "@/lib/query-constants";
-import type { MalakIntegrationChart } from "@/client/Api";
+import { cn } from "@/lib/utils";
+import { defaultProps } from "@blocknote/core";
+import { createReactBlockSpec } from "@blocknote/react";
+import { RiBarChartBoxLine, RiPieChartLine, RiSearchLine } from "@remixicon/react";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Bar, BarChart, Cell, Pie, PieChart, Tooltip, XAxis, YAxis } from "recharts";
 
 interface ChartDataPoint {
   name: string;
@@ -35,7 +35,7 @@ const generatePieData = (categories: readonly string[], total: number = 1000): C
     name,
     value: Math.floor(Math.random() * (total / categories.length)),
   }));
-  
+
   // Ensure values sum up to total
   const currentSum = data.reduce((sum, item) => sum + item.value, 0);
   const factor = total / currentSum;
@@ -59,14 +59,14 @@ interface ChartConfig {
 const convertApiChartToConfig = (chart: MalakIntegrationChart): ChartConfig => {
   // Default to bar chart if type is not recognized
   const type = chart.chart_type === "pie" ? "pie" : "bar";
-  
+
   return {
     id: chart.reference || "",
     name: chart.user_facing_name || "Untitled Chart",
     type,
     description: `${chart.user_facing_name || "Chart"} visualization`,
     // Keep mock data generation parameters based on chart type
-    ...(type === "bar" 
+    ...(type === "bar"
       ? { dataPrefix: "Item", dataCount: 5 }
       : { categories: ["Category A", "Category B", "Category C", "Category D"] }
     )
@@ -78,7 +78,7 @@ interface ChartDisplayProps {
 }
 
 function ChartDisplay({ chart }: ChartDisplayProps) {
-  const chartData = chart.type === "bar" 
+  const chartData = chart.type === "bar"
     ? generateBarData(chart.dataPrefix || "Item", chart.dataCount || 5)
     : generatePieData(chart.categories || ["A", "B", "C"]);
 
@@ -92,7 +92,7 @@ function ChartDisplay({ chart }: ChartDisplayProps) {
         )}
         <span className="text-sm font-medium">{chart.name}</span>
       </div>
-      
+
       <div className="w-full aspect-[16/9] min-h-[300px] relative">
         <ChartContainer className="absolute inset-0" config={{}}>
           {chart.type === "bar" ? (
@@ -125,8 +125,8 @@ function ChartDisplay({ chart }: ChartDisplayProps) {
                 dataKey="value"
               >
                 {chartData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
+                  <Cell
+                    key={`cell-${index}`}
                     fill={`hsl(${index * 45}, 70%, 50%)`}
                     strokeWidth={1}
                   />
@@ -157,8 +157,7 @@ export const Chart = createReactBlockSpec(
   {
     render: (props) => {
       const [search, setSearch] = useState("");
-      
-      // Fetch available charts using React Query
+
       const { data: chartsResponse, isLoading, error } = useQuery({
         queryKey: [LIST_CHARTS],
         queryFn: () => client.dashboards.chartsList(),
@@ -200,9 +199,9 @@ export const Chart = createReactBlockSpec(
         <div className="chart-block">
           <Popover>
             <PopoverTrigger asChild>
-              <Button 
-                variant="outline" 
-                role="combobox" 
+              <Button
+                variant="outline"
+                role="combobox"
                 className={cn(
                   "w-full justify-between",
                   !selectedChart && "text-muted-foreground"
@@ -234,8 +233,8 @@ export const Chart = createReactBlockSpec(
               <Command shouldFilter={false}>
                 <div className="flex items-center border-b px-3">
                   <RiSearchLine className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-                  <CommandInput 
-                    placeholder="Search charts..." 
+                  <CommandInput
+                    placeholder="Search charts..."
                     className="h-9 w-full border-0 bg-transparent p-0 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0"
                     value={search}
                     onValueChange={setSearch}

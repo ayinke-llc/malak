@@ -1,16 +1,27 @@
-import { defaultProps } from "@blocknote/core";
-import { createReactBlockSpec } from "@blocknote/react";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
+import type { MalakIntegrationChart, ServerListDashboardResponse } from "@/client/Api";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
-import { RiDashboard2Line, RiBarChartBoxLine, RiPieChartLine, RiArrowDownSLine, RiArrowUpSLine, RiSearchLine } from "@remixicon/react";
-import { cn } from "@/lib/utils";
-import { Bar, BarChart, Cell, Pie, PieChart, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts";
-import { useState } from "react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import client from "@/lib/client";
+import { LIST_DASHBOARDS } from "@/lib/query-constants";
+import { cn } from "@/lib/utils";
+import { defaultProps } from "@blocknote/core";
+import { createReactBlockSpec } from "@blocknote/react";
+import {
+  RiArrowDownSLine,
+  RiArrowUpSLine,
+  RiBarChartBoxLine,
+  RiDashboard2Line,
+  RiPieChartLine,
+  RiSearchLine
+} from "@remixicon/react";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Bar, BarChart, Cell, Pie, PieChart, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts";
 import "./styles.css";
 
 // Function to generate random bar chart data
@@ -27,7 +38,7 @@ const generatePieData = (categories: string[], total: number = 1000) => {
     name,
     value: Math.floor(Math.random() * (total / categories.length)),
   }));
-  
+
   // Ensure values sum up to total
   const currentSum = data.reduce((sum, item) => sum + item.value, 0);
   const factor = total / currentSum;
@@ -115,34 +126,37 @@ function getChartData(chartName: string, chartType: string) {
   }
 }
 
-function MiniChartCard({ chart, dashboardType }: { chart: any; dashboardType: string }) {
-  const chartData = getChartData(chart.user_facing_name, chart.chart_type);
+interface ChartDataPoint {
+  name: string;
+  value: number;
+}
+
+interface DashboardItem {
+  id: string;
+  title: string;
+  value: string;
+  description: string;
+  charts: number;
+  icon: typeof RiBarChartBoxLine;
+}
+
+function MiniChartCard({ chart, dashboardType }: { chart: MalakIntegrationChart; dashboardType: string }) {
+  // Generate mock data based on chart type
+  const chartData = chart.chart_type === "pie"
+    ? generatePieData(["Category A", "Category B", "Category C", "Category D"])
+    : generateBarData(chart.user_facing_name || "Data", 5);
 
   return (
     <Card className="p-2">
       <div className="flex items-center gap-2 mb-1">
-        {chart.chart_type === "bar" ? (
-          <RiBarChartBoxLine className="h-4 w-4 text-muted-foreground" />
-        ) : (
+        {chart.chart_type === "pie" ? (
           <RiPieChartLine className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          <RiBarChartBoxLine className="h-4 w-4 text-muted-foreground" />
         )}
         <span className="text-xs font-medium truncate">{chart.user_facing_name}</span>
       </div>
-      {chart.chart_type === "bar" ? (
-        <ChartContainer className="w-full h-full" config={{}}>
-          <BarChart
-            width={200}
-            height={100}
-            data={chartData}
-            margin={{ top: 5, right: 5, left: -15, bottom: 0 }}
-          >
-            <XAxis dataKey="name" stroke="#888888" fontSize={8} />
-            <YAxis stroke="#888888" fontSize={8} />
-            <RechartsTooltip />
-            <Bar dataKey="value" fill="#3B82F6" radius={[2, 2, 0, 0]} />
-          </BarChart>
-        </ChartContainer>
-      ) : (
+      {chart.chart_type === "pie" ? (
         <ChartContainer className="w-full h-full" config={{}}>
           <PieChart
             width={200}
@@ -157,165 +171,31 @@ function MiniChartCard({ chart, dashboardType }: { chart: any; dashboardType: st
               outerRadius={35}
               dataKey="value"
             >
-              {chartData.map((entry: any, index: number) => (
+              {chartData.map((entry: ChartDataPoint, index: number) => (
                 <Cell key={`cell-${index}`} fill={`hsl(${index * 45}, 70%, 50%)`} />
               ))}
             </Pie>
             <RechartsTooltip />
           </PieChart>
         </ChartContainer>
+      ) : (
+        <ChartContainer className="w-full h-full" config={{}}>
+          <BarChart
+            width={200}
+            height={100}
+            data={chartData}
+            margin={{ top: 5, right: 5, left: -15, bottom: 0 }}
+          >
+            <XAxis dataKey="name" stroke="#888888" fontSize={8} />
+            <YAxis stroke="#888888" fontSize={8} />
+            <RechartsTooltip />
+            <Bar dataKey="value" fill="#3B82F6" radius={[2, 2, 0, 0]} />
+          </BarChart>
+        </ChartContainer>
       )}
     </Card>
   );
 }
-
-export const dashboardItems = [
-  { 
-    id: 1, 
-    title: "Revenue Overview", 
-    value: "revenue", 
-    charts: 4,
-    description: "Track revenue metrics and financial performance",
-    icon: RiBarChartBoxLine
-  },
-  { 
-    id: 2, 
-    title: "User Analytics", 
-    value: "users", 
-    charts: 6,
-    description: "Monitor user engagement and growth metrics",
-    icon: RiBarChartBoxLine
-  },
-  { 
-    id: 3, 
-    title: "Sales Report", 
-    value: "sales", 
-    charts: 5,
-    description: "Analyze sales performance and trends",
-    icon: RiBarChartBoxLine
-  },
-  { 
-    id: 4, 
-    title: "Performance Metrics", 
-    value: "performance", 
-    charts: 3,
-    description: "Track key performance indicators",
-    icon: RiBarChartBoxLine
-  },
-  { 
-    id: 5, 
-    title: "Customer Feedback", 
-    value: "feedback", 
-    charts: 2,
-    description: "Monitor customer satisfaction and feedback",
-    icon: RiBarChartBoxLine
-  },
-  { 
-    id: 6, 
-    title: "Inventory Status", 
-    value: "inventory", 
-    charts: 4,
-    description: "Track stock levels and inventory metrics",
-    icon: RiBarChartBoxLine
-  },
-  { 
-    id: 7, 
-    title: "Marketing ROI", 
-    value: "marketing", 
-    charts: 3,
-    description: "Measure marketing campaign performance",
-    icon: RiBarChartBoxLine
-  },
-  { 
-    id: 8, 
-    title: "Team Progress", 
-    value: "team", 
-    charts: 2,
-    description: "Monitor team performance and tasks",
-    icon: RiBarChartBoxLine
-  },
-  { 
-    id: 9, 
-    title: "Project Timeline", 
-    value: "projects", 
-    charts: 5,
-    description: "Track project progress and milestones",
-    icon: RiBarChartBoxLine
-  },
-  { 
-    id: 10, 
-    title: "Financial Summary", 
-    value: "finance", 
-    charts: 7,
-    description: "Overview of financial metrics and trends",
-    icon: RiBarChartBoxLine
-  },
-] as const;
-
-// Mock chart configurations for each dashboard
-const mockDashboardCharts = {
-  revenue: [
-    { user_facing_name: "Monthly Revenue", chart_type: "bar" },
-    { user_facing_name: "Revenue Distribution", chart_type: "pie" },
-    { user_facing_name: "Revenue Growth", chart_type: "bar" },
-    { user_facing_name: "Product Revenue Split", chart_type: "pie" },
-  ],
-  users: [
-    { user_facing_name: "Weekly Active Users", chart_type: "bar" },
-    { user_facing_name: "User Types", chart_type: "pie" },
-    { user_facing_name: "User Growth", chart_type: "bar" },
-    { user_facing_name: "Engagement Metrics", chart_type: "bar" },
-    { user_facing_name: "User Retention", chart_type: "pie" },
-    { user_facing_name: "Geographic Distribution", chart_type: "pie" },
-  ],
-  sales: [
-    { user_facing_name: "Quarterly Sales", chart_type: "bar" },
-    { user_facing_name: "Sales Channels", chart_type: "pie" },
-    { user_facing_name: "Sales Growth", chart_type: "bar" },
-    { user_facing_name: "Top Products", chart_type: "bar" },
-    { user_facing_name: "Sales by Region", chart_type: "pie" },
-  ],
-  performance: [
-    { user_facing_name: "KPI Metrics", chart_type: "bar" },
-    { user_facing_name: "Performance Split", chart_type: "pie" },
-    { user_facing_name: "Efficiency Metrics", chart_type: "bar" },
-  ],
-  feedback: [
-    { user_facing_name: "Satisfaction Score", chart_type: "bar" },
-    { user_facing_name: "Feedback Categories", chart_type: "pie" },
-  ],
-  inventory: [
-    { user_facing_name: "Stock Levels", chart_type: "bar" },
-    { user_facing_name: "Category Split", chart_type: "pie" },
-    { user_facing_name: "Inventory Turnover", chart_type: "bar" },
-    { user_facing_name: "Stock Distribution", chart_type: "pie" },
-  ],
-  marketing: [
-    { user_facing_name: "Campaign Results", chart_type: "bar" },
-    { user_facing_name: "Channel Mix", chart_type: "pie" },
-    { user_facing_name: "ROI by Channel", chart_type: "bar" },
-  ],
-  team: [
-    { user_facing_name: "Team Performance", chart_type: "bar" },
-    { user_facing_name: "Task Distribution", chart_type: "pie" },
-  ],
-  projects: [
-    { user_facing_name: "Project Status", chart_type: "bar" },
-    { user_facing_name: "Project Types", chart_type: "pie" },
-    { user_facing_name: "Timeline Progress", chart_type: "bar" },
-    { user_facing_name: "Resource Allocation", chart_type: "bar" },
-    { user_facing_name: "Project Success Rate", chart_type: "pie" },
-  ],
-  finance: [
-    { user_facing_name: "Financial Overview", chart_type: "bar" },
-    { user_facing_name: "Cost Breakdown", chart_type: "pie" },
-    { user_facing_name: "Profit Margins", chart_type: "bar" },
-    { user_facing_name: "Expense Categories", chart_type: "pie" },
-    { user_facing_name: "Cash Flow", chart_type: "bar" },
-    { user_facing_name: "Investment Returns", chart_type: "bar" },
-    { user_facing_name: "Budget Allocation", chart_type: "pie" },
-  ],
-};
 
 export const Dashboard = createReactBlockSpec(
   {
@@ -325,7 +205,7 @@ export const Dashboard = createReactBlockSpec(
       textColor: defaultProps.textColor,
       selectedItem: {
         default: "",
-        values: ["", ...dashboardItems.map(item => item.value)],
+        values: [] as string[],
       },
     },
     content: "inline",
@@ -334,29 +214,68 @@ export const Dashboard = createReactBlockSpec(
     render: (props) => {
       const [isExpanded, setIsExpanded] = useState(false);
       const [search, setSearch] = useState("");
-      const selectedItem = dashboardItems.find(
+
+      const { data: dashboardsResponse, isLoading, error } = useQuery<ServerListDashboardResponse>({
+        queryKey: [LIST_DASHBOARDS],
+        queryFn: () => client.dashboards.dashboardsList().then(res => res.data),
+      });
+
+      // Convert API dashboards to internal format and filter out dashboards with no charts
+      const availableDashboards: DashboardItem[] = dashboardsResponse?.dashboards
+        ?.filter(dashboard => (dashboard.chart_count || 0) > 0)
+        ?.map(dashboard => ({
+          id: dashboard.reference || "",
+          title: dashboard.title || "Untitled Dashboard",
+          value: dashboard.reference || "",
+          description: dashboard.description || "No description available",
+          charts: dashboard.chart_count || 0,
+          icon: RiBarChartBoxLine
+        })) || [];
+
+      const selectedItem = availableDashboards.find(
         (item) => item.value === props.block.props.selectedItem
       );
 
-      const filteredItems = dashboardItems.filter((item) => {
+      const filteredItems = availableDashboards.filter((item) => {
         if (!search) return true;
-        
+
         const searchLower = search.toLowerCase();
         return item.title.toLowerCase().includes(searchLower);
       });
 
-      const dashboardCharts = selectedItem 
-        ? mockDashboardCharts[selectedItem.value as keyof typeof mockDashboardCharts] || []
-        : [];
+      // Generate mock charts based on the dashboard's chart count
+      const mockCharts = selectedItem ? Array.from({ length: selectedItem.charts }, (_, i) => ({
+        reference: `mock-chart-${i}`,
+        user_facing_name: `Chart ${i + 1}`,
+        chart_type: i % 2 === 0 ? "bar" : "pie",
+        description: `Mock chart ${i + 1}`,
+        metadata: {},
+      } as MalakIntegrationChart)) : [];
+
+      if (isLoading) {
+        return (
+          <div className="flex items-center justify-center p-6 text-sm text-muted-foreground bg-muted/50 rounded-md border border-dashed">
+            Loading available dashboards...
+          </div>
+        );
+      }
+
+      if (error) {
+        return (
+          <div className="flex items-center justify-center p-6 text-sm text-destructive bg-destructive/10 rounded-md border border-dashed border-destructive">
+            Error loading dashboards. Please try again.
+          </div>
+        );
+      }
 
       return (
         <Card className="dashboard">
           <div className="flex items-center justify-between gap-4">
             <Popover>
               <PopoverTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  role="combobox" 
+                <Button
+                  variant="outline"
+                  role="combobox"
                   className={cn(
                     "w-[300px] justify-between",
                     !selectedItem && "text-muted-foreground"
@@ -377,8 +296,8 @@ export const Dashboard = createReactBlockSpec(
                 <Command shouldFilter={false}>
                   <div className="flex items-center border-b px-3">
                     <RiSearchLine className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-                    <CommandInput 
-                      placeholder="Search dashboards..." 
+                    <CommandInput
+                      placeholder="Search dashboards..."
                       className="h-9 w-full border-0 bg-transparent p-0 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0"
                       value={search}
                       onValueChange={setSearch}
@@ -460,10 +379,10 @@ export const Dashboard = createReactBlockSpec(
 
           {selectedItem && isExpanded && (
             <div className="grid grid-cols-2 gap-4 mt-4">
-              {dashboardCharts.map((chart, index) => (
-                <MiniChartCard 
-                  key={index} 
-                  chart={chart} 
+              {mockCharts.map((chart, index) => (
+                <MiniChartCard
+                  key={chart.reference}
+                  chart={chart}
                   dashboardType={selectedItem.value}
                 />
               ))}
