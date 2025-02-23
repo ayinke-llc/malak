@@ -1,3 +1,5 @@
+"use client"
+
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 import { useTheme } from "next-themes";
@@ -7,39 +9,91 @@ import type {
   ServerAPIStatus,
   ServerContentUpdateRequest,
 } from "@/client/Api";
-import { Badge, type badgeVariants } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import client from "@/lib/client";
 import { UPDATE_CONTENT } from "@/lib/query-constants";
 import {
-  type Block,
-  BlockNoteEditor,
+  BlockNoteSchema,
+  defaultBlockSpecs,
   filterSuggestionItems,
   PartialBlock,
+  insertOrUpdateBlock,
+  type BlockSchemaFromSpecs
 } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import {
-  type DefaultReactSuggestionItem,
   SuggestionMenuController,
   getDefaultReactSlashMenuItems,
+  useCreateBlockNote
 } from "@blocknote/react";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { defaultEditorContent } from "./default-value";
 import fileUploader from "./image-upload";
+import { Alert } from "./blocks/alert";
+import { RiAlertLine, RiBarChartLine } from "@remixicon/react";
+import { Dashboard } from "./blocks/dashboard";
+import { Chart } from "./blocks/chart";
 
-const getCustomSlashMenuItems = (
-  editor: BlockNoteEditor,
-): DefaultReactSuggestionItem[] => {
-  return [
-    ...getDefaultReactSlashMenuItems(editor).filter((item) => {
-      const exclude = ["Video", "Audio", "File"];
-      return !exclude.includes(item.title);
-    }),
-  ];
-};
+const schema = BlockNoteSchema.create({
+  blockSpecs: {
+    ...defaultBlockSpecs,
+
+    // custom blocks
+    alert: Alert,
+    dashboard: Dashboard,
+    chart: Chart,
+  },
+});
+
+type EditorBlock = BlockSchemaFromSpecs<typeof schema.blockSpecs>;
+
+const insertChart = (editor: typeof schema.BlockNoteEditor) => ({
+  title: "Chart",
+  onItemClick: () => {
+    insertOrUpdateBlock(editor, {
+      type: "chart",
+    });
+  },
+  group: "Data",
+  icon: <RiBarChartLine />,
+});
+
+const insertAlert = (editor: typeof schema.BlockNoteEditor) => ({
+  title: "Alert",
+  onItemClick: () => {
+    insertOrUpdateBlock(editor, {
+      type: "alert",
+    });
+  },
+  aliases: [
+    "alert",
+    "notification",
+    "emphasize",
+    "warning",
+    "error",
+    "info",
+    "success",
+  ],
+  group: "Other",
+  icon: <RiAlertLine />,
+});
+
+const insertDashboard = (editor: typeof schema.BlockNoteEditor) => ({
+  title: "Dashboard",
+  onItemClick: () => {
+    insertOrUpdateBlock(editor, {
+      type: "dashboard",
+    });
+  },
+  aliases: [
+  ],
+  group: "Data",
+  icon: <RiBarChartLine />,
+});
 
 export type EditorProps = {
   reference: string;
@@ -64,12 +118,11 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
     initialContent = update?.content as PartialBlock[];
   }
 
-  const editor = useMemo(() => {
-    return BlockNoteEditor.create({
-      initialContent,
-      uploadFile: fileUploader,
-    });
-  }, [initialContent]);
+  const editor = useCreateBlockNote({
+    initialContent,
+    schema,
+    uploadFile: fileUploader,
+  })
 
   const mutation = useMutation({
     mutationKey: [UPDATE_CONTENT],
@@ -91,7 +144,7 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
     gcTime: Number.POSITIVE_INFINITY,
   });
 
-  const debouncedUpdates = useDebouncedCallback(async (blocks: Block[]) => {
+  const debouncedUpdates = useDebouncedCallback(async (blocks: EditorBlock[]) => {
     const title = blocks[0];
 
     if (!title) {
@@ -112,6 +165,11 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
       type?: string;
       text: string;
     };
+
+    if (!titleContent) {
+      toast.error("Your update must contain a title")
+      return
+    }
 
     if (titleContent.type !== "text" || !titleContent.text) {
       toast.error("Your update title can be only text");
@@ -145,6 +203,7 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
         </Badge>
       </div>
       <BlockNoteView
+        slashMenu={false}
         editor={editor}
         theme={theme as "light" | "dark"}
         editable={update?.status !== 'sent'}
@@ -153,14 +212,22 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
             return
           }
           setSaveStatus("Storing");
-          debouncedUpdates(editor.document);
+          debouncedUpdates(editor.document as EditorBlock[]);
           setSaveStatus("Unsaved");
         }}
       >
         <SuggestionMenuController
           triggerCharacter={"/"}
           getItems={async (query) =>
-            filterSuggestionItems(getCustomSlashMenuItems(editor), query)
+            filterSuggestionItems(
+              [
+                ...getDefaultReactSlashMenuItems(editor),
+                insertAlert(editor),
+                insertChart(editor),
+                insertDashboard(editor)
+              ],
+              query
+            )
           }
         />
       </BlockNoteView>

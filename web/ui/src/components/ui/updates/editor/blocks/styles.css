@@ -1,0 +1,218 @@
+.alert {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+  border-radius: 4px;
+  min-height: 48px;
+  padding: 4px;
+}
+
+.alert[data-alert-type="warning"] {
+  background-color: #fff6e6;
+}
+
+.alert[data-alert-type="error"] {
+  background-color: #ffe6e6;
+}
+
+.alert[data-alert-type="info"] {
+  background-color: #e6ebff;
+}
+
+.alert[data-alert-type="success"] {
+  background-color: #e6ffe6;
+}
+
+[data-color-scheme="dark"] .alert[data-alert-type="warning"] {
+  background-color: #805d20;
+}
+
+[data-color-scheme="dark"] .alert[data-alert-type="error"] {
+  background-color: #802020;
+}
+
+[data-color-scheme="dark"] .alert[data-alert-type="info"] {
+  background-color: #203380;
+}
+
+[data-color-scheme="dark"] .alert[data-alert-type="success"] {
+  background-color: #208020;
+}
+
+.alert-icon-wrapper {
+  border-radius: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 12px;
+  margin-right: 12px;
+  height: 18px;
+  width: 18px;
+  user-select: none;
+  cursor: pointer;
+}
+
+.alert-icon[data-alert-icon-type="warning"] {
+  color: #e69819
+}
+
+.alert-icon[data-alert-icon-type="error"] {
+  color: #d80d0d
+}
+
+.alert-icon[data-alert-icon-type="info"] {
+  color: #507aff
+}
+
+.alert-icon[data-alert-icon-type="success"] {
+  color: #0bc10b
+}
+
+.inline-content {
+  @apply flex-1 min-w-0;
+}
+
+.dashboard {
+  @apply flex flex-col gap-4 p-4;
+}
+
+.dashboard-button {
+  @apply w-[300px] justify-start text-left font-normal;
+}
+
+.dashboard-icon-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+  min-width: 280px;
+}
+
+[data-color-scheme="dark"] .dashboard-icon-wrapper {
+  background-color: #0f172a;
+  border-color: #334155;
+}
+
+.dashboard-icon-wrapper:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+[data-color-scheme="dark"] .dashboard-icon-wrapper:hover {
+  background-color: #1e293b;
+  border-color: #475569;
+}
+
+.dashboard-icon {
+  color: #3b82f6;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+[data-color-scheme="dark"] .dashboard-icon {
+  color: #60a5fa;
+}
+
+.dashboard-title {
+  font-weight: 500;
+  color: #1e293b;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+[data-color-scheme="dark"] .dashboard-title {
+  color: #e2e8f0;
+}
+
+.dashboard-chart-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #64748b;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  background-color: #f1f5f9;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+[data-color-scheme="dark"] .dashboard-chart-count {
+  color: #94a3b8;
+  background-color: #1e293b;
+}
+
+.dashboard-command-wrapper {
+  width: 320px;
+  padding: 0;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+[data-color-scheme="dark"] .dashboard-command-wrapper {
+  background-color: #0f172a;
+  border-color: #334155;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-command-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.dashboard-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background-color: white;
+  border-radius: 8px;
+  border: 2px dashed #e2e8f0;
+  color: #64748b;
+  font-size: 0.9rem;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+[data-color-scheme="dark"] .dashboard-placeholder {
+  background-color: #0f172a;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+.dashboard-placeholder:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+}
+
+[data-color-scheme="dark"] .dashboard-placeholder:hover {
+  border-color: #475569;
+  background-color: #1e293b;
+}
+
+/* Mini Chart Styles */
+.recharts-wrapper {
+  @apply !w-full;
+}
+
+.recharts-surface {
+  @apply overflow-visible;
+}
+
+.recharts-tooltip-wrapper {
+  @apply !z-50;
+}
