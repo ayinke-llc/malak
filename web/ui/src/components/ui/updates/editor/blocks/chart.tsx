@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
-import { RiBarChartBoxLine, RiPieChartLine } from "@remixicon/react";
+import { RiBarChartBoxLine, RiPieChartLine, RiSearchLine } from "@remixicon/react";
 import { cn } from "@/lib/utils";
 import { Bar, BarChart, Cell, Pie, PieChart, Tooltip, XAxis, YAxis } from "recharts";
+import { useState } from "react";
+import { Tooltip as UITooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ChartDataPoint {
   name: string;
@@ -39,31 +41,63 @@ const generatePieData = (categories: readonly string[], total: number = 1000): C
   }));
 };
 
-interface BarChartConfig {
+interface ChartConfig {
   id: number;
   name: string;
-  type: "bar";
-  dataPrefix: string;
-  dataCount: number;
+  type: "bar" | "pie";
+  description: string;
+  dataPrefix?: string;
+  dataCount?: number;
+  categories?: readonly string[];
 }
-
-interface PieChartConfig {
-  id: number;
-  name: string;
-  type: "pie";
-  categories: readonly string[];
-}
-
-type ChartConfig = BarChartConfig | PieChartConfig;
 
 // Available charts configuration
 const availableCharts: readonly ChartConfig[] = [
-  { id: 1, name: "Monthly Revenue", type: "bar", dataPrefix: "Month", dataCount: 6 },
-  { id: 2, name: "Revenue Distribution", type: "pie", categories: ["Product A", "Product B", "Product C", "Product D"] },
-  { id: 3, name: "User Growth", type: "bar", dataPrefix: "Week", dataCount: 4 },
-  { id: 4, name: "User Types", type: "pie", categories: ["New", "Active", "Inactive"] },
-  { id: 5, name: "Sales Performance", type: "bar", dataPrefix: "Quarter", dataCount: 4 },
-  { id: 6, name: "Geographic Split", type: "pie", categories: ["North", "South", "East", "West"] },
+  { 
+    id: 1, 
+    name: "Monthly Revenue", 
+    type: "bar", 
+    description: "Track monthly revenue performance",
+    dataPrefix: "Month", 
+    dataCount: 6 
+  },
+  { 
+    id: 2, 
+    name: "Revenue Distribution", 
+    type: "pie", 
+    description: "View revenue split across products",
+    categories: ["Product A", "Product B", "Product C", "Product D"] 
+  },
+  { 
+    id: 3, 
+    name: "User Growth", 
+    type: "bar", 
+    description: "Monitor weekly user growth trends",
+    dataPrefix: "Week", 
+    dataCount: 4 
+  },
+  { 
+    id: 4, 
+    name: "User Types", 
+    type: "pie", 
+    description: "Analyze user activity distribution",
+    categories: ["New", "Active", "Inactive"] 
+  },
+  { 
+    id: 5, 
+    name: "Sales Performance", 
+    type: "bar", 
+    description: "Track quarterly sales metrics",
+    dataPrefix: "Quarter", 
+    dataCount: 4 
+  },
+  { 
+    id: 6, 
+    name: "Geographic Split", 
+    type: "pie", 
+    description: "View regional distribution data",
+    categories: ["North", "South", "East", "West"] 
+  },
 ] as const;
 
 interface ChartDisplayProps {
@@ -72,8 +106,8 @@ interface ChartDisplayProps {
 
 function ChartDisplay({ chart }: ChartDisplayProps) {
   const chartData = chart.type === "bar" 
-    ? generateBarData(chart.dataPrefix, chart.dataCount)
-    : generatePieData(chart.categories);
+    ? generateBarData(chart.dataPrefix || "Item", chart.dataCount || 5)
+    : generatePieData(chart.categories || ["A", "B", "C"]);
 
   return (
     <Card className="p-4">
@@ -86,43 +120,50 @@ function ChartDisplay({ chart }: ChartDisplayProps) {
         <span className="text-sm font-medium">{chart.name}</span>
       </div>
       
-      {chart.type === "bar" ? (
-        <ChartContainer className="w-full h-full" config={{}}>
-          <BarChart
-            width={500}
-            height={300}
-            data={chartData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-          >
-            <XAxis dataKey="name" stroke="#888888" />
-            <YAxis stroke="#888888" />
-            <Tooltip />
-            <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ChartContainer>
-      ) : (
-        <ChartContainer className="w-full h-full" config={{}}>
-          <PieChart
-            width={500}
-            height={300}
-            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-          >
-            <Pie
+      <div className="w-full aspect-[16/9] min-h-[300px] relative">
+        <ChartContainer className="absolute inset-0" config={{}}>
+          {chart.type === "bar" ? (
+            <BarChart
+              width={500}
+              height={300}
               data={chartData}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              outerRadius={100}
-              dataKey="value"
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={`hsl(${index * 45}, 70%, 50%)`} />
-              ))}
-            </Pie>
-            <Tooltip />
-          </PieChart>
+              <XAxis dataKey="name" stroke="#888888" />
+              <YAxis stroke="#888888" />
+              <Tooltip />
+              <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          ) : (
+            <PieChart
+              width={500}
+              height={300}
+              margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+            >
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, value }) => `${name}: ${value}`}
+                outerRadius={120}
+                innerRadius={60}
+                paddingAngle={2}
+                dataKey="value"
+              >
+                {chartData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={`hsl(${index * 45}, 70%, 50%)`}
+                    strokeWidth={1}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          )}
         </ChartContainer>
-      )}
+      </div>
     </Card>
   );
 }
@@ -142,9 +183,20 @@ export const Chart = createReactBlockSpec(
   },
   {
     render: (props) => {
+      const [search, setSearch] = useState("");
+      
       const selectedChart = availableCharts.find(
         (chart) => chart.id === props.block.props.selectedChart
       );
+
+      const filteredCharts = availableCharts.filter((chart) => {
+        if (!search) return true;
+        const searchLower = search.toLowerCase();
+        return (
+          chart.name.toLowerCase().includes(searchLower) ||
+          chart.description.toLowerCase().includes(searchLower)
+        );
+      });
 
       return (
         <div className="chart-block">
@@ -180,13 +232,21 @@ export const Chart = createReactBlockSpec(
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Search charts..." />
+            <PopoverContent className="w-[300px] p-0" align="start">
+              <Command shouldFilter={false}>
+                <div className="flex items-center border-b px-3">
+                  <RiSearchLine className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                  <CommandInput 
+                    placeholder="Search charts..." 
+                    className="h-9 w-full border-0 bg-transparent p-0 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0"
+                    value={search}
+                    onValueChange={setSearch}
+                  />
+                </div>
                 <CommandList>
                   <CommandEmpty>No chart found.</CommandEmpty>
                   <CommandGroup>
-                    {availableCharts.map((chart) => (
+                    {filteredCharts.map((chart) => (
                       <CommandItem
                         key={chart.id}
                         value={chart.name}
@@ -195,21 +255,33 @@ export const Chart = createReactBlockSpec(
                             type: "chart",
                             props: { selectedChart: chart.id },
                           });
+                          setSearch("");
                         }}
+                        className="flex items-start justify-between py-3"
                       >
-                        <div className="flex items-center justify-between w-full">
+                        <div className="flex flex-col gap-1 flex-1 min-w-0">
                           <div className="flex items-center">
                             {chart.type === "bar" ? (
-                              <RiBarChartBoxLine className="mr-2 h-4 w-4" />
+                              <RiBarChartBoxLine className="mr-2 h-4 w-4 shrink-0" />
                             ) : (
-                              <RiPieChartLine className="mr-2 h-4 w-4" />
+                              <RiPieChartLine className="mr-2 h-4 w-4 shrink-0" />
                             )}
-                            <span>{chart.name}</span>
+                            <span className="font-medium truncate">{chart.name}</span>
                           </div>
-                          <Badge variant="secondary">
-                            {chart.type === "bar" ? "Bar" : "Pie"}
-                          </Badge>
+                          <UITooltip delayDuration={200}>
+                            <TooltipTrigger asChild>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {chart.description}
+                              </p>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-xs">{chart.description}</p>
+                            </TooltipContent>
+                          </UITooltip>
                         </div>
+                        <Badge variant="secondary" className="ml-4 shrink-0 self-center">
+                          {chart.type === "bar" ? "Bar" : "Pie"}
+                        </Badge>
                       </CommandItem>
                     ))}
                   </CommandGroup>
