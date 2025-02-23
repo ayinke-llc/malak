@@ -11,6 +11,10 @@ import { cn } from "@/lib/utils";
 import { Bar, BarChart, Cell, Pie, PieChart, Tooltip, XAxis, YAxis } from "recharts";
 import { useState } from "react";
 import { Tooltip as UITooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useQuery } from "@tanstack/react-query";
+import client from "@/lib/client";
+import { LIST_CHARTS } from "@/lib/query-constants";
+import type { MalakIntegrationChart } from "@/client/Api";
 
 interface ChartDataPoint {
   name: string;
@@ -42,7 +46,7 @@ const generatePieData = (categories: readonly string[], total: number = 1000): C
 };
 
 interface ChartConfig {
-  id: number;
+  id: string;
   name: string;
   type: "bar" | "pie";
   description: string;
@@ -51,54 +55,23 @@ interface ChartConfig {
   categories?: readonly string[];
 }
 
-// Available charts configuration
-const availableCharts: readonly ChartConfig[] = [
-  { 
-    id: 1, 
-    name: "Monthly Revenue", 
-    type: "bar", 
-    description: "Track monthly revenue performance",
-    dataPrefix: "Month", 
-    dataCount: 6 
-  },
-  { 
-    id: 2, 
-    name: "Revenue Distribution", 
-    type: "pie", 
-    description: "View revenue split across products",
-    categories: ["Product A", "Product B", "Product C", "Product D"] 
-  },
-  { 
-    id: 3, 
-    name: "User Growth", 
-    type: "bar", 
-    description: "Monitor weekly user growth trends",
-    dataPrefix: "Week", 
-    dataCount: 4 
-  },
-  { 
-    id: 4, 
-    name: "User Types", 
-    type: "pie", 
-    description: "Analyze user activity distribution",
-    categories: ["New", "Active", "Inactive"] 
-  },
-  { 
-    id: 5, 
-    name: "Sales Performance", 
-    type: "bar", 
-    description: "Track quarterly sales metrics",
-    dataPrefix: "Quarter", 
-    dataCount: 4 
-  },
-  { 
-    id: 6, 
-    name: "Geographic Split", 
-    type: "pie", 
-    description: "View regional distribution data",
-    categories: ["North", "South", "East", "West"] 
-  },
-] as const;
+// Convert API chart to internal chart config
+const convertApiChartToConfig = (chart: MalakIntegrationChart): ChartConfig => {
+  // Default to bar chart if type is not recognized
+  const type = chart.chart_type === "pie" ? "pie" : "bar";
+  
+  return {
+    id: chart.reference || "",
+    name: chart.user_facing_name || "Untitled Chart",
+    type,
+    description: `${chart.user_facing_name || "Chart"} visualization`,
+    // Keep mock data generation parameters based on chart type
+    ...(type === "bar" 
+      ? { dataPrefix: "Item", dataCount: 5 }
+      : { categories: ["Category A", "Category B", "Category C", "Category D"] }
+    )
+  };
+};
 
 interface ChartDisplayProps {
   chart: ChartConfig;
@@ -175,8 +148,8 @@ export const Chart = createReactBlockSpec(
       textAlignment: defaultProps.textAlignment,
       textColor: defaultProps.textColor,
       selectedChart: {
-        default: 0,
-        values: [0, ...availableCharts.map(chart => chart.id)],
+        default: "",
+        values: [] as string[],
       },
     },
     content: "inline",
@@ -185,6 +158,15 @@ export const Chart = createReactBlockSpec(
     render: (props) => {
       const [search, setSearch] = useState("");
       
+      // Fetch available charts using React Query
+      const { data: chartsResponse, isLoading, error } = useQuery({
+        queryKey: [LIST_CHARTS],
+        queryFn: () => client.dashboards.chartsList(),
+      });
+
+      // Convert API charts to internal chart configs
+      const availableCharts = chartsResponse?.data.charts?.map(convertApiChartToConfig) || [];
+
       const selectedChart = availableCharts.find(
         (chart) => chart.id === props.block.props.selectedChart
       );
@@ -197,6 +179,22 @@ export const Chart = createReactBlockSpec(
           chart.description.toLowerCase().includes(searchLower)
         );
       });
+
+      if (isLoading) {
+        return (
+          <div className="flex items-center justify-center p-6 text-sm text-muted-foreground bg-muted/50 rounded-md border border-dashed">
+            Loading available charts...
+          </div>
+        );
+      }
+
+      if (error) {
+        return (
+          <div className="flex items-center justify-center p-6 text-sm text-destructive bg-destructive/10 rounded-md border border-dashed border-destructive">
+            Error loading charts. Please try again.
+          </div>
+        );
+      }
 
       return (
         <div className="chart-block">
