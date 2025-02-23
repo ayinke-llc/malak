@@ -198,6 +198,13 @@ export const Dashboard = createReactBlockSpec(
         enabled: !!selectedItem?.id,
       });
 
+      // Sort charts based on their positions if available
+      const sortedCharts = [...(selectedDashboardCharts?.charts || [])].sort((a, b) => {
+        const posA = selectedDashboardCharts?.positions?.find(p => p.chart_id === a.id)?.order_index ?? 0;
+        const posB = selectedDashboardCharts?.positions?.find(p => p.chart_id === b.id)?.order_index ?? 0;
+        return posA - posB;
+      });
+
       if (isLoading) {
         return (
           <div className="flex items-center justify-center p-6 text-sm text-muted-foreground bg-muted/50 rounded-md border border-dashed">
@@ -325,7 +332,7 @@ export const Dashboard = createReactBlockSpec(
 
           {selectedItem && isExpanded && (
             <div className="grid grid-cols-2 gap-4 mt-4">
-              {selectedDashboardCharts?.charts?.map((chart) => (
+              {sortedCharts?.map((chart) => (
                 <MiniChartCard
                   key={chart.reference}
                   chart={chart.chart || chart}

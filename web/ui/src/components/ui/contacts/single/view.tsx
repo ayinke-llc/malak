@@ -361,12 +361,16 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
               <h3 className="text-lg font-semibold text-foreground">Updates</h3>
             </div>
           </div>
-          <div className="space-y-2">
-            {shared_items?.
-              filter((value) => value.item_type === "update").
-              map((item) => {
-                return (
-                  <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
+          {(!shared_items || shared_items.filter((value) => value.item_type === "update").length === 0) ? (
+            <div className="p-8 text-center border rounded-lg bg-muted/10">
+              <p className="text-sm text-muted-foreground">No updates have been shared with this contact yet</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {shared_items.
+                filter((value) => value.item_type === "update").
+                map((item) => (
+                  <div key={item.item_reference} className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
                     <Link href={`/updates/${item?.item_reference}`} className="text-sm font-medium text-foreground">
                       {item?.title}
                     </Link>
@@ -374,9 +378,9 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
                       Sent {formatDistanceToNow(item?.shared_at as string, { addSuffix: true })}
                     </span>
                   </div>
-                )
-              })}
-          </div>
+                ))}
+            </div>
+          )}
         </div>
 
         {/* Dashboards Section */}
@@ -387,20 +391,26 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
               <h3 className="text-lg font-semibold text-foreground">Dashboards</h3>
             </div>
           </div>
-          <div className="space-y-2">
-            {shared_items?.
-              filter((value) => value.item_type === "dashboard").
-              map((item) => {
-                return (
-                  <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
-                    <span className="text-sm font-medium text-foreground">Financial metrics</span>
+          {(!shared_items || shared_items.filter((value) => value.item_type === "dashboard").length === 0) ? (
+            <div className="p-8 text-center border rounded-lg bg-muted/10">
+              <p className="text-sm text-muted-foreground">No dashboards have been shared with this contact yet</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {shared_items.
+                filter((value) => value.item_type === "dashboard").
+                map((item) => (
+                  <div key={item.item_reference} className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                    <Link href={`/dashboards/${item?.item_reference}`} className="text-sm font-medium text-foreground">
+                      {item?.title}
+                    </Link>
                     <span className="text-sm text-muted-foreground">
                       Sent {formatDistanceToNow(item?.shared_at as string, { addSuffix: true })}
                     </span>
                   </div>
-                )
-              })}
-          </div>
+                ))}
+            </div>
+          )}
         </div>
 
         {/* Data Rooms Section */}
@@ -411,18 +421,26 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
               <h3 className="text-lg font-semibold text-foreground">Data rooms</h3>
             </div>
           </div>
-          <div className="space-y-2">
-            {shared_items?.
-              filter((value) => value.item_type === "deck").
-              map((item) => {
-                return (
-                  <div className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
-                    <span className="text-sm font-medium text-foreground">Data room example</span>
-                    <span className="text-sm text-muted-foreground">Shared 4 months ago</span>
+          {(!shared_items || shared_items.filter((value) => value.item_type === "deck").length === 0) ? (
+            <div className="p-8 text-center border rounded-lg bg-muted/10">
+              <p className="text-sm text-muted-foreground">No data rooms have been shared with this contact yet</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {shared_items.
+                filter((value) => value.item_type === "deck").
+                map((item) => (
+                  <div key={item.item_reference} className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                    <Link href={`/data-rooms/${item?.item_reference}`} className="text-sm font-medium text-foreground">
+                      {item?.title}
+                    </Link>
+                    <span className="text-sm text-muted-foreground">
+                      Sent {formatDistanceToNow(item?.shared_at as string, { addSuffix: true })}
+                    </span>
                   </div>
-                )
-              })}
-          </div>
+                ))}
+            </div>
+          )}
         </div>
       </div>
 
