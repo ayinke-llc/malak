@@ -203,3 +203,16 @@
   border-color: #475569;
   background-color: #1e293b;
 }
+
+/* Mini Chart Styles */
+.recharts-wrapper {
+  @apply !w-full;
+}
+
+.recharts-surface {
+  @apply overflow-visible;
+}
+
+.recharts-tooltip-wrapper {
+  @apply !z-50;
+}
