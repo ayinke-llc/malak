@@ -1,3 +1,5 @@
+"use client"
+
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 import { useTheme } from "next-themes";
@@ -34,20 +36,19 @@ import { useDebouncedCallback } from "use-debounce";
 import { defaultEditorContent } from "./default-value";
 import fileUploader from "./image-upload";
 import { Alert } from "./blocks/alert";
-import { RiAlertLine } from "@remixicon/react";
+import { RiAlertLine, RiBarChartLine } from "@remixicon/react";
+import { Dashboard } from "./blocks/dashboard";
 
-// Our schema with block specs, which contain the configs and implementations for blocks
-// that we want our editor to use.
 const schema = BlockNoteSchema.create({
   blockSpecs: {
     // Adds all default blocks.
     ...defaultBlockSpecs,
-    // Adds the Alert block.
+
     alert: Alert,
+    dashboard: Dashboard,
   },
 });
 
-// Slash menu item to insert an Alert block
 const insertAlert = (editor: typeof schema.BlockNoteEditor) => ({
   title: "Alert",
   onItemClick: () => {
@@ -68,16 +69,18 @@ const insertAlert = (editor: typeof schema.BlockNoteEditor) => ({
   icon: <RiAlertLine />,
 });
 
-const getCustomSlashMenuItems = (
-  editor: BlockNoteEditor,
-): DefaultReactSuggestionItem[] => {
-  return [
-    ...getDefaultReactSlashMenuItems(editor).filter((item) => {
-      const exclude = ["Video", "Audio", "File"];
-      return !exclude.includes(item.title);
-    }),
-  ];
-};
+const insertDashboard = (editor: typeof schema.BlockNoteEditor) => ({
+  title: "Dashboard",
+  onItemClick: () => {
+    insertOrUpdateBlock(editor, {
+      type: "dashboard",
+    });
+  },
+  aliases: [
+  ],
+  group: "Charts",
+  icon: <RiBarChartLine />,
+});
 
 export type EditorProps = {
   reference: string;
@@ -199,7 +202,9 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
           triggerCharacter={"/"}
           getItems={async (query) =>
             filterSuggestionItems(
-              [...getDefaultReactSlashMenuItems(editor), insertAlert(editor)],
+              [...getDefaultReactSlashMenuItems(editor),
+              insertAlert(editor),
+              insertDashboard(editor)],
               query
             )
           }

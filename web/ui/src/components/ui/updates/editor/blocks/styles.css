@@ -72,3 +72,116 @@
 .inline-content {
   flex-grow: 1;
 }
+
+.dashboard {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 12px;
+  background-color: #f8fafc;
+  margin: 12px 0;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+[data-color-scheme="dark"] .dashboard {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+.dashboard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e1;
+}
+
+[data-color-scheme="dark"] .dashboard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-color: #475569;
+}
+
+.dashboard-icon-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+[data-color-scheme="dark"] .dashboard-icon-wrapper {
+  background-color: #0f172a;
+  border-color: #334155;
+}
+
+.dashboard-icon-wrapper:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+[data-color-scheme="dark"] .dashboard-icon-wrapper:hover {
+  background-color: #1e293b;
+  border-color: #475569;
+}
+
+.dashboard-icon {
+  color: #3b82f6;
+  transition: color 0.2s ease;
+}
+
+[data-color-scheme="dark"] .dashboard-icon {
+  color: #60a5fa;
+}
+
+.dashboard-title {
+  font-weight: 500;
+  color: #1e293b;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+[data-color-scheme="dark"] .dashboard-title {
+  color: #e2e8f0;
+}
+
+.dashboard-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background-color: white;
+  border-radius: 8px;
+  border: 2px dashed #e2e8f0;
+  color: #64748b;
+  font-size: 0.9rem;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+[data-color-scheme="dark"] .dashboard-placeholder {
+  background-color: #0f172a;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+.dashboard-placeholder:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+}
+
+[data-color-scheme="dark"] .dashboard-placeholder:hover {
+  border-color: #475569;
+  background-color: #1e293b;
+}
+
+.inline-content {
+  flex: 1;
+  min-width: 0;
+}
