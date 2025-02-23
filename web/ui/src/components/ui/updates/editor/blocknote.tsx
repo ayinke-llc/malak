@@ -9,29 +9,26 @@ import type {
   ServerAPIStatus,
   ServerContentUpdateRequest,
 } from "@/client/Api";
-import { Badge, type badgeVariants } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import client from "@/lib/client";
 import { UPDATE_CONTENT } from "@/lib/query-constants";
 import {
-  type Block,
-  BlockNoteEditor,
   BlockNoteSchema,
   defaultBlockSpecs,
   filterSuggestionItems,
   PartialBlock,
   insertOrUpdateBlock,
-  type BlockSchemaFromSpecs,
+  type BlockSchemaFromSpecs
 } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import {
-  type DefaultReactSuggestionItem,
   SuggestionMenuController,
   getDefaultReactSlashMenuItems,
-  useCreateBlockNote,
+  useCreateBlockNote
 } from "@blocknote/react";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { defaultEditorContent } from "./default-value";
@@ -168,6 +165,11 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
       type?: string;
       text: string;
     };
+
+    if (!titleContent) {
+      toast.error("Your update must contain a title")
+      return
+    }
 
     if (titleContent.type !== "text" || !titleContent.text) {
       toast.error("Your update title can be only text");
