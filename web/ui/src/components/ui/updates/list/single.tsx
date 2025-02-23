@@ -45,6 +45,13 @@ import { Separator } from "../../separator";
 import { formatInTimeZone } from 'date-fns-tz';
 import useWorkspacesStore from "@/store/workspace";
 
+// Function to decode HTML entities
+const decodeHtmlEntities = (text: string) => {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+};
+
 const SingleUpdate = (update: MalakUpdate) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [duplicateDialogOpen, setDuplicateDialogOpen] =
@@ -140,7 +147,9 @@ const SingleUpdate = (update: MalakUpdate) => {
         <div className="flex flex-col space-y-1">
           <div className="flex items-center space-x-2">
             <Link href={`/updates/${update.reference}`}>
-              <h3 className="font-semibold text-foreground">{update.title}</h3>
+              <h3 className="font-semibold text-foreground">
+                {update.title ? decodeHtmlEntities(update.title as string) : ''}
+              </h3>
             </Link>
             <UpdateBadge status={update.status as string} />
           </div>

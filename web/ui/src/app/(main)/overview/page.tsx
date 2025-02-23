@@ -1,227 +1,141 @@
 "use client";
-import { overviews } from "@/data/overview-data";
-import type { OverviewData } from "@/data/schema";
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { 
-  ArrowDown, 
-  ArrowUp, 
-  Users, 
-  Mail,
-  Building, 
-  FileText,
-  TrendingUp,
-  Presentation,
-  Eye,
-  Clock,
-  Lock,
-  Share2,
-  BarChart4,
-  Activity
-} from "lucide-react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-} from "recharts";
+  RiUserLine, 
+  RiMailLine,
+  RiFileTextLine,
+  RiPresentationLine,
+  RiEyeLine,
+  RiTimeLine,
+  RiEditLine,
+  RiSendPlaneLine,
+  RiArrowRightSLine
+} from "@remixicon/react";
+import Link from "next/link";
 
 export default function Overview() {
-  const filteredData = overviews;
-  const latestMetrics = filteredData[filteredData.length - 1];
-  const previousMetrics = filteredData[filteredData.length - 2];
-
-  const getPercentageChange = (current: number, previous: number) => {
-    if (!previous) return 0;
-    return ((current - previous) / previous) * 100;
-  };
-
-  const metrics = [
+  const activityLog = [
     {
-      title: "Active Investors",
-      value: latestMetrics?.["Active Investors"] || 0,
-      icon: Users,
-      format: (v: number) => v.toString(),
-    },
-    {
-      title: "Update Opens",
-      value: latestMetrics?.["Update Opens"] || 0,
-      icon: Mail,
-      format: (v: number) => v.toString(),
-    },
-    {
-      title: "Deck Views",
-      value: latestMetrics?.["Deck Views"] || 0,
-      icon: Eye,
-      format: (v: number) => v.toString(),
-    }
-  ];
-
-  const contentMetrics = [
-    {
-      title: "Active Decks",
-      value: latestMetrics?.["Active Decks"] || 0,
-      icon: Presentation,
-      format: (v: number) => v.toString(),
-    },
-    {
-      title: "Protected Content",
-      value: latestMetrics?.["Protected Content"] || 0,
-      icon: Lock,
-      format: (v: number) => v.toString(),
-    },
-    {
-      title: "Shared Links",
-      value: latestMetrics?.["Shared Links"] || 0,
-      icon: Share2,
-      format: (v: number) => v.toString(),
-    }
-  ];
-
-  const recentActivity = [
-    {
-      type: "update",
-      title: "Q4 2023 Investor Update",
-      metric: "85% open rate",
-      time: "2 hours ago"
+      type: "deck",
+      title: "Seed Pitch Deck",
+      action: "opened",
+      user: "Emma Thompson",
+      time: "May 20, 2024"
     },
     {
       type: "deck",
-      title: "Series A Pitch Deck",
-      metric: "12 new views",
-      time: "5 hours ago"
+      title: "Seed Pitch Deck",
+      action: "opened",
+      user: "Emma Thompson and 1 other",
+      time: "Apr 9, 2024"
     },
     {
-      type: "investor",
-      title: "New Investor Added",
-      metric: "Total: 45 investors",
-      time: "1 day ago"
+      type: "deck",
+      title: "Example Deck",
+      action: "opened",
+      user: "James Wilson",
+      time: "Jan 10, 2024"
     },
     {
-      type: "share",
-      title: "Financial Model Shared",
-      metric: "3 accesses",
-      time: "2 days ago"
+      type: "update",
+      title: "Q1 Investor Update",
+      action: "opened via email",
+      user: "Oliver Parker",
+      time: "Jun 20, 2023"
+    },
+    {
+      type: "update",
+      title: "Investor Update",
+      action: "opened via email",
+      user: "Sophie Anderson",
+      time: "Jun 15, 2023"
+    }
+  ];
+
+  const recentDrafts = [
+    {
+      title: "The Malak Starter Plan Investor Update",
+      lastEdit: "11 days ago"
+    },
+    {
+      title: "The Malak Starter Plan Investor Update",
+      lastEdit: "2 months ago"
+    },
+    {
+      title: "Untitled",
+      lastEdit: "2 months ago"
+    },
+    {
+      title: "The Malak Starter Plan Investor Update",
+      lastEdit: "2 months ago"
+    }
+  ];
+
+  const recentlySent = [
+    {
+      title: "Harrison's Co Monthly Update",
+      recipients: 1,
+      sentTime: "10 months ago"
+    },
+    {
+      title: "Parker's Co Monthly Update",
+      recipients: 1,
+      sentTime: "10 months ago"
+    },
+    {
+      title: "MSP Monthly Update",
+      recipients: 1,
+      sentTime: "10 months ago"
+    },
+    {
+      title: "Q1 Investor Update",
+      recipients: 1,
+      group: "Investors",
+      sentTime: "2 years ago"
     }
   ];
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Investor Relations Overview</h1>
+    <div className="space-y-8">
+      {/* Header Section */}
+      <div className="flex flex-col gap-1">
+        <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
+        <p className="text-muted-foreground">
+          Recent activity and updates
+        </p>
       </div>
 
-      <h2 className="text-xl font-semibold">Engagement Metrics</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {metrics.map((metric) => (
-          <Card key={metric.title} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <metric.icon className="h-4 w-4" />
-                {metric.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{metric.format(metric.value)}</div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <h2 className="text-xl font-semibold mt-8">Content Overview</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {contentMetrics.map((metric) => (
-          <Card key={metric.title} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <metric.icon className="h-4 w-4" />
-                {metric.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{metric.format(metric.value)}</div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        <Card className="col-span-1">
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Activity Log */}
+        <Card className="lg:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Investor Engagement Trends</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <RiTimeLine className="h-5 w-5 text-muted-foreground" />
+              Activity Log
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={filteredData}>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-50" />
-                  <XAxis
-                    dataKey="date"
-                    tickFormatter={(value) => format(parseISO(value), "MMM dd")}
-                    stroke="#888888"
-                  />
-                  <YAxis stroke="#888888" />
-                  <Tooltip
-                    labelFormatter={(value) =>
-                      format(parseISO(value as string), "MMM dd, yyyy")
-                    }
-                    contentStyle={{
-                      backgroundColor: "rgba(0, 0, 0, 0.8)",
-                      border: "none",
-                      borderRadius: "4px",
-                      color: "#fff",
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    name="Update Opens"
-                    dataKey="Update Opens"
-                    stroke="#8884d8"
-                    fill="#8884d8"
-                    fillOpacity={0.2}
-                    strokeWidth={2}
-                  />
-                  <Area
-                    type="monotone"
-                    name="Deck Views"
-                    dataKey="Deck Views"
-                    stroke="#82ca9d"
-                    fill="#82ca9d"
-                    fillOpacity={0.2}
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-center gap-4 p-2 hover:bg-gray-50 rounded-lg">
-                  {activity.type === "update" && <Mail className="h-5 w-5 text-blue-500" />}
-                  {activity.type === "deck" && <Presentation className="h-5 w-5 text-purple-500" />}
-                  {activity.type === "investor" && <Users className="h-5 w-5 text-green-500" />}
-                  {activity.type === "share" && <Share2 className="h-5 w-5 text-orange-500" />}
-                  <div className="flex-1">
-                    <p className="font-medium">{activity.title}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500">{activity.metric}</span>
-                      <span className="text-xs text-gray-400">•</span>
-                      <span className="text-sm text-gray-500">{activity.time}</span>
+            <div className="space-y-6">
+              {activityLog.map((activity, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50"
+                >
+                  <div className={`p-2 rounded-full 
+                    ${activity.type === "update" ? "bg-blue-100 text-blue-600" : ""}
+                    ${activity.type === "deck" ? "bg-purple-100 text-purple-600" : ""}
+                  `}>
+                    {activity.type === "update" && <RiMailLine className="h-4 w-4" />}
+                    {activity.type === "deck" && <RiPresentationLine className="h-4 w-4" />}
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {activity.user} {activity.action} {activity.title}
+                    </p>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <span>{activity.time}</span>
                     </div>
                   </div>
                 </div>
@@ -230,52 +144,82 @@ export default function Overview() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Content Performance</CardTitle>
+        {/* Recent Drafts */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <RiEditLine className="h-5 w-5 text-muted-foreground" />
+              Recent Drafts
+            </CardTitle>
+            <Link 
+              href="/updates/drafts" 
+              className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
+            >
+              View all
+              <RiArrowRightSLine className="h-4 w-4" />
+            </Link>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={filteredData}>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-50" />
-                  <XAxis
-                    dataKey="date"
-                    tickFormatter={(value) => format(parseISO(value), "MMM dd")}
-                    stroke="#888888"
-                  />
-                  <YAxis stroke="#888888" />
-                  <Tooltip
-                    labelFormatter={(value) =>
-                      format(parseISO(value as string), "MMM dd, yyyy")
-                    }
-                    contentStyle={{
-                      backgroundColor: "rgba(0, 0, 0, 0.8)",
-                      border: "none",
-                      borderRadius: "4px",
-                      color: "#fff",
-                    }}
-                  />
-                  <Bar
-                    name="Active Decks"
-                    dataKey="Active Decks"
-                    fill="#8884d8"
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    name="Protected Content"
-                    dataKey="Protected Content"
-                    fill="#82ca9d"
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    name="Shared Links"
-                    dataKey="Shared Links"
-                    fill="#ffc658"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="space-y-4">
+              {recentDrafts.map((draft, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50"
+                >
+                  <div className="p-2 rounded-full bg-orange-100 text-orange-600">
+                    <RiFileTextLine className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm font-medium leading-none">{draft.title}</p>
+                    <p className="text-sm text-muted-foreground">Last edit {draft.lastEdit}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recently Sent Updates */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <RiSendPlaneLine className="h-5 w-5 text-muted-foreground" />
+              Recently Sent Updates
+            </CardTitle>
+            <Link 
+              href="/updates/sent" 
+              className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
+            >
+              View all
+              <RiArrowRightSLine className="h-4 w-4" />
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentlySent.map((update, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50"
+                >
+                  <div className="p-2 rounded-full bg-green-100 text-green-600">
+                    <RiMailLine className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm font-medium leading-none">{update.title}</p>
+                    <div className="flex items-center text-sm text-muted-foreground gap-2">
+                      <span>Sent to {update.recipients} {update.recipients === 1 ? 'person' : 'people'}</span>
+                      {update.group && (
+                        <>
+                          <span>•</span>
+                          <span>{update.group}</span>
+                        </>
+                      )}
+                      <span>•</span>
+                      <span>Sent {update.sentTime}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
