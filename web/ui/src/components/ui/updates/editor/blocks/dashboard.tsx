@@ -1,20 +1,25 @@
 import { defaultProps } from "@blocknote/core";
 import { createReactBlockSpec } from "@blocknote/react";
-import { Menu } from "@mantine/core";
-import { RiDashboard2Line } from "@remixicon/react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { RiDashboard2Line, RiBarChartBoxLine } from "@remixicon/react";
+import { cn } from "@/lib/utils";
 import "./styles.css";
 
 export const dashboardItems = [
-  { id: 1, title: "Revenue Overview", value: "revenue" },
-  { id: 2, title: "User Analytics", value: "users" },
-  { id: 3, title: "Sales Report", value: "sales" },
-  { id: 4, title: "Performance Metrics", value: "performance" },
-  { id: 5, title: "Customer Feedback", value: "feedback" },
-  { id: 6, title: "Inventory Status", value: "inventory" },
-  { id: 7, title: "Marketing ROI", value: "marketing" },
-  { id: 8, title: "Team Progress", value: "team" },
-  { id: 9, title: "Project Timeline", value: "projects" },
-  { id: 10, title: "Financial Summary", value: "finance" },
+  { id: 1, title: "Revenue Overview", value: "revenue", charts: 4 },
+  { id: 2, title: "User Analytics", value: "users", charts: 6 },
+  { id: 3, title: "Sales Report", value: "sales", charts: 5 },
+  { id: 4, title: "Performance Metrics", value: "performance", charts: 3 },
+  { id: 5, title: "Customer Feedback", value: "feedback", charts: 2 },
+  { id: 6, title: "Inventory Status", value: "inventory", charts: 4 },
+  { id: 7, title: "Marketing ROI", value: "marketing", charts: 3 },
+  { id: 8, title: "Team Progress", value: "team", charts: 2 },
+  { id: 9, title: "Project Timeline", value: "projects", charts: 5 },
+  { id: 10, title: "Financial Summary", value: "finance", charts: 7 },
 ] as const;
 
 export const Dashboard = createReactBlockSpec(
@@ -37,42 +42,66 @@ export const Dashboard = createReactBlockSpec(
       );
 
       return (
-        <div className={"dashboard"} data-dashboard-type={props.block.props.selectedItem || "none"}>
-          <Menu withinPortal={false}>
-            <Menu.Target>
-              <div className={"dashboard-icon-wrapper"} contentEditable={false}>
-                <RiDashboard2Line
-                  className={"dashboard-icon"}
-                  size={32}
-                />
-                <span className="dashboard-title">
-                  {selectedItem ? selectedItem.title : "Select Dashboard Item"}
-                </span>
-              </div>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Label>Select Dashboard Item</Menu.Label>
-              <Menu.Divider />
-              {dashboardItems.map((item) => (
-                <Menu.Item
-                  key={item.value}
-                  onClick={() =>
-                    props.editor.updateBlock(props.block, {
-                      type: "dashboard",
-                      props: { selectedItem: item.value },
-                    })
-                  }>
-                  {item.title}
-                </Menu.Item>
-              ))}
-            </Menu.Dropdown>
-          </Menu>
+        <Card className="dashboard">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                role="combobox" 
+                className={cn(
+                  "dashboard-button",
+                  !selectedItem && "text-muted-foreground"
+                )}
+              >
+                <RiDashboard2Line className="mr-2 h-5 w-5" />
+                {selectedItem ? selectedItem.title : "Select Dashboard"}
+                {selectedItem && (
+                  <Badge variant="secondary" className="ml-2">
+                    <RiBarChartBoxLine className="mr-1 h-4 w-4" />
+                    {selectedItem.charts} charts
+                  </Badge>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Search dashboards..." />
+                <CommandList>
+                  <CommandEmpty>No dashboard found.</CommandEmpty>
+                  <CommandGroup>
+                    {dashboardItems.map((item) => (
+                      <CommandItem
+                        key={item.value}
+                        value={item.value}
+                        onSelect={() =>
+                          props.editor.updateBlock(props.block, {
+                            type: "dashboard",
+                            props: { selectedItem: item.value },
+                          })
+                        }
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span>{item.title}</span>
+                          <Badge variant="secondary" className="ml-2">
+                            <RiBarChartBoxLine className="mr-1 h-3 w-3" />
+                            {item.charts}
+                          </Badge>
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
           {selectedItem ? (
-            <div className={"inline-content"} ref={props.contentRef} />
+            <div className="inline-content" ref={props.contentRef} />
           ) : (
-            <div className={"dashboard-placeholder"}>Click the dashboard icon to select an item</div>
+            <div className="flex items-center justify-center p-6 text-sm text-muted-foreground bg-muted/50 rounded-md border border-dashed">
+              Click to select a dashboard
+            </div>
           )}
-        </div>
+        </Card>
       );
     },
   }
