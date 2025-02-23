@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
-import { RiDashboard2Line, RiBarChartBoxLine, RiPieChartLine, RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react";
+import { RiDashboard2Line, RiBarChartBoxLine, RiPieChartLine, RiArrowDownSLine, RiArrowUpSLine, RiSearchLine } from "@remixicon/react";
 import { cn } from "@/lib/utils";
-import { Bar, BarChart, Cell, Pie, PieChart, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, Cell, Pie, PieChart, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts";
 import { useState } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import "./styles.css";
 
 // Function to generate random bar chart data
@@ -137,7 +138,7 @@ function MiniChartCard({ chart, dashboardType }: { chart: any; dashboardType: st
           >
             <XAxis dataKey="name" stroke="#888888" fontSize={8} />
             <YAxis stroke="#888888" fontSize={8} />
-            <Tooltip />
+            <RechartsTooltip />
             <Bar dataKey="value" fill="#3B82F6" radius={[2, 2, 0, 0]} />
           </BarChart>
         </ChartContainer>
@@ -160,7 +161,7 @@ function MiniChartCard({ chart, dashboardType }: { chart: any; dashboardType: st
                 <Cell key={`cell-${index}`} fill={`hsl(${index * 45}, 70%, 50%)`} />
               ))}
             </Pie>
-            <Tooltip />
+            <RechartsTooltip />
           </PieChart>
         </ChartContainer>
       )}
@@ -169,16 +170,86 @@ function MiniChartCard({ chart, dashboardType }: { chart: any; dashboardType: st
 }
 
 export const dashboardItems = [
-  { id: 1, title: "Revenue Overview", value: "revenue", charts: 4 },
-  { id: 2, title: "User Analytics", value: "users", charts: 6 },
-  { id: 3, title: "Sales Report", value: "sales", charts: 5 },
-  { id: 4, title: "Performance Metrics", value: "performance", charts: 3 },
-  { id: 5, title: "Customer Feedback", value: "feedback", charts: 2 },
-  { id: 6, title: "Inventory Status", value: "inventory", charts: 4 },
-  { id: 7, title: "Marketing ROI", value: "marketing", charts: 3 },
-  { id: 8, title: "Team Progress", value: "team", charts: 2 },
-  { id: 9, title: "Project Timeline", value: "projects", charts: 5 },
-  { id: 10, title: "Financial Summary", value: "finance", charts: 7 },
+  { 
+    id: 1, 
+    title: "Revenue Overview", 
+    value: "revenue", 
+    charts: 4,
+    description: "Track revenue metrics and financial performance",
+    icon: RiBarChartBoxLine
+  },
+  { 
+    id: 2, 
+    title: "User Analytics", 
+    value: "users", 
+    charts: 6,
+    description: "Monitor user engagement and growth metrics",
+    icon: RiBarChartBoxLine
+  },
+  { 
+    id: 3, 
+    title: "Sales Report", 
+    value: "sales", 
+    charts: 5,
+    description: "Analyze sales performance and trends",
+    icon: RiBarChartBoxLine
+  },
+  { 
+    id: 4, 
+    title: "Performance Metrics", 
+    value: "performance", 
+    charts: 3,
+    description: "Track key performance indicators",
+    icon: RiBarChartBoxLine
+  },
+  { 
+    id: 5, 
+    title: "Customer Feedback", 
+    value: "feedback", 
+    charts: 2,
+    description: "Monitor customer satisfaction and feedback",
+    icon: RiBarChartBoxLine
+  },
+  { 
+    id: 6, 
+    title: "Inventory Status", 
+    value: "inventory", 
+    charts: 4,
+    description: "Track stock levels and inventory metrics",
+    icon: RiBarChartBoxLine
+  },
+  { 
+    id: 7, 
+    title: "Marketing ROI", 
+    value: "marketing", 
+    charts: 3,
+    description: "Measure marketing campaign performance",
+    icon: RiBarChartBoxLine
+  },
+  { 
+    id: 8, 
+    title: "Team Progress", 
+    value: "team", 
+    charts: 2,
+    description: "Monitor team performance and tasks",
+    icon: RiBarChartBoxLine
+  },
+  { 
+    id: 9, 
+    title: "Project Timeline", 
+    value: "projects", 
+    charts: 5,
+    description: "Track project progress and milestones",
+    icon: RiBarChartBoxLine
+  },
+  { 
+    id: 10, 
+    title: "Financial Summary", 
+    value: "finance", 
+    charts: 7,
+    description: "Overview of financial metrics and trends",
+    icon: RiBarChartBoxLine
+  },
 ] as const;
 
 // Mock chart configurations for each dashboard
@@ -262,9 +333,17 @@ export const Dashboard = createReactBlockSpec(
   {
     render: (props) => {
       const [isExpanded, setIsExpanded] = useState(false);
+      const [search, setSearch] = useState("");
       const selectedItem = dashboardItems.find(
         (item) => item.value === props.block.props.selectedItem
       );
+
+      const filteredItems = dashboardItems.filter((item) => {
+        if (!search) return true;
+        
+        const searchLower = search.toLowerCase();
+        return item.title.toLowerCase().includes(searchLower);
+      });
 
       const dashboardCharts = selectedItem 
         ? mockDashboardCharts[selectedItem.value as keyof typeof mockDashboardCharts] || []
@@ -279,27 +358,36 @@ export const Dashboard = createReactBlockSpec(
                   variant="outline" 
                   role="combobox" 
                   className={cn(
-                    "dashboard-button",
+                    "w-[300px] justify-between",
                     !selectedItem && "text-muted-foreground"
                   )}
                 >
-                  <RiDashboard2Line className="mr-2 h-5 w-5" />
-                  {selectedItem ? selectedItem.title : "Select Dashboard"}
+                  <div className="flex items-center gap-2">
+                    <RiDashboard2Line className="h-4 w-4" />
+                    {selectedItem ? selectedItem.title : "Select Dashboard"}
+                  </div>
                   {selectedItem && (
                     <Badge variant="secondary" className="ml-2">
-                      <RiBarChartBoxLine className="mr-1 h-4 w-4" />
                       {selectedItem.charts} charts
                     </Badge>
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="p-0" align="start">
-                <Command>
-                  <CommandInput placeholder="Search dashboards..." />
+              <PopoverContent className="w-[300px] p-0">
+                <Command shouldFilter={false}>
+                  <div className="flex items-center border-b px-3">
+                    <RiSearchLine className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                    <CommandInput 
+                      placeholder="Search dashboards..." 
+                      className="h-9 w-full border-0 bg-transparent p-0 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0"
+                      value={search}
+                      onValueChange={setSearch}
+                    />
+                  </div>
                   <CommandList>
-                    <CommandEmpty>No dashboard found.</CommandEmpty>
+                    <CommandEmpty>No dashboards found.</CommandEmpty>
                     <CommandGroup>
-                      {dashboardItems.map((item) => (
+                      {filteredItems.map((item) => (
                         <CommandItem
                           key={item.value}
                           value={item.value}
@@ -308,16 +396,30 @@ export const Dashboard = createReactBlockSpec(
                               type: "dashboard",
                               props: { selectedItem: item.value },
                             });
-                            setIsExpanded(true); // Auto-expand when selecting a new dashboard
+                            setIsExpanded(true);
+                            setSearch("");
                           }}
+                          className="flex items-start justify-between py-3"
                         >
-                          <div className="flex items-center justify-between w-full">
-                            <span>{item.title}</span>
-                            <Badge variant="secondary" className="ml-2">
-                              <RiBarChartBoxLine className="mr-1 h-3 w-3" />
-                              {item.charts}
-                            </Badge>
+                          <div className="flex flex-col gap-1 flex-1 min-w-0">
+                            <div className="flex items-center">
+                              <item.icon className="mr-2 h-4 w-4 shrink-0" />
+                              <span className="font-medium truncate">{item.title}</span>
+                            </div>
+                            <Tooltip delayDuration={200}>
+                              <TooltipTrigger asChild>
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {item.description}
+                                </p>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">{item.description}</p>
+                              </TooltipContent>
+                            </Tooltip>
                           </div>
+                          <Badge variant="secondary" className="ml-4 shrink-0 self-center whitespace-nowrap">
+                            {item.charts} charts
+                          </Badge>
                         </CommandItem>
                       ))}
                     </CommandGroup>
