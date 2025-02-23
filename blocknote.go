@@ -56,6 +56,34 @@ type ImageBlock struct {
 	} `json:"props"`
 }
 
+type AlertBlock struct {
+	Block
+	Props struct {
+		DefaultProps
+		Type string `json:"type"` // warning, error, info, success
+	} `json:"props"`
+	Content []InlineContent `json:"content"`
+}
+
+type DashboardBlock struct {
+	Block
+	Props struct {
+		DefaultProps
+		SelectedItem string `json:"selectedItem"`
+	} `json:"props"`
+	Content []InlineContent `json:"content"`
+}
+
+type ChartBlock struct {
+	Block
+	Props struct {
+		DefaultProps
+		ChartType string      `json:"chartType"`
+		Data      interface{} `json:"data"`
+	} `json:"props"`
+	Content []InlineContent `json:"content"`
+}
+
 type TableBlock struct {
 	Block
 	Content TableContent `json:"content"`
@@ -124,6 +152,18 @@ func convertBlockToHTML(block Block) string {
 		}
 		content := getSimpleContent(block.Content)
 		s.WriteString(fmt.Sprintf("<p style='%s'>%s</p>", strings.Join(append(extra, style), " "), content))
+	case "alert":
+		alertType, _ := block.Props["type"].(string)
+		content := getSimpleContent(block.Content)
+		s.WriteString(fmt.Sprintf(`<div class="alert" data-alert-type="%s">%s</div>`, alertType, content))
+	case "dashboard":
+		selectedItem, _ := block.Props["selectedItem"].(string)
+		content := getSimpleContent(block.Content)
+		s.WriteString(fmt.Sprintf(`<div class="dashboard" data-selected-item="%s">%s</div>`, selectedItem, content))
+	case "chart":
+		chartType, _ := block.Props["chartType"].(string)
+		content := getSimpleContent(block.Content)
+		s.WriteString(fmt.Sprintf(`<div class="chart" data-chart-type="%s">%s</div>`, chartType, content))
 	case "numberedListItem", "bulletListItem":
 		content := getSimpleContent(block.Content)
 		s.WriteString(fmt.Sprintf("<li style='%s'>%s</li>", style, content))
@@ -247,14 +287,62 @@ func sanitizeBlock(block *Block, policy *bluemonday.Policy) {
 	}
 
 	// Sanitize Content based on block type
-	switch content := block.Content.(type) {
-	case []InlineContent:
-		for j := range content {
-			sanitizeInlineContent(content[j], policy)
+	switch block.Type {
+	case "alert":
+		if alertType, ok := block.Props["type"].(string); ok {
+			// Only allow valid alert types
+			validTypes := map[string]bool{
+				"warning": true,
+				"error":   true,
+				"info":    true,
+				"success": true,
+			}
+			if !validTypes[alertType] {
+				block.Props["type"] = "warning" // default to warning if invalid
+			}
 		}
-	case TableContent:
-		sanitizeTableContent(&content, policy)
-		block.Content = content
+		fallthrough // continue to sanitize content
+	case "chart":
+		if chartType, ok := block.Props["chartType"].(string); ok {
+			// Sanitize chart type
+			validTypes := map[string]bool{
+				"bar":  true,
+				"line": true,
+				"pie":  true,
+				"area": true,
+			}
+			if !validTypes[chartType] {
+				block.Props["chartType"] = "bar" // default to bar if invalid
+			}
+		}
+		fallthrough // continue to sanitize content
+	case "dashboard":
+		if content, ok := block.Content.([]interface{}); ok {
+			for i := range content {
+				if item, ok := content[i].(map[string]interface{}); ok {
+					if text, ok := item["text"].(string); ok {
+						item["text"] = policy.Sanitize(text)
+					}
+					if styles, ok := item["styles"].(map[string]interface{}); ok {
+						for key, value := range styles {
+							if strValue, ok := value.(string); ok {
+								styles[key] = policy.Sanitize(strValue)
+							}
+						}
+					}
+				}
+			}
+		}
+	default:
+		switch content := block.Content.(type) {
+		case []InlineContent:
+			for j := range content {
+				sanitizeInlineContent(content[j], policy)
+			}
+		case TableContent:
+			sanitizeTableContent(&content, policy)
+			block.Content = content
+		}
 	}
 
 	// Recursively sanitize children

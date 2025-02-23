@@ -19,7 +19,8 @@ import {
   defaultBlockSpecs,
   filterSuggestionItems,
   PartialBlock,
-  insertOrUpdateBlock
+  insertOrUpdateBlock,
+  type BlockSchemaFromSpecs,
 } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import {
@@ -38,15 +39,30 @@ import fileUploader from "./image-upload";
 import { Alert } from "./blocks/alert";
 import { RiAlertLine, RiBarChartLine } from "@remixicon/react";
 import { Dashboard } from "./blocks/dashboard";
+import { Chart } from "./blocks/chart";
 
 const schema = BlockNoteSchema.create({
   blockSpecs: {
-    // Adds all default blocks.
     ...defaultBlockSpecs,
 
+    // custom blocks
     alert: Alert,
     dashboard: Dashboard,
+    chart: Chart,
   },
+});
+
+type EditorBlock = BlockSchemaFromSpecs<typeof schema.blockSpecs>;
+
+const insertChart = (editor: typeof schema.BlockNoteEditor) => ({
+  title: "Chart",
+  onItemClick: () => {
+    insertOrUpdateBlock(editor, {
+      type: "chart",
+    });
+  },
+  group: "Data",
+  icon: <RiBarChartLine />,
 });
 
 const insertAlert = (editor: typeof schema.BlockNoteEditor) => ({
@@ -78,7 +94,7 @@ const insertDashboard = (editor: typeof schema.BlockNoteEditor) => ({
   },
   aliases: [
   ],
-  group: "Charts",
+  group: "Data",
   icon: <RiBarChartLine />,
 });
 
@@ -131,7 +147,7 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
     gcTime: Number.POSITIVE_INFINITY,
   });
 
-  const debouncedUpdates = useDebouncedCallback(async (blocks: Block[]) => {
+  const debouncedUpdates = useDebouncedCallback(async (blocks: EditorBlock[]) => {
     const title = blocks[0];
 
     if (!title) {
@@ -194,7 +210,7 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
             return
           }
           setSaveStatus("Storing");
-          // debouncedUpdates(editor.document);
+          debouncedUpdates(editor.document as EditorBlock[]);
           setSaveStatus("Unsaved");
         }}
       >
@@ -202,9 +218,12 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
           triggerCharacter={"/"}
           getItems={async (query) =>
             filterSuggestionItems(
-              [...getDefaultReactSlashMenuItems(editor),
-              insertAlert(editor),
-              insertDashboard(editor)],
+              [
+                ...getDefaultReactSlashMenuItems(editor),
+                insertAlert(editor),
+                insertChart(editor),
+                insertDashboard(editor)
+              ],
               query
             )
           }
