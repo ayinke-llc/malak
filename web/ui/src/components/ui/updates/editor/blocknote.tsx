@@ -13,14 +13,18 @@ import { UPDATE_CONTENT } from "@/lib/query-constants";
 import {
   type Block,
   BlockNoteEditor,
+  BlockNoteSchema,
+  defaultBlockSpecs,
   filterSuggestionItems,
   PartialBlock,
+  insertOrUpdateBlock
 } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import {
   type DefaultReactSuggestionItem,
   SuggestionMenuController,
   getDefaultReactSlashMenuItems,
+  useCreateBlockNote,
 } from "@blocknote/react";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
@@ -29,6 +33,40 @@ import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { defaultEditorContent } from "./default-value";
 import fileUploader from "./image-upload";
+import { Alert } from "./blocks/alert";
+import { RiAlertLine } from "@remixicon/react";
+
+// Our schema with block specs, which contain the configs and implementations for blocks
+// that we want our editor to use.
+const schema = BlockNoteSchema.create({
+  blockSpecs: {
+    // Adds all default blocks.
+    ...defaultBlockSpecs,
+    // Adds the Alert block.
+    alert: Alert,
+  },
+});
+
+// Slash menu item to insert an Alert block
+const insertAlert = (editor: typeof schema.BlockNoteEditor) => ({
+  title: "Alert",
+  onItemClick: () => {
+    insertOrUpdateBlock(editor, {
+      type: "alert",
+    });
+  },
+  aliases: [
+    "alert",
+    "notification",
+    "emphasize",
+    "warning",
+    "error",
+    "info",
+    "success",
+  ],
+  group: "Other",
+  icon: <RiAlertLine />,
+});
 
 const getCustomSlashMenuItems = (
   editor: BlockNoteEditor,
@@ -64,12 +102,11 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
     initialContent = update?.content as PartialBlock[];
   }
 
-  const editor = useMemo(() => {
-    return BlockNoteEditor.create({
-      initialContent,
-      uploadFile: fileUploader,
-    });
-  }, [initialContent]);
+  const editor = useCreateBlockNote({
+    initialContent,
+    schema,
+    uploadFile: fileUploader,
+  })
 
   const mutation = useMutation({
     mutationKey: [UPDATE_CONTENT],
@@ -145,6 +182,7 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
         </Badge>
       </div>
       <BlockNoteView
+        slashMenu={false}
         editor={editor}
         theme={theme as "light" | "dark"}
         editable={update?.status !== 'sent'}
@@ -153,14 +191,17 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
             return
           }
           setSaveStatus("Storing");
-          debouncedUpdates(editor.document);
+          // debouncedUpdates(editor.document);
           setSaveStatus("Unsaved");
         }}
       >
         <SuggestionMenuController
           triggerCharacter={"/"}
           getItems={async (query) =>
-            filterSuggestionItems(getCustomSlashMenuItems(editor), query)
+            filterSuggestionItems(
+              [...getDefaultReactSlashMenuItems(editor), insertAlert(editor)],
+              query
+            )
           }
         />
       </BlockNoteView>
