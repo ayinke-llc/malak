@@ -63,7 +63,7 @@ export function BillingPage() {
               <p className="text-sm text-muted-foreground">
                 {current?.is_subscription_active ? (
                   <p>You are currently on the
-                    <span className="font-semibold"> {current?.plan?.plan_name}</span>plan.</p>
+                    <span className="font-semibold"> {current?.plan?.plan_name}</span> plan.</p>
                 ) : (
                   <span>You don't have an active subscription.</span>
                 )}

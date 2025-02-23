@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/sidebar"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import useAuthStore from "@/store/auth"
 
 export function NavUser({
   user,
@@ -47,6 +48,8 @@ export function NavUser({
   const { isMobile } = useSidebar()
   const { theme, setTheme } = useTheme()
   const router = useRouter()
+
+  const logout = useAuthStore((state) => state.logout);
 
   return (
     <SidebarMenu>
@@ -88,29 +91,13 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => router.push("/settings?tab=billing")}>
+              <DropdownMenuItem onClick={() => router.push("/settings?tab=billing")} className="cursor-pointer">
                 <CreditCard />
                 Billing
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-                {theme === "dark" ? (
-                  <>
-                    <Sun className="mr-2 h-4 w-4" />
-                    Light Mode
-                  </>
-                ) : (
-                  <>
-                    <Moon className="mr-2 h-4 w-4" />
-                    Dark Mode
-                  </>
-                )}
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={() => logout()}>
               <LogOut />
               Log out
             </DropdownMenuItem>
