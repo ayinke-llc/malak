@@ -1,13 +1,14 @@
 "use client";
 
-import { ServerAPIStatus, ServerFetchUpdateReponse, MalakBlock, MalakSystemTemplate } from "@/client/Api";
+import { MalakSystemTemplate, ServerAPIStatus, ServerFetchUpdateReponse } from "@/client/Api";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import Skeleton from "@/components/ui/custom/loader/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import client from "@/lib/client";
+import { LIST_TEMPLATES } from "@/lib/query-constants";
 import { RiArrowLeftLine, RiErrorWarningLine } from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
@@ -15,7 +16,6 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { LIST_TEMPLATES } from "@/lib/query-constants";
 
 function TemplateCard({ template, isLoading, onClick }: {
   template: MalakSystemTemplate;
