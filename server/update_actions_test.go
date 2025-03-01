@@ -145,7 +145,7 @@ func generateUpdateDuplicationContent() []struct {
 					Times(1).
 					Return(&malak.Update{}, nil)
 
-				update.EXPECT().Create(gomock.Any(), gomock.Any()).
+				update.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(errors.New("unknown error"))
 			},
@@ -160,7 +160,7 @@ func generateUpdateDuplicationContent() []struct {
 					Times(1).
 					Return(&malak.Update{}, nil)
 
-				update.EXPECT().Create(gomock.Any(), gomock.Any()).
+				update.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil)
 			},

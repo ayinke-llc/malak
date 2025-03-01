@@ -147,7 +147,7 @@ func TestUpdates_StatUpdate(t *testing.T) {
 		Reference:   "update_ifjfkjfo",
 	}
 
-	err = updatesRepo.Create(t.Context(), update)
+	err = updatesRepo.Create(t.Context(), update, &malak.TemplateCreateUpdateOptions{})
 	require.NoError(t, err)
 
 	stat, err := updatesRepo.Stat(t.Context(), update)
@@ -193,7 +193,7 @@ func TestUpdates_Stat(t *testing.T) {
 		Reference:   "update_ifjfkjfo",
 	}
 
-	err = updatesRepo.Create(t.Context(), update)
+	err = updatesRepo.Create(t.Context(), update, &malak.TemplateCreateUpdateOptions{})
 	require.NoError(t, err)
 
 	_, err = updatesRepo.Stat(t.Context(), update)
@@ -221,14 +221,86 @@ func TestUpdates_Create(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = updatesRepo.Create(t.Context(), &malak.Update{
-		WorkspaceID: workspace.ID,
-		Status:      malak.UpdateStatusDraft,
-		CreatedBy:   user.ID,
-		Content:     make([]malak.Block, 0),
-		Reference:   "update_ifjfkjfo",
+	t.Run("creates a regular update", func(t *testing.T) {
+		update := &malak.Update{
+			WorkspaceID: workspace.ID,
+			Status:      malak.UpdateStatusDraft,
+			CreatedBy:   user.ID,
+			Content:     make([]malak.Block, 0),
+			Reference:   "update_ifjfkjfo",
+		}
+
+		err = updatesRepo.Create(t.Context(), update, &malak.TemplateCreateUpdateOptions{
+			IsSystemTemplate: false,
+		})
+		require.NoError(t, err)
+
+		// Verify update was created
+		created, err := updatesRepo.Get(t.Context(), malak.FetchUpdateOptions{
+			Reference:   update.Reference,
+			WorkspaceID: workspace.ID,
+		})
+		require.NoError(t, err)
+		require.Equal(t, update.Reference, created.Reference)
+		require.Equal(t, update.WorkspaceID, created.WorkspaceID)
+		require.Equal(t, update.Status, created.Status)
+
+		// Verify update stats were created
+		stats, err := updatesRepo.Stat(t.Context(), update)
+		require.NoError(t, err)
+		require.NotNil(t, stats)
+		require.Equal(t, update.ID, stats.UpdateID)
+		require.NotEmpty(t, stats.Reference)
 	})
-	require.NoError(t, err)
+
+	t.Run("creates an update from system template", func(t *testing.T) {
+		// Using system template from testdata fixtures
+		templateRef := malak.Reference("system_template_fQv90I.w_ID")
+
+		update := &malak.Update{
+			WorkspaceID: workspace.ID,
+			Status:      malak.UpdateStatusDraft,
+			CreatedBy:   user.ID,
+			Content:     make([]malak.Block, 0),
+			Reference:   "update_from_template",
+		}
+
+		err = updatesRepo.Create(t.Context(), update, &malak.TemplateCreateUpdateOptions{
+			IsSystemTemplate: true,
+			Reference:        templateRef,
+		})
+		require.NoError(t, err)
+
+		// Verify template usage was incremented
+		var updatedTemplate malak.SystemTemplate
+		err = client.NewSelect().Model(&updatedTemplate).
+			Where("reference = ?", templateRef).
+			Scan(t.Context())
+		require.NoError(t, err)
+		require.Greater(t, updatedTemplate.NumberOfUses, 0)
+
+		// Verify update stats were created
+		stats, err := updatesRepo.Stat(t.Context(), update)
+		require.NoError(t, err)
+		require.NotNil(t, stats)
+		require.Equal(t, update.ID, stats.UpdateID)
+	})
+
+	t.Run("fails gracefully with invalid template reference", func(t *testing.T) {
+		update := &malak.Update{
+			WorkspaceID: workspace.ID,
+			Status:      malak.UpdateStatusDraft,
+			CreatedBy:   user.ID,
+			Content:     make([]malak.Block, 0),
+			Reference:   "update_invalid_template",
+		}
+
+		err = updatesRepo.Create(t.Context(), update, &malak.TemplateCreateUpdateOptions{
+			IsSystemTemplate: true,
+			Reference:        malak.Reference("nonexistent_template"),
+		})
+		require.Error(t, err)
+	})
 }
 
 func TestUpdates_List(t *testing.T) {
@@ -268,7 +340,7 @@ func TestUpdates_List(t *testing.T) {
 		CreatedBy:   user.ID,
 		Content:     []malak.Block{},
 		Reference:   "update_ifjfkjfo",
-	})
+	}, &malak.TemplateCreateUpdateOptions{})
 	require.NoError(t, err)
 
 	updates, total, err = updatesRepo.List(t.Context(), malak.ListUpdateOptions{
@@ -313,7 +385,7 @@ func TestUpdates_TogglePinned(t *testing.T) {
 			Content:     make([]malak.Block, 0),
 			Reference:   refGenerator.Generate(malak.EntityTypeUpdate),
 			IsPinned:    true,
-		})
+		}, &malak.TemplateCreateUpdateOptions{})
 		require.NoError(t, err)
 	}
 
@@ -327,7 +399,7 @@ func TestUpdates_TogglePinned(t *testing.T) {
 		Reference:   ref,
 	}
 
-	err = updatesRepo.Create(t.Context(), update)
+	err = updatesRepo.Create(t.Context(), update, &malak.TemplateCreateUpdateOptions{})
 	require.NoError(t, err)
 
 	// cannot add a 4th pinned item
@@ -368,7 +440,7 @@ func TestUpdates_SendUpdate(t *testing.T) {
 		IsPinned:    true,
 	}
 
-	err = updatesRepo.Create(t.Context(), update)
+	err = updatesRepo.Create(t.Context(), update, &malak.TemplateCreateUpdateOptions{})
 	require.NoError(t, err)
 
 	err = updatesRepo.SendUpdate(t.Context(), &malak.CreateUpdateOptions{
@@ -423,7 +495,7 @@ func TestUpdates_ListPinned(t *testing.T) {
 				CreatedBy:   user.ID,
 				Content:     []malak.Block{},
 				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeUpdate),
-			})
+			}, &malak.TemplateCreateUpdateOptions{})
 			require.NoError(t, err)
 		}
 
@@ -463,7 +535,7 @@ func TestUpdates_ListPinned(t *testing.T) {
 				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeUpdate),
 			}
 
-			err = updatesRepo.Create(t.Context(), update)
+			err = updatesRepo.Create(t.Context(), update, &malak.TemplateCreateUpdateOptions{})
 			require.NoError(t, err)
 
 			require.NoError(t, updatesRepo.TogglePinned(t.Context(), update))
@@ -477,7 +549,7 @@ func TestUpdates_ListPinned(t *testing.T) {
 			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeUpdate),
 		}
 
-		err = updatesRepo.Create(t.Context(), update)
+		err = updatesRepo.Create(t.Context(), update, &malak.TemplateCreateUpdateOptions{})
 		require.NoError(t, err)
 
 		// max 5 have been added as pinned items

@@ -42,6 +42,7 @@ func New(logger *zap.Logger,
 	shareRepo malak.ContactShareRepository,
 	preferenceRepo malak.PreferenceRepository,
 	integrationRepo malak.IntegrationRepository,
+	templatesRepo malak.TemplateRepository,
 	mid *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
@@ -60,7 +61,7 @@ func New(logger *zap.Logger,
 			dashboardRepo,
 			userRepo, workspaceRepo, planRepo,
 			contactRepo, updateRepo, contactListRepo,
-			deckRepo, shareRepo, preferenceRepo, integrationRepo,
+			deckRepo, shareRepo, preferenceRepo, integrationRepo, templatesRepo,
 			googleAuthProvider, mid, gulterHandler,
 			queueHandler, redisCache, billingClient, integrationManager, secretsClient),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
@@ -106,6 +107,7 @@ func buildRoutes(
 	shareRepo malak.ContactShareRepository,
 	preferenceRepo malak.PreferenceRepository,
 	integrationRepo malak.IntegrationRepository,
+	templatesRepo malak.TemplateRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	ratelimiterMiddleware *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
@@ -169,6 +171,7 @@ func buildRoutes(
 		queueHandler:       queueHandler,
 		cache:              redisCache,
 		uuidGenerator:      malak.NewGoogleUUID(),
+		templateRepo:       templatesRepo,
 	}
 
 	webhookHandler := &webhookHandler{
@@ -292,6 +295,9 @@ func buildRoutes(
 
 				r.Get("/pins",
 					WrapMalakHTTPHandler(logger, updateHandler.listPinnedUpdates, cfg, "updates.list.pins"))
+
+				r.Get("/templates",
+					WrapMalakHTTPHandler(logger, updateHandler.templates, cfg, "updates.list.templates"))
 
 				r.Get("/{reference}",
 					WrapMalakHTTPHandler(logger, updateHandler.fetchUpdate, cfg, "updates.fetchUpdate"))

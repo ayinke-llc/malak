@@ -12,6 +12,12 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -52,16 +58,33 @@ export default function Page() {
         <section>
           <div className="sm:flex sm:items-center sm:justify-between">
             <div className="w-full text-right">
-              <Button
-                type="button"
-                variant="default"
-                className="whitespace-nowrap"
-                loading={isLoading}
-                onClick={() => mutation.mutate()}
-              >
-                <RiAddLine />
-                New update
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="default"
+                    className="whitespace-nowrap"
+                    loading={isLoading}
+                  >
+                    <RiAddLine />
+                    New update
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem 
+                    onClick={() => mutation.mutate()}
+                    className="cursor-pointer"
+                  >
+                    Create without template
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => router.push('/updates/templates')}
+                    className="cursor-pointer"
+                  >
+                    Use a template
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </section>

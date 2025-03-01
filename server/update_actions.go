@@ -66,7 +66,11 @@ func (u *updatesHandler) duplicate(
 		WorkspaceID: update.WorkspaceID,
 	}
 
-	if err := u.updateRepo.Create(ctx, newUpdate); err != nil {
+	opts := &malak.TemplateCreateUpdateOptions{
+		IsSystemTemplate: false,
+	}
+
+	if err := u.updateRepo.Create(ctx, newUpdate, opts); err != nil {
 		logger.Error("could not create updates", zap.Error(err))
 
 		return newAPIStatus(http.StatusInternalServerError,

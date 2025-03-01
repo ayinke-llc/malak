@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/ayinke-llc/malak"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
@@ -276,7 +277,7 @@ func generateUpdateCreateTestTable() []struct {
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.
 					EXPECT().
-					Create(gomock.Any(), gomock.Any()).
+					Create(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(errors.New("could not create update"))
 
@@ -291,7 +292,7 @@ func generateUpdateCreateTestTable() []struct {
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.
 					EXPECT().
-					Create(gomock.Any(), gomock.Any()).
+					Create(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil)
 			},
@@ -728,4 +729,119 @@ type mockUUIDGenerator struct{}
 
 func (m *mockUUIDGenerator) Create() uuid.UUID {
 	return uuid.MustParse("123e4567-e89b-12d3-a456-426614174000")
+}
+
+func generateTemplatesTestTable() []struct {
+	name               string
+	mockFn             func(template *malak_mocks.MockTemplateRepository)
+	filter             string
+	expectedStatusCode int
+} {
+	fixedTime := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	return []struct {
+		name               string
+		mockFn             func(template *malak_mocks.MockTemplateRepository)
+		filter             string
+		expectedStatusCode int
+	}{
+		{
+			name: "successfully list all templates",
+			mockFn: func(template *malak_mocks.MockTemplateRepository) {
+				template.
+					EXPECT().
+					System(gomock.Any(), malak.SystemTemplateFilterAll).
+					Times(1).
+					Return([]malak.SystemTemplate{
+						{
+							Title:     "Template 1",
+							Content:   malak.BlockContents{},
+							Reference: "template_1",
+							CreatedAt: fixedTime,
+							UpdatedAt: fixedTime,
+						},
+					}, nil)
+			},
+			filter:             "",
+			expectedStatusCode: http.StatusCreated,
+		},
+		{
+			name: "successfully list most used templates",
+			mockFn: func(template *malak_mocks.MockTemplateRepository) {
+				template.
+					EXPECT().
+					System(gomock.Any(), malak.SystemTemplateFilterMostUsed).
+					Times(1).
+					Return([]malak.SystemTemplate{
+						{
+							Title:        "Template 1",
+							Content:      malak.BlockContents{},
+							Reference:    "template_1",
+							NumberOfUses: 10,
+							CreatedAt:    fixedTime,
+							UpdatedAt:    fixedTime,
+						},
+					}, nil)
+			},
+			filter:             "most_used",
+			expectedStatusCode: http.StatusCreated,
+		},
+		{
+			name: "successfully list recently created templates",
+			mockFn: func(template *malak_mocks.MockTemplateRepository) {
+				template.
+					EXPECT().
+					System(gomock.Any(), malak.SystemTemplateFilterRecentlyCreated).
+					Times(1).
+					Return([]malak.SystemTemplate{
+						{
+							Title:     "Template 1",
+							Content:   malak.BlockContents{},
+							Reference: "template_1",
+							CreatedAt: fixedTime,
+							UpdatedAt: fixedTime,
+						},
+					}, nil)
+			},
+			filter:             "recently_created",
+			expectedStatusCode: http.StatusCreated,
+		},
+		{
+			name: "error listing templates",
+			mockFn: func(template *malak_mocks.MockTemplateRepository) {
+				template.
+					EXPECT().
+					System(gomock.Any(), malak.SystemTemplateFilterAll).
+					Times(1).
+					Return(nil, errors.New("database error"))
+			},
+			filter:             "",
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+	}
+}
+
+func TestUpdatesHandler_Templates(t *testing.T) {
+	for _, v := range generateTemplatesTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			templateRepo := malak_mocks.NewMockTemplateRepository(controller)
+			v.mockFn(templateRepo)
+
+			u := &updatesHandler{
+				templateRepo: templateRepo,
+			}
+
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, "/?filter="+v.filter, nil)
+
+			WrapMalakHTTPHandler(getLogger(t), u.templates, getConfig(), "updates.templates").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
 }

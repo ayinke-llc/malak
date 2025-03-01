@@ -169,3 +169,11 @@ type fetchDashboardResponse struct {
 	Dashboard malak.Dashboard `json:"dashboard,omitempty" validate:"required"`
 	APIStatus
 }
+
+type fetchTemplatesResponse struct {
+	Templates struct {
+		System    []malak.SystemTemplate `json:"system,omitempty" validate:"required"`
+		Workspace []malak.SystemTemplate `json:"workspace,omitempty" validate:"required"`
+	} `json:"templates,omitempty" validate:"required"`
+	APIStatus
+}

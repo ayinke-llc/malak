@@ -2511,6 +2511,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/workspaces/updates/templates": {
+            "get": {
+                "description": "list all templates. this will include both systems and your own created templates",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "updates"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchTemplatesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/workspaces/updates/{reference}": {
             "get": {
                 "description": "Fetch a specific update",
@@ -3753,6 +3799,38 @@ const docTemplate = `{
                 "RoleGuest"
             ]
         },
+        "malak.SystemTemplate": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.Block"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "number_of_uses": {
+                    "type": "integer"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.Update": {
             "type": "object",
             "properties": {
@@ -4196,6 +4274,17 @@ const docTemplate = `{
                 "title"
             ],
             "properties": {
+                "template": {
+                    "type": "object",
+                    "properties": {
+                        "is_system_template": {
+                            "type": "boolean"
+                        },
+                        "reference": {
+                            "type": "string"
+                        }
+                    }
+                },
                 "title": {
                     "type": "string"
                 }
@@ -4441,6 +4530,39 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "server.fetchTemplatesResponse": {
+            "type": "object",
+            "required": [
+                "message",
+                "templates"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "templates": {
+                    "type": "object",
+                    "required": [
+                        "system",
+                        "workspace"
+                    ],
+                    "properties": {
+                        "system": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/malak.SystemTemplate"
+                            }
+                        },
+                        "workspace": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/malak.SystemTemplate"
+                            }
+                        }
+                    }
                 }
             }
         },

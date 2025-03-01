@@ -22,7 +22,7 @@ func GenerateReference(e EntityType) string {
 // recipient_stat,recipient_log,
 // deck,deck_preference, contact_share,dashboard,
 // plan,price,integration,workspace_integration, integration_datapoint,
-// integration_chart, integration_sync_checkpoint,dashboard_chart)
+// integration_chart, integration_sync_checkpoint,dashboard_chart,system_template)
 type EntityType string
 
 type Reference string

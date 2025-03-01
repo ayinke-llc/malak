@@ -26,10 +26,61 @@ type updatesHandler struct {
 	cache              cache.Cache
 	queueHandler       queue.QueueHandler
 	uuidGenerator      malak.UuidGenerator
+	templateRepo       malak.TemplateRepository
+}
+
+// @Description list all templates. this will include both systems and your own created templates
+// @Tags updates
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} fetchTemplatesResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/updates/templates [get]
+func (u *updatesHandler) templates(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("listing templates")
+
+	filter := malak.SystemTemplateFilter(r.URL.Query().Get("filter"))
+	if !filter.IsValid() {
+		filter = malak.SystemTemplateFilterAll
+	}
+
+	templates, err := u.templateRepo.System(ctx, filter)
+	if err != nil {
+
+		logger.Error("could not list system templates",
+			zap.Error(err))
+
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"could not list system templates"), StatusFailed
+	}
+
+	return fetchTemplatesResponse{
+		Templates: struct {
+			System    []malak.SystemTemplate "json:\"system,omitempty\" validate:\"required\""
+			Workspace []malak.SystemTemplate "json:\"workspace,omitempty\" validate:\"required\""
+		}{
+			System: templates,
+		},
+		APIStatus: newAPIStatus(http.StatusCreated, "templates listed"),
+	}, StatusSuccess
 }
 
 type createUpdateContent struct {
-	Title string `json:"title,omitempty" validate:"required"`
+	Title    string `json:"title,omitempty" validate:"required"`
+	Template struct {
+		IsSystemTemplate bool            `json:"is_system_template,omitempty" validate:"optional"`
+		Reference        malak.Reference `json:"reference,omitempty" validate:"optional"`
+	} `json:"template,omitempty" validate:"optional"`
 	GenericRequest
 }
 
@@ -123,7 +174,12 @@ func (u *updatesHandler) create(
 		Title:     req.Title,
 	}
 
-	if err := u.updateRepo.Create(ctx, update); err != nil {
+	opts := &malak.TemplateCreateUpdateOptions{
+		IsSystemTemplate: req.Template.IsSystemTemplate,
+		Reference:        req.Template.Reference,
+	}
+
+	if err := u.updateRepo.Create(ctx, update, opts); err != nil {
 
 		logger.Error("could not create update",
 			zap.Error(err))

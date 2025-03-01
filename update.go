@@ -202,8 +202,14 @@ type CreateUpdateOptions struct {
 	Plan            *Plan
 }
 
+type TemplateCreateUpdateOptions struct {
+	IsFromTemplate   bool
+	IsSystemTemplate bool
+	Reference        Reference
+}
+
 type UpdateRepository interface {
-	Create(context.Context, *Update) error
+	Create(context.Context, *Update, *TemplateCreateUpdateOptions) error
 	Update(context.Context, *Update) error
 	Get(context.Context, FetchUpdateOptions) (*Update, error)
 	GetByID(context.Context, uuid.UUID) (*Update, error)

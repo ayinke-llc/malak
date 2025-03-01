@@ -772,6 +772,38 @@
 					"RoleGuest"
 				]
 			},
+			"malak.SystemTemplate": {
+				"properties": {
+					"content": {
+						"items": {
+							"$ref": "#/components/schemas/malak.Block"
+						},
+						"type": "array"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"number_of_uses": {
+						"type": "integer"
+					},
+					"reference": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"updated_at": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
 			"malak.Update": {
 				"properties": {
 					"content": {
@@ -1211,6 +1243,17 @@
 			},
 			"server.createUpdateContent": {
 				"properties": {
+					"template": {
+						"properties": {
+							"is_system_template": {
+								"type": "boolean"
+							},
+							"reference": {
+								"type": "string"
+							}
+						},
+						"type": "object"
+					},
 					"title": {
 						"type": "string"
 					}
@@ -1460,6 +1503,39 @@
 				"required": [
 					"deck",
 					"message"
+				],
+				"type": "object"
+			},
+			"server.fetchTemplatesResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"templates": {
+						"properties": {
+							"system": {
+								"items": {
+									"$ref": "#/components/schemas/malak.SystemTemplate"
+								},
+								"type": "array"
+							},
+							"workspace": {
+								"items": {
+									"$ref": "#/components/schemas/malak.SystemTemplate"
+								},
+								"type": "array"
+							}
+						},
+						"required": [
+							"system",
+							"workspace"
+						],
+						"type": "object"
+					}
+				},
+				"required": [
+					"message",
+					"templates"
 				],
 				"type": "object"
 			},
@@ -5046,6 +5122,66 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/server.listUpdateResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"updates"
+				]
+			}
+		},
+		"/workspaces/updates/templates": {
+			"get": {
+				"description": "list all templates. this will include both systems and your own created templates",
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.fetchTemplatesResponse"
 								}
 							}
 						},
