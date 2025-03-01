@@ -41,6 +41,9 @@ func (u *updatesRepo) Create(ctx context.Context,
 				Where("reference = ?", opts.Reference).
 				Set("number_of_uses = number_of_uses + 1").
 				Exec(ctx)
+			if err != nil {
+				return err
+			}
 		}
 
 		updateStats := &malak.UpdateStat{
