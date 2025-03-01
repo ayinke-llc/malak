@@ -11,4 +11,4 @@ CREATE TABLE system_templates (
   deleted_at TIMESTAMP WITH TIME ZONE
 );
 
-ALTER TABLE system_templates ADD CONSTRAINT system_templates_reference_check_key CHECK (reference ~ 'system_templates_[a-zA-Z0-9._]+');
+ALTER TABLE system_templates ADD CONSTRAINT system_templates_reference_check_key CHECK (reference ~ 'system_template_[a-zA-Z0-9._]+');

@@ -14,14 +14,29 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useCreateBlockNote } from "@blocknote/react";
+import Markdown from "react-markdown";
 
 function TemplateCard({ template, isLoading, onClick }: {
   template: MalakSystemTemplate;
   isLoading: boolean;
   onClick: () => void;
 }) {
+  const editor = useCreateBlockNote();
+  const [previewText, setPreviewText] = useState<string>('');
+  
+  useEffect(() => {
+    async function parseContent() {
+      if (template.content) {
+        const markdown = await editor.blocksToMarkdownLossy(template.content as any);
+        setPreviewText(markdown.slice(0, 150));
+      }
+    }
+    parseContent();
+  }, [editor, template.content]);
+
   return (
     <Card
       className={`cursor-pointer transition-colors ${isLoading ? 'opacity-50 pointer-events-none' : 'hover:bg-accent/5'}`}
@@ -37,9 +52,11 @@ function TemplateCard({ template, isLoading, onClick }: {
         <CardDescription>{template.description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <pre className="max-h-40 overflow-hidden text-sm text-muted-foreground">
-          {template.content?.[0]?.content?.slice(0, 150)}...
-        </pre>
+        <div className="max-h-40 overflow-hidden text-sm text-muted-foreground rounded-md bg-muted/50 p-3">
+          <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none">
+            <Markdown>{previewText + (previewText ? '...' : '')}</Markdown>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
