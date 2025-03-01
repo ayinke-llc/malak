@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { useCreateBlockNote } from "@blocknote/react";
 import Markdown from "react-markdown";
 import { defaultEditorContent } from "@/components/ui/updates/editor/default-value";
+import { Loader2 } from "lucide-react";
 
 function TemplateCard({ template, isLoading, onClick }: {
   template: MalakSystemTemplate;
@@ -40,9 +41,14 @@ function TemplateCard({ template, isLoading, onClick }: {
 
   return (
     <Card
-      className={`cursor-pointer transition-colors ${isLoading ? 'opacity-50 pointer-events-none' : 'hover:bg-accent/5'}`}
+      className={`relative cursor-pointer transition-colors ${isLoading ? 'opacity-70 pointer-events-none' : 'hover:bg-accent/5'}`}
       onClick={onClick}
     >
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-50 rounded-lg">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </div>
+      )}
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>{template.title}</CardTitle>
@@ -90,7 +96,7 @@ function TemplateCardSkeleton() {
 
 export default function TemplatesPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [activeTemplateId, setActiveTemplateId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"malak" | "custom">("malak");
 
   const { data: templatesData, isLoading: isLoadingTemplates, error } = useQuery({
@@ -135,12 +141,16 @@ export default function TemplatesPage() {
     onSuccess: (resp: AxiosResponse<ServerFetchUpdateReponse>) => {
       router.push(`/updates/${resp.data.update.reference}`);
     },
-    onMutate: () => setIsLoading(true),
-    onSettled: () => setIsLoading(false)
+    onMutate: (templateId: string) => setActiveTemplateId(templateId),
+    onSettled: () => setActiveTemplateId(null)
   });
 
   const handleTemplateSelect = (templateId: string) => {
-    mutation.mutate(templateId);
+    toast.promise(mutation.mutateAsync(templateId), {
+      loading: 'Creating update from template...',
+      success: 'Update created successfully!',
+      error: 'Failed to create update'
+    });
   };
 
   return (
@@ -150,7 +160,7 @@ export default function TemplatesPage() {
           variant="ghost"
           onClick={() => router.back()}
           className="gap-2"
-          disabled={isLoading}
+          disabled={!!activeTemplateId}
         >
           <RiArrowLeftLine />
           Back to Updates
@@ -172,8 +182,8 @@ export default function TemplatesPage() {
       ) : (
         <Tabs defaultValue="malak" className="mb-8" onValueChange={(value) => setActiveTab(value as "malak" | "custom")}>
           <TabsList>
-            <TabsTrigger value="malak">Malak Templates</TabsTrigger>
-            <TabsTrigger value="custom">My Templates</TabsTrigger>
+            <TabsTrigger value="malak" disabled={!!activeTemplateId}>Malak Templates</TabsTrigger>
+            <TabsTrigger value="custom" disabled={!!activeTemplateId}>My Templates</TabsTrigger>
           </TabsList>
           <TabsContent value="malak">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -188,7 +198,7 @@ export default function TemplatesPage() {
                   <TemplateCard
                     key={template.id}
                     template={template}
-                    isLoading={isLoading}
+                    isLoading={activeTemplateId === template.id}
                     onClick={() => handleTemplateSelect(template.id!)}
                   />
                 ))
