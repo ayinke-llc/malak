@@ -277,7 +277,7 @@ func TestUpdates_Create(t *testing.T) {
 			Where("reference = ?", templateRef).
 			Scan(t.Context())
 		require.NoError(t, err)
-		require.Greater(t, updatedTemplate.NumberOfUses, int64(0))
+		require.Greater(t, updatedTemplate.NumberOfUses, 0)
 
 		// Verify update stats were created
 		stats, err := updatesRepo.Stat(t.Context(), update)

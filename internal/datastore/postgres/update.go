@@ -37,12 +37,20 @@ func (u *updatesRepo) Create(ctx context.Context,
 		}
 
 		if opts.IsSystemTemplate {
-			_, err = tx.NewUpdate().Model(new(malak.SystemTemplate)).
+			res, err := tx.NewUpdate().Model(new(malak.SystemTemplate)).
 				Where("reference = ?", opts.Reference).
 				Set("number_of_uses = number_of_uses + 1").
 				Exec(ctx)
 			if err != nil {
 				return err
+			}
+
+			affected, err := res.RowsAffected()
+			if err != nil {
+				return err
+			}
+			if affected == 0 {
+				return sql.ErrNoRows
 			}
 		}
 
