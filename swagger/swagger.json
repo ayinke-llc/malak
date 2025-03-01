@@ -1243,6 +1243,17 @@
 			},
 			"server.createUpdateContent": {
 				"properties": {
+					"template": {
+						"properties": {
+							"is_system_template": {
+								"type": "boolean"
+							},
+							"reference": {
+								"type": "string"
+							}
+						},
+						"type": "object"
+					},
 					"title": {
 						"type": "string"
 					}

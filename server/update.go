@@ -76,7 +76,11 @@ func (u *updatesHandler) templates(
 }
 
 type createUpdateContent struct {
-	Title string `json:"title,omitempty" validate:"required"`
+	Title    string `json:"title,omitempty" validate:"required"`
+	Template struct {
+		IsSystemTemplate bool            `json:"is_system_template,omitempty" validate:"optional"`
+		Reference        malak.Reference `json:"reference,omitempty" validate:"optional"`
+	} `json:"template,omitempty" validate:"optional"`
 	GenericRequest
 }
 
@@ -170,7 +174,12 @@ func (u *updatesHandler) create(
 		Title:     req.Title,
 	}
 
-	if err := u.updateRepo.Create(ctx, update); err != nil {
+	opts := &malak.TemplateCreateUpdateOptions{
+		IsSystemTemplate: req.Template.IsSystemTemplate,
+		Reference:        req.Template.Reference,
+	}
+
+	if err := u.updateRepo.Create(ctx, update, opts); err != nil {
 
 		logger.Error("could not create update",
 			zap.Error(err))

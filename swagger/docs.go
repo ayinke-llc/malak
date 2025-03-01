@@ -4274,6 +4274,17 @@ const docTemplate = `{
                 "title"
             ],
             "properties": {
+                "template": {
+                    "type": "object",
+                    "properties": {
+                        "is_system_template": {
+                            "type": "boolean"
+                        },
+                        "reference": {
+                            "type": "string"
+                        }
+                    }
+                },
                 "title": {
                     "type": "string"
                 }

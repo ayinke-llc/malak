@@ -516,6 +516,10 @@ export interface ServerCreateDeckRequest {
 }
 
 export interface ServerCreateUpdateContent {
+  template?: {
+    is_system_template?: boolean;
+    reference?: string;
+  };
   title: string;
 }
 

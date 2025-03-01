@@ -21,6 +21,40 @@ func NewUpdatesRepository(db *bun.DB) malak.UpdateRepository {
 	}
 }
 
+func (u *updatesRepo) Create(ctx context.Context,
+	update *malak.Update, opts *malak.TemplateCreateUpdateOptions) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return u.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		_, err := tx.NewInsert().
+			Model(update).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		if opts.IsSystemTemplate {
+			_, err = tx.NewUpdate().Model(new(malak.SystemTemplate)).
+				Where("reference = ?", opts.Reference).
+				Set("number_of_uses = number_of_uses + 1").
+				Exec(ctx)
+		}
+
+		updateStats := &malak.UpdateStat{
+			UpdateID:  update.ID,
+			Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeUpdateStat),
+		}
+
+		_, err = tx.NewInsert().
+			Model(updateStats).
+			Exec(ctx)
+		return err
+	})
+}
+
 func (u *updatesRepo) TogglePinned(ctx context.Context,
 	update *malak.Update) error {
 
@@ -165,33 +199,6 @@ func (u *updatesRepo) Get(ctx context.Context,
 	}
 
 	return update, err
-}
-
-func (u *updatesRepo) Create(ctx context.Context,
-	update *malak.Update) error {
-
-	ctx, cancelFn := withContext(ctx)
-	defer cancelFn()
-
-	return u.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
-
-		_, err := tx.NewInsert().
-			Model(update).
-			Exec(ctx)
-		if err != nil {
-			return err
-		}
-
-		updateStats := &malak.UpdateStat{
-			UpdateID:  update.ID,
-			Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeUpdateStat),
-		}
-
-		_, err = tx.NewInsert().
-			Model(updateStats).
-			Exec(ctx)
-		return err
-	})
 }
 
 func (u *updatesRepo) List(ctx context.Context,

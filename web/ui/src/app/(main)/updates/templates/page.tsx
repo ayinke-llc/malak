@@ -109,13 +109,17 @@ export default function TemplatesPage() {
     : templatesData?.data.templates.workspace || [];
 
   const mutation = useMutation({
-    mutationFn: async (templateId: string) => {
+    mutationFn: async (templateReference: string) => {
       const template = [...(templatesData?.data.templates.system || []), ...(templatesData?.data.templates.workspace || [])]
-        .find(t => t.id === templateId);
+        .find(t => t.reference === templateReference);
       if (!template) throw new Error("Template not found");
 
       const createResp = await client.workspaces.updatesCreate({
         title: `${format(new Date(), "EEEE, MMMM do, yyyy")} Update`,
+        template: {
+          is_system_template: true,
+          reference: template.reference
+        }
       });
 
       const initialContent = defaultEditorContent(createResp.data.update.reference!);
@@ -141,12 +145,12 @@ export default function TemplatesPage() {
     onSuccess: (resp: AxiosResponse<ServerFetchUpdateReponse>) => {
       router.push(`/updates/${resp.data.update.reference}`);
     },
-    onMutate: (templateId: string) => setActiveTemplateId(templateId),
+    onMutate: (templateReference: string) => setActiveTemplateId(templateReference),
     onSettled: () => setActiveTemplateId(null)
   });
 
-  const handleTemplateSelect = (templateId: string) => {
-    toast.promise(mutation.mutateAsync(templateId), {
+  const handleTemplateSelect = (templateReference: string) => {
+    toast.promise(mutation.mutateAsync(templateReference), {
       loading: 'Creating update from template...',
       success: 'Update created successfully!',
       error: 'Failed to create update'
@@ -198,8 +202,8 @@ export default function TemplatesPage() {
                   <TemplateCard
                     key={template.id}
                     template={template}
-                    isLoading={activeTemplateId === template.id}
-                    onClick={() => handleTemplateSelect(template.id!)}
+                    isLoading={activeTemplateId === template.reference}
+                    onClick={() => handleTemplateSelect(template.reference!)}
                   />
                 ))
               ) : (
