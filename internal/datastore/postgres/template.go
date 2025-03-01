@@ -33,6 +33,8 @@ func (t *templateRepo) System(ctx context.Context,
 		q = q.Order("number_of_uses DESC")
 	case malak.SystemTemplateFilterRecentlyCreated:
 		q = q.Order("created_at DESC")
+	default:
+		q = q.Order("updated_at DESC")
 	}
 
 	return templates, q.Scan(ctx)

@@ -276,7 +276,7 @@ func generateUpdateCreateTestTable() []struct {
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.
 					EXPECT().
-					Create(gomock.Any(), gomock.Any()).
+					Create(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(errors.New("could not create update"))
 
@@ -291,7 +291,7 @@ func generateUpdateCreateTestTable() []struct {
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.
 					EXPECT().
-					Create(gomock.Any(), gomock.Any()).
+					Create(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil)
 			},

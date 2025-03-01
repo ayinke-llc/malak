@@ -1,0 +1,80 @@
+---
+- id: c2eb8512-f83f-4c03-899a-20f970828a50
+  reference: system_template_fQv90I.w_I
+  content:
+    '[{"id": "132efd84-c8bb-4aa5-8894-85de88633eb1", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor": "default"},
+    "content": [], "children": []}, {"id": "5e280493-8054-4367-8879-16fdafbdc3a3",
+    "type": "paragraph", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [{"text": "testing that this works",
+    "type": "text", "styles": {}}], "children": []}, {"id": "6feb546a-486a-4422-baac-68e67e1cd581",
+    "type": "paragraph", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [], "children": []}, {"id": "0046877d-d0ed-4f0b-ae25-eaf8d2578bd8",
+    "type": "paragraph", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [{"text": "okay here is 500 co stuff",
+    "type": "text", "styles": {}}], "children": []}, {"id": "0210c148-836b-418e-b1db-bb08e77b8f65",
+    "type": "paragraph", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [], "children": []}, {"id": "66f4784d-524c-40f1-ab5e-36ab2e361e79",
+    "type": "heading", "props": {"level": 2, "textColor": "default", "textAlignment":
+    "left", "backgroundColor": "default"}, "content": [{"text": "Big wins", "type":
+    "text", "styles": {}}], "children": []}, {"id": "a81dfa74-611a-4fad-ab03-6beff15703a8",
+    "type": "paragraph", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [], "children": []}, {"id": "2935d43f-0090-4dc4-be50-5fe91300265e",
+    "type": "bulletListItem", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [{"text": "Oh this win was bad", "type":
+    "text", "styles": {}}], "children": []}, {"id": "4a96f42f-057c-4a42-8da9-3a9476add194",
+    "type": "bulletListItem", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [{"text": "this win broke out", "type":
+    "text", "styles": {}}], "children": []}, {"id": "4b7556e6-72bf-4d4d-b455-30c3edc7dccb",
+    "type": "paragraph", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [], "children": []}, {"id": "c322d7fb-9a9c-47e2-a118-54dec5c9819d",
+    "type": "heading", "props": {"level": 2, "textColor": "default", "textAlignment":
+    "left", "backgroundColor": "default"}, "content": [{"text": "Asks", "type": "text",
+    "styles": {}}], "children": []}, {"id": "6de32c4b-2609-49c9-9335-a89a2afc686b",
+    "type": "bulletListItem", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [{"text": "We need to hire BD", "type":
+    "text", "styles": {}}], "children": []}, {"id": "7be88fdb-55ae-4547-8ea8-f4c6003b0dbf",
+    "type": "paragraph", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [], "children": []}, {"id": "af0ad8f4-e08e-4493-ab71-7987cd3028d1",
+    "type": "paragraph", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [], "children": []}, {"id": "181114a3-775f-4bfe-b5e8-81d81528cc49",
+    "type": "paragraph", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [], "children": []}]'
+  title: 500 co test item
+  description: Oops the greatest startups use this
+  number_of_uses: 0
+  created_at: "2025-03-01 20:11:52.305026+00"
+  updated_at: "2025-03-01 20:11:52.305026+00"
+  deleted_at:
+- id: d368065c-1263-48d6-8ae8-d017dbf4ce94
+  reference: system_template_fQv90I.w_ID
+  content:
+    '[{"id": "a81dfa74-611a-4fad-ab03-6beff15703a8", "type": "paragraph", "props":
+    {"textColor": "default", "textAlignment": "left", "backgroundColor": "default"},
+    "content": [], "children": []}, {"id": "2935d43f-0090-4dc4-be50-5fe91300265e",
+    "type": "bulletListItem", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [{"text": "Oh this win was bad", "type":
+    "text", "styles": {}}], "children": []}, {"id": "4a96f42f-057c-4a42-8da9-3a9476add194",
+    "type": "bulletListItem", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [{"text": "this win broke out", "type":
+    "text", "styles": {}}], "children": []}, {"id": "4b7556e6-72bf-4d4d-b455-30c3edc7dccb",
+    "type": "paragraph", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [], "children": []}, {"id": "c322d7fb-9a9c-47e2-a118-54dec5c9819d",
+    "type": "heading", "props": {"level": 2, "textColor": "default", "textAlignment":
+    "left", "backgroundColor": "default"}, "content": [{"text": "Asks", "type": "text",
+    "styles": {}}], "children": []}, {"id": "6de32c4b-2609-49c9-9335-a89a2afc686b",
+    "type": "bulletListItem", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [{"text": "We need to hire BD", "type":
+    "text", "styles": {}}], "children": []}, {"id": "7be88fdb-55ae-4547-8ea8-f4c6003b0dbf",
+    "type": "paragraph", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [], "children": []}, {"id": "af0ad8f4-e08e-4493-ab71-7987cd3028d1",
+    "type": "paragraph", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [], "children": []}, {"id": "181114a3-775f-4bfe-b5e8-81d81528cc49",
+    "type": "paragraph", "props": {"textColor": "default", "textAlignment": "left",
+    "backgroundColor": "default"}, "content": [], "children": []}]'
+  title: Oops template
+  description: The best startups in LATAM and EMEA use this
+  number_of_uses: 1
+  created_at: "2025-03-01 20:11:52.305026+00"
+  updated_at: "2025-03-01 20:11:52.305026+00"
+  deleted_at:
