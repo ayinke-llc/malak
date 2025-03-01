@@ -327,6 +327,17 @@ export enum MalakRole {
   RoleGuest = "guest",
 }
 
+export interface MalakSystemTemplate {
+  content?: MalakBlock[];
+  created_at?: string;
+  description?: string;
+  id?: string;
+  number_of_uses?: number;
+  reference?: string;
+  title?: string;
+  updated_at?: string;
+}
+
 export interface MalakUpdate {
   content?: MalakBlock[];
   created_at?: string;
@@ -580,6 +591,14 @@ export interface ServerFetchDetailedContactResponse {
 export interface ServerFetchPublicDeckResponse {
   deck: MalakPublicDeck;
   message: string;
+}
+
+export interface ServerFetchTemplatesResponse {
+  message: string;
+  templates: {
+    system: MalakSystemTemplate[];
+    workspace: MalakSystemTemplate[];
+  };
 }
 
 export interface ServerFetchUpdateAnalyticsResponse {
@@ -1751,6 +1770,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     updatesPinsList: (params: RequestParams = {}) =>
       this.request<ServerListUpdateResponse, ServerAPIStatus>({
         path: `/workspaces/updates/pins`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description list all templates. this will include both systems and your own created templates
+     *
+     * @tags updates
+     * @name UpdatesTemplatesList
+     * @request GET:/workspaces/updates/templates
+     */
+    updatesTemplatesList: (params: RequestParams = {}) =>
+      this.request<ServerFetchTemplatesResponse, ServerAPIStatus>({
+        path: `/workspaces/updates/templates`,
         method: "GET",
         format: "json",
         ...params,

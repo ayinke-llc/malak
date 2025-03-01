@@ -26,6 +26,7 @@ type updatesHandler struct {
 	cache              cache.Cache
 	queueHandler       queue.QueueHandler
 	uuidGenerator      malak.UuidGenerator
+	templateRepo       malak.TemplateRepository
 }
 
 // @Description list all templates. this will include both systems and your own created templates
@@ -37,7 +38,7 @@ type updatesHandler struct {
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /workspaces/templates [get]
+// @Router /workspaces/updates/templates [get]
 func (u *updatesHandler) templates(
 	ctx context.Context,
 	span trace.Span,
@@ -47,75 +48,30 @@ func (u *updatesHandler) templates(
 
 	logger.Debug("listing templates")
 
-	user := getUserFromContext(r.Context())
-	workspace := getWorkspaceFromContext(r.Context())
-
-	req := new(createUpdateContent)
-
-	if err := render.Bind(r, req); err != nil {
-		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	filter := malak.SystemTemplateFilter(r.URL.Query().Get("filter"))
+	if !filter.IsValid() {
+		filter = malak.SystemTemplateFilterAll
 	}
 
-	if err := req.Validate(); err != nil {
-		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
-	}
+	templates, err := u.templateRepo.System(ctx, filter)
+	if err != nil {
 
-	update := &malak.Update{
-		WorkspaceID: workspace.ID,
-		CreatedBy:   user.ID,
-		Content: malak.BlockContents{
-			{
-				ID:   u.uuidGenerator.Create().String(),
-				Type: "heading",
-				Props: map[string]interface{}{
-					"level":           2,
-					"textColor":       "default",
-					"textAlignment":   "left",
-					"backgroundColor": "default",
-				},
-				Content: []map[string]interface{}{
-					{
-						"text":   req.Title,
-						"type":   "text",
-						"styles": map[string]interface{}{},
-					},
-				},
-				Children: []malak.Block{},
-			},
-			{
-				ID:   u.uuidGenerator.Create().String(),
-				Type: "paragraph",
-				Props: map[string]interface{}{
-					"textColor":       "default",
-					"textAlignment":   "left",
-					"backgroundColor": "default",
-				},
-				Content:  []map[string]interface{}{},
-				Children: []malak.Block{},
-			},
-		},
-		Reference: u.referenceGenerator.Generate(malak.EntityTypeUpdate),
-		Status:    malak.UpdateStatusDraft,
-		Metadata:  malak.UpdateMetadata{},
-		Title:     req.Title,
-	}
-
-	if err := u.updateRepo.Create(ctx, update); err != nil {
-
-		logger.Error("could not create update",
+		logger.Error("could not list system templates",
 			zap.Error(err))
 
 		return newAPIStatus(
 			http.StatusInternalServerError,
-			"could not create a new update"), StatusFailed
+			"could not list system templates"), StatusFailed
 	}
 
-	span.AddEvent("workspace.new", trace.WithAttributes(
-		attribute.String("id", update.Reference.String())))
-
-	return createdUpdateResponse{
-		Update:    util.DeRef(update),
-		APIStatus: newAPIStatus(http.StatusCreated, "update successfully created"),
+	return fetchTemplatesResponse{
+		Templates: struct {
+			System    []malak.SystemTemplate "json:\"system,omitempty\" validate:\"required\""
+			Workspace []malak.SystemTemplate "json:\"workspace,omitempty\" validate:\"required\""
+		}{
+			System: templates,
+		},
+		APIStatus: newAPIStatus(http.StatusCreated, "templates listed"),
 	}, StatusSuccess
 }
 
