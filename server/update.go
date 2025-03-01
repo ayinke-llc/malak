@@ -28,6 +28,97 @@ type updatesHandler struct {
 	uuidGenerator      malak.UuidGenerator
 }
 
+// @Description list all templates. this will include both systems and your own created templates
+// @Tags updates
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} fetchTemplatesResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/templates [get]
+func (u *updatesHandler) templates(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("listing templates")
+
+	user := getUserFromContext(r.Context())
+	workspace := getWorkspaceFromContext(r.Context())
+
+	req := new(createUpdateContent)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	update := &malak.Update{
+		WorkspaceID: workspace.ID,
+		CreatedBy:   user.ID,
+		Content: malak.BlockContents{
+			{
+				ID:   u.uuidGenerator.Create().String(),
+				Type: "heading",
+				Props: map[string]interface{}{
+					"level":           2,
+					"textColor":       "default",
+					"textAlignment":   "left",
+					"backgroundColor": "default",
+				},
+				Content: []map[string]interface{}{
+					{
+						"text":   req.Title,
+						"type":   "text",
+						"styles": map[string]interface{}{},
+					},
+				},
+				Children: []malak.Block{},
+			},
+			{
+				ID:   u.uuidGenerator.Create().String(),
+				Type: "paragraph",
+				Props: map[string]interface{}{
+					"textColor":       "default",
+					"textAlignment":   "left",
+					"backgroundColor": "default",
+				},
+				Content:  []map[string]interface{}{},
+				Children: []malak.Block{},
+			},
+		},
+		Reference: u.referenceGenerator.Generate(malak.EntityTypeUpdate),
+		Status:    malak.UpdateStatusDraft,
+		Metadata:  malak.UpdateMetadata{},
+		Title:     req.Title,
+	}
+
+	if err := u.updateRepo.Create(ctx, update); err != nil {
+
+		logger.Error("could not create update",
+			zap.Error(err))
+
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"could not create a new update"), StatusFailed
+	}
+
+	span.AddEvent("workspace.new", trace.WithAttributes(
+		attribute.String("id", update.Reference.String())))
+
+	return createdUpdateResponse{
+		Update:    util.DeRef(update),
+		APIStatus: newAPIStatus(http.StatusCreated, "update successfully created"),
+	}, StatusSuccess
+}
+
 type createUpdateContent struct {
 	Title string `json:"title,omitempty" validate:"required"`
 	GenericRequest
