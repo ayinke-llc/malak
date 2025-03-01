@@ -18,6 +18,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useCreateBlockNote } from "@blocknote/react";
 import Markdown from "react-markdown";
+import { defaultEditorContent } from "@/components/ui/updates/editor/default-value";
 
 function TemplateCard({ template, isLoading, onClick }: {
   template: MalakSystemTemplate;
@@ -111,9 +112,13 @@ export default function TemplatesPage() {
         title: `${format(new Date(), "EEEE, MMMM do, yyyy")} Update`,
       });
 
+      const initialContent = defaultEditorContent(createResp.data.update.reference!);
+      const templateContent = template.content || [];
+      const combinedContent = [...initialContent, ...templateContent];
+
       await client.workspaces.updateContent(createResp.data.update.reference!, {
         title: createResp.data.update.title!,
-        update: template.content || []
+        update: combinedContent
       });
 
       return createResp;
