@@ -18,7 +18,6 @@ export default function Page() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-background z-0" />
 
@@ -40,7 +39,6 @@ export default function Page() {
             </p>
           </div>
 
-          {/* Feature Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
             <div className="group hover:scale-[1.02] transition-transform duration-200 ease-in-out">
               <div className="relative p-8 rounded-xl border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 hover:shadow-lg transition-all h-full overflow-hidden">
@@ -157,7 +155,6 @@ export default function Page() {
             </div>
           </div>
 
-          {/* CTA Section */}
           <div className="mt-16 text-center">
             <Button
               variant="outline"
