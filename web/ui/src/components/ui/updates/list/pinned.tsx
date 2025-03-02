@@ -62,8 +62,8 @@ const PinnedList = () => {
         )
           : (
             <div className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-4 gap-4 mb-6">
-              {data?.data?.updates?.map((update) => {
-                return <Item {...update} />
+              {data?.data?.updates?.map((update, index) => {
+                return <Item key={index} {...update} />
               })}
             </div>
           )

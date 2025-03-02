@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import type { MalakIntegrationChart, ServerListDashboardResponse } from "@/client/Api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ interface DashboardItem {
   icon: typeof RiBarChartBoxLine;
 }
 
-function MiniChartCard({ chart, dashboardType }: { chart: MalakIntegrationChart; dashboardType: string }) {
+function MiniChartCard({ chart }: { chart: MalakIntegrationChart; dashboardType: string }) {
   const { data: chartData, isLoading: isLoadingChartData, error } = useQuery({
     queryKey: [FETCH_CHART_DATA_POINTS, chart.reference],
     queryFn: async () => {
@@ -111,10 +112,10 @@ function MiniChartCard({ chart, dashboardType }: { chart: MalakIntegrationChart;
                 <Cell key={`cell-${index}`} fill={getChartColors(index)} />
               ))}
             </Pie>
-            <RechartsTooltip 
-              formatter={(value: number) => 
+            <RechartsTooltip
+              formatter={(value: number) =>
                 formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
-              } 
+              }
             />
           </PieChart>
         </ChartContainer>
@@ -128,10 +129,10 @@ function MiniChartCard({ chart, dashboardType }: { chart: MalakIntegrationChart;
           >
             <XAxis dataKey="name" stroke="#888888" fontSize={8} />
             <YAxis stroke="#888888" fontSize={8} />
-            <RechartsTooltip 
-              formatter={(value: number) => 
+            <RechartsTooltip
+              formatter={(value: number) =>
                 formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
-              } 
+              }
             />
             <Bar dataKey="value" fill="#3B82F6" radius={[2, 2, 0, 0]} />
           </BarChart>
@@ -339,11 +340,11 @@ export const Dashboard = createReactBlockSpec(
                   dashboardType={selectedItem.value}
                 />
               )) || (
-                <div className="col-span-2 flex items-center justify-center p-4 text-sm text-muted-foreground">
-                  <RiLoader4Line className="mr-2 h-4 w-4 animate-spin" />
-                  Loading charts...
-                </div>
-              )}
+                  <div className="col-span-2 flex items-center justify-center p-4 text-sm text-muted-foreground">
+                    <RiLoader4Line className="mr-2 h-4 w-4 animate-spin" />
+                    Loading charts...
+                  </div>
+                )}
             </div>
           )}
 
