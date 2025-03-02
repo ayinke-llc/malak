@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { format } from "date-fns";
 import { RiUploadCloud2Line, RiFileCopyLine, RiCheckLine, RiArchiveLine } from "@remixicon/react";
 import UploadDeckModal from "../modal";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 import {
@@ -83,10 +83,10 @@ export default function ListDecks() {
     return text.slice(0, maxLength) + "...";
   };
 
-  const handleArchive = async (deckId: string) => {
+  const handleArchive = useCallback(async (deckId: string) => {
     setArchivingId(deckId);
     archiveMutation.mutate(deckId);
-  };
+  }, [archiveMutation, setArchivingId]);
 
   const columnHelper = createColumnHelper<MalakDeck>();
 
