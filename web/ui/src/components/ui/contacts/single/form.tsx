@@ -41,9 +41,6 @@ export function EditContactDialog({ contact }: { contact: MalakContact }) {
 
   const queryClient = useQueryClient();
 
-  if (!contact) {
-    return null
-  }
 
   const mutation = useMutation({
     mutationKey: [UPDATE_CONTACT, contact?.reference as string],
@@ -85,6 +82,10 @@ export function EditContactDialog({ contact }: { contact: MalakContact }) {
   });
 
   const onSubmit = (values: FormData) => mutation.mutate(values)
+
+  if (!contact) {
+    return null
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
