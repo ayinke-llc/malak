@@ -1,6 +1,6 @@
 import { withSentryConfig } from "@sentry/nextjs";
-/** @type {import('next').NextConfig} */
 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   redirects: async () => {
     return [
