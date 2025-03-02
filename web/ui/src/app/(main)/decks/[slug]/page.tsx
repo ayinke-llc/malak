@@ -133,7 +133,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
     try {
       navigator.clipboard.writeText(text);
       toast.success("Link copied to clipboard");
-    } catch (_err) {
+    } catch {
       toast.error("Failed to copy link");
     }
   };

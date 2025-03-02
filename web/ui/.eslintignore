@@ -1,3 +1,5 @@
+src/components/ui/chart.tsx
+src/components/ui/multi-select.tsx
 src/components/ui/*.tsx
 src/components/ui/*.ts
 src/lib/chartUtils.ts
