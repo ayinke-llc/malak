@@ -7,7 +7,7 @@ import Skeleton from "@/components/ui/custom/loader/skeleton";
 
 export default function Page() {
   return (
-    <>
+    <Suspense fallback={<Skeleton count={6} />}>
       <div className="pt-6 bg-background">
         <section>
           <div className="sm:flex sm:items-center sm:justify-between">
@@ -30,11 +30,9 @@ export default function Page() {
         </section>
 
         <section className="mt-10">
-          <Suspense fallback={<Skeleton count={6} />}>
-            <ListDashboards />
-          </Suspense>
+          <ListDashboards />
         </section>
       </div>
-    </>
+    </Suspense>
   );
 }

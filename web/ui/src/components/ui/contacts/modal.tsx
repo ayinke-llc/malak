@@ -1,3 +1,5 @@
+"use client"
+
 import type { ServerAPIStatus, ServerCreateContactRequest, ServerFetchContactResponse } from "@/client/Api";
 import { Button } from "@/components/ui/button";
 import {
