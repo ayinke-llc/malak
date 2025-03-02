@@ -1,4 +1,4 @@
-import { BlockSchemaFromSpecs, type PartialBlock } from "@blocknote/core";
+import { type PartialBlock } from "@blocknote/core";
 import { format } from "date-fns";
 
 export const defaultEditorContent = (reference: string): PartialBlock[] => {

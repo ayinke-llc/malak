@@ -8,15 +8,15 @@ type WorkspaceState = {
 };
 
 type Actions = {
-  setCurrent: (workspace: MalakWorkspace) => void;
-  setWorkspaces: (workspaces: MalakWorkspace[]) => void;
+  setCurrent: (_workspace: MalakWorkspace) => void;
+  setWorkspaces: (_workspaces: MalakWorkspace[]) => void;
   clear: () => void;
-  appendWorkspaceAfterCreation: (workspace: MalakWorkspace) => void
+  appendWorkspaceAfterCreation: (_workspace: MalakWorkspace) => void
 };
 
 const useWorkspacesStore = create(
   persist<WorkspaceState & Actions>(
-    (set, get) => ({
+    (set) => ({
       current: null,
       workspaces: [],
       setCurrent: (workspace: MalakWorkspace) => set({ current: workspace }),

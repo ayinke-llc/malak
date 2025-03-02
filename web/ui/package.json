@@ -110,6 +110,8 @@
     "@types/node": "^22.1.0",
     "@types/react": "18.2.0",
     "@types/react-dom": "18.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.25.0",
+    "@typescript-eslint/parser": "^8.25.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.5",
     "postcss": "^8.4.45",

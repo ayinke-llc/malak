@@ -232,7 +232,7 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
     try {
       toast.success(`Disconnected from ${integration?.integration?.integration_name}`);
       setOauth2SettingsOpen(false);
-    } catch (error) {
+    } catch {
       toast.error("Failed to disconnect integration");
     }
   };

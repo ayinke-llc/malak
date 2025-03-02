@@ -71,7 +71,7 @@ export default function ListDecks() {
         description: "The deck URL has been copied to your clipboard.",
       });
       setTimeout(() => setCopiedId(null), 2000);
-    } catch (error) {
+    } catch {
       toast.error("Failed to copy link", {
         description: "Please try copying the link again.",
       });

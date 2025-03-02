@@ -16,7 +16,7 @@ import client from "@/lib/client";
 import { CREATE_CONTACT_MUTATION } from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { RiAddLine } from "@remixicon/react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type { AxiosError, AxiosResponse } from "axios";
 import { useEffect, useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
@@ -86,7 +86,6 @@ export default function CreateContactModal({
     },
   });
 
-  const queryClient = useQueryClient()
 
   // Fetch contact data if in edit mode
   const { data: contactData } = useQuery({
