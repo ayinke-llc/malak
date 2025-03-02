@@ -12,6 +12,9 @@
     "format": "bunx biome format --write .",
     "scan": "next dev & npx react-scan@latest localhost:3000"
   },
+  "engines": {
+    "node": "23.x"
+  },
   "dependencies": {
     "@blocknote/core": "^0.24.2",
     "@blocknote/mantine": "^0.24.2",
