@@ -14,15 +14,13 @@ import {
   Phone,
   MapPin,
   Building2,
-  Calendar,
-  Pencil,
-  Trash2,
+  Calendar, Trash2,
   Users,
   BarChart3,
   Clock,
   FileText,
   LayoutDashboard,
-  FolderOpen,
+  FolderOpen
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
@@ -61,7 +59,6 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
   const router = useRouter();
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('months');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
 
   const deleteMutation = useMutation({
     mutationKey: [DELETE_CONTACT],

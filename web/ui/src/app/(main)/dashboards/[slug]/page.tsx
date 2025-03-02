@@ -1,10 +1,9 @@
 "use client";
 
 import type {
-  MalakDashboardChart, MalakIntegrationDataPoint,
-  ServerAPIStatus,
+  MalakDashboardChart, ServerAPIStatus,
   ServerListDashboardChartsResponse,
-  ServerListIntegrationChartsResponse,
+  ServerListIntegrationChartsResponse
 } from "@/client/Api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -156,10 +155,10 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
             >
               <XAxis dataKey="name" stroke="#888888" fontSize={11} />
               <YAxis stroke="#888888" fontSize={11} />
-              <Tooltip 
-                formatter={(value: number) => 
+              <Tooltip
+                formatter={(value: number) =>
                   formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
-                } 
+                }
               />
               <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -180,14 +179,14 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
                 outerRadius={60}
                 dataKey="value"
               >
-                {formattedData.map((entry, index) => (
+                {formattedData.map((_entry, index) => (
                   <Cell key={`cell-${index}`} fill={getChartColors(index)} />
                 ))}
               </Pie>
-              <Tooltip 
-                formatter={(value: number) => 
+              <Tooltip
+                formatter={(value: number) =>
                   formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
-                } 
+                }
               />
             </PieChart>
           </ChartContainer>

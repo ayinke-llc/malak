@@ -111,6 +111,6 @@ export default function UserProvider({
     );
   }
 
-  return children;
+  return <>{children}</>;
 }
 
