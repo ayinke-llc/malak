@@ -45,20 +45,18 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
               <Breadcrumb>
                 <BreadcrumbList>
                   {breadcrumbs.map((item, index) => (
-                    <>
-                      <BreadcrumbItem key={index} className="hidden md:block">
-                        {item.href ? (
-                          <BreadcrumbLink asChild>
-                            <Link href={item.href}>
-                              {item.label}
-                            </Link>
-                          </BreadcrumbLink>
-                        ) : (
-                          <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                        )}
-                      </BreadcrumbItem>
+                    <BreadcrumbItem key={index} className="hidden md:block">
+                      {item.href ? (
+                        <BreadcrumbLink asChild>
+                          <Link href={item.href}>
+                            {item.label}
+                          </Link>
+                        </BreadcrumbLink>
+                      ) : (
+                        <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                      )}
                       {index !== breadcrumbs.length - 1 && <BreadcrumbSeparator className="hidden md:block" />}
-                    </>
+                    </BreadcrumbItem>
                   ))}
                 </BreadcrumbList>
               </Breadcrumb>
