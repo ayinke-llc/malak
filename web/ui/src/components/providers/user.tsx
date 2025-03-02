@@ -99,7 +99,7 @@ export default function UserProvider({
       client.instance.interceptors.request.eject(requestInterceptor);
       client.instance.interceptors.response.eject(responseInterceptor);
     };
-  }, [token, isRehydrated]);
+  }, [token, isRehydrated, clear, isAuthenticated, logout, router, setCurrent, setUser, setWorkspaces]);
 
   if (loading) {
     return (

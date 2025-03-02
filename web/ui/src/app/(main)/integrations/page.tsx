@@ -46,7 +46,7 @@ export default function Integrations() {
                 Error loading integrations
               </h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                We couldn't load your integrations. Please try again.
+                We couldn&apos;t load your integrations. Please try again.
               </p>
               <Button 
                 onClick={() => refetch()} 

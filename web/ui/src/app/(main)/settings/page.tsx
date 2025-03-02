@@ -42,7 +42,7 @@ export default function Settings() {
                 Company Preferences
               </h3>
               <p className="text-sm text-muted-foreground">
-                View and manage your company's preferences
+                View and manage your company&apos;s preferences
               </p>
             </div>
 

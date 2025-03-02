@@ -101,7 +101,7 @@ export function EditContactDialog({ contact }: { contact: MalakContact }) {
       <DialogContent >
         <DialogHeader>
           <DialogTitle>Update contact details</DialogTitle>
-          <DialogDescription>Update contact's details. You cannot update the contact's email</DialogDescription>
+          <DialogDescription>Update contact&apos;s details. You cannot update the contact&apos;s email</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
 

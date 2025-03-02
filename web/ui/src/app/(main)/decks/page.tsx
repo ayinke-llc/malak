@@ -17,7 +17,7 @@ export default function Page() {
                 Company Decks
               </h3>
               <p className="text-sm text-muted-foreground">
-                View and manage your investors' contacts
+                View and manage your investors&apos; contacts
               </p>
             </div>
 

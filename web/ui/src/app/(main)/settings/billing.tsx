@@ -52,7 +52,7 @@ export function BillingPage() {
               <RiAlertLine className="h-4 w-4" />
               <AlertTitle>No active subscription</AlertTitle>
               <AlertDescription>
-                You currently don't have an active subscription. Subscribe to get access to Malak
+                You currently don&apos;t have an active subscription. Subscribe to get access to Malak
               </AlertDescription>
             </Alert>
           )}
@@ -65,7 +65,7 @@ export function BillingPage() {
                   <p>You are currently on the
                     <span className="font-semibold"> {current?.plan?.plan_name}</span> plan.</p>
                 ) : (
-                  <span>You don't have an active subscription.</span>
+                  <span>You don&apos;t have an active subscription.</span>
                 )}
               </p>
             </div>

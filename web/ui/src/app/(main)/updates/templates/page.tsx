@@ -216,7 +216,7 @@ export default function TemplatesPage() {
           <TabsContent value="custom">
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-2">Custom templates coming soon</p>
-              <p className="text-sm text-muted-foreground">You'll be able to create and save your own templates here</p>
+              <p className="text-sm text-muted-foreground">You&apos;ll be able to create and save your own templates here</p>
             </div>
           </TabsContent>
         </Tabs>

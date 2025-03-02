@@ -417,7 +417,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-center h-[50vh]">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-muted-foreground">Dashboard not found</h1>
-          <p className="text-muted-foreground mt-2">The dashboard you're looking for doesn't exist.</p>
+          <p className="text-muted-foreground mt-2">The dashboard you&apos;re looking for doesn&apos;t exist.</p>
         </div>
       </div>
     );

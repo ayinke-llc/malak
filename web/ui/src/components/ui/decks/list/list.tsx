@@ -227,7 +227,7 @@ export default function ListDecks() {
         },
       }),
     ],
-    [copiedId, archivingId]
+    [copiedId, archivingId, archiveMutation.isPending, columnHelper, handleArchive]
   );
 
   const table = useReactTable({
