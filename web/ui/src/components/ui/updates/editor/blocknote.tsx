@@ -103,17 +103,11 @@ export type EditorProps = {
 
 const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
   const { theme } = useTheme();
-
-  if (reference === undefined || reference === "") {
-    return null;
-  }
-
   const [saveStatus, setSaveStatus] = useState<"Saved" | "Unsaved" | "Storing" | "Sent">(
     update?.status == "sent" ? "Sent" : "Saved",
   );
 
   let initialContent = defaultEditorContent(reference);
-
   if (update) {
     initialContent = update?.content as PartialBlock[];
   }
@@ -122,7 +116,7 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
     initialContent,
     schema,
     uploadFile: fileUploader,
-  })
+  });
 
   const mutation = useMutation({
     mutationKey: [UPDATE_CONTENT],
@@ -181,6 +175,10 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
       update: blocks as MalakBlock[],
     });
   }, 1000);
+
+  if (reference === undefined || reference === "") {
+    return null;
+  }
 
   const getVariant = (): "default" | "secondary" | "destructive" | "outline" => {
     switch (saveStatus) {
