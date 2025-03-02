@@ -1,5 +1,5 @@
 import type { MalakWorkspace } from "@/client/Api";
-import create from "zustand";
+import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 type WorkspaceState = {

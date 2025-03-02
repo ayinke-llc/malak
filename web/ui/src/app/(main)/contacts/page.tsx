@@ -21,8 +21,7 @@ export default function Page() {
             </p>
           </div>
 
-          <div>
-
+          <div className="flex gap-2">
             <ManageListModal />
             <CreateContactModal />
           </div>
