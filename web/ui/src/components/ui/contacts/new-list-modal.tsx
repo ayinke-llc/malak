@@ -1,9 +1,9 @@
+"use client"
+
 import type {
   MalakContactList,
   MalakContactListMappingWithContact,
-  ServerAPIStatus,
-  ServerCreateContactListRequest,
-  ServerFetchContactListsResponse,
+  ServerAPIStatus, ServerFetchContactListsResponse
 } from "@/client/Api";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,13 +19,8 @@ import client from "@/lib/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   RiAddLine,
-  RiCheckLine,
-  RiCloseLine,
-  RiEyeLine,
-  RiPencilLine,
-  RiDeleteBinLine,
-  RiSettings5Line,
-  RiSettings4Line,
+  RiCheckLine, RiPencilLine,
+  RiDeleteBinLine, RiSettings4Line
 } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
@@ -204,7 +199,6 @@ export default function ManageListModal() {
   const deleteMutation = useMutation({
     mutationKey: [UPDATE_CONTACT_LIST],
     mutationFn: async (reference: string) => {
-      // @ts-ignore - deleteContactList exists but TypeScript doesn't recognize it
       const response = await client.contacts.deleteContactList(reference);
       return response.data;
     },

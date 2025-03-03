@@ -6,25 +6,14 @@ import {
   TabsList,
   TabsTrigger
 } from "@/components/ui/tabs";
-import { useSearchParams } from "next/navigation";
 import { BillingPage } from "./billing";
 import { GeneralSettings } from "./general";
 import Soon from "./soon";
 
 export default function Settings() {
 
-  const searchParams = useSearchParams();
 
   const getDefaultValue = (): string => {
-    const value = searchParams.get("tab")
-
-    if (!value) {
-      return "general"
-    }
-
-    if (["general", "billing", "team", "webhook", "api"].includes(value.toLowerCase())) {
-      return value.toLowerCase()
-    }
 
     return "general"
   }
@@ -42,7 +31,7 @@ export default function Settings() {
                 Company Preferences
               </h3>
               <p className="text-sm text-muted-foreground">
-                View and manage your company's preferences
+                View and manage your company&apos;s preferences
               </p>
             </div>
 

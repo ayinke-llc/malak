@@ -53,8 +53,8 @@ export default function CreateDashboardModal() {
     mutationKey: [CREATE_DASHBOARD],
     mutationFn: (data: CreateDashboardInput) => {
       return client.dashboards.dashboardsCreate({
-        title: data.name,
-        ...data
+        title: data.name || "",
+        description: data.description || ""
       })
     },
     onSuccess: ({ data }) => {

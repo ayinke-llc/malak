@@ -22,7 +22,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { RiAddLargeLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
-import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -72,7 +71,6 @@ export function ModalAddWorkspace({
     onOpenChange(isOpen);
   };
 
-  const router = useRouter();
 
   const mutation = useMutation({
     mutationKey: [CREATE_WORKSPACE],

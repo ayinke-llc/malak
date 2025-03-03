@@ -144,6 +144,7 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
     onMutate: () => setLoading(true),
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   const onSubmit: SubmitHandler<{}> = () => {
     mutation.mutate({
       emails: values.map((value) => value.value)

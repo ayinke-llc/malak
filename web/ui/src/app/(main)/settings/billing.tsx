@@ -1,23 +1,23 @@
 "use client"
 
+import { ServerAPIStatus } from "@/client/Api"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent, CardDescription,
   CardHeader, CardTitle
 } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { SUPPORT_EMAIL } from "@/lib/config"
-import { useMutation } from "@tanstack/react-query"
 import client from "@/lib/client"
-import { useRouter } from "next/navigation"
+import { SUPPORT_EMAIL } from "@/lib/config"
 import { FETCH_BILLING_PORTAL_URL } from "@/lib/query-constants"
-import { ServerAPIStatus } from "@/client/Api"
-import { AxiosError } from "axios"
-import { toast } from "sonner"
 import useWorkspacesStore from "@/store/workspace"
 import { RiAlertLine, RiExternalLinkLine, RiMailSendLine } from "@remixicon/react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useMutation } from "@tanstack/react-query"
+import { AxiosError } from "axios"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 export function BillingPage() {
 
@@ -52,7 +52,7 @@ export function BillingPage() {
               <RiAlertLine className="h-4 w-4" />
               <AlertTitle>No active subscription</AlertTitle>
               <AlertDescription>
-                You currently don't have an active subscription. Subscribe to get access to Malak
+                You currently don&apos;t have an active subscription. Subscribe to get access to Malak
               </AlertDescription>
             </Alert>
           )}
@@ -65,7 +65,7 @@ export function BillingPage() {
                   <p>You are currently on the
                     <span className="font-semibold"> {current?.plan?.plan_name}</span> plan.</p>
                 ) : (
-                  <span>You don't have an active subscription.</span>
+                  <span>You don&apos;t have an active subscription.</span>
                 )}
               </p>
             </div>

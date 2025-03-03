@@ -72,6 +72,7 @@ export const Alert = createReactBlockSpec(
           <Menu withinPortal={false}>
             <Menu.Target>
               <div className={"alert-icon-wrapper"} contentEditable={false}>
+                {/* @ts-expect-error ReactNode type mismatch */}
                 <Icon
                   className={"alert-icon"}
                   data-alert-icon-type={props.block.props.type}
@@ -90,6 +91,7 @@ export const Alert = createReactBlockSpec(
                   <Menu.Item
                     key={type.value}
                     leftSection={
+                      // @ts-expect-error ReactNode type mismatch
                       <ItemIcon
                         className={"alert-icon"}
                         data-alert-icon-type={type.value}

@@ -1,9 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import client from "@/lib/client";
-import { 
-  RiAddLine, 
+import {
   RiUserLine,
   RiFileListLine,
   RiBarChartBoxLine,
@@ -12,10 +10,8 @@ import {
   RiTimeLine
 } from "@remixicon/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 export default function Page() {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
 
   return (
@@ -23,7 +19,7 @@ export default function Page() {
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-background z-0" />
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-24 z-10">
           <div className="text-center">
             <div className="inline-flex items-center justify-center gap-2 mb-6 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 shadow-sm">
@@ -34,7 +30,7 @@ export default function Page() {
               Fundraising Features
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
-              We&apos;re building powerful fundraising tools to help you manage and track 
+              We&apos;re building powerful fundraising tools to help you manage and track
               your fundraising efforts more effectively.
             </p>
             <p className="text-sm text-muted-foreground max-w-2xl mx-auto mb-12">
@@ -57,7 +53,7 @@ export default function Page() {
                 </div>
                 <h3 className="text-2xl font-semibold mb-4">Investor Management</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Track potential investors, manage communications, and maintain detailed 
+                  Track potential investors, manage communications, and maintain detailed
                   records of all fundraising interactions.
                 </p>
               </div>
@@ -76,7 +72,7 @@ export default function Page() {
                 </div>
                 <h3 className="text-2xl font-semibold mb-4">Deal Room</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Create secure virtual data rooms for sharing sensitive documents 
+                  Create secure virtual data rooms for sharing sensitive documents
                   with investors and tracking engagement.
                 </p>
               </div>
@@ -95,7 +91,7 @@ export default function Page() {
                 </div>
                 <h3 className="text-2xl font-semibold mb-4">Fundraising Analytics</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Get insights into your fundraising pipeline, conversion rates, 
+                  Get insights into your fundraising pipeline, conversion rates,
                   and investor engagement metrics.
                 </p>
               </div>
@@ -114,7 +110,7 @@ export default function Page() {
                 </div>
                 <h3 className="text-2xl font-semibold mb-4">Campaign Management</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Plan and execute fundraising campaigns with tools for goal setting, 
+                  Plan and execute fundraising campaigns with tools for goal setting,
                   progress tracking, and investor communications.
                 </p>
               </div>

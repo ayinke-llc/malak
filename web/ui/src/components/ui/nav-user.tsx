@@ -1,16 +1,10 @@
 "use client"
 
 import {
-  BadgeCheck,
-  Bell,
   ChevronsUpDown,
   CreditCard,
-  LogOut,
-  Moon,
-  Sun,
-  Sparkles,
+  LogOut
 } from "lucide-react"
-import { useTheme } from "next-themes"
 
 import {
   Avatar,
@@ -32,7 +26,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import useAuthStore from "@/store/auth"
 
@@ -46,7 +39,6 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
-  const { theme, setTheme } = useTheme()
   const router = useRouter()
 
   const logout = useAuthStore((state) => state.logout);

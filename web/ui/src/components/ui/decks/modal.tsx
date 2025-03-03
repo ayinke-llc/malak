@@ -1,5 +1,6 @@
 "use client";
 
+import type { ServerAPIStatus } from "@/client/Api";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,25 +10,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { RiAddLine, RiUploadCloud2Line } from "@remixicon/react";
-import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import client from "@/lib/client";
-import type { ServerAPIStatus } from "@/client/Api";
-import type { AxiosError } from "axios";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { LIST_DECKS, UPLOAD_DECK, UPLOAD_IMAGE } from "@/lib/query-constants";
+import client from "@/lib/client";
+import { LIST_DECKS, UPLOAD_DECK } from "@/lib/query-constants";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { RiAddLine, RiUploadCloud2Line } from "@remixicon/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
+import { useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as yup from "yup";
 
 type FormData = {
   title: string;

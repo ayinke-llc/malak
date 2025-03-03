@@ -7,19 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Skeleton from "@/components/ui/custom/loader/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { defaultEditorContent } from "@/components/ui/updates/editor/default-value";
 import client from "@/lib/client";
 import { LIST_TEMPLATES } from "@/lib/query-constants";
+import { PartialBlock } from "@blocknote/core";
+import { useCreateBlockNote } from "@blocknote/react";
 import { RiArrowLeftLine, RiErrorWarningLine } from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
 import { format } from "date-fns";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { useCreateBlockNote } from "@blocknote/react";
-import Markdown from "react-markdown";
-import { defaultEditorContent } from "@/components/ui/updates/editor/default-value";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Markdown from "react-markdown";
+import { toast } from "sonner";
 
 function TemplateCard({ template, isLoading, onClick }: {
   template: MalakSystemTemplate;
@@ -28,11 +29,11 @@ function TemplateCard({ template, isLoading, onClick }: {
 }) {
   const editor = useCreateBlockNote();
   const [previewText, setPreviewText] = useState<string>('');
-  
+
   useEffect(() => {
     async function parseContent() {
       if (template.content) {
-        const markdown = await editor.blocksToMarkdownLossy(template.content as any);
+        const markdown = await editor.blocksToMarkdownLossy(template.content as PartialBlock[]);
         setPreviewText(markdown.slice(0, 150));
       }
     }
@@ -216,11 +217,11 @@ export default function TemplatesPage() {
           <TabsContent value="custom">
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-2">Custom templates coming soon</p>
-              <p className="text-sm text-muted-foreground">You'll be able to create and save your own templates here</p>
+              <p className="text-sm text-muted-foreground">You&apos;ll be able to create and save your own templates here</p>
             </div>
           </TabsContent>
         </Tabs>
       )}
     </div>
   );
-} 
+}

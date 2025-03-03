@@ -9,12 +9,18 @@ import client from "@/lib/client";
 import { LIST_DASHBOARDS } from "@/lib/query-constants";
 import { Button } from "@/components/ui/button";
 import { RiArrowLeftLine, RiArrowRightLine } from "@remixicon/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { MalakDashboard, ServerListDashboardResponse } from "@/client/Api";
+import Skeleton from "@/components/ui/custom/loader/skeleton";
 
 export default function ListDashboards() {
   const [page, setPage] = useState(1);
+  const [mounted, setMounted] = useState(false);
   const perPage = 12;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { data, isLoading, isError } = useQuery<ServerListDashboardResponse>({
     queryKey: [LIST_DASHBOARDS, page],
@@ -25,21 +31,15 @@ export default function ListDashboards() {
       });
       return response.data;
     },
+    enabled: mounted,
   });
 
+  if (!mounted) {
+    return null;
+  }
+
   if (isLoading) {
-    return (
-      <Card className="flex flex-col items-center justify-center py-16 px-4 bg-background">
-        <div className="flex flex-col items-center justify-center text-center max-w-sm">
-          <div className="rounded-full bg-muted p-4">
-            <RiDashboardLine className="h-8 w-8 text-muted-foreground animate-spin" />
-          </div>
-          <h3 className="mt-6 text-lg font-medium text-foreground">
-            Loading dashboards...
-          </h3>
-        </div>
-      </Card>
-    );
+    return <Skeleton count={6} />;
   }
 
   if (isError) {
