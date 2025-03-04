@@ -1,0 +1,10 @@
+.sortableChart {
+  touch-action: none;
+  user-select: none;
+}
+
+.sortableChartDragging {
+  opacity: 0.5;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 0.5rem;
+} 
