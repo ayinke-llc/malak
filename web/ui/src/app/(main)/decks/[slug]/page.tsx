@@ -56,13 +56,20 @@ const settingsSchema = yup.object().shape({
   }),
 }) satisfies yup.ObjectSchema<SettingsFormData>;
 
-export default function DeckDetails({ params }: { params: { slug: string } }) {
+export default async function DeckDetails(
+  {
+    params,
+  }: {
+    params: Promise<{ slug: string }>
+  }) {
+
+  const { slug } = await params
 
   const [isPinned, setIsPinned] = useState<boolean>(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: [FETCH_DECK],
-    queryFn: () => client.decks.decksDetail(params.slug),
+    queryFn: () => client.decks.decksDetail(slug),
     retry: false,
     gcTime: Number.POSITIVE_INFINITY,
   });
@@ -76,7 +83,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
 
   const pinMutation = useMutation({
     mutationFn: () => {
-      return client.decks.togglePin(params.slug, {})
+      return client.decks.togglePin(slug, {})
     },
     gcTime: 0,
     onError: (err: AxiosError<ServerAPIStatus>): void => {
@@ -90,7 +97,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
 
   const mutation = useMutation({
     mutationFn: (data: SettingsFormData) => {
-      return client.decks.preferencesUpdate(params.slug, {
+      return client.decks.preferencesUpdate(slug, {
         enable_downloading: data.enableDownloading,
         password_protection: {
           enabled: data.passwordProtection,
@@ -306,7 +313,7 @@ export default function DeckDetails({ params }: { params: { slug: string } }) {
               </form>
             </DialogContent>
           </Dialog>
-          <DeleteDeck reference={params.slug} />
+          <DeleteDeck reference={slug} />
         </div>
       </div>
 

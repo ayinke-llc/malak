@@ -244,9 +244,18 @@ function SortableChartCard({ chart, onRemove }: { chart: MalakDashboardChart; on
   );
 }
 
-export default function DashboardPage() {
-  const params = useParams();
-  const dashboardID = params.slug as string;
+export default async function DashboardPage(
+  {
+    params,
+  }: {
+    params: Promise<{ slug: string }>
+  }
+) {
+
+  const { slug } = await params;
+
+  const dashboardID = slug
+
   const queryClient = useQueryClient();
 
   const [isOpen, setIsOpen] = useState(false);
