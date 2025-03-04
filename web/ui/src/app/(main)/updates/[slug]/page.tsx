@@ -11,19 +11,17 @@ import { toast } from "sonner";
 import Skeleton from "@/components/ui/custom/loader/skeleton";
 import Analytics from "@/components/ui/updates/analytics/analytics";
 
-export default async function Page(
+export default function Page(
   {
     params,
   }: {
-    params: Promise<{ slug: string }>
+    params: { slug: string }
   }
 ) {
 
   const router = useRouter();
 
-  const { slug } = await params;
-
-  const reference = slug;
+  const reference = params.slug;
 
   const { data, error, isLoading } = useQuery({
     queryKey: [FETCH_SINGLE_UPDATE],

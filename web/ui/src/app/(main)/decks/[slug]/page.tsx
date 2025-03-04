@@ -56,14 +56,14 @@ const settingsSchema = yup.object().shape({
   }),
 }) satisfies yup.ObjectSchema<SettingsFormData>;
 
-export default async function DeckDetails(
+export default function DeckDetails(
   {
     params,
   }: {
-    params: Promise<{ slug: string }>
+    params: { slug: string }
   }) {
 
-  const { slug } = await params
+  const slug = params.slug
 
   const [isPinned, setIsPinned] = useState<boolean>(false);
 

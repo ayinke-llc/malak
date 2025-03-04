@@ -1,22 +1,18 @@
 "use client";
 
-import { MalakContact, MalakContactShareItem } from "@/client/Api";
-import dynamic from 'next/dynamic'
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import dynamic from 'next/dynamic';
 
 const ContactDetailsPage = dynamic(
   () => import('@/components/pages/contact-details'),
-  { ssr: false }
+  { ssr: !!false }
 )
 
 export default async function Page(
   {
     params,
   }: {
-    params: Promise<{ slug: string }>
+    params: { slug: string }
   }
 ) {
-  const { slug } = await params;
-  return <ContactDetailsPage reference={slug} />;
+  return <ContactDetailsPage reference={params.slug} />;
 }

@@ -52,7 +52,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        suppressHydrationWarning
+        suppressHydrationWarning={true}
         className={`${inter.className} overflow-y-scroll scroll-auto antialiased dark:bg-gray-950 theme-custom`}
       >
         <ThemeProvider

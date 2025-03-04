@@ -244,15 +244,15 @@ function SortableChartCard({ chart, onRemove }: { chart: MalakDashboardChart; on
   );
 }
 
-export default async function DashboardPage(
+export default function DashboardPage(
   {
     params,
   }: {
-    params: Promise<{ slug: string }>
+    params: { slug: string }
   }
 ) {
 
-  const { slug } = await params;
+  const slug = params.slug
 
   const dashboardID = slug
 

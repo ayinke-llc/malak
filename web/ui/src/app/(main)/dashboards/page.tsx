@@ -2,7 +2,7 @@ import dynamic from 'next/dynamic'
 
 const DashboardsPage = dynamic(
   () => import('@/components/pages/dashboards'),
-  { ssr: false }
+  { ssr: !!false }
 )
 
 export default function Page() {
