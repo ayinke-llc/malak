@@ -1,11 +1,9 @@
-"use client";
-
 import dynamic from 'next/dynamic'
 
 const NotFoundPage = dynamic(
   () => import('@/components/pages/not-found'),
-  { 
-    ssr: false,
+  {
+    ssr: !!false,
     loading: () => (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-6">
