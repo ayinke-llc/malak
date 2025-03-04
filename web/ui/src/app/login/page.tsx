@@ -86,7 +86,7 @@ export default function Login() {
           <div className="relative z-20 mt-auto">
             <blockquote className="space-y-2">
               <p className="text-lg">
-                "Streamline your communication and stay organized with our powerful platform."
+                &quot;Streamline your communication and stay organized with our powerful platform.&quot;
               </p>
             </blockquote>
           </div>

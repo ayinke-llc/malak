@@ -1,10 +1,9 @@
 "use client";
 
 import type {
-  MalakDashboardChart, MalakIntegrationDataPoint,
-  ServerAPIStatus,
+  MalakDashboardChart, ServerAPIStatus,
   ServerListDashboardChartsResponse,
-  ServerListIntegrationChartsResponse,
+  ServerListIntegrationChartsResponse
 } from "@/client/Api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -156,10 +155,10 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
             >
               <XAxis dataKey="name" stroke="#888888" fontSize={11} />
               <YAxis stroke="#888888" fontSize={11} />
-              <Tooltip 
-                formatter={(value: number) => 
+              <Tooltip
+                formatter={(value: number) =>
                   formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
-                } 
+                }
               />
               <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -180,14 +179,14 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
                 outerRadius={60}
                 dataKey="value"
               >
-                {formattedData.map((entry, index) => (
+                {formattedData.map((_entry, index) => (
                   <Cell key={`cell-${index}`} fill={getChartColors(index)} />
                 ))}
               </Pie>
-              <Tooltip 
-                formatter={(value: number) => 
+              <Tooltip
+                formatter={(value: number) =>
                   formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
-                } 
+                }
               />
             </PieChart>
           </ChartContainer>
@@ -245,9 +244,18 @@ function SortableChartCard({ chart, onRemove }: { chart: MalakDashboardChart; on
   );
 }
 
-export default function DashboardPage() {
-  const params = useParams();
-  const dashboardID = params.slug as string;
+export default async function DashboardPage(
+  {
+    params,
+  }: {
+    params: Promise<{ slug: string }>
+  }
+) {
+
+  const { slug } = await params;
+
+  const dashboardID = slug
+
   const queryClient = useQueryClient();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -379,6 +387,7 @@ export default function DashboardPage() {
     })
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function handleDragEnd(event: any) {
     const { active, over } = event;
 
@@ -417,7 +426,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-center h-[50vh]">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-muted-foreground">Dashboard not found</h1>
-          <p className="text-muted-foreground mt-2">The dashboard you're looking for doesn't exist.</p>
+          <p className="text-muted-foreground mt-2">The dashboard you&apos;re looking for doesn&apos;t exist.</p>
         </div>
       </div>
     );

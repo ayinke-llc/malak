@@ -43,6 +43,8 @@ import Link from "next/link";
 import client from "@/lib/client";
 import { useQuery } from "@tanstack/react-query";
 import type { MalakContact, MalakContactListMapping } from "@/client/Api";
+import CopyToClipboard from 'react-copy-to-clipboard';
+import { toast } from "sonner";
 
 export const columns: ColumnDef<MalakContact>[] = [
   {
@@ -195,12 +197,22 @@ export const columns: ColumnDef<MalakContact>[] = [
             className="w-48 bg-background border-border"
           >
             <DropdownMenuLabel className="text-muted-foreground text-xs">Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(contact.email || '')}
-              className="text-muted-foreground focus:bg-muted focus:text-foreground text-sm"
+            <CopyToClipboard 
+              text={contact.email || ''} 
+              onCopy={(text, result) => {
+                if (result) {
+                  toast.success('Email copied to clipboard');
+                } else {
+                  toast.error('Failed to copy email');
+                }
+              }}
             >
-              Copy email
-            </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-muted-foreground focus:bg-muted focus:text-foreground text-sm cursor-pointer"
+              >
+                Copy email
+              </DropdownMenuItem>
+            </CopyToClipboard>
             <DropdownMenuSeparator className="bg-border" />
             <DropdownMenuItem className="focus:bg-muted focus:text-foreground text-sm">
               <Link
@@ -225,10 +237,15 @@ export default function ContactsTable() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [mounted, setMounted] = React.useState(false);
   const [{ pageIndex, pageSize }, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
   });
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { data, isLoading } = useQuery({
     queryKey: ['contacts', pageIndex + 1, pageSize],
@@ -239,6 +256,7 @@ export default function ContactsTable() {
       });
       return response.data;
     },
+    enabled: mounted, // Only run query after component is mounted
   });
 
   const contacts = React.useMemo(() => {
@@ -275,6 +293,14 @@ export default function ContactsTable() {
       pagination,
     },
   });
+
+  if (!mounted) {
+    return (
+      <div className="h-24 flex items-center justify-center text-muted-foreground">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="w-full space-y-4 bg-background">

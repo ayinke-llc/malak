@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import type { MalakIntegrationChart } from "@/client/Api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -110,10 +111,10 @@ function ChartDisplay({ chart }: ChartDisplayProps) {
             >
               <XAxis dataKey="name" stroke="#888888" />
               <YAxis stroke="#888888" />
-              <Tooltip 
-                formatter={(value: number) => 
+              <Tooltip
+                formatter={(value: number) =>
                   formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
-                } 
+                }
               />
               <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -142,10 +143,10 @@ function ChartDisplay({ chart }: ChartDisplayProps) {
                   />
                 ))}
               </Pie>
-              <Tooltip 
-                formatter={(value: number) => 
+              <Tooltip
+                formatter={(value: number) =>
                   formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
-                } 
+                }
               />
             </PieChart>
           )}

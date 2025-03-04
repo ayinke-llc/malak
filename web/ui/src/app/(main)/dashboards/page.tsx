@@ -2,10 +2,12 @@
 
 import ListDashboards from "@/components/ui/dashboards/list";
 import CreateDashboardModal from "@/components/ui/dashboards/create-modal";
+import { Suspense } from "react";
+import Skeleton from "@/components/ui/custom/loader/skeleton";
 
 export default function Page() {
   return (
-    <>
+    <Suspense fallback={<Skeleton count={6} />}>
       <div className="pt-6 bg-background">
         <section>
           <div className="sm:flex sm:items-center sm:justify-between">
@@ -31,6 +33,6 @@ export default function Page() {
           <ListDashboards />
         </section>
       </div>
-    </>
+    </Suspense>
   );
 }

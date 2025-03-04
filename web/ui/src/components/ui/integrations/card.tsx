@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -231,7 +232,7 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
     try {
       toast.success(`Disconnected from ${integration?.integration?.integration_name}`);
       setOauth2SettingsOpen(false);
-    } catch (error) {
+    } catch {
       toast.error("Failed to disconnect integration");
     }
   };

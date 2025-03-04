@@ -12,7 +12,6 @@ import {
 import {
   RiArrowRightUpLine,
 } from "@remixicon/react";
-import { useTheme } from "next-themes";
 import * as React from "react";
 
 export type DropdownUserProfileProps = {
@@ -25,7 +24,7 @@ export function DropdownUserProfile({
   align = "start",
 }: DropdownUserProfileProps) {
   const [mounted, setMounted] = React.useState(false);
-  const { theme, setTheme } = useTheme();
+
   React.useEffect(() => {
     setMounted(true);
   }, []);

@@ -34,41 +34,37 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
     });
 
   return (
-    <>
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-            <div className="flex items-center gap-2 px-4">
-              <SidebarTrigger className="-ml-1" />
-              <Separator orientation="vertical" className="mr-2 h-4" />
-              <Breadcrumb>
-                <BreadcrumbList>
-                  {breadcrumbs.map((item, index) => (
-                    <>
-                      <BreadcrumbItem key={index} className="hidden md:block">
-                        {item.href ? (
-                          <BreadcrumbLink asChild>
-                            <Link href={item.href}>
-                              {item.label}
-                            </Link>
-                          </BreadcrumbLink>
-                        ) : (
-                          <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                        )}
-                      </BreadcrumbItem>
-                      {index !== breadcrumbs.length - 1 && <BreadcrumbSeparator className="hidden md:block" />}
-                    </>
-                  ))}
-                </BreadcrumbList>
-              </Breadcrumb>
-            </div>
-          </header>
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-            {children}
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                {breadcrumbs.map((item, index) => (
+                  <BreadcrumbItem key={index} className="hidden md:block">
+                    {item.href ? (
+                      <BreadcrumbLink asChild>
+                        <Link href={item.href}>
+                          {item.label}
+                        </Link>
+                      </BreadcrumbLink>
+                    ) : (
+                      <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                    )}
+                    {index !== breadcrumbs.length - 1 && <BreadcrumbSeparator className="hidden md:block" />}
+                  </BreadcrumbItem>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
-        </SidebarInset>
-      </SidebarProvider>
-    </>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          {children}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

@@ -5,13 +5,22 @@ import ContactDetails from "@/components/ui/contacts/single/view";
 import client from "@/lib/client";
 import { FETCH_CONTACT } from "@/lib/query-constants";
 import { useQuery } from "@tanstack/react-query";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-export default function Page() {
-  const params = useParams();
+export default async function Page(
+  {
+    params,
+  }: {
+    params: Promise<{ slug: string }>
+  }
+) {
+
   const router = useRouter();
-  const reference = params.slug as string;
+
+  const { slug } = await params;
+
+  const reference = slug;
 
   const { data, error, isLoading } = useQuery({
     queryKey: [FETCH_CONTACT, reference],

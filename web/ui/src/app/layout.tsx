@@ -5,6 +5,8 @@ import Providers from "@/components/providers/providers";
 import { siteConfig } from "./siteConfig";
 import { ThemeProvider } from "@/components/providers/theme";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { Suspense } from "react";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -58,9 +60,13 @@ export default function RootLayout({
           defaultTheme="dark"
           disableTransitionOnChange
         >
-          <TooltipProvider>
-            <Providers>{children}</Providers>
-          </TooltipProvider>
+          <Suspense>
+            <ErrorBoundary>
+              <TooltipProvider>
+                <Providers>{children}</Providers>
+              </TooltipProvider>
+            </ErrorBoundary>
+          </Suspense>
         </ThemeProvider>
       </body>
     </html>

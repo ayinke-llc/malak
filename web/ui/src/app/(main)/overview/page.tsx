@@ -1,14 +1,10 @@
 "use client";
-import React from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { format } from "date-fns";
-import { 
-  RiUserLine, 
+import {
   RiMailLine,
   RiFileTextLine,
-  RiPresentationLine,
-  RiEyeLine,
-  RiTimeLine,
+  RiPresentationLine, RiTimeLine,
   RiEditLine,
   RiSendPlaneLine,
   RiArrowRightSLine
@@ -151,8 +147,8 @@ export default function Overview() {
               <RiEditLine className="h-5 w-5 text-muted-foreground" />
               Recent Drafts
             </CardTitle>
-            <Link 
-              href="/updates/drafts" 
+            <Link
+              href="/updates/drafts"
               className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
             >
               View all
@@ -186,8 +182,8 @@ export default function Overview() {
               <RiSendPlaneLine className="h-5 w-5 text-muted-foreground" />
               Recently Sent Updates
             </CardTitle>
-            <Link 
-              href="/updates/sent" 
+            <Link
+              href="/updates/sent"
               className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
             >
               View all
