@@ -35,7 +35,7 @@ import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as yup from "yup"
 
-export function GeneralSettings() {
+export default function GeneralSettings() {
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <CompanyUpdateCard />
@@ -375,6 +375,4 @@ const NewsletterCard = () => {
       </form>
     </Card>
   );
-};
-
-export default NewsletterCard;
+}; 

@@ -1,3 +1,7 @@
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store"
+
+
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -44,31 +48,32 @@ export const metadata: Metadata = {
   },
 };
 
+
 export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en">
-      <body
-        suppressHydrationWarning
-        className={`${inter.className} overflow-y-scroll scroll-auto antialiased dark:bg-gray-950 theme-custom`}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          disableTransitionOnChange
+    children,
+  }: Readonly<{
+    children: React.ReactNode;
+  }>) {
+    return (
+      <html lang="en">
+        <body
+          suppressHydrationWarning={true}
+          className={`${inter.className} overflow-y-scroll scroll-auto antialiased dark:bg-gray-950 theme-custom`}
         >
-          <Suspense>
-            <ErrorBoundary>
-              <TooltipProvider>
-                <Providers>{children}</Providers>
-              </TooltipProvider>
-            </ErrorBoundary>
-          </Suspense>
-        </ThemeProvider>
-      </body>
-    </html>
-  );
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            disableTransitionOnChange
+          >
+            <Suspense>
+              <ErrorBoundary>
+                <TooltipProvider>
+                  <Providers>{children}</Providers>
+                </TooltipProvider>
+              </ErrorBoundary>
+            </Suspense>
+          </ThemeProvider>
+        </body>
+      </html>
+    );
 }

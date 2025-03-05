@@ -22,16 +22,18 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const breadcrumbs = pathname
-    .split("/")
-    .filter(Boolean)
-    .map((segment, index, array) => {
-      const isLast = index === array.length - 1;
-      const href = isLast ? undefined : `/${array.slice(0, index + 1).join("/")}`;
-      return {
-        label: segment.charAt(0).toUpperCase() + segment.slice(1),
-        href,
-      };
-    });
+    ? pathname
+        .split("/")
+        .filter(Boolean)
+        .map((segment, index, array) => {
+          const isLast = index === array.length - 1;
+          const href = isLast ? undefined : `/${array.slice(0, index + 1).join("/")}`;
+          return {
+            label: isLast ? segment : segment.charAt(0).toUpperCase() + segment.slice(1),
+            href,
+          };
+        })
+    : [];
 
   return (
     <SidebarProvider>
@@ -43,18 +45,22 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
               <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link href="/">Home</Link>
+                  </BreadcrumbLink>
+                  {breadcrumbs.length > 0 && <BreadcrumbSeparator />}
+                </BreadcrumbItem>
                 {breadcrumbs.map((item, index) => (
-                  <BreadcrumbItem key={index} className="hidden md:block">
+                  <BreadcrumbItem key={index}>
                     {item.href ? (
                       <BreadcrumbLink asChild>
-                        <Link href={item.href}>
-                          {item.label}
-                        </Link>
+                        <Link href={item.href}>{item.label}</Link>
                       </BreadcrumbLink>
                     ) : (
                       <BreadcrumbPage>{item.label}</BreadcrumbPage>
                     )}
-                    {index !== breadcrumbs.length - 1 && <BreadcrumbSeparator className="hidden md:block" />}
+                    {index !== breadcrumbs.length - 1 && <BreadcrumbSeparator />}
                   </BreadcrumbItem>
                 ))}
               </BreadcrumbList>

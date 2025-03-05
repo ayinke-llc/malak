@@ -19,8 +19,7 @@ import { AxiosError } from "axios"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
-export function BillingPage() {
-
+export default function Billing() {
   const router = useRouter()
   const current = useWorkspacesStore(state => state.current)
 
@@ -99,6 +98,6 @@ export function BillingPage() {
           </div>
         </CardContent>
       </Card>
-    </div >
+    </div>
   )
-}
+} 
