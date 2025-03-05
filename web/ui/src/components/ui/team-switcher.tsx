@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
-import { ChevronsUpDown, Plus } from "lucide-react"
+import { ChevronsUpDown } from "lucide-react"
 
 import { ServerAPIStatus } from "@/client/Api"
 import {
@@ -23,7 +23,6 @@ import { cn } from "@/lib/utils"
 import useWorkspacesStore from "@/store/workspace"
 import { useMutation } from "@tanstack/react-query"
 import { AxiosResponse } from "axios"
-import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Avatar } from "./custom/avatar/avatar"
 import { ModalAddWorkspace } from "./navigation/ModalAddWorkspace"

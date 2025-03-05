@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-
 import { NavMain } from "@/components/ui/nav-main"
 import { NavUser } from "@/components/ui/nav-user"
 import { TeamSwitcher } from "@/components/ui/team-switcher"
