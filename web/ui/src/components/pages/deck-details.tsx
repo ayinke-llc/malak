@@ -34,6 +34,7 @@ import client from "@/lib/client";
 import { FETCH_DECK } from "@/lib/query-constants";
 import { DECKS_DOMAIN } from "@/lib/config";
 import DeleteDeck from "@/components/ui/decks/details/delete";
+import DeckAnalytics from "@/components/ui/decks/details/analytics";
 import { ServerAPIStatus, ServerFetchDeckResponse } from "@/client/Api";
 import { AxiosError, AxiosResponse } from "axios";
 
@@ -316,40 +317,6 @@ export default function DeckDetails(
       </div>
 
       <div className="space-y-6">
-        {/* Metrics Overview */}
-        <Card className="p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div>
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <RiEyeLine className="h-4 w-4" />
-                <span className="text-sm">Total views</span>
-              </div>
-              <p className="text-2xl font-medium">0</p>
-            </div>
-            <div>
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <RiUserLine className="h-4 w-4" />
-                <span className="text-sm">Unique views</span>
-              </div>
-              <p className="text-2xl font-medium">0</p>
-            </div>
-            <div>
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <RiTimeLine className="h-4 w-4" />
-                <span className="text-sm">Time spent (avg)</span>
-              </div>
-              <p className="text-2xl font-medium">00:00</p>
-            </div>
-            <div>
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <RiDownloadLine className="h-4 w-4" />
-                <span className="text-sm">Downloads</span>
-              </div>
-              <p className="text-2xl font-medium">0</p>
-            </div>
-          </div>
-        </Card>
-
         {/* Main Content Card */}
         <Card className="p-6">
           <div className="space-y-8">
@@ -425,7 +392,10 @@ export default function DeckDetails(
             </div>
           </div>
         </Card>
+
+        {/* Analytics Section */}
+        {data && <DeckAnalytics data={data.data} />}
       </div>
-    </div >
+    </div>
   );
 } 
