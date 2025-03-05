@@ -1,8 +1,10 @@
+"use client"
+
 import dynamic from 'next/dynamic';
 
 const DashboardDetailsPage = dynamic(
   () => import('@/components/pages/dashboard-details'),
-  { ssr: !!false }
+  { ssr: false }
 )
 
 export default async function Page(

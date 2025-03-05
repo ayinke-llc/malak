@@ -1,8 +1,10 @@
+"use client"
+
 import dynamic from 'next/dynamic'
 
 const OverviewPage = dynamic(
   () => import('@/components/pages/overview'),
-  { ssr: !!false }
+  { ssr: false }
 )
 
 export default function Page() {

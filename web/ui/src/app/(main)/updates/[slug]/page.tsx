@@ -1,8 +1,10 @@
+"use client"
+
 import dynamic from 'next/dynamic';
 
 const UpdateDetailsPage = dynamic(
   () => import('@/components/pages/update-details'),
-  { ssr: !!false }
+  { ssr: false }
 )
 
 export default async function Page(

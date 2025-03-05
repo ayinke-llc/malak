@@ -1,8 +1,10 @@
+"use client"
+
 import dynamic from 'next/dynamic'
 
 const CapTablePage = dynamic(
   () => import('@/components/pages/captable'),
-  { ssr: !!false }
+  { ssr: false }
 )
 
 export default function Page() {
