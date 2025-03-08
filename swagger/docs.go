@@ -3674,6 +3674,14 @@ const docTemplate = `{
                 "deck": {
                     "type": "object",
                     "properties": {
+                        "analytics": {
+                            "type": "object",
+                            "properties": {
+                                "can_view_historical_sessions": {
+                                    "type": "boolean"
+                                }
+                            }
+                        },
                         "auto_terminate_link": {
                             "type": "boolean"
                         },
@@ -3750,7 +3758,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "preferences": {
-                    "$ref": "#/definitions/malak.DeckPreference"
+                    "$ref": "#/definitions/malak.PublicDeckPreference"
                 },
                 "reference": {
                     "type": "string"
@@ -3766,6 +3774,20 @@ const docTemplate = `{
                 },
                 "workspace_id": {
                     "type": "string"
+                }
+            }
+        },
+        "malak.PublicDeckPreference": {
+            "type": "object",
+            "properties": {
+                "enable_downloading": {
+                    "type": "boolean"
+                },
+                "has_password": {
+                    "type": "boolean"
+                },
+                "require_email": {
+                    "type": "boolean"
                 }
             }
         },

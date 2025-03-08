@@ -38,8 +38,8 @@ CREATE TABLE deck_viewer_sessions (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   deck_id uuid NOT NULL REFERENCES decks(id),
   reference VARCHAR (220) UNIQUE NOT NULL,
-  user_id uuid REFERENCES users(id), -- NULL for anonymous users
-  session_id VARCHAR(100) UNIQUE, -- For anonymous users
+  contact_id uuid REFERENCES contacts(id), -- NULL for anonymous users
+  session_id VARCHAR(200) UNIQUE, -- For anonymous users
   device_info VARCHAR(255),
   browser VARCHAR(100),
   os VARCHAR(100),
@@ -76,5 +76,5 @@ ALTER TABLE deck_geographic_stats ADD CONSTRAINT reference_check_key
   CHECK (reference ~ 'deck_geographic_stat_[a-zA-Z0-9._]+');
 
 CREATE INDEX idx_viewer_sessions_deck_date ON deck_viewer_sessions(deck_id, viewed_at);
-CREATE INDEX idx_viewer_sessions_user ON deck_viewer_sessions(user_id);
+CREATE INDEX idx_viewer_sessions_user ON deck_viewer_sessions(contact_id);
 CREATE INDEX idx_geographic_stats_deck_date ON deck_geographic_stats(deck_id, stat_date);

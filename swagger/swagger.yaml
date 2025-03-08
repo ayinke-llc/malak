@@ -441,6 +441,11 @@ components:
           type: object
         deck:
           properties:
+            analytics:
+              properties:
+                can_view_historical_sessions:
+                  type: boolean
+              type: object
             auto_terminate_link:
               type: boolean
             custom_domain:
@@ -490,7 +495,7 @@ components:
         object_link:
           type: string
         preferences:
-          $ref: '#/components/schemas/malak.DeckPreference'
+          $ref: '#/components/schemas/malak.PublicDeckPreference'
         reference:
           type: string
         short_link:
@@ -501,6 +506,15 @@ components:
           type: string
         workspace_id:
           type: string
+      type: object
+    malak.PublicDeckPreference:
+      properties:
+        enable_downloading:
+          type: boolean
+        has_password:
+          type: boolean
+        require_email:
+          type: boolean
       type: object
     malak.RecipientStatus:
       enum:

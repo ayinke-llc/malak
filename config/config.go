@@ -166,6 +166,20 @@ type Config struct {
 			Key string `yaml:"key" mapstructure:"key"`
 		} `yaml:"jwt" mapstructure:"jwt"`
 	} `yaml:"auth" mapstructure:"auth"`
+
+	Analytics struct {
+		// We do not want to embed this into the binary.
+		// 1.) Can bloat the binary by 65MB.
+		// 2.) Can lead to discussions about supply chain issues
+		//
+		// Better to stay clear and let people load in their data themselves
+		// We will add the files to the docker image and periodically update it just for simplicity sake
+		// but you do not have to use them
+		//
+		// people can always mount volumes themselves and use their own files
+		MaxMindCountryDB string `json:"max_mind_country_db,omitempty" yaml:"max_mind_country_db" mapstructure:"max_mind_country_db"`
+		MaxMindCityDB    string `json:"max_mind_city_db,omitempty" yaml:"max_mind_city_db" mapstructure:"max_mind_city_db"`
+	} `json:"analytics,omitempty" yaml:"analytics" mapstructure:"analytics"`
 }
 
 func (c *Config) Validate() error {
@@ -230,6 +244,14 @@ func (c *Config) Validate() error {
 	// before they can get into the app
 	if c.Billing.TrialDays < 0 {
 		return errors.New("trial days must be 0 or greater than 0")
+	}
+
+	if hermes.IsStringEmpty(c.Analytics.MaxMindCityDB) {
+		return errors.New("please provide your maxmind city db")
+	}
+
+	if hermes.IsStringEmpty(c.Analytics.MaxMindCountryDB) {
+		return errors.New("please provide your maxmind country db")
 	}
 
 	return nil

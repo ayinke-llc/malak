@@ -24,7 +24,7 @@ func GenerateReference(e EntityType) string {
 // plan,price,integration,workspace_integration, integration_datapoint,
 // integration_chart, integration_sync_checkpoint,dashboard_chart,system_template,
 // deck_daily_engagement, deck_analytic, deck_viewer_session,
-// deck_geographic_stat )
+// deck_geographic_stat, session)
 type EntityType string
 
 type Reference string
