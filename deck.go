@@ -26,7 +26,13 @@ type PublicDeck struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 
-	DeckPreference *DeckPreference `bun:"rel:has-one,join:id=deck_id" json:"preferences,omitempty"`
+	DeckPreference *PublicDeckPreference `bun:"rel:has-one,join:id=deck_id" json:"preferences,omitempty"`
+}
+
+type PublicDeckPreference struct {
+	EnableDownloading bool `json:"enable_downloading,omitempty"`
+	RequireEmail      bool `json:"require_email,omitempty"`
+	HasPassword       bool `json:"has_password,omitempty"`
 }
 
 type Deck struct {
@@ -97,6 +103,32 @@ type FetchDeckOptions struct {
 	WorkspaceID uuid.UUID
 }
 
+type DeckViewerSession struct {
+	ID uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+
+	Reference Reference `json:"reference,omitempty"`
+	DeckID    uuid.UUID `json:"deck_id,omitempty"`
+	ContactID uuid.UUID `json:"contact_id,omitempty"`
+
+	SessionID Reference `json:"session_id,omitempty"`
+
+	DeviceInfo string    `json:"device_info,omitempty"`
+	OS         string    `json:"os,omitempty"`
+	Browser    string    `json:"browser,omitempty"`
+	IPAddress  string    `json:"ip_address,omitempty"`
+	Country    string    `json:"country,omitempty"`
+	City       string    `json:"city,omitempty"`
+	TimeSpent  int64     `json:"time_spent,omitempty"`
+	ViewedAt   time.Time `json:"viewed_at,omitempty"`
+
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
+
+	bun.BaseModel `json:"-"`
+}
+
 type DeckRepository interface {
 	Create(context.Context, *Deck, *CreateDeckOptions) error
 	List(context.Context, *Workspace) ([]Deck, error)
@@ -106,4 +138,6 @@ type DeckRepository interface {
 	UpdatePreferences(context.Context, *Deck) error
 	ToggleArchive(context.Context, *Deck) error
 	TogglePinned(context.Context, *Deck) error
+
+	CreateDeckSession(context.Context, *DeckViewerSession) error
 }

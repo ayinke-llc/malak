@@ -66,6 +66,18 @@ const (
 	EntityTypeIntegrationSyncCheckpoint EntityType = "integration_sync_checkpoint"
 	// EntityTypeDashboardChart is a EntityType of type dashboard_chart.
 	EntityTypeDashboardChart EntityType = "dashboard_chart"
+	// EntityTypeSystemTemplate is a EntityType of type system_template.
+	EntityTypeSystemTemplate EntityType = "system_template"
+	// EntityTypeDeckDailyEngagement is a EntityType of type deck_daily_engagement.
+	EntityTypeDeckDailyEngagement EntityType = "deck_daily_engagement"
+	// EntityTypeDeckAnalytic is a EntityType of type deck_analytic.
+	EntityTypeDeckAnalytic EntityType = "deck_analytic"
+	// EntityTypeDeckViewerSession is a EntityType of type deck_viewer_session.
+	EntityTypeDeckViewerSession EntityType = "deck_viewer_session"
+	// EntityTypeDeckGeographicStat is a EntityType of type deck_geographic_stat.
+	EntityTypeDeckGeographicStat EntityType = "deck_geographic_stat"
+	// EntityTypeSession is a EntityType of type session.
+	EntityTypeSession EntityType = "session"
 )
 
 var ErrInvalidEntityType = errors.New("not a valid EntityType")
@@ -110,6 +122,12 @@ var _EntityTypeValue = map[string]EntityType{
 	"integration_chart":           EntityTypeIntegrationChart,
 	"integration_sync_checkpoint": EntityTypeIntegrationSyncCheckpoint,
 	"dashboard_chart":             EntityTypeDashboardChart,
+	"system_template":             EntityTypeSystemTemplate,
+	"deck_daily_engagement":       EntityTypeDeckDailyEngagement,
+	"deck_analytic":               EntityTypeDeckAnalytic,
+	"deck_viewer_session":         EntityTypeDeckViewerSession,
+	"deck_geographic_stat":        EntityTypeDeckGeographicStat,
+	"session":                     EntityTypeSession,
 }
 
 // ParseEntityType attempts to convert a string to a EntityType.

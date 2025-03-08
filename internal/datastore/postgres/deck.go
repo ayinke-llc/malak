@@ -217,7 +217,7 @@ func (d *decksRepo) PublicDetails(ctx context.Context,
 
 	err := d.inner.NewSelect().
 		Model(deck).
-		Where("deck.reference = ?", ref).
+		Where("deck.short_link = ?", ref).
 		Relation("DeckPreference").
 		Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {

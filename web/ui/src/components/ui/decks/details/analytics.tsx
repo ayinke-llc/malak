@@ -12,6 +12,7 @@ import {
   RiArrowRightLine,
   RiVipCrownFill,
 } from "@remixicon/react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
 import { ServerFetchDeckResponse } from "@/client/Api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { ChartContainer, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 
 // Feature flag for pro features
 const HAS_PRO_ACCESS = false; // Set this based on user's subscription status
@@ -250,21 +252,68 @@ export default function DeckAnalytics({ data }: AnalyticsProps) {
             <RiMapPinLine className="h-5 w-5 text-muted-foreground" />
             <h3 className="font-medium">Geographic Distribution</h3>
           </div>
-          <div className="h-[200px] flex flex-col gap-2">
-            {mockAnalytics.geographicDistribution.map((geo) => (
-              <div key={geo.country} className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground w-24">{geo.country}</span>
-                <div className="flex-1 mx-4">
-                  <div
-                    className="bg-primary h-2 rounded"
-                    style={{
-                      width: `${(geo.views / 450) * 100}%`,
-                    }}
-                  />
-                </div>
-                <span className="text-sm font-medium">{geo.views}</span>
-              </div>
-            ))}
+          <div className="flex flex-col items-center">
+            <ChartContainer
+              config={{
+                United_States: {
+                  label: "United States",
+                  color: "hsl(217 91% 60%)",
+                },
+                United_Kingdom: {
+                  label: "United Kingdom",
+                  color: "hsl(271 91% 65%)",
+                },
+                Germany: {
+                  label: "Germany",
+                  color: "hsl(292 84% 61%)",
+                },
+                Canada: {
+                  label: "Canada",
+                  color: "hsl(316 70% 50%)",
+                },
+                Others: {
+                  label: "Others",
+                  color: "hsl(322 75% 46%)",
+                },
+              }}
+              className="mx-auto aspect-[4/3] w-full max-w-lg"
+            >
+              <PieChart margin={{ top: 20, right: 0, bottom: 20, left: 0 }}>
+                <Pie
+                  data={mockAnalytics.geographicDistribution.map(item => ({
+                    name: item.country,
+                    value: item.views,
+                    fill: `var(--color-${item.country.replace(/\s+/g, "_")})`,
+                  }))}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={40}
+                  outerRadius={80}
+                  paddingAngle={2}
+                />
+                <ChartLegend
+                  verticalAlign="bottom"
+                  content={<ChartLegendContent />}
+                  className="flex flex-wrap justify-center gap-4 pt-4"
+                />
+                <RechartsTooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="rounded-lg border bg-background p-2 shadow-md">
+                          <p className="text-sm font-medium">{data.name}</p>
+                          <p className="text-sm text-muted-foreground">{data.value.toLocaleString()} views</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </PieChart>
+            </ChartContainer>
           </div>
         </Card>
       </div>

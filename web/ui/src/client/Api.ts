@@ -276,6 +276,9 @@ export interface MalakPlanMetadata {
     size?: number;
   };
   deck?: {
+    analytics?: {
+      can_view_historical_sessions?: boolean;
+    };
     auto_terminate_link?: boolean;
     custom_domain?: boolean;
   };
@@ -305,12 +308,18 @@ export interface MalakPublicDeck {
   deck_size?: number;
   is_archived?: boolean;
   object_link?: string;
-  preferences?: MalakDeckPreference;
+  preferences?: MalakPublicDeckPreference;
   reference?: string;
   short_link?: string;
   title?: string;
   updated_at?: string;
   workspace_id?: string;
+}
+
+export interface MalakPublicDeckPreference {
+  enable_downloading?: boolean;
+  has_password?: boolean;
+  require_email?: boolean;
 }
 
 export enum MalakRecipientStatus {
