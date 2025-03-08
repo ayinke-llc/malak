@@ -11,6 +11,7 @@ import (
 	"github.com/ayinke-llc/malak/internal/integrations"
 	"github.com/ayinke-llc/malak/internal/pkg/billing"
 	"github.com/ayinke-llc/malak/internal/pkg/cache"
+	"github.com/ayinke-llc/malak/internal/pkg/geolocation"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
@@ -49,7 +50,8 @@ func New(logger *zap.Logger,
 	redisCache cache.Cache,
 	billingClient billing.Client,
 	integrationManager *integrations.IntegrationsManager,
-	secretsClient secret.SecretClient) (*http.Server, func()) {
+	secretsClient secret.SecretClient,
+	geolocationService geolocation.GeolocationService) (*http.Server, func()) {
 
 	if err := cfg.Validate(); err != nil {
 		logger.Error("invalid configuration", zap.Error(err))
@@ -63,7 +65,8 @@ func New(logger *zap.Logger,
 			contactRepo, updateRepo, contactListRepo,
 			deckRepo, shareRepo, preferenceRepo, integrationRepo, templatesRepo,
 			googleAuthProvider, mid, gulterHandler,
-			queueHandler, redisCache, billingClient, integrationManager, secretsClient),
+			queueHandler, redisCache, billingClient, integrationManager, secretsClient,
+			geolocationService),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -115,7 +118,8 @@ func buildRoutes(
 	redisCache cache.Cache,
 	billingClient billing.Client,
 	integrationManager *integrations.IntegrationsManager,
-	secretsClient secret.SecretClient) http.Handler {
+	secretsClient secret.SecretClient,
+	geolocationService geolocation.GeolocationService) http.Handler {
 
 	if cfg.HTTP.Swagger.UIEnabled {
 		go func() {
@@ -201,6 +205,7 @@ func buildRoutes(
 		cache:              redisCache,
 		deckRepo:           deckRepo,
 		cfg:                cfg,
+		geolocationService: geolocationService,
 	}
 
 	dashHandler := &dashboardHandler{
@@ -436,7 +441,7 @@ func buildRoutes(
 		})
 
 		r.Route("/public", func(r chi.Router) {
-			r.Get("/decks/{reference}",
+			r.Post("/decks/{reference}",
 				WrapMalakHTTPHandler(logger, deckHandler.publicDeckDetails, cfg, "public.decks.fetch"))
 		})
 	})

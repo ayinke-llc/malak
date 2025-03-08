@@ -857,6 +857,28 @@ components:
         title:
           type: string
       type: object
+    server.createDeckViewerSession:
+      properties:
+        browser:
+          type: string
+        device_info:
+          type: string
+        email:
+          type: string
+        ip_address:
+          type: string
+        os:
+          type: string
+        password:
+          type: string
+      required:
+      - browser
+      - device_info
+      - email
+      - ip_address
+      - os
+      - password
+      type: object
     server.createUpdateContent:
       properties:
         template:
@@ -2490,15 +2512,23 @@ paths:
       tags:
       - decks
   /public/decks/{reference}:
-    get:
+    post:
       description: public api to fetch a deck
       parameters:
-      - description: deck unique reference.. e.g deck_
+      - description: 'deck unique reference.. '
         in: path
         name: reference
         required: true
         schema:
           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.createDeckViewerSession'
+        description: deck session request body
+        required: true
+        x-originalParamName: message
       responses:
         "200":
           content:

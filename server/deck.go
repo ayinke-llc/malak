@@ -16,6 +16,7 @@ import (
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/cache"
+	"github.com/ayinke-llc/malak/internal/pkg/geolocation"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/microcosm-cc/bluemonday"
@@ -29,6 +30,8 @@ type deckHandler struct {
 	cache              cache.Cache
 	cfg                config.Config
 	gulterStore        gulter.Storage
+	geolocationService geolocation.GeolocationService
+	contactRepo        malak.ContactRepository
 }
 
 func hashURL(rawURL string) (string, error) {
