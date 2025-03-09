@@ -217,7 +217,7 @@ func (d *decksRepo) PublicDetails(ctx context.Context,
 
 	err := d.inner.NewSelect().
 		Model(deck).
-		Where("deck.reference = ?", ref).
+		Where("deck.short_link = ?", ref).
 		Relation("DeckPreference").
 		Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -225,4 +225,19 @@ func (d *decksRepo) PublicDetails(ctx context.Context,
 	}
 
 	return deck, err
+}
+
+func (d *decksRepo) CreateDeckSession(ctx context.Context,
+	session *malak.DeckViewerSession) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return d.inner.RunInTx(ctx, &sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+			_, err := tx.NewInsert().
+				Model(session).
+				Exec(ctx)
+			return err
+		})
 }

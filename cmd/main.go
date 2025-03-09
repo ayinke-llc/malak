@@ -143,6 +143,9 @@ func setDefaults() {
 
 	viper.SetDefault("secrets.infisical.site_url", "https://app.infisical.com")
 	viper.SetDefault("secrets.infisical.environment", "prod")
+
+	viper.SetDefault("analytics.max_mind_country_db", "internal/pkg/geolocation/maxmind/testdata/country.mmdb")
+	viper.SetDefault("analytics.max_mind_city_db", "internal/pkg/geolocation/maxmind/testdata/city.mmdb")
 }
 
 func getEmailProvider(cfg config.Config) (email.Client, error) {

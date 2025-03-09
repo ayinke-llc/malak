@@ -29,6 +29,7 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/billing/stripe"
 	"github.com/ayinke-llc/malak/internal/pkg/cache/rediscache"
 	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
+	"github.com/ayinke-llc/malak/internal/pkg/geolocation/maxmind"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	watermillqueue "github.com/ayinke-llc/malak/internal/pkg/queue/watermill"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
@@ -198,6 +199,11 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				},
 			}
 
+			geoService, err := maxmind.New(hermes.DeRef(cfg))
+			if err != nil {
+				logger.Fatal("could not set up maxmind db", zap.Error(err))
+			}
+
 			s3Config, err := awsConfig.LoadDefaultConfig(
 				context.Background(),
 				awsConfig.WithRegion(cfg.Uploader.S3.Region),
@@ -282,7 +288,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				preferenceRepo, integrationRepo,
 				templatesRepo, mid, gulterHandler,
 				queueHandler, redisCache, billingClient,
-				integrationManager, secretsProvider)
+				integrationManager, secretsProvider, geoService)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {

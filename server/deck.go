@@ -16,6 +16,7 @@ import (
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/cache"
+	"github.com/ayinke-llc/malak/internal/pkg/geolocation"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/microcosm-cc/bluemonday"
@@ -29,6 +30,8 @@ type deckHandler struct {
 	cache              cache.Cache
 	cfg                config.Config
 	gulterStore        gulter.Storage
+	geolocationService geolocation.GeolocationService
+	contactRepo        malak.ContactRepository
 }
 
 func hashURL(rawURL string) (string, error) {
@@ -591,73 +594,5 @@ func (d *deckHandler) togglePinned(
 	return fetchDeckResponse{
 		APIStatus: newAPIStatus(http.StatusOK, "Updated deck pinned status"),
 		Deck:      hermes.DeRef(deck),
-	}, StatusSuccess
-}
-
-// @Description public api to fetch a deck
-// @Tags decks-viewer
-// @Accept  json
-// @Produce  json
-// @Param reference path string required "deck unique reference.. e.g deck_"
-// @Success 200 {object} fetchPublicDeckResponse
-// @Failure 400 {object} APIStatus
-// @Failure 401 {object} APIStatus
-// @Failure 404 {object} APIStatus
-// @Failure 500 {object} APIStatus
-// @Router /public/decks/{reference} [get]
-func (d *deckHandler) publicDeckDetails(
-	ctx context.Context,
-	_ trace.Span,
-	logger *zap.Logger,
-	_ http.ResponseWriter,
-	r *http.Request) (render.Renderer, Status) {
-
-	logger.Debug("fetching deck public resource")
-
-	ref := chi.URLParam(r, "reference")
-
-	if hermes.IsStringEmpty(ref) {
-		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
-	}
-
-	deck, err := d.deckRepo.PublicDetails(ctx, malak.Reference(ref))
-	if err != nil {
-		logger.Error("could not fetch deck", zap.Error(err))
-		status := http.StatusInternalServerError
-		msg := "an error occurred while fetching deck"
-
-		if errors.Is(err, malak.ErrDeckNotFound) {
-			status = http.StatusNotFound
-			msg = "deck does not exists"
-		}
-
-		return newAPIStatus(status, msg), StatusFailed
-	}
-
-	objectLink, err := d.gulterStore.Path(ctx, gulter.PathOptions{
-		Bucket:         d.cfg.Uploader.S3.DeckBucket,
-		Key:            deck.ObjectKey,
-		ExpirationTime: time.Minute * 15,
-		IsSecure:       true,
-	})
-	if err != nil {
-		return newAPIStatus(http.StatusInternalServerError, "could not find path to deck"),
-			StatusFailed
-	}
-
-	return fetchPublicDeckResponse{
-		APIStatus: newAPIStatus(http.StatusOK, "fetched deck details"),
-		Deck: malak.PublicDeck{
-			Reference:      malak.Reference(ref),
-			WorkspaceID:    deck.WorkspaceID,
-			Title:          deck.Title,
-			ShortLink:      deck.ShortLink,
-			DeckSize:       deck.DeckSize,
-			IsArchived:     deck.IsArchived,
-			CreatedAt:      deck.CreatedAt,
-			UpdatedAt:      deck.UpdatedAt,
-			DeckPreference: deck.DeckPreference,
-			ObjectLink:     objectLink,
-		},
 	}, StatusSuccess
 }

@@ -1495,7 +1495,7 @@ const docTemplate = `{
             }
         },
         "/public/decks/{reference}": {
-            "get": {
+            "post": {
                 "description": "public api to fetch a deck",
                 "consumes": [
                     "application/json"
@@ -1509,10 +1509,19 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "deck unique reference.. e.g deck_",
+                        "description": "deck unique reference.. ",
                         "name": "reference",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "deck session request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createDeckViewerSession"
+                        }
                     }
                 ],
                 "responses": {
@@ -3674,6 +3683,14 @@ const docTemplate = `{
                 "deck": {
                     "type": "object",
                     "properties": {
+                        "analytics": {
+                            "type": "object",
+                            "properties": {
+                                "can_view_historical_sessions": {
+                                    "type": "boolean"
+                                }
+                            }
+                        },
                         "auto_terminate_link": {
                             "type": "boolean"
                         },
@@ -3750,7 +3767,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "preferences": {
-                    "$ref": "#/definitions/malak.DeckPreference"
+                    "$ref": "#/definitions/malak.PublicDeckPreference"
                 },
                 "reference": {
                     "type": "string"
@@ -3766,6 +3783,20 @@ const docTemplate = `{
                 },
                 "workspace_id": {
                     "type": "string"
+                }
+            }
+        },
+        "malak.PublicDeckPreference": {
+            "type": "object",
+            "properties": {
+                "enable_downloading": {
+                    "type": "boolean"
+                },
+                "has_password": {
+                    "type": "boolean"
+                },
+                "require_email": {
+                    "type": "boolean"
                 }
             }
         },
@@ -4264,6 +4295,37 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.createDeckViewerSession": {
+            "type": "object",
+            "required": [
+                "browser",
+                "device_info",
+                "email",
+                "ip_address",
+                "os",
+                "password"
+            ],
+            "properties": {
+                "browser": {
+                    "type": "string"
+                },
+                "device_info": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "ip_address": {
+                    "type": "string"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "password": {
                     "type": "string"
                 }
             }
