@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"errors"
-	"net"
 	"net/http"
 	"net/mail"
 	"net/netip"
@@ -23,7 +22,6 @@ import (
 type createDeckViewerSession struct {
 	OS         string         `json:"os,omitempty" validate:"required"`
 	DeviceInfo string         `json:"device_info,omitempty" validate:"required"`
-	IPAddress  string         `json:"ip_address,omitempty" validate:"required"`
 	Email      malak.Email    `json:"email,omitempty" validate:"required"`
 	Password   malak.Password `json:"password,omitempty" validate:"required"`
 	Browser    string         `json:"browser,omitempty" validate:"required"`
@@ -40,16 +38,15 @@ func (c *createDeckViewerSession) Validate() error {
 		return errors.New("provide device information")
 	}
 
+	if hermes.IsStringEmpty(c.DeviceInfo) {
+		return errors.New("provide browser information")
+	}
+
 	if !hermes.IsStringEmpty(c.Email.String()) {
 		_, err := mail.ParseAddress(c.Email.String())
 		if err != nil {
 			return err
 		}
-	}
-
-	ip := net.ParseIP(c.IPAddress)
-	if ip != nil {
-		return errors.New("please provide a valid IP")
 	}
 
 	return nil
@@ -94,6 +91,8 @@ func (d *deckHandler) publicDeckDetails(
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
+	ipAddr := hermes.GetIP(r)
+
 	deck, err := d.deckRepo.PublicDetails(ctx, malak.Reference(ref))
 	if err != nil {
 		logger.Error("could not fetch deck", zap.Error(err))
@@ -130,7 +129,7 @@ func (d *deckHandler) publicDeckDetails(
 	g.Go(func() error {
 		var err error
 
-		ip, err := netip.ParseAddr(req.IPAddress)
+		ip, err := netip.ParseAddr(ipAddr.String())
 		if err != nil {
 			return err
 		}
@@ -142,18 +141,22 @@ func (d *deckHandler) publicDeckDetails(
 	g.Go(func() error {
 		var err error
 
+		if hermes.IsStringEmpty(req.Email.String()) {
+			contactID = uuid.Nil
+			return nil
+		}
+
 		contact, err := d.contactRepo.Get(ctx, malak.FetchContactOptions{
 			Email:       req.Email,
 			WorkspaceID: deck.WorkspaceID,
 		})
 
 		if err != nil {
-			contactID = uuid.Nil
-		} else {
-			contactID = contact.ID
+			return err
 		}
 
-		return err
+		contactID = contact.ID
+		return nil
 	})
 
 	if err := g.Wait(); err != nil {
@@ -165,14 +168,17 @@ func (d *deckHandler) publicDeckDetails(
 	sessionReq := &malak.DeckViewerSession{
 		DeckID:     deck.ID,
 		Reference:  d.referenceGenerator.Generate(malak.EntityTypeDeckViewerSession),
-		ContactID:  contactID,
 		SessionID:  malak.Reference(d.referenceGenerator.Generate(malak.EntityTypeSession)),
 		DeviceInfo: req.DeviceInfo,
 		OS:         req.OS,
 		Browser:    req.Browser,
-		IPAddress:  req.IPAddress,
+		IPAddress:  ipAddr.String(),
 		Country:    country,
 		City:       city,
+	}
+
+	if contactID != uuid.Nil {
+		sessionReq.ContactID = contactID
 	}
 
 	if err := d.deckRepo.CreateDeckSession(ctx, sessionReq); err != nil {
@@ -184,6 +190,7 @@ func (d *deckHandler) publicDeckDetails(
 	return fetchPublicDeckResponse{
 		APIStatus: newAPIStatus(http.StatusOK, "fetched deck details"),
 		Deck: malak.PublicDeck{
+			Session:     hermes.DeRef(sessionReq),
 			Reference:   malak.Reference(ref),
 			WorkspaceID: deck.WorkspaceID,
 			Title:       deck.Title,

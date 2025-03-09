@@ -23,8 +23,9 @@ type PublicDeck struct {
 
 	ObjectLink string `json:"object_link,omitempty"`
 
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	CreatedAt time.Time         `json:"created_at,omitempty"`
+	UpdatedAt time.Time         `json:"updated_at,omitempty"`
+	Session   DeckViewerSession `json:"session,omitempty"`
 
 	DeckPreference *PublicDeckPreference `bun:"rel:has-one,join:id=deck_id" json:"preferences,omitempty"`
 }
@@ -51,10 +52,9 @@ type Deck struct {
 
 	ObjectKey string `json:"object_key,omitempty"`
 
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
-
-	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" bson:"deleted_at"`
 
 	DeckPreference *DeckPreference `bun:"rel:has-one,join:id=deck_id" json:"preferences,omitempty"`
 
@@ -75,10 +75,10 @@ type DeckPreference struct {
 
 	CreatedBy uuid.UUID `json:"created_by,omitempty"`
 
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" bson:"deleted_at"`
 
-	DeletedAt     *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
 	bun.BaseModel `json:"-"`
 }
 
@@ -108,7 +108,7 @@ type DeckViewerSession struct {
 
 	Reference Reference `json:"reference,omitempty"`
 	DeckID    uuid.UUID `json:"deck_id,omitempty"`
-	ContactID uuid.UUID `json:"contact_id,omitempty"`
+	ContactID uuid.UUID `json:"contact_id,omitempty" bun:",nullzero"`
 
 	SessionID Reference `json:"session_id,omitempty"`
 
@@ -118,13 +118,11 @@ type DeckViewerSession struct {
 	IPAddress  string    `json:"ip_address,omitempty"`
 	Country    string    `json:"country,omitempty"`
 	City       string    `json:"city,omitempty"`
-	TimeSpent  int64     `json:"time_spent,omitempty"`
-	ViewedAt   time.Time `json:"viewed_at,omitempty"`
+	ViewedAt   time.Time `json:"viewed_at,omitempty" bun:",nullzero,notnull,default:current_timestamp"`
 
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
-
-	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" bson:"deleted_at"`
 
 	bun.BaseModel `json:"-"`
 }

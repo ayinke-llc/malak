@@ -206,6 +206,7 @@ func buildRoutes(
 		deckRepo:           deckRepo,
 		cfg:                cfg,
 		geolocationService: geolocationService,
+		contactRepo:        contactRepo,
 	}
 
 	dashHandler := &dashboardHandler{
