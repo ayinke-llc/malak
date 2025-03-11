@@ -112,13 +112,14 @@ type DeckViewerSession struct {
 
 	SessionID Reference `json:"session_id,omitempty"`
 
-	DeviceInfo string    `json:"device_info,omitempty"`
-	OS         string    `json:"os,omitempty"`
-	Browser    string    `json:"browser,omitempty"`
-	IPAddress  string    `json:"ip_address,omitempty"`
-	Country    string    `json:"country,omitempty"`
-	City       string    `json:"city,omitempty"`
-	ViewedAt   time.Time `json:"viewed_at,omitempty" bun:",nullzero,notnull,default:current_timestamp"`
+	DeviceInfo       string    `json:"device_info,omitempty"`
+	OS               string    `json:"os,omitempty"`
+	Browser          string    `json:"browser,omitempty"`
+	IPAddress        string    `json:"ip_address,omitempty"`
+	Country          string    `json:"country,omitempty"`
+	City             string    `json:"city,omitempty"`
+	ViewedAt         time.Time `json:"viewed_at,omitempty" bun:",nullzero,notnull,default:current_timestamp"`
+	TimeSpentSeconds int64     `json:"time_spent_seconds,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`

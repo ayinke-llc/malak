@@ -296,6 +296,8 @@ func (d *deckHandler) updateDeckViewerSession(
 		return newAPIStatus(http.StatusInternalServerError, "deck session not found"), StatusFailed
 	}
 
+	session.TimeSpentSeconds = req.TimeSpent
+
 	opts.Session = session
 
 	if err := d.deckRepo.UpdateDeckSession(ctx, opts); err != nil {
