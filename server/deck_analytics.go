@@ -22,7 +22,6 @@ import (
 type createDeckViewerSession struct {
 	OS         string         `json:"os,omitempty" validate:"required"`
 	DeviceInfo string         `json:"device_info,omitempty" validate:"required"`
-	Email      malak.Email    `json:"email,omitempty" validate:"required"`
 	Password   malak.Password `json:"password,omitempty" validate:"required"`
 	Browser    string         `json:"browser,omitempty" validate:"required"`
 
@@ -40,13 +39,6 @@ func (c *createDeckViewerSession) Validate() error {
 
 	if hermes.IsStringEmpty(c.DeviceInfo) {
 		return errors.New("provide browser information")
-	}
-
-	if !hermes.IsStringEmpty(c.Email.String()) {
-		_, err := mail.ParseAddress(c.Email.String())
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -138,27 +130,6 @@ func (d *deckHandler) publicDeckDetails(
 		return err
 	})
 
-	g.Go(func() error {
-		var err error
-
-		if hermes.IsStringEmpty(req.Email.String()) {
-			contactID = uuid.Nil
-			return nil
-		}
-
-		contact, err := d.contactRepo.Get(ctx, malak.FetchContactOptions{
-			Email:       req.Email,
-			WorkspaceID: deck.WorkspaceID,
-		})
-
-		if err != nil {
-			return err
-		}
-
-		contactID = contact.ID
-		return nil
-	})
-
 	if err := g.Wait(); err != nil {
 		logger.Error("could not process deck details", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "could not find path to deck"),
@@ -207,4 +178,131 @@ func (d *deckHandler) publicDeckDetails(
 			ObjectLink: objectLink,
 		},
 	}, StatusSuccess
+}
+
+type updateDeckViewerSession struct {
+	Email     malak.Email    `json:"email,omitempty" validate:"optional"`
+	Password  malak.Password `json:"password,omitempty" validate:"optional"`
+	TimeSpent int64          `json:"time_spent,omitempty" validate:"optional"`
+	SessionID string         `json:"session_id,omitempty" validate:"optional"`
+
+	GenericRequest
+}
+
+func (c *updateDeckViewerSession) Validate() error {
+	if !hermes.IsStringEmpty(c.Email.String()) {
+		_, err := mail.ParseAddress(c.Email.String())
+		if err != nil {
+			return errors.New("please provide a valid email")
+		}
+	}
+
+	return nil
+}
+
+// @Description update the session details
+// @Tags decks-viewer
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "session unique reference.. "
+// @Param message body createDeckViewerSession true "deck session request body"
+// @Success 200 {object} fetchPublicDeckResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /public/decks/{reference} [put]
+func (d *deckHandler) updateDeckViewerSession(
+	ctx context.Context,
+	_ trace.Span,
+	logger *zap.Logger,
+	_ http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("updating deck session viewing")
+
+	ref := chi.URLParam(r, "reference")
+
+	if hermes.IsStringEmpty(ref) {
+		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
+	}
+
+	logger = logger.With(zap.String("reference", ref))
+
+	req := new(updateDeckViewerSession)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	logger = logger.With(zap.String("session_id", req.SessionID))
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	deck, err := d.deckRepo.PublicDetails(ctx, malak.Reference(ref))
+	if err != nil {
+		logger.Error("could not fetch deck", zap.Error(err))
+		status := http.StatusInternalServerError
+		msg := "an error occurred while fetching deck"
+
+		if errors.Is(err, malak.ErrDeckNotFound) {
+			status = http.StatusNotFound
+			msg = "deck does not exists"
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	opts := &malak.UpdateDeckSessionOptions{}
+
+	if !hermes.IsStringEmpty(req.Email.String()) {
+		contact, err := d.contactRepo.Get(ctx, malak.FetchContactOptions{
+			Email:       req.Email,
+			WorkspaceID: deck.WorkspaceID,
+		})
+
+		if err != nil {
+			if errors.Is(err, malak.ErrContactNotFound) {
+				opts.CreateContact = true
+				opts.Contact = &malak.Contact{
+					Email:       req.Email,
+					FirstName:   req.Email.String(),
+					Metadata:    make(malak.CustomContactMetadata),
+					WorkspaceID: deck.WorkspaceID,
+					Reference:   d.referenceGenerator.Generate(malak.EntityTypeContact),
+				}
+
+			} else {
+				logger.Error("could not fetch contat from dtabase", zap.Error(err))
+				return newAPIStatus(http.StatusInternalServerError, "an error occurred while finding contact by email"),
+					StatusFailed
+			}
+		} else {
+			opts.Contact = contact
+		}
+	}
+
+	if !hermes.IsStringEmpty(string(req.Password)) {
+		if !malak.VerifyPassword(string(deck.DeckPreference.Password.Password), string(req.Password)) {
+			return newAPIStatus(http.StatusBadRequest, "deck password not correct"), StatusFailed
+		}
+	}
+
+	session, err := d.deckRepo.FindDeckSession(ctx, req.SessionID)
+	if err != nil {
+		logger.Error("could not find deck session")
+		return newAPIStatus(http.StatusInternalServerError, "deck session not found"), StatusFailed
+	}
+
+	opts.Session = session
+
+	if err := d.deckRepo.UpdateDeckSession(ctx, opts); err != nil {
+		logger.Error("could not create deck session", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not create deck session"),
+			StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "fetched deck details"), StatusSuccess
 }

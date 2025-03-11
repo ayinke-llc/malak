@@ -3,7 +3,6 @@ package malak
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"strings"
 
 	"github.com/ayinke-llc/hermes"
 	"golang.org/x/crypto/bcrypt"
@@ -22,8 +21,6 @@ func (p *Password) MarshalJSON() ([]byte, error) {
 
 	return json.Marshal(p.String())
 }
-
-func (p Password) Equals(other Password) bool { return strings.EqualFold(string(p), string(other)) }
 
 func (p Password) Value() (driver.Value, error) {
 	return HashPassword(string(p))

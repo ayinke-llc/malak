@@ -127,6 +127,12 @@ type DeckViewerSession struct {
 	bun.BaseModel `json:"-"`
 }
 
+type UpdateDeckSessionOptions struct {
+	CreateContact bool
+	Contact       *Contact
+	Session       *DeckViewerSession
+}
+
 type DeckRepository interface {
 	Create(context.Context, *Deck, *CreateDeckOptions) error
 	List(context.Context, *Workspace) ([]Deck, error)
@@ -138,4 +144,6 @@ type DeckRepository interface {
 	TogglePinned(context.Context, *Deck) error
 
 	CreateDeckSession(context.Context, *DeckViewerSession) error
+	UpdateDeckSession(context.Context, *UpdateDeckSessionOptions) error
+	FindDeckSession(context.Context, string) (*DeckViewerSession, error)
 }

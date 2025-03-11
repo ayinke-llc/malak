@@ -1495,6 +1495,68 @@ const docTemplate = `{
             }
         },
         "/public/decks/{reference}": {
+            "put": {
+                "description": "update the session details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "decks-viewer"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "session unique reference.. ",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "deck session request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createDeckViewerSession"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchPublicDeckResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "public api to fetch a deck",
                 "consumes": [
@@ -3430,6 +3492,53 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.DeckViewerSession": {
+            "type": "object",
+            "properties": {
+                "browser": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "contact_id": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deck_id": {
+                    "type": "string"
+                },
+                "device_info": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ip_address": {
+                    "type": "string"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "viewed_at": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.Integration": {
             "type": "object",
             "properties": {
@@ -3771,6 +3880,9 @@ const docTemplate = `{
                 },
                 "reference": {
                     "type": "string"
+                },
+                "session": {
+                    "$ref": "#/definitions/malak.DeckViewerSession"
                 },
                 "short_link": {
                     "type": "string"
@@ -4304,8 +4416,6 @@ const docTemplate = `{
             "required": [
                 "browser",
                 "device_info",
-                "email",
-                "ip_address",
                 "os",
                 "password"
             ],
@@ -4314,12 +4424,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "device_info": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "ip_address": {
                     "type": "string"
                 },
                 "os": {

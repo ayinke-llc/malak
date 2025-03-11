@@ -83,6 +83,21 @@ func (mr *MockDeckRepositoryMockRecorder) Delete(arg0, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockDeckRepository)(nil).Delete), arg0, arg1)
 }
 
+// FindDeckSession mocks base method.
+func (m *MockDeckRepository) FindDeckSession(arg0 context.Context, arg1 string) (*malak.DeckViewerSession, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindDeckSession", arg0, arg1)
+	ret0, _ := ret[0].(*malak.DeckViewerSession)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindDeckSession indicates an expected call of FindDeckSession.
+func (mr *MockDeckRepositoryMockRecorder) FindDeckSession(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindDeckSession", reflect.TypeOf((*MockDeckRepository)(nil).FindDeckSession), arg0, arg1)
+}
+
 // Get mocks base method.
 func (m *MockDeckRepository) Get(arg0 context.Context, arg1 malak.FetchDeckOptions) (*malak.Deck, error) {
 	m.ctrl.T.Helper()
@@ -154,6 +169,20 @@ func (m *MockDeckRepository) TogglePinned(arg0 context.Context, arg1 *malak.Deck
 func (mr *MockDeckRepositoryMockRecorder) TogglePinned(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePinned", reflect.TypeOf((*MockDeckRepository)(nil).TogglePinned), arg0, arg1)
+}
+
+// UpdateDeckSession mocks base method.
+func (m *MockDeckRepository) UpdateDeckSession(arg0 context.Context, arg1 *malak.UpdateDeckSessionOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateDeckSession", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateDeckSession indicates an expected call of UpdateDeckSession.
+func (mr *MockDeckRepositoryMockRecorder) UpdateDeckSession(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateDeckSession", reflect.TypeOf((*MockDeckRepository)(nil).UpdateDeckSession), arg0, arg1)
 }
 
 // UpdatePreferences mocks base method.

@@ -28,8 +28,9 @@ type Contact struct {
 	Company     string    `json:"company,omitempty"`
 
 	// Legacy lmao. should be address but migrations bit ugh :))
-	City  string               `json:"city,omitempty"`
-	Phone string               `json:"phone,omitempty"`
+	City  string `json:"city,omitempty"`
+	Phone string `json:"phone,omitempty"`
+
 	Notes string               `json:"notes,omitempty"`
 	Lists []ContactListMapping `json:"lists" bun:"rel:has-many,join:id=contact_id"`
 

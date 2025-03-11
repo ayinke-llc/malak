@@ -444,6 +444,8 @@ func buildRoutes(
 		r.Route("/public", func(r chi.Router) {
 			r.Post("/decks/{reference}",
 				WrapMalakHTTPHandler(logger, deckHandler.publicDeckDetails, cfg, "public.decks.fetch"))
+			r.Put("/decks/{reference}",
+				WrapMalakHTTPHandler(logger, deckHandler.updateDeckViewerSession, cfg, "public.decks.update"))
 		})
 	})
 
