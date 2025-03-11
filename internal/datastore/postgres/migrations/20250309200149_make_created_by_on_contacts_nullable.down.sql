@@ -1,0 +1,3 @@
+ALTER TABLE contacts
+    ALTER COLUMN created_by SET NOT NULL,
+    ALTER COLUMN owner_id SET NOT NULL;

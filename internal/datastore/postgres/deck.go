@@ -241,3 +241,49 @@ func (d *decksRepo) CreateDeckSession(ctx context.Context,
 			return err
 		})
 }
+
+func (d *decksRepo) UpdateDeckSession(ctx context.Context,
+	opts *malak.UpdateDeckSessionOptions) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return d.inner.RunInTx(ctx, &sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+			if opts.CreateContact {
+				_, err := tx.NewInsert().
+					Model(opts.Contact).
+					Exec(ctx)
+				if err != nil {
+					return err
+				}
+
+				opts.Session.ContactID = opts.Contact.ID
+			}
+
+			_, err := tx.NewUpdate().
+				Model(opts.Session).
+				Where("id = ?", opts.Session.ID).
+				Exec(ctx)
+			return err
+		})
+}
+
+func (d *decksRepo) FindDeckSession(ctx context.Context,
+	sessionID string) (*malak.DeckViewerSession, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	session := new(malak.DeckViewerSession)
+	err := d.inner.NewSelect().
+		Model(session).
+		Where("session_id = ?", sessionID).
+		Scan(ctx)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, malak.ErrDeckNotFound
+	}
+
+	return session, err
+}
