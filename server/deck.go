@@ -9,6 +9,7 @@ import (
 	"hash/fnv"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/adelowo/gulter"
@@ -594,5 +595,89 @@ func (d *deckHandler) togglePinned(
 	return fetchDeckResponse{
 		APIStatus: newAPIStatus(http.StatusOK, "Updated deck pinned status"),
 		Deck:      hermes.DeRef(deck),
+	}, StatusSuccess
+}
+
+// @Description fetch deck viewing sessions on dashboard
+// @Tags decks
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "deck unique reference.. e.g deck_"
+// @Param page query int false "Page to query data from. Defaults to 1"
+// @Param per_page query int false "Number to items to return. Defaults to 10 items"
+// @Param days query int false "number of days to fetch deck sessions"
+// @Success 200 {object} fetchSessionsDeck
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /decks/{reference}/sessions [get]
+func (d *deckHandler) fetchDeckSessions(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("fetching deck analytics")
+
+	ref := chi.URLParam(r, "reference")
+
+	if hermes.IsStringEmpty(ref) {
+		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
+	}
+
+	deck, err := d.deckRepo.Get(ctx, malak.FetchDeckOptions{
+		Reference:   ref,
+		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
+	})
+	if err != nil {
+		logger.Error("could not fetch deck", zap.Error(err))
+		status := http.StatusInternalServerError
+		msg := "an error occurred while fetching deck"
+
+		if errors.Is(err, malak.ErrDeckNotFound) {
+			status = http.StatusNotFound
+			msg = "deck does not exists"
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	paginator := malak.PaginatorFromRequest(r)
+
+	var days int64 = 7 // default to 7 days if not specified
+	if daysStr := r.URL.Query().Get("days"); daysStr != "" {
+		if d, err := strconv.ParseInt(daysStr, 10, 64); err == nil {
+			if d != 7 && d != 14 && d != 30 {
+				return newAPIStatus(http.StatusBadRequest, "days parameter must be 7, 14, or 30"), StatusFailed
+			}
+			days = d
+		}
+	}
+
+	opts := &malak.ListSessionAnalyticsOptions{
+		Paginator: paginator,
+		DeckID:    deck.ID,
+		Days:      days,
+	}
+
+	sessions, total, err := d.deckRepo.SessionAnalytics(ctx, opts)
+	if err != nil {
+		logger.Error("could not fetch analytics", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch deck analytics"),
+			StatusFailed
+	}
+
+	return fetchSessionsDeck{
+		APIStatus: newAPIStatus(http.StatusOK, "fetched deck viewing sessions"),
+		Sessions:  sessions,
+		Meta: meta{
+			Paging: pagingInfo{
+				Total:   total,
+				PerPage: paginator.PerPage,
+				Page:    paginator.Page,
+			},
+		},
 	}, StatusSuccess
 }

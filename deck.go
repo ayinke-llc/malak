@@ -109,6 +109,7 @@ type DeckViewerSession struct {
 	Reference Reference `json:"reference,omitempty"`
 	DeckID    uuid.UUID `json:"deck_id,omitempty"`
 	ContactID uuid.UUID `json:"contact_id,omitempty" bun:",nullzero"`
+	Contact   *Contact  `json:"contact,omitempty" bun:"rel:has-one,join:contact_id=id"`
 
 	SessionID Reference `json:"session_id,omitempty"`
 
@@ -134,6 +135,12 @@ type UpdateDeckSessionOptions struct {
 	Session       *DeckViewerSession
 }
 
+type ListSessionAnalyticsOptions struct {
+	DeckID    uuid.UUID
+	Paginator Paginator
+	Days      int64
+}
+
 type DeckRepository interface {
 	Create(context.Context, *Deck, *CreateDeckOptions) error
 	List(context.Context, *Workspace) ([]Deck, error)
@@ -147,4 +154,6 @@ type DeckRepository interface {
 	CreateDeckSession(context.Context, *DeckViewerSession) error
 	UpdateDeckSession(context.Context, *UpdateDeckSessionOptions) error
 	FindDeckSession(context.Context, string) (*DeckViewerSession, error)
+
+	SessionAnalytics(context.Context, *ListSessionAnalyticsOptions) ([]*DeckViewerSession, int64, error)
 }

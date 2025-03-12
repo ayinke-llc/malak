@@ -164,6 +164,25 @@ export interface MalakDeckPreference {
   workspace_id?: string;
 }
 
+export interface MalakDeckViewerSession {
+  browser?: string;
+  city?: string;
+  contact?: MalakContact;
+  contact_id?: string;
+  country?: string;
+  created_at?: string;
+  deck_id?: string;
+  device_info?: string;
+  id?: string;
+  ip_address?: string;
+  os?: string;
+  reference?: string;
+  session_id?: string;
+  time_spent_seconds?: number;
+  updated_at?: string;
+  viewed_at?: string;
+}
+
 export interface MalakIntegration {
   created_at?: string;
   description?: string;
@@ -310,6 +329,7 @@ export interface MalakPublicDeck {
   object_link?: string;
   preferences?: MalakPublicDeckPreference;
   reference?: string;
+  session?: MalakDeckViewerSession;
   short_link?: string;
   title?: string;
   updated_at?: string;
@@ -524,6 +544,13 @@ export interface ServerCreateDeckRequest {
   title?: string;
 }
 
+export interface ServerCreateDeckViewerSession {
+  browser: string;
+  device_info: string;
+  os: string;
+  password: string;
+}
+
 export interface ServerCreateUpdateContent {
   template?: {
     is_system_template?: boolean;
@@ -604,6 +631,12 @@ export interface ServerFetchDetailedContactResponse {
 export interface ServerFetchPublicDeckResponse {
   deck: MalakPublicDeck;
   message: string;
+}
+
+export interface ServerFetchSessionsDeck {
+  message: string;
+  meta: ServerMeta;
+  sessions: MalakDeckViewerSession[];
 }
 
 export interface ServerFetchTemplatesResponse {
@@ -1315,19 +1348,65 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
+
+    /**
+     * @description fetch deck viewing sessions on dashboard
+     *
+     * @tags decks
+     * @name SessionsDetail
+     * @request GET:/decks/{reference}/sessions
+     */
+    sessionsDetail: (
+      reference: string,
+      query?: {
+        /** Page to query data from. Defaults to 1 */
+        page?: number;
+        /** Number to items to return. Defaults to 10 items */
+        per_page?: number;
+        /** number of days to fetch deck sessions */
+        days?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerFetchSessionsDeck, ServerAPIStatus>({
+        path: `/decks/${reference}/sessions`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
   };
   public = {
     /**
      * @description public api to fetch a deck
      *
      * @tags decks-viewer
-     * @name DecksDetail
-     * @request GET:/public/decks/{reference}
+     * @name DecksCreate
+     * @request POST:/public/decks/{reference}
      */
-    decksDetail: (reference: string, params: RequestParams = {}) =>
+    decksCreate: (reference: string, data: ServerCreateDeckViewerSession, params: RequestParams = {}) =>
       this.request<ServerFetchPublicDeckResponse, ServerAPIStatus>({
         path: `/public/decks/${reference}`,
-        method: "GET",
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description update the session details
+     *
+     * @tags decks-viewer
+     * @name DecksUpdate
+     * @request PUT:/public/decks/{reference}
+     */
+    decksUpdate: (reference: string, data: ServerCreateDeckViewerSession, params: RequestParams = {}) =>
+      this.request<ServerFetchPublicDeckResponse, ServerAPIStatus>({
+        path: `/public/decks/${reference}`,
+        method: "PUT",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

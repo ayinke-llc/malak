@@ -287,3 +287,31 @@ func (d *decksRepo) FindDeckSession(ctx context.Context,
 
 	return session, err
 }
+
+func (d *decksRepo) SessionAnalytics(ctx context.Context,
+	opts *malak.ListSessionAnalyticsOptions) ([]*malak.DeckViewerSession, int64, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	sessions := make([]*malak.DeckViewerSession, 0)
+
+	query := d.inner.NewSelect().
+		Model(&sessions).
+		Where("deck_id = ?", opts.DeckID).
+		Where("deck_viewer_session.created_at >= NOW() - INTERVAL '? days'", opts.Days).
+		Order("deck_viewer_session.created_at DESC")
+
+	total, err := query.Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = query.
+		Relation("Contact").
+		Limit(int(opts.Paginator.PerPage)).
+		Offset(int(opts.Paginator.Offset())).
+		Scan(ctx)
+
+	return sessions, int64(total), err
+}

@@ -143,6 +143,22 @@ func (mr *MockDeckRepositoryMockRecorder) PublicDetails(arg0, arg1 any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublicDetails", reflect.TypeOf((*MockDeckRepository)(nil).PublicDetails), arg0, arg1)
 }
 
+// SessionAnalytics mocks base method.
+func (m *MockDeckRepository) SessionAnalytics(arg0 context.Context, arg1 *malak.ListSessionAnalyticsOptions) ([]*malak.DeckViewerSession, int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SessionAnalytics", arg0, arg1)
+	ret0, _ := ret[0].([]*malak.DeckViewerSession)
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// SessionAnalytics indicates an expected call of SessionAnalytics.
+func (mr *MockDeckRepositoryMockRecorder) SessionAnalytics(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SessionAnalytics", reflect.TypeOf((*MockDeckRepository)(nil).SessionAnalytics), arg0, arg1)
+}
+
 // ToggleArchive mocks base method.
 func (m *MockDeckRepository) ToggleArchive(arg0 context.Context, arg1 *malak.Deck) error {
 	m.ctrl.T.Helper()

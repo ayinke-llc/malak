@@ -1494,6 +1494,79 @@ const docTemplate = `{
                 }
             }
         },
+        "/decks/{reference}/sessions": {
+            "get": {
+                "description": "fetch deck viewing sessions on dashboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "decks"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deck unique reference.. e.g deck_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page to query data from. Defaults to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number to items to return. Defaults to 10 items",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "number of days to fetch deck sessions",
+                        "name": "days",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchSessionsDeck"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/public/decks/{reference}": {
             "put": {
                 "description": "update the session details",
@@ -3501,6 +3574,9 @@ const docTemplate = `{
                 "city": {
                     "type": "string"
                 },
+                "contact": {
+                    "$ref": "#/definitions/malak.Contact"
+                },
                 "contact_id": {
                     "type": "string"
                 },
@@ -3530,6 +3606,9 @@ const docTemplate = `{
                 },
                 "session_id": {
                     "type": "string"
+                },
+                "time_spent_seconds": {
+                    "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"
@@ -4696,6 +4775,28 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "server.fetchSessionsDeck": {
+            "type": "object",
+            "required": [
+                "message",
+                "meta",
+                "sessions"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "meta": {
+                    "$ref": "#/definitions/server.meta"
+                },
+                "sessions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.DeckViewerSession"
+                    }
                 }
             }
         },

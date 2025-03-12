@@ -38,4 +38,5 @@ export const DASHBOARD_DETAIL = "DASHBOARD_DETAIL" as const;
 export const FETCH_CHART_DATA_POINTS = "FETCH_CHART_DATA_POINTS" as const;
 export const ADD_CHART_DASHBOARD = 'ADD_CHART_DASHBOARD' as const;
 export const REMOVE_CHART_DASHBOARD = 'REMOVE_CHART_DASHBOARD' as const;
+export const LIST_DECK_SESSIONS = 'LIST_DECK_SESSIONS' as const;
 export const LIST_TEMPLATES = 'LIST_TEMPLATES' as const

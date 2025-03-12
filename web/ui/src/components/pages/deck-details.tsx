@@ -37,6 +37,23 @@ import DeleteDeck from "@/components/ui/decks/details/delete";
 import DeckAnalytics from "@/components/ui/decks/details/analytics";
 import { ServerAPIStatus, ServerFetchDeckResponse } from "@/client/Api";
 import { AxiosError, AxiosResponse } from "axios";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Add formatFileSize utility function
+function formatFileSize(bytes: number | undefined): string {
+  if (bytes === undefined) return '-';
+  
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let size = bytes;
+  let unitIndex = 0;
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+
+  return `${parseFloat(size.toFixed(2))} ${units[unitIndex]}`;
+}
 
 type SettingsFormData = {
   enableDownloading: boolean;
@@ -56,6 +73,61 @@ const settingsSchema = yup.object().shape({
     otherwise: (schema) => schema.optional().nullable(),
   }),
 }) satisfies yup.ObjectSchema<SettingsFormData>;
+
+function LoadingState() {
+  return (
+    <div className="pt-6 space-y-6">
+      {/* Header Section */}
+      <div className="mb-8 flex items-center justify-between">
+        <div className="w-24">
+          <Skeleton className="h-4" />
+        </div>
+        <div className="flex items-center gap-2">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-9 w-9 rounded-md" />
+          ))}
+        </div>
+      </div>
+
+      {/* Main Content Card */}
+      <Card className="p-6">
+        <div className="space-y-8">
+          {/* Title and Description */}
+          <div className="space-y-4">
+            <Skeleton className="h-6 w-1/3" />
+            <Skeleton className="h-4 w-2/3" />
+          </div>
+
+          {/* Details Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <Skeleton className="h-4 w-20 mb-2" />
+                <Skeleton className="h-5 w-40" />
+              </div>
+              <div>
+                <Skeleton className="h-4 w-20 mb-2" />
+                <Skeleton className="h-5 w-24" />
+              </div>
+            </div>
+            <div>
+              <Skeleton className="h-4 w-20 mb-2" />
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-9 flex-1" />
+                <Skeleton className="h-9 w-9" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Analytics Section */}
+      <div className="h-[200px]">
+        <Skeleton className="h-full w-full" />
+      </div>
+    </div>
+  );
+}
 
 export default function DeckDetails(
   {
@@ -148,10 +220,26 @@ export default function DeckDetails(
     pinMutation.mutate()
   };
 
-  if (error || isLoading) {
+  if (isLoading) {
+    return <LoadingState />;
+  }
+
+  if (error) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-100 border-t-transparent" />
+        <div className="text-center">
+          <p className="text-muted-foreground">Failed to load deck details</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+        <div className="text-center">
+          <p className="text-muted-foreground">No deck data available</p>
+        </div>
       </div>
     );
   }
@@ -346,7 +434,7 @@ export default function DeckDetails(
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">File Size</h3>
-                  <p>-</p>
+                  <p>{formatFileSize(data?.data?.deck?.deck_size)}</p>
                 </div>
               </div>
 
@@ -394,7 +482,7 @@ export default function DeckDetails(
         </Card>
 
         {/* Analytics Section */}
-        {data && <DeckAnalytics data={data.data} />}
+        {data && <DeckAnalytics reference={reference} />}
       </div>
     </div>
   );

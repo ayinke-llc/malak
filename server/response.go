@@ -177,3 +177,9 @@ type fetchTemplatesResponse struct {
 	} `json:"templates,omitempty" validate:"required"`
 	APIStatus
 }
+
+type fetchSessionsDeck struct {
+	Sessions []*malak.DeckViewerSession `json:"sessions,omitempty" validate:"required"`
+	Meta     meta                       `json:"meta,omitempty" validate:"required"`
+	APIStatus
+}
