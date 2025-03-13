@@ -3,10 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/ayinke-llc/hermes"
-	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/ayinke-llc/malak/server"
@@ -60,30 +58,42 @@ func processDeckAnalytics(c *cobra.Command, cfg *config.Config) *cobra.Command {
 
 			ctx := cmd.Context()
 
-			// Get yesterday's date since we're processing previous day's data
-			yesterday := time.Now().AddDate(0, 0, -1)
-			startOfDay := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 0, 0, 0, 0, time.UTC)
-			endOfDay := startOfDay.AddDate(0, 0, 1)
-
 			g, gctx := errgroup.WithContext(ctx)
 
 			// Process daily engagements concurrently
 			g.Go(func() error {
 				logger.Info("processing daily deck engagements")
-				engagementRef := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckDailyEngagement)
 
 				engagementQuery := `
-					WITH daily_stats AS (
-						SELECT 
-							deck_id,
+					WITH dates_to_process AS (
+						SELECT DISTINCT
+							dvs.deck_id,
 							d.workspace_id,
-							COUNT(DISTINCT s.id) as engagement_count,
-							?::date as engagement_date
-						FROM deck_viewer_sessions s
-						JOIN decks d ON d.id = s.deck_id
-						WHERE s.viewed_at >= ? AND s.viewed_at < ?
-							AND s.deleted_at IS NULL
-						GROUP BY deck_id, d.workspace_id
+							DATE(dvs.viewed_at) as engagement_date
+						FROM deck_viewer_sessions dvs
+						INNER JOIN decks d ON d.id = dvs.deck_id
+						WHERE dvs.deleted_at IS NULL
+						AND d.deleted_at IS NULL
+						AND DATE(dvs.viewed_at) = CURRENT_DATE
+						AND NOT EXISTS (
+							SELECT 1 FROM deck_daily_engagements dde
+							WHERE dde.deck_id = dvs.deck_id
+							AND dde.workspace_id = d.workspace_id
+							AND dde.engagement_date = CURRENT_DATE
+						)
+					),
+					daily_stats AS (
+						SELECT 
+							dvs.deck_id,
+							d.workspace_id,
+							CURRENT_DATE as engagement_date,
+							COUNT(DISTINCT dvs.id) as engagement_count
+						FROM deck_viewer_sessions dvs
+						INNER JOIN decks d ON d.id = dvs.deck_id
+						WHERE dvs.deleted_at IS NULL
+						AND d.deleted_at IS NULL
+						AND DATE(dvs.viewed_at) = CURRENT_DATE
+						GROUP BY dvs.deck_id, d.workspace_id
 					)
 					INSERT INTO deck_daily_engagements (
 						reference,
@@ -93,7 +103,7 @@ func processDeckAnalytics(c *cobra.Command, cfg *config.Config) *cobra.Command {
 						engagement_date
 					)
 					SELECT 
-						?,
+						'deck_daily_engagement_' || LOWER(REPLACE(uuid_generate_v4()::text, '-', '')),
 						deck_id,
 						workspace_id,
 						engagement_count,
@@ -105,7 +115,7 @@ func processDeckAnalytics(c *cobra.Command, cfg *config.Config) *cobra.Command {
 						updated_at = CURRENT_TIMESTAMP
 				`
 
-				_, err := db.ExecContext(gctx, engagementQuery, startOfDay, startOfDay, endOfDay, engagementRef)
+				_, err := db.ExecContext(gctx, engagementQuery)
 				if err != nil {
 					logger.Error("failed to process daily engagements",
 						zap.Error(err))
@@ -119,18 +129,16 @@ func processDeckAnalytics(c *cobra.Command, cfg *config.Config) *cobra.Command {
 			// Process geographic stats concurrently
 			g.Go(func() error {
 				logger.Info("processing geographic stats")
-				geoRef := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckGeographicStat)
 
 				geoQuery := `
 					WITH geo_stats AS (
 						SELECT 
 							deck_id,
 							COALESCE(NULLIF(TRIM(country), ''), 'Unknown') as country,
-							COUNT(DISTINCT s.id) as view_count,
-							?::date as stat_date
-						FROM deck_viewer_sessions s
-						WHERE s.viewed_at >= ? AND s.viewed_at < ?
-							AND s.deleted_at IS NULL
+							COUNT(DISTINCT id) as view_count,
+							CURRENT_DATE as stat_date
+						FROM deck_viewer_sessions
+						WHERE deleted_at IS NULL
 						GROUP BY deck_id, COALESCE(NULLIF(TRIM(country), ''), 'Unknown')
 					)
 					INSERT INTO deck_geographic_stats (
@@ -141,7 +149,7 @@ func processDeckAnalytics(c *cobra.Command, cfg *config.Config) *cobra.Command {
 						stat_date
 					)
 					SELECT 
-						?,
+						'deck_geographic_stat_' || LOWER(REPLACE(uuid_generate_v4()::text, '-', '')),
 						deck_id,
 						country,
 						view_count,
@@ -153,7 +161,7 @@ func processDeckAnalytics(c *cobra.Command, cfg *config.Config) *cobra.Command {
 						updated_at = CURRENT_TIMESTAMP
 				`
 
-				_, err := db.ExecContext(gctx, geoQuery, startOfDay, startOfDay, endOfDay, geoRef)
+				_, err := db.ExecContext(gctx, geoQuery)
 				if err != nil {
 					logger.Error("failed to process geographic stats",
 						zap.Error(err))
