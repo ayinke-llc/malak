@@ -13,6 +13,7 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { RiMicrosoftLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosResponse } from "axios";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { usePostHog } from "posthog-js/react";
@@ -64,9 +65,17 @@ export default function LoginPage() {
       <div className="container relative h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
         <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
           <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 via-purple-500/10 to-background" />
-            <div className="absolute inset-0 bg-grid-white/[0.02]" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-zinc-900/50" />
+            <Image
+              src="/overview-malak.png"
+              alt="Malak Background"
+              fill
+              className="object-cover opacity-50 transition-opacity duration-300 hover:opacity-60"
+              priority
+              quality={100}
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-950/30 via-background/40 to-background/60" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent" />
+            <div className="absolute inset-0 bg-grid-white/[0.03]" />
           </div>
           <div className="relative z-20 flex items-center text-lg font-medium">
             <svg
@@ -85,9 +94,12 @@ export default function LoginPage() {
           </div>
           <div className="relative z-20 mt-auto">
             <blockquote className="space-y-2">
-              <p className="text-lg">
-                &quot;Streamline your communication and stay organized with our powerful platform.&quot;
+              <p className="text-lg font-medium text-white drop-shadow-sm">
+                Streamline your communication and stay organized with our powerful platform
               </p>
+              <footer className="text-sm text-white/80">
+                Your all-in-one collaboration solution
+              </footer>
             </blockquote>
           </div>
         </div>
