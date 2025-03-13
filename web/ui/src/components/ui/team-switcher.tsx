@@ -28,9 +28,11 @@ import { Avatar } from "./custom/avatar/avatar"
 import { ModalAddWorkspace } from "./navigation/ModalAddWorkspace"
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
+import useAuthStore from "@/store/auth"
 
 export function TeamSwitcher() {
   const { isMobile } = useSidebar();
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
 
   const current = useWorkspacesStore(state => state.current)
   const workspaces = useWorkspacesStore(state => state.workspaces)
@@ -40,10 +42,24 @@ export function TeamSwitcher() {
   const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
 
   useEffect(() => {
+    if (!isAuthenticated()) {
+      setShowCreateWorkspace(false);
+      return;
+    }
+
     if (!workspaces || workspaces.length === 0) {
       setShowCreateWorkspace(true);
+    } else {
+      setShowCreateWorkspace(false);
     }
-  }, [workspaces]);
+  }, [workspaces, isAuthenticated]);
+
+  // Add cleanup effect
+  useEffect(() => {
+    return () => {
+      setShowCreateWorkspace(false);
+    };
+  }, []);
 
   const mutation = useMutation({
     mutationKey: [SWITCH_WORKSPACE],
@@ -59,6 +75,10 @@ export function TeamSwitcher() {
     retry: false,
     gcTime: Number.POSITIVE_INFINITY,
   });
+
+  if (!isAuthenticated()) {
+    return null;
+  }
 
   if (showCreateWorkspace) {
     return (

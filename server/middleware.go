@@ -151,15 +151,15 @@ func requireAuthentication(
 			r = r.WithContext(writeUserToCtx(ctx, user))
 
 			// For auth/connect path, we don't need to check workspace
-			if strings.HasPrefix(r.URL.Path, "/v1/auth/connect") || r.URL.Path == "/v1/workspaces" {
+			if strings.HasPrefix(r.URL.Path, "/v1/auth/connect") ||
+				(r.URL.Path == "/v1/workspaces" && r.Method == http.MethodPost) {
 				// r.URL.Path == "/v1/user" {
 				next.ServeHTTP(w, r)
 				return
 			}
 
-			// For all other paths, user must have a workspace
 			if user.Metadata.CurrentWorkspace == uuid.Nil {
-				_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, "You must be a member of a workspace"))
+				next.ServeHTTP(w, r)
 				return
 			}
 

@@ -12,7 +12,6 @@ import { toast } from "sonner";
 export default function UserProvider({
   children,
 }: { children: React.ReactNode }) {
-
   const [loading, setLoading] = useState(true);
 
   const token = useAuthStore((state) => state.token);
@@ -22,9 +21,15 @@ export default function UserProvider({
   const isRehydrated = useAuthStore(state => state.isRehydrated);
 
   const clear = useWorkspacesStore(state => state.clear);
-
   const { setWorkspaces, setCurrent } = useWorkspacesStore();
   const router = useRouter();
+
+  const handleLogout = () => {
+    clear();
+    logout();
+    setLoading(false);
+    router.push("/login");
+  };
 
   useEffect(() => {
     if (!isRehydrated) {
@@ -32,10 +37,7 @@ export default function UserProvider({
     }
 
     if (!isAuthenticated()) {
-      logout();
-      clear();
-      setLoading(false); // Set loading to false before redirecting
-      router.push("/login");
+      handleLogout();
       return;
     }
 
@@ -50,13 +52,9 @@ export default function UserProvider({
     const responseInterceptor = client.instance.interceptors.response.use(
       (response) => response,
       (error) => {
-
         if (error.response) {
           if (error.response.status === 401) {
-            logout();
-            clear();
-            setLoading(false); // Set loading to false before redirecting
-            router.push("/login");
+            handleLogout();
           }
 
           if (error.response.status === 402) {
@@ -81,18 +79,14 @@ export default function UserProvider({
         setLoading(false);
       })
       .catch((err: AxiosError<ServerAPIStatus>) => {
-
         if (err?.response?.status === 402) {
-          setLoading(false)
+          setLoading(false);
           router.push("/settings?tab=billing");
-          return
+          return;
         }
 
         toast.error(err?.response?.data?.message);
-        logout();
-        clear();
-        setLoading(false); // Ensure loading is false before redirecting
-        router.push("/login");
+        handleLogout();
       });
 
     return () => {
@@ -113,6 +107,6 @@ export default function UserProvider({
     );
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
