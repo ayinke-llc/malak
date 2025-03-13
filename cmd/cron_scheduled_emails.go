@@ -3,18 +3,27 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"sync"
 	"text/template"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	awsCreds "github.com/aws/aws-sdk-go-v2/credentials"
+
+	"github.com/adelowo/gulter"
+	"github.com/adelowo/gulter/storage"
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
+	"github.com/ayinke-llc/malak/internal/pkg/chart"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
 	"github.com/ayinke-llc/malak/server"
 	"github.com/google/uuid"
@@ -84,6 +93,8 @@ type EmailProcessor struct {
 	metrics       *ProcessMetrics
 	rateLimiter   *rate.Limiter
 	workspaceRepo malak.WorkspaceRepository
+	chartRenderer malak.ChartRenderer
+	storage       gulter.Storage
 }
 
 type ProcessorOptions struct {
@@ -112,7 +123,7 @@ type recipient struct {
 	bun.BaseModel `bun:"table:update_recipients"`
 }
 
-func NewEmailProcessor(db *bun.DB, emailClient email.Client, logger *zap.Logger, tracer trace.Tracer, cfg *config.Config, opts ProcessorOptions) *EmailProcessor {
+func NewEmailProcessor(db *bun.DB, emailClient email.Client, logger *zap.Logger, tracer trace.Tracer, cfg *config.Config, storage gulter.Storage, opts ProcessorOptions) *EmailProcessor {
 	return &EmailProcessor{
 		db:            db,
 		emailClient:   emailClient,
@@ -122,6 +133,8 @@ func NewEmailProcessor(db *bun.DB, emailClient email.Client, logger *zap.Logger,
 		metrics:       &ProcessMetrics{StartTime: time.Now()},
 		rateLimiter:   rate.NewLimiter(rate.Limit(opts.RateLimit), opts.RateLimit),
 		workspaceRepo: postgres.NewWorkspaceRepository(db),
+		chartRenderer: chart.NewEChartsRenderer(storage, hermes.DeRef(cfg), db, postgres.NewIntegrationRepo(db)),
+		storage:       storage,
 	}
 }
 
@@ -238,7 +251,7 @@ func (p *EmailProcessor) createEmailJobs(recipients []recipient, update *malak.U
 		panic(err.Error())
 	}
 
-	content, err := prepareEmailTemplate(update, workspace.WorkspaceName)
+	content, err := prepareEmailTemplate(update, workspace.WorkspaceName, p.chartRenderer)
 	if err != nil {
 		// the template is supposed to be fine so this is okay to do
 		panic(err.Error())
@@ -372,8 +385,49 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 			ctx, span := tracer.Start(context.Background(), "updates-send")
 			defer span.End()
 
+			httpClient := &http.Client{
+				Transport: &http.Transport{
+					TLSClientConfig: &tls.Config{
+						InsecureSkipVerify: !cfg.Uploader.S3.UseTLS,
+					},
+				},
+			}
+
+			s3Config, err := awsConfig.LoadDefaultConfig(
+				context.Background(),
+				awsConfig.WithRegion(cfg.Uploader.S3.Region),
+				awsConfig.WithHTTPClient(httpClient),
+				awsConfig.WithCredentialsProvider(
+					awsCreds.NewStaticCredentialsProvider(
+						cfg.Uploader.S3.AccessKey,
+						cfg.Uploader.S3.AccessSecret,
+						"")),
+				//nolint:staticcheck
+				awsConfig.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+					//nolint:staticcheck
+					return aws.Endpoint{
+						URL:               cfg.Uploader.S3.Endpoint,
+						SigningRegion:     cfg.Uploader.S3.Region,
+						HostnameImmutable: true,
+					}, nil
+				})),
+			)
+			if err != nil {
+				logger.Fatal("could not set up S3 config",
+					zap.Error(err))
+			}
+
+			s3Store, err := storage.NewS3FromConfig(s3Config, storage.S3Options{
+				DebugMode:    cfg.Uploader.S3.LogOperations,
+				UsePathStyle: true,
+			})
+			if err != nil {
+				logger.Fatal("could not set up S3 client",
+					zap.Error(err))
+			}
+
 			opts := DefaultProcessorOptions()
-			processor := NewEmailProcessor(db, emailClient, logger, tracer, cfg, opts)
+			processor := NewEmailProcessor(db, emailClient, logger, tracer, cfg, s3Store, opts)
 
 			var lastProcessedID string
 			for {
@@ -449,7 +503,7 @@ func fetchUpdateDetails(ctx context.Context, db *bun.DB, updateID uuid.UUID) (*m
 	return update, err
 }
 
-func prepareEmailTemplate(update *malak.Update, workspaceName string) (string, error) {
+func prepareEmailTemplate(update *malak.Update, workspaceName string, renderer malak.ChartRenderer) (string, error) {
 	tmpl, err := template.New("template").Parse(email.UpdateHTMLEmailTemplate)
 	if err != nil {
 		return "", err
@@ -457,7 +511,7 @@ func prepareEmailTemplate(update *malak.Update, workspaceName string) (string, e
 
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, map[string]string{
-		"Content": update.Content.HTML(),
+		"Content": update.Content.HTML(update.WorkspaceID, renderer),
 		"Company": workspaceName,
 	}); err != nil {
 		return "", err
