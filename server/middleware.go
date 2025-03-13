@@ -90,6 +90,7 @@ func requireWorkspaceValidSubscription(
 			if r.URL.Path == "/v1/workspaces/billing" ||
 				strings.HasPrefix(r.URL.Path, "/v1/workspaces/switch/") ||
 				r.URL.Path == "/v1/workspaces" ||
+				r.URL.Path == "/v1/workspaces/preferences" ||
 				r.URL.Path == "/v1/user" {
 				next.ServeHTTP(w, r)
 				return
