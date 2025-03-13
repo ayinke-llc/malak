@@ -458,3 +458,420 @@ func TestDeck_PublicDetails(t *testing.T) {
 	require.True(t, deckFromDB.DeckPreference.EnableDownloading)
 	require.True(t, deckFromDB.DeckPreference.Password.Enabled)
 }
+
+func TestDeck_CreateDeckSession(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	deck := NewDeckRepository(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+	userRepo := NewUserRepository(client)
+
+	// Get test user
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+
+	// Get test workspace
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	// Create a test deck first
+	ref := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck)
+	testDeck := &malak.Deck{
+		Reference:   ref,
+		WorkspaceID: workspace.ID,
+		CreatedBy:   user.ID,
+		Title:       "Session Test Deck",
+		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+		ObjectKey:   uuid.NewString(),
+	}
+
+	err = deck.Create(t.Context(), testDeck, &malak.CreateDeckOptions{
+		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
+	})
+	require.NoError(t, err)
+
+	// Create a deck session
+	session := &malak.DeckViewerSession{
+		DeckID:     testDeck.ID,
+		Reference:  malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckViewerSession),
+		SessionID:  malak.NewReferenceGenerator().Generate(malak.EntityTypeSession),
+		DeviceInfo: "Test Device",
+		OS:         "macOS",
+		Browser:    "Chrome",
+		IPAddress:  "127.0.0.1",
+		Country:    "NG",
+		City:       "Lagos",
+	}
+
+	err = deck.CreateDeckSession(t.Context(), session)
+	require.NoError(t, err)
+	require.NotEmpty(t, session.ID)
+}
+
+func TestDeck_UpdateDeckSession(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	deck := NewDeckRepository(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+	userRepo := NewUserRepository(client)
+
+	// Get test user
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+
+	// Get test workspace
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	// Create a test deck
+	ref := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck)
+	testDeck := &malak.Deck{
+		Reference:   ref,
+		WorkspaceID: workspace.ID,
+		CreatedBy:   user.ID,
+		Title:       "Session Update Test Deck",
+		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+		ObjectKey:   uuid.NewString(),
+	}
+
+	err = deck.Create(t.Context(), testDeck, &malak.CreateDeckOptions{
+		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
+	})
+	require.NoError(t, err)
+
+	// Create initial session
+	session := &malak.DeckViewerSession{
+		DeckID:     testDeck.ID,
+		Reference:  malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckViewerSession),
+		SessionID:  malak.NewReferenceGenerator().Generate(malak.EntityTypeSession),
+		DeviceInfo: "Test Device",
+		OS:         "macOS",
+		Browser:    "Chrome",
+		IPAddress:  "127.0.0.1",
+		Country:    "NG",
+		City:       "Lagos",
+	}
+
+	err = deck.CreateDeckSession(t.Context(), session)
+	require.NoError(t, err)
+
+	// Create a contact and update session
+	contact := &malak.Contact{
+		Email:       malak.Email("test@example.com"),
+		FirstName:   "Test",
+		LastName:    "User",
+		WorkspaceID: workspace.ID,
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeContact),
+	}
+
+	updateOpts := &malak.UpdateDeckSessionOptions{
+		Session:       session,
+		Contact:       contact,
+		CreateContact: true,
+	}
+
+	err = deck.UpdateDeckSession(t.Context(), updateOpts)
+	require.NoError(t, err)
+	require.NotEmpty(t, session.ContactID)
+}
+
+func TestDeck_FindDeckSession(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	deck := NewDeckRepository(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+	userRepo := NewUserRepository(client)
+
+	// Get test user
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+
+	// Get test workspace
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	// Create a test deck
+	ref := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck)
+	testDeck := &malak.Deck{
+		Reference:   ref,
+		WorkspaceID: workspace.ID,
+		CreatedBy:   user.ID,
+		Title:       "Find Session Test Deck",
+		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+		ObjectKey:   uuid.NewString(),
+	}
+
+	err = deck.Create(t.Context(), testDeck, &malak.CreateDeckOptions{
+		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
+	})
+	require.NoError(t, err)
+
+	// Test finding non-existent session
+	_, err = deck.FindDeckSession(t.Context(), "non-existent-session")
+	require.Error(t, err)
+	require.ErrorIs(t, err, malak.ErrDeckNotFound)
+
+	// Create a session
+	sessionID := malak.NewReferenceGenerator().Generate(malak.EntityTypeSession)
+	session := &malak.DeckViewerSession{
+		DeckID:     testDeck.ID,
+		Reference:  malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckViewerSession),
+		SessionID:  sessionID,
+		DeviceInfo: "Test Device",
+		OS:         "macOS",
+		Browser:    "Chrome",
+		IPAddress:  "127.0.0.1",
+		Country:    "NG",
+		City:       "Lagos",
+	}
+
+	err = deck.CreateDeckSession(t.Context(), session)
+	require.NoError(t, err)
+
+	// Find the session
+	foundSession, err := deck.FindDeckSession(t.Context(), sessionID.String())
+	require.NoError(t, err)
+	require.NotNil(t, foundSession)
+	require.Equal(t, sessionID.String(), foundSession.SessionID.String())
+	require.Equal(t, testDeck.ID, foundSession.DeckID)
+}
+
+func TestDeck_SessionAnalytics(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	deck := NewDeckRepository(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+	userRepo := NewUserRepository(client)
+
+	// Get test user
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+
+	// Get test workspace
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	// Create a test deck
+	ref := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck)
+	testDeck := &malak.Deck{
+		Reference:   ref,
+		WorkspaceID: workspace.ID,
+		CreatedBy:   user.ID,
+		Title:       "Analytics Test Deck",
+		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+		ObjectKey:   uuid.NewString(),
+	}
+
+	err = deck.Create(t.Context(), testDeck, &malak.CreateDeckOptions{
+		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
+	})
+	require.NoError(t, err)
+
+	// Create multiple sessions
+	for i := 0; i < 5; i++ {
+		session := &malak.DeckViewerSession{
+			DeckID:     testDeck.ID,
+			Reference:  malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckViewerSession),
+			SessionID:  malak.NewReferenceGenerator().Generate(malak.EntityTypeSession),
+			DeviceInfo: "Test Device",
+			OS:         "macOS",
+			Browser:    "Chrome",
+			IPAddress:  "127.0.0.1",
+			Country:    "NG",
+			City:       "Lagos",
+		}
+		err = deck.CreateDeckSession(t.Context(), session)
+		require.NoError(t, err)
+	}
+
+	// Test analytics retrieval
+	opts := &malak.ListSessionAnalyticsOptions{
+		DeckID: testDeck.ID,
+		Days:   7,
+		Paginator: malak.Paginator{
+			Page:    1,
+			PerPage: 10,
+		},
+	}
+
+	sessions, total, err := deck.SessionAnalytics(t.Context(), opts)
+	require.NoError(t, err)
+	require.NotEmpty(t, sessions)
+	require.Equal(t, int64(5), total)
+}
+
+func TestDeck_DeckEngagements(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	deck := NewDeckRepository(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+	userRepo := NewUserRepository(client)
+
+	// Get test user
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+
+	// Get test workspace
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	// Create a test deck
+	ref := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck)
+	testDeck := &malak.Deck{
+		Reference:   ref,
+		WorkspaceID: workspace.ID,
+		CreatedBy:   user.ID,
+		Title:       "Engagements Test Deck",
+		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+		ObjectKey:   uuid.NewString(),
+	}
+
+	err = deck.Create(t.Context(), testDeck, &malak.CreateDeckOptions{
+		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
+	})
+	require.NoError(t, err)
+
+	// Create sessions from different countries
+	countries := []string{"NG", "US", "GB", "CA", "FR"}
+	for _, country := range countries {
+		session := &malak.DeckViewerSession{
+			DeckID:     testDeck.ID,
+			Reference:  malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckViewerSession),
+			SessionID:  malak.NewReferenceGenerator().Generate(malak.EntityTypeSession),
+			DeviceInfo: "Test Device",
+			OS:         "macOS",
+			Browser:    "Chrome",
+			IPAddress:  "127.0.0.1",
+			Country:    country,
+			City:       "Test City",
+		}
+		err = deck.CreateDeckSession(t.Context(), session)
+		require.NoError(t, err)
+	}
+
+	// Manually run the aggregation queries that would normally be run by the cron job
+	// Copied from cmd/cron_analytics
+	engagementQuery := `
+		WITH dates_to_process AS (
+			SELECT DISTINCT
+				dvs.deck_id,
+				d.workspace_id,
+				DATE(dvs.viewed_at) as engagement_date
+			FROM deck_viewer_sessions dvs
+			INNER JOIN decks d ON d.id = dvs.deck_id
+			WHERE dvs.deleted_at IS NULL
+			AND d.deleted_at IS NULL
+			AND DATE(dvs.viewed_at) = CURRENT_DATE
+			AND NOT EXISTS (
+				SELECT 1 FROM deck_daily_engagements dde
+				WHERE dde.deck_id = dvs.deck_id
+				AND dde.workspace_id = d.workspace_id
+				AND dde.engagement_date = CURRENT_DATE
+			)
+		),
+		daily_stats AS (
+			SELECT 
+				dvs.deck_id,
+				d.workspace_id,
+				CURRENT_DATE as engagement_date,
+				COUNT(DISTINCT dvs.id) as engagement_count
+			FROM deck_viewer_sessions dvs
+			INNER JOIN decks d ON d.id = dvs.deck_id
+			WHERE dvs.deleted_at IS NULL
+			AND d.deleted_at IS NULL
+			AND DATE(dvs.viewed_at) = CURRENT_DATE
+			GROUP BY dvs.deck_id, d.workspace_id
+		)
+		INSERT INTO deck_daily_engagements (
+			reference,
+			deck_id,
+			workspace_id,
+			engagement_count,
+			engagement_date
+		)
+		SELECT 
+			'deck_daily_engagement_' || LOWER(REPLACE(uuid_generate_v4()::text, '-', '')),
+			deck_id,
+			workspace_id,
+			engagement_count,
+			engagement_date
+		FROM daily_stats
+		ON CONFLICT (deck_id, workspace_id, engagement_date)
+		DO UPDATE SET
+			engagement_count = EXCLUDED.engagement_count,
+			updated_at = CURRENT_TIMESTAMP
+	`
+
+	_, err = client.ExecContext(t.Context(), engagementQuery)
+	require.NoError(t, err)
+
+	geoQuery := `
+		WITH geo_stats AS (
+			SELECT 
+				deck_id,
+				COALESCE(NULLIF(TRIM(country), ''), 'Unknown') as country,
+				COUNT(DISTINCT id) as view_count,
+				CURRENT_DATE as stat_date
+			FROM deck_viewer_sessions
+			WHERE deleted_at IS NULL
+			GROUP BY deck_id, COALESCE(NULLIF(TRIM(country), ''), 'Unknown')
+		)
+		INSERT INTO deck_geographic_stats (
+			reference,
+			deck_id,
+			country,
+			view_count,
+			stat_date
+		)
+		SELECT 
+			'deck_geographic_stat_' || LOWER(REPLACE(uuid_generate_v4()::text, '-', '')),
+			deck_id,
+			country,
+			view_count,
+			stat_date
+		FROM geo_stats
+		ON CONFLICT (deck_id, country, stat_date)
+		DO UPDATE SET
+			view_count = EXCLUDED.view_count,
+			updated_at = CURRENT_TIMESTAMP
+	`
+
+	_, err = client.ExecContext(t.Context(), geoQuery)
+	require.NoError(t, err)
+
+	// Test engagements retrieval
+	opts := &malak.ListDeckEngagementsOptions{
+		DeckID: testDeck.ID,
+	}
+
+	engagements, err := deck.DeckEngagements(t.Context(), opts)
+	require.NoError(t, err)
+	require.NotNil(t, engagements)
+	require.NotEmpty(t, engagements.GeographicStats)
+	require.NotEmpty(t, engagements.DailyEngagements)
+}
