@@ -157,6 +157,22 @@ type DeckDailyEngagement struct {
 	bun.BaseModel `bun:"table:deck_daily_engagements" json:"-"`
 }
 
+type DeckGeographicStat struct {
+	ID uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+
+	Reference Reference `json:"reference,omitempty"`
+	DeckID    uuid.UUID `json:"deck_id,omitempty"`
+	Country   string    `json:"country,omitempty"`
+	ViewCount int       `json:"view_count,omitempty"`
+	StatDate  time.Time `json:"stat_date,omitempty"`
+
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
+
+	bun.BaseModel `bun:"table:deck_geographic_stats" json:"-"`
+}
+
 type DeckRepository interface {
 	Create(context.Context, *Deck, *CreateDeckOptions) error
 	List(context.Context, *Workspace) ([]Deck, error)
