@@ -158,9 +158,8 @@ func requireAuthentication(
 				return
 			}
 
-			// For all other paths, user must have a workspace
 			if user.Metadata.CurrentWorkspace == uuid.Nil {
-				_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, "You must be a member of a workspace"))
+				next.ServeHTTP(w, r)
 				return
 			}
 
