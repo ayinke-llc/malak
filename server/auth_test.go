@@ -77,7 +77,7 @@ func getConfig() config.Config {
 				UIEnabled bool "mapstructure:\"ui_enabled\" yaml:\"ui_enabled\""
 			} "mapstructure:\"swagger\" yaml:\"swagger\""
 		}{
-			Port: 8080,
+			Port: 8000,
 		},
 		Uploader: struct {
 			Driver        config.UploadDriver "yaml:\"driver\" mapstructure:\"driver\""

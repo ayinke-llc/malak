@@ -1,0 +1,1 @@
+{"sessions":[{"id":"00000000-0000-0000-0000-000000000001","deck_id":"00000000-0000-0000-0000-000000000000","contact_id":"00000000-0000-0000-0000-000000000000","viewed_at":"0001-01-01T00:00:00Z","created_at":"0001-01-01T00:00:00Z","updated_at":"0001-01-01T00:00:00Z"}],"meta":{"paging":{"total":1,"per_page":10,"page":1}},"message":"fetched deck viewing sessions"}

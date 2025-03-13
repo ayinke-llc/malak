@@ -246,13 +246,5 @@ func (c *Config) Validate() error {
 		return errors.New("trial days must be 0 or greater than 0")
 	}
 
-	if hermes.IsStringEmpty(c.Analytics.MaxMindCityDB) {
-		return errors.New("please provide your maxmind city db")
-	}
-
-	if hermes.IsStringEmpty(c.Analytics.MaxMindCountryDB) {
-		return errors.New("please provide your maxmind country db")
-	}
-
 	return nil
 }

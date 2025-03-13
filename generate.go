@@ -30,3 +30,4 @@ package malak
 //go:generate mockgen -source=integration.go -destination=mocks/integration.go -package=malak_mocks
 //go:generate mockgen -source=dashboard.go -destination=mocks/dashboard.go -package=malak_mocks
 //go:generate mockgen -source=template.go -destination=mocks/template.go -package=malak_mocks
+//go:generate mockgen -source=internal/pkg/geolocation/location.go -destination=mocks/location.go -package=malak_mocks

@@ -30,6 +30,8 @@ func TestServer_New(t *testing.T) {
 
 		cfg := getConfig()
 
+		geoService := malak_mocks.NewMockGeolocationService(controller)
+
 		srv, closeFn := New(getLogger(t), cfg, &bun.DB{},
 			jwttoken.New(cfg), socialauth.NewGoogle(cfg),
 			malak_mocks.NewMockDashboardRepository(controller),
@@ -50,7 +52,8 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockCache(controller),
 			malak_mocks.NewMockClient(controller),
 			integrations.NewManager(),
-			malak_mocks.NewMockSecretClient(controller))
+			malak_mocks.NewMockSecretClient(controller),
+			geoService)
 
 		if closeFn != nil {
 			closeFn()
@@ -77,6 +80,8 @@ func TestServer_New(t *testing.T) {
 		cfg.HTTP.Swagger.UIEnabled = true
 		cfg.HTTP.Swagger.Port = 9990
 
+		geoService := malak_mocks.NewMockGeolocationService(controller)
+
 		srv, closeFn := New(getLogger(t), cfg, &bun.DB{},
 			jwttoken.New(cfg), socialauth.NewGoogle(cfg),
 			malak_mocks.NewMockDashboardRepository(controller),
@@ -97,7 +102,8 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockCache(controller),
 			malak_mocks.NewMockClient(controller),
 			integrations.NewManager(),
-			malak_mocks.NewMockSecretClient(controller))
+			malak_mocks.NewMockSecretClient(controller),
+			geoService)
 
 		if closeFn != nil {
 			closeFn()
@@ -133,6 +139,7 @@ func TestNew(t *testing.T) {
 	cacheRepo := malak_mocks.NewMockCache(controller)
 	billingClient := malak_mocks.NewMockClient(controller)
 	secretsClient := malak_mocks.NewMockSecretClient(controller)
+	geoService := malak_mocks.NewMockGeolocationService(controller)
 
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err)
@@ -148,7 +155,7 @@ func TestNew(t *testing.T) {
 		integrationRepo,
 		malak_mocks.NewMockTemplateRepository(controller),
 		&httplimit.Middleware{}, &gulter.Gulter{}, queueRepo, cacheRepo,
-		billingClient, integrations.NewManager(), secretsClient)
+		billingClient, integrations.NewManager(), secretsClient, geoService)
 
 	require.NotNil(t, srv)
 	require.NotNil(t, closeFn)
@@ -172,6 +179,7 @@ func TestNewWithInvalidConfig(t *testing.T) {
 	cacheRepo := malak_mocks.NewMockCache(controller)
 	billingClient := malak_mocks.NewMockClient(controller)
 	secretsClient := malak_mocks.NewMockSecretClient(controller)
+	geoService := malak_mocks.NewMockGeolocationService(controller)
 
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err)
@@ -188,7 +196,7 @@ func TestNewWithInvalidConfig(t *testing.T) {
 		integrationRepo,
 		malak_mocks.NewMockTemplateRepository(controller),
 		&httplimit.Middleware{}, &gulter.Gulter{}, queueRepo, cacheRepo,
-		billingClient, integrations.NewManager(), secretsClient)
+		billingClient, integrations.NewManager(), secretsClient, geoService)
 
 	require.Nil(t, srv)
 	require.Nil(t, closeFn)

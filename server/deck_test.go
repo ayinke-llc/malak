@@ -18,6 +18,7 @@ import (
 	"github.com/ayinke-llc/malak"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -1057,101 +1058,132 @@ func TestDeckHandler_UploadImage(t *testing.T) {
 	}
 }
 
-func generatePublicDeckDetailsTestTable() []struct {
+func generateDeckSessionsTestTable() []struct {
 	name               string
-	mockFn             func(deck *malak_mocks.MockDeckRepository, gulter *mockStorage)
+	mockFn             func(deck *malak_mocks.MockDeckRepository)
 	expectedStatusCode int
+	queryParams        map[string]string
 } {
 	return []struct {
 		name               string
-		mockFn             func(deck *malak_mocks.MockDeckRepository, gulter *mockStorage)
+		mockFn             func(deck *malak_mocks.MockDeckRepository)
 		expectedStatusCode int
+		queryParams        map[string]string
 	}{
 		{
-			name: "no reference provided",
-			mockFn: func(deck *malak_mocks.MockDeckRepository, gulter *mockStorage) {
-			},
+			name:               "no reference provided",
+			mockFn:             func(deck *malak_mocks.MockDeckRepository) {},
 			expectedStatusCode: http.StatusBadRequest,
+			queryParams:        map[string]string{},
 		},
 		{
 			name: "deck not found",
-			mockFn: func(deck *malak_mocks.MockDeckRepository, gulter *mockStorage) {
-				deck.EXPECT().PublicDetails(gomock.Any(), gomock.Any()).
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(nil, malak.ErrDeckNotFound)
+					Return(&malak.Deck{}, malak.ErrDeckNotFound)
 			},
 			expectedStatusCode: http.StatusNotFound,
+			queryParams:        map[string]string{},
 		},
 		{
 			name: "error fetching deck",
-			mockFn: func(deck *malak_mocks.MockDeckRepository, gulter *mockStorage) {
-				deck.EXPECT().PublicDetails(gomock.Any(), gomock.Any()).
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(nil, errors.New("error occurred"))
+					Return(&malak.Deck{}, errors.New("database error"))
 			},
 			expectedStatusCode: http.StatusInternalServerError,
+			queryParams:        map[string]string{},
 		},
 		{
-			name: "error getting object path",
-			mockFn: func(deck *malak_mocks.MockDeckRepository, gulter *mockStorage) {
-				deck.EXPECT().PublicDetails(gomock.Any(), gomock.Any()).
+			name: "invalid days parameter",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(&malak.Deck{
-						Reference:   "deck_test",
-						WorkspaceID: workspaceID,
-						Title:       "Test Deck",
-						ShortLink:   "test-deck",
-						ObjectKey:   "test-key",
+						Reference: "deck_test",
+					}, nil)
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			queryParams: map[string]string{
+				"days": "15", // Only 7, 14, or 30 are valid
+			},
+		},
+		{
+			name: "error fetching analytics",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Deck{
+						Reference: "deck_test",
 					}, nil)
 
-				gulter.file = nil // This will cause Path to return an error
+				deck.EXPECT().SessionAnalytics(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, int64(0), errors.New("analytics error"))
 			},
 			expectedStatusCode: http.StatusInternalServerError,
+			queryParams:        map[string]string{},
 		},
 		{
-			name: "fetched public deck details successfully",
-			mockFn: func(deck *malak_mocks.MockDeckRepository, gulter *mockStorage) {
-				deck.EXPECT().PublicDetails(gomock.Any(), gomock.Any()).
+			name: "successfully fetched sessions",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(&malak.Deck{
-						Reference:   "deck_test",
-						WorkspaceID: workspaceID,
-						Title:       "Test Deck",
-						ShortLink:   "test-deck",
-						ObjectKey:   "test-key",
+						Reference: "deck_test",
 					}, nil)
 
-				gulter.file = &uploadedFileMetadata{
-					Size:              1024,
-					FolderDestination: "decks",
-					Key:               "test-key",
-				}
+				deck.EXPECT().SessionAnalytics(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]*malak.DeckViewerSession{
+						{
+							ID: uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+						},
+					}, int64(1), nil)
 			},
 			expectedStatusCode: http.StatusOK,
+			queryParams: map[string]string{
+				"days":     "7",
+				"page":     "1",
+				"per_page": "10",
+			},
 		},
 	}
 }
 
-func TestDeckHandler_PublicDeckDetails(t *testing.T) {
-	for _, v := range generatePublicDeckDetailsTestTable() {
+func TestDeckHandler_FetchDeckSessions(t *testing.T) {
+	for _, v := range generateDeckSessionsTestTable() {
 		t.Run(v.name, func(t *testing.T) {
 			controller := gomock.NewController(t)
 			defer controller.Finish()
 
 			deckRepo := malak_mocks.NewMockDeckRepository(controller)
-			gulterStore := &mockStorage{}
-
-			v.mockFn(deckRepo, gulterStore)
+			v.mockFn(deckRepo)
 
 			u := &deckHandler{
-				deckRepo:    deckRepo,
-				gulterStore: gulterStore,
-				cfg:         getConfig(),
+				referenceGenerator: &mockReferenceGenerator{},
+				deckRepo:           deckRepo,
 			}
 
 			rr := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodGet, "/public/decks/deck_test", nil)
+
+			// Build URL with query parameters
+			url := "/decks/deck_test/sessions"
+			if len(v.queryParams) > 0 {
+				params := make([]string, 0)
+				for key, value := range v.queryParams {
+					params = append(params, fmt.Sprintf("%s=%s", key, value))
+				}
+				url = fmt.Sprintf("%s?%s", url, strings.Join(params, "&"))
+			}
+
+			req := httptest.NewRequest(http.MethodGet, url, nil)
 			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
 
 			ctx := chi.NewRouteContext()
 			if v.name != "no reference provided" {
@@ -1160,8 +1192,123 @@ func TestDeckHandler_PublicDeckDetails(t *testing.T) {
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
 
 			WrapMalakHTTPHandler(getLogger(t),
-				u.publicDeckDetails,
-				getConfig(), "decks.public_details").
+				u.fetchDeckSessions,
+				getConfig(), "decks.fetch_sessions").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateDeckEngagementsTestTable() []struct {
+	name               string
+	mockFn             func(deck *malak_mocks.MockDeckRepository)
+	expectedStatusCode int
+} {
+	return []struct {
+		name               string
+		mockFn             func(deck *malak_mocks.MockDeckRepository)
+		expectedStatusCode int
+	}{
+		{
+			name:               "no reference provided",
+			mockFn:             func(deck *malak_mocks.MockDeckRepository) {},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "deck not found",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Deck{}, malak.ErrDeckNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "error fetching deck",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Deck{}, errors.New("database error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "error fetching engagements",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Deck{
+						Reference: "deck_test",
+					}, nil)
+
+				deck.EXPECT().DeckEngagements(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("engagements error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "successfully fetched engagements",
+			mockFn: func(deck *malak_mocks.MockDeckRepository) {
+				deck.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Deck{
+						Reference: "deck_test",
+					}, nil)
+
+				deck.EXPECT().DeckEngagements(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.DeckEngagementResponse{
+						DailyEngagements: []malak.DeckDailyEngagement{
+							{
+								EngagementCount: 100,
+							},
+						},
+						GeographicStats: []malak.DeckGeographicStat{
+							{
+								ViewCount: 100,
+							},
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
+func TestDeckHandler_FetchEngagements(t *testing.T) {
+	for _, v := range generateDeckEngagementsTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			deckRepo := malak_mocks.NewMockDeckRepository(controller)
+			v.mockFn(deckRepo)
+
+			u := &deckHandler{
+				referenceGenerator: &mockReferenceGenerator{},
+				deckRepo:           deckRepo,
+			}
+
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, "/decks/deck_test/analytics", nil)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+
+			ctx := chi.NewRouteContext()
+			if v.name != "no reference provided" {
+				ctx.URLParams.Add("reference", "deck_test")
+			}
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
+
+			WrapMalakHTTPHandler(getLogger(t),
+				u.fetchEngagements,
+				getConfig(), "decks.fetch_engagements").
 				ServeHTTP(rr, req)
 
 			require.Equal(t, v.expectedStatusCode, rr.Code)
