@@ -692,7 +692,7 @@ func (d *deckHandler) fetchDeckSessions(
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /decks/{reference}/engagements [get]
+// @Router /decks/{reference}/analytics [get]
 func (d *deckHandler) fetchEngagements(
 	ctx context.Context,
 	span trace.Span,

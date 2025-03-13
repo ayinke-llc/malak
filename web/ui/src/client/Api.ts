@@ -1335,6 +1335,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
+     * @description fetch deck engagements and geographic stats
+     *
+     * @tags decks
+     * @name AnalyticsDetail
+     * @request GET:/decks/{reference}/analytics
+     */
+    analyticsDetail: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerFetchEngagementsResponse, ServerAPIStatus>({
+        path: `/decks/${reference}/analytics`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description toggle archive status of a deck
      *
      * @tags decks
@@ -1345,21 +1360,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerFetchDeckResponse, ServerAPIStatus>({
         path: `/decks/${reference}/archive`,
         method: "POST",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description fetch deck engagements and geographic stats
-     *
-     * @tags decks
-     * @name EngagementsDetail
-     * @request GET:/decks/{reference}/engagements
-     */
-    engagementsDetail: (reference: string, params: RequestParams = {}) =>
-      this.request<ServerFetchEngagementsResponse, ServerAPIStatus>({
-        path: `/decks/${reference}/engagements`,
-        method: "GET",
         format: "json",
         ...params,
       }),

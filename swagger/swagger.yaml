@@ -2480,10 +2480,9 @@ paths:
           description: Internal Server Error
       tags:
       - decks
-  /decks/{reference}/archive:
-    post:
-      description: toggle archive status of a deck
-      operationId: toggleArchive
+  /decks/{reference}/analytics:
+    get:
+      description: fetch deck engagements and geographic stats
       parameters:
       - description: deck unique reference.. e.g deck_
         in: path
@@ -2496,7 +2495,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/server.fetchDeckResponse'
+                $ref: '#/components/schemas/server.fetchEngagementsResponse'
           description: OK
         "400":
           content:
@@ -2524,9 +2523,10 @@ paths:
           description: Internal Server Error
       tags:
       - decks
-  /decks/{reference}/engagements:
-    get:
-      description: fetch deck engagements and geographic stats
+  /decks/{reference}/archive:
+    post:
+      description: toggle archive status of a deck
+      operationId: toggleArchive
       parameters:
       - description: deck unique reference.. e.g deck_
         in: path
@@ -2539,7 +2539,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/server.fetchEngagementsResponse'
+                $ref: '#/components/schemas/server.fetchDeckResponse'
           description: OK
         "400":
           content:

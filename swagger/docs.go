@@ -1318,9 +1318,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/decks/{reference}/archive": {
-            "post": {
-                "description": "toggle archive status of a deck",
+        "/decks/{reference}/analytics": {
+            "get": {
+                "description": "fetch deck engagements and geographic stats",
                 "consumes": [
                     "application/json"
                 ],
@@ -1330,7 +1330,6 @@ const docTemplate = `{
                 "tags": [
                     "decks"
                 ],
-                "operationId": "toggleArchive",
                 "parameters": [
                     {
                         "type": "string",
@@ -1344,7 +1343,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.fetchDeckResponse"
+                            "$ref": "#/definitions/server.fetchEngagementsResponse"
                         }
                     },
                     "400": {
@@ -1374,9 +1373,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/decks/{reference}/engagements": {
-            "get": {
-                "description": "fetch deck engagements and geographic stats",
+        "/decks/{reference}/archive": {
+            "post": {
+                "description": "toggle archive status of a deck",
                 "consumes": [
                     "application/json"
                 ],
@@ -1386,6 +1385,7 @@ const docTemplate = `{
                 "tags": [
                     "decks"
                 ],
+                "operationId": "toggleArchive",
                 "parameters": [
                     {
                         "type": "string",
@@ -1399,7 +1399,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.fetchEngagementsResponse"
+                            "$ref": "#/definitions/server.fetchDeckResponse"
                         }
                     },
                     "400": {
