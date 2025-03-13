@@ -76,13 +76,14 @@ type EmailJob struct {
 }
 
 type EmailProcessor struct {
-	db          *bun.DB
-	emailClient email.Client
-	logger      *zap.Logger
-	tracer      trace.Tracer
-	cfg         *config.Config
-	metrics     *ProcessMetrics
-	rateLimiter *rate.Limiter
+	db            *bun.DB
+	emailClient   email.Client
+	logger        *zap.Logger
+	tracer        trace.Tracer
+	cfg           *config.Config
+	metrics       *ProcessMetrics
+	rateLimiter   *rate.Limiter
+	workspaceRepo malak.WorkspaceRepository
 }
 
 type ProcessorOptions struct {
@@ -113,13 +114,14 @@ type recipient struct {
 
 func NewEmailProcessor(db *bun.DB, emailClient email.Client, logger *zap.Logger, tracer trace.Tracer, cfg *config.Config, opts ProcessorOptions) *EmailProcessor {
 	return &EmailProcessor{
-		db:          db,
-		emailClient: emailClient,
-		logger:      logger,
-		tracer:      tracer,
-		cfg:         cfg,
-		metrics:     &ProcessMetrics{StartTime: time.Now()},
-		rateLimiter: rate.NewLimiter(rate.Limit(opts.RateLimit), opts.RateLimit),
+		db:            db,
+		emailClient:   emailClient,
+		logger:        logger,
+		tracer:        tracer,
+		cfg:           cfg,
+		metrics:       &ProcessMetrics{StartTime: time.Now()},
+		rateLimiter:   rate.NewLimiter(rate.Limit(opts.RateLimit), opts.RateLimit),
+		workspaceRepo: postgres.NewWorkspaceRepository(db),
 	}
 }
 
@@ -228,7 +230,15 @@ func (p *EmailProcessor) fetchNextBatch(ctx context.Context, updateID uuid.UUID)
 }
 
 func (p *EmailProcessor) createEmailJobs(recipients []recipient, update *malak.Update) []*EmailJob {
-	content, err := prepareEmailTemplate(update)
+	workspace, err := p.workspaceRepo.Get(context.Background(), &malak.FindWorkspaceOptions{
+		ID: update.WorkspaceID,
+	})
+	if err != nil {
+		// the workspace is supposed to exist so this is okay to do
+		panic(err.Error())
+	}
+
+	content, err := prepareEmailTemplate(update, workspace.WorkspaceName)
 	if err != nil {
 		// the template is supposed to be fine so this is okay to do
 		panic(err.Error())
@@ -439,14 +449,17 @@ func fetchUpdateDetails(ctx context.Context, db *bun.DB, updateID uuid.UUID) (*m
 	return update, err
 }
 
-func prepareEmailTemplate(update *malak.Update) (string, error) {
+func prepareEmailTemplate(update *malak.Update, workspaceName string) (string, error) {
 	tmpl, err := template.New("template").Parse(email.UpdateHTMLEmailTemplate)
 	if err != nil {
 		return "", err
 	}
 
 	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, map[string]string{"Content": update.Content.HTML()}); err != nil {
+	if err := tmpl.Execute(&buf, map[string]string{
+		"Content": update.Content.HTML(),
+		"Company": workspaceName,
+	}); err != nil {
 		return "", err
 	}
 
