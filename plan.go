@@ -50,7 +50,7 @@ type PlanMetadata struct {
 		CustomDomain      bool `json:"custom_domain,omitempty"`
 		Analytics         struct {
 			CanViewHistoricalSessions bool `json:"can_view_historical_sessions,omitempty"`
-		}
+		} `json:"analytics,omitempty"`
 	} `json:"deck,omitempty"`
 
 	Updates struct {

@@ -81,7 +81,8 @@ func (o *workspaceRepo) List(ctx context.Context, user *malak.User) (
 		Model(&workspaces).
 		Join(`JOIN roles as role on "role".workspace_id = "workspace".id`).
 		Where("role.user_id = ?", user.ID).
-		Order("created_at DESC").
+		Order("workspace.created_at DESC").
+		Relation("Plan").
 		Scan(ctx)
 }
 

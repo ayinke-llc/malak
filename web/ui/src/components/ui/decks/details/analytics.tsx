@@ -1,23 +1,7 @@
-import { Card } from "@/components/ui/card";
+import { MalakDeckViewerSession, MalakPlan, ServerFetchSessionsDeck } from "@/client/Api";
 import { Button } from "@/components/ui/button";
-import {
-  RiEyeLine,
-  RiUserLine,
-  RiTimeLine,
-  RiDownloadLine,
-  RiBarChartLine,
-  RiMapPinLine,
-  RiUserHeartLine,
-  RiFilterLine,
-  RiArrowLeftLine,
-  RiArrowRightLine,
-  RiVipCrownFill,
-  RiErrorWarningLine,
-} from "@remixicon/react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { ChartContainer, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import {
   Select,
   SelectContent,
@@ -26,21 +10,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ChartContainer, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
-import { useQuery } from "@tanstack/react-query";
 import client from "@/lib/client";
 import { LIST_DECK_SESSIONS } from "@/lib/query-constants";
-import { MalakDeckViewerSession, ServerFetchSessionsDeck } from "@/client/Api";
-
-// Feature flag for pro features
-const HAS_PRO_ACCESS = false; // Set this based on user's subscription status
+import {
+  RiArrowLeftLine,
+  RiArrowRightLine,
+  RiBarChartLine,
+  RiDownloadLine,
+  RiErrorWarningLine,
+  RiEyeLine,
+  RiFilterLine,
+  RiMapPinLine,
+  RiTimeLine,
+  RiUserHeartLine,
+  RiUserLine,
+  RiVipCrownFill,
+} from "@remixicon/react";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Cell, Pie, PieChart, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
+import Skeleton from "../../custom/loader/skeleton";
+import useWorkspacesStore from "@/store/workspace";
 
 // Time range options with pro status
 const TIME_RANGE_OPTIONS = [
   { value: "7", label: "Last 7 days", requiresPro: false },
   { value: "14", label: "Last 14 days", requiresPro: true },
-  { value: "30", label: "Last 30 days", requiresPro: true },
-  { value: "90", label: "Last 90 days", requiresPro: true },
+  { value: "30", label: "Last 30 days", requiresPro: true }
 ] as const;
 
 interface DeckAnalyticsProps {
@@ -75,59 +73,6 @@ function formatTimeSpent(seconds: number): string {
     .join(':');
 }
 
-// Extend ServerFetchSessionsDeck meta to include our analytics data
-declare module "@/client/Api" {
-  interface ServerMeta {
-    total_views: number;
-    unique_views: number;
-    average_time_spent: string;
-    downloads: number;
-    max_views: number;
-    engagement_trends: EngagementTrend[];
-    geographic_distribution: GeographicDistribution[];
-  }
-
-  interface MalakDeckViewerSession {
-    contact?: MalakContact;
-  }
-}
-
-// Add these components at the top level, before the DeckAnalytics component
-function LoadingState() {
-  return (
-    <div className="space-y-6 animate-pulse">
-      <Card className="p-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i}>
-              <div className="h-6 w-24 bg-muted rounded mb-2" />
-              <div className="h-8 w-16 bg-muted rounded" />
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[...Array(2)].map((_, i) => (
-          <Card key={i} className="p-6">
-            <div className="h-6 w-32 bg-muted rounded mb-4" />
-            <div className="h-[200px] bg-muted rounded" />
-          </Card>
-        ))}
-      </div>
-
-      <Card className="p-6">
-        <div className="h-6 w-32 bg-muted rounded mb-6" />
-        <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-12 bg-muted rounded" />
-          ))}
-        </div>
-      </Card>
-    </div>
-  );
-}
-
 function ErrorState({ error }: { error: Error }) {
   return (
     <Card className="p-8">
@@ -154,13 +99,15 @@ function ErrorState({ error }: { error: Error }) {
 function NoSessionsState() {
   return (
     <Card className="p-8">
-      <div className="flex flex-col items-center justify-center text-center space-y-4">
-        <RiUserHeartLine className="h-12 w-12 text-muted-foreground" />
-        <div className="space-y-2">
-          <h3 className="text-lg font-medium">No viewer sessions yet</h3>
-          <p className="text-sm text-muted-foreground max-w-md">
-            When people view your deck, their session data will appear here.
-          </p>
+      <div className="space-y-6">
+        <div className="flex flex-col items-center justify-center text-center space-y-4">
+          <RiUserHeartLine className="h-12 w-12 text-muted-foreground" />
+          <div className="space-y-2">
+            <h3 className="text-lg font-medium">No viewer sessions yet</h3>
+            <p className="text-sm text-muted-foreground max-w-md">
+              When people view your deck, their session data will appear here.
+            </p>
+          </div>
         </div>
       </div>
     </Card>
@@ -172,8 +119,9 @@ export default function DeckAnalytics({ reference }: DeckAnalyticsProps) {
   const [timeFilter, setTimeFilter] = useState("7"); // Default to 7 days for non-pro users
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const plan = useWorkspacesStore(state => state.current?.plan as MalakPlan)
 
-  const { data: sessionsData, isLoading, error } = useQuery<ServerFetchSessionsDeck>({
+  const { data: sessionsData, isLoading, error, isFetching } = useQuery<ServerFetchSessionsDeck>({
     queryKey: [LIST_DECK_SESSIONS, reference, timeFilter, currentPage],
     queryFn: () => client.decks.sessionsDetail(
       reference,
@@ -185,8 +133,12 @@ export default function DeckAnalytics({ reference }: DeckAnalyticsProps) {
     ).then(res => res.data),
   });
 
-  if (isLoading) {
-    return <LoadingState />;
+  if (isLoading || isFetching) {
+    return (
+      <div className="space-y-6">
+        <Skeleton count={5} />
+      </div>
+    )
   }
 
   if (error) {
@@ -214,8 +166,8 @@ export default function DeckAnalytics({ reference }: DeckAnalyticsProps) {
 
   return (
     <div className="space-y-6">
-      {/* Basic Metrics Overview */}
-      {false && (<Card className="p-6">
+      {/* Basic Metrics Overview - Commented out due to type changes
+      <Card className="p-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -246,15 +198,20 @@ export default function DeckAnalytics({ reference }: DeckAnalyticsProps) {
             <p className="text-2xl font-medium">{sessionsData?.meta?.downloads || 0}</p>
           </div>
         </div>
-      </Card>)}
+      </Card>
+      */}
 
       {/* Detailed Analytics */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Engagement Trends */}
+        {/* Commenting out Engagement Trends and Geographic Distribution for now */}
+        {/* Engagement Trends 
         <Card className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <RiBarChartLine className="h-5 w-5 text-muted-foreground" />
-            <h3 className="font-medium">Engagement Trends</h3>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <RiBarChartLine className="h-5 w-5 text-muted-foreground" />
+              <h3 className="font-medium">Engagement Trends</h3>
+            </div>
+            <span className="text-sm text-muted-foreground">Data may be delayed by a few hours</span>
           </div>
           <div className="h-[200px] flex flex-col gap-2">
             {sessionsData?.meta?.engagement_trends?.map((trend: EngagementTrend) => (
@@ -273,12 +230,16 @@ export default function DeckAnalytics({ reference }: DeckAnalyticsProps) {
             )) || []}
           </div>
         </Card>
+        */}
 
-        {/* Geographic Distribution */}
+        {/* Geographic Distribution 
         <Card className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <RiMapPinLine className="h-5 w-5 text-muted-foreground" />
-            <h3 className="font-medium">Geographic Distribution</h3>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <RiMapPinLine className="h-5 w-5 text-muted-foreground" />
+              <h3 className="font-medium">Geographic Distribution</h3>
+            </div>
+            <span className="text-sm text-muted-foreground">Data may be delayed by a few hours</span>
           </div>
           <div className="flex flex-col items-center">
             <ChartContainer
@@ -344,6 +305,7 @@ export default function DeckAnalytics({ reference }: DeckAnalyticsProps) {
             </ChartContainer>
           </div>
         </Card>
+        */}
       </div>
 
       {/* Viewer Sessions */}
@@ -367,12 +329,12 @@ export default function DeckAnalytics({ reference }: DeckAnalyticsProps) {
                         <div className="flex items-center justify-between w-full px-2 py-1.5 relative">
                           <SelectItem
                             value={option.value}
-                            disabled={option.requiresPro && !HAS_PRO_ACCESS}
+                            disabled={option.requiresPro && !plan.metadata?.deck?.analytics?.can_view_historical_sessions}
                             className="w-full"
                           >
                             {option.label}
                           </SelectItem>
-                          {option.requiresPro && !HAS_PRO_ACCESS && (
+                          {option.requiresPro && !plan.metadata?.deck?.analytics?.can_view_historical_sessions && (
                             <button
                               onClick={(e) => {
                                 e.preventDefault();
@@ -388,7 +350,7 @@ export default function DeckAnalytics({ reference }: DeckAnalyticsProps) {
                           )}
                         </div>
                       </TooltipTrigger>
-                      {option.requiresPro && !HAS_PRO_ACCESS && (
+                      {option.requiresPro && !plan.metadata?.deck?.analytics?.can_view_historical_sessions && (
                         <TooltipContent
                           side="right"
                           className="w-72 p-4 bg-popover border rounded-md shadow-md"
@@ -472,7 +434,7 @@ export default function DeckAnalytics({ reference }: DeckAnalyticsProps) {
                   </td>
                   <td className="py-3">
                     <span className="text-sm text-muted-foreground">
-                      {session.os && session.device_info 
+                      {session.os && session.device_info
                         ? `${session.os} / ${session.device_info}`
                         : session.os || session.device_info || 'N/A'}
                     </span>
