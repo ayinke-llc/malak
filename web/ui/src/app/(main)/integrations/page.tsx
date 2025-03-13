@@ -1,11 +1,4 @@
-"use client"
-
-import dynamic from 'next/dynamic'
-
-const IntegrationsPage = dynamic(
-  () => import('@/components/pages/integrations'),
-  { ssr: false }
-)
+import IntegrationsPage from '@/components/pages/integrations'
 
 export default function Page() {
   return <IntegrationsPage />
