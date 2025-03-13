@@ -194,7 +194,7 @@ You need to create two buckets:
 
 #### Images are not showing correctly in the editor
 
-Please make sure the buckets are publicly available. This allows images to be read correctly
+Please make sure the image bucket is publicly available. This allows images to be read correctly
 
 #### Configure mc client
 

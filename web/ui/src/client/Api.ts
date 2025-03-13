@@ -150,6 +150,33 @@ export interface MalakDeck {
   workspace_id?: string;
 }
 
+export interface MalakDeckDailyEngagement {
+  created_at?: string;
+  deck_id?: string;
+  engagement_count?: number;
+  engagement_date?: string;
+  id?: string;
+  reference?: string;
+  updated_at?: string;
+  workspace_id?: string;
+}
+
+export interface MalakDeckEngagementResponse {
+  daily_engagements: MalakDeckDailyEngagement[];
+  geographic_stats: MalakDeckGeographicStat[];
+}
+
+export interface MalakDeckGeographicStat {
+  country?: string;
+  created_at?: string;
+  deck_id?: string;
+  id?: string;
+  reference?: string;
+  stat_date?: string;
+  updated_at?: string;
+  view_count?: number;
+}
+
 export interface MalakDeckPreference {
   created_at?: string;
   created_by?: string;
@@ -162,6 +189,25 @@ export interface MalakDeckPreference {
   require_email?: boolean;
   updated_at?: string;
   workspace_id?: string;
+}
+
+export interface MalakDeckViewerSession {
+  browser?: string;
+  city?: string;
+  contact?: MalakContact;
+  contact_id?: string;
+  country?: string;
+  created_at?: string;
+  deck_id?: string;
+  device_info?: string;
+  id?: string;
+  ip_address?: string;
+  os?: string;
+  reference?: string;
+  session_id?: string;
+  time_spent_seconds?: number;
+  updated_at?: string;
+  viewed_at?: string;
 }
 
 export interface MalakIntegration {
@@ -276,6 +322,9 @@ export interface MalakPlanMetadata {
     size?: number;
   };
   deck?: {
+    analytics?: {
+      can_view_historical_sessions?: boolean;
+    };
     auto_terminate_link?: boolean;
     custom_domain?: boolean;
   };
@@ -305,12 +354,19 @@ export interface MalakPublicDeck {
   deck_size?: number;
   is_archived?: boolean;
   object_link?: string;
-  preferences?: MalakDeckPreference;
+  preferences?: MalakPublicDeckPreference;
   reference?: string;
+  session?: MalakDeckViewerSession;
   short_link?: string;
   title?: string;
   updated_at?: string;
   workspace_id?: string;
+}
+
+export interface MalakPublicDeckPreference {
+  enable_downloading?: boolean;
+  has_password?: boolean;
+  require_email?: boolean;
 }
 
 export enum MalakRecipientStatus {
@@ -515,6 +571,13 @@ export interface ServerCreateDeckRequest {
   title?: string;
 }
 
+export interface ServerCreateDeckViewerSession {
+  browser: string;
+  device_info: string;
+  os: string;
+  password: string;
+}
+
 export interface ServerCreateUpdateContent {
   template?: {
     is_system_template?: boolean;
@@ -592,9 +655,20 @@ export interface ServerFetchDetailedContactResponse {
   shared_items: MalakContactShareItem[];
 }
 
+export interface ServerFetchEngagementsResponse {
+  engagements: MalakDeckEngagementResponse;
+  message: string;
+}
+
 export interface ServerFetchPublicDeckResponse {
   deck: MalakPublicDeck;
   message: string;
+}
+
+export interface ServerFetchSessionsDeck {
+  message: string;
+  meta: ServerMeta;
+  sessions: MalakDeckViewerSession[];
 }
 
 export interface ServerFetchTemplatesResponse {
@@ -1261,6 +1335,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
+     * @description fetch deck engagements and geographic stats
+     *
+     * @tags decks
+     * @name AnalyticsDetail
+     * @request GET:/decks/{reference}/analytics
+     */
+    analyticsDetail: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerFetchEngagementsResponse, ServerAPIStatus>({
+        path: `/decks/${reference}/analytics`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description toggle archive status of a deck
      *
      * @tags decks
@@ -1306,19 +1395,65 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
+
+    /**
+     * @description fetch deck viewing sessions on dashboard
+     *
+     * @tags decks
+     * @name SessionsDetail
+     * @request GET:/decks/{reference}/sessions
+     */
+    sessionsDetail: (
+      reference: string,
+      query?: {
+        /** Page to query data from. Defaults to 1 */
+        page?: number;
+        /** Number to items to return. Defaults to 10 items */
+        per_page?: number;
+        /** number of days to fetch deck sessions */
+        days?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerFetchSessionsDeck, ServerAPIStatus>({
+        path: `/decks/${reference}/sessions`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
   };
   public = {
     /**
      * @description public api to fetch a deck
      *
      * @tags decks-viewer
-     * @name DecksDetail
-     * @request GET:/public/decks/{reference}
+     * @name DecksCreate
+     * @request POST:/public/decks/{reference}
      */
-    decksDetail: (reference: string, params: RequestParams = {}) =>
+    decksCreate: (reference: string, data: ServerCreateDeckViewerSession, params: RequestParams = {}) =>
       this.request<ServerFetchPublicDeckResponse, ServerAPIStatus>({
         path: `/public/decks/${reference}`,
-        method: "GET",
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description update the session details
+     *
+     * @tags decks-viewer
+     * @name DecksUpdate
+     * @request PUT:/public/decks/{reference}
+     */
+    decksUpdate: (reference: string, data: ServerCreateDeckViewerSession, params: RequestParams = {}) =>
+      this.request<ServerFetchPublicDeckResponse, ServerAPIStatus>({
+        path: `/public/decks/${reference}`,
+        method: "PUT",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

@@ -9,6 +9,7 @@ import (
 	"hash/fnv"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/adelowo/gulter"
@@ -16,6 +17,7 @@ import (
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/cache"
+	"github.com/ayinke-llc/malak/internal/pkg/geolocation"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/microcosm-cc/bluemonday"
@@ -29,6 +31,8 @@ type deckHandler struct {
 	cache              cache.Cache
 	cfg                config.Config
 	gulterStore        gulter.Storage
+	geolocationService geolocation.GeolocationService
+	contactRepo        malak.ContactRepository
 }
 
 func hashURL(rawURL string) (string, error) {
@@ -594,25 +598,28 @@ func (d *deckHandler) togglePinned(
 	}, StatusSuccess
 }
 
-// @Description public api to fetch a deck
-// @Tags decks-viewer
+// @Description fetch deck viewing sessions on dashboard
+// @Tags decks
 // @Accept  json
 // @Produce  json
 // @Param reference path string required "deck unique reference.. e.g deck_"
-// @Success 200 {object} fetchPublicDeckResponse
+// @Param page query int false "Page to query data from. Defaults to 1"
+// @Param per_page query int false "Number to items to return. Defaults to 10 items"
+// @Param days query int false "number of days to fetch deck sessions"
+// @Success 200 {object} fetchSessionsDeck
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /public/decks/{reference} [get]
-func (d *deckHandler) publicDeckDetails(
+// @Router /decks/{reference}/sessions [get]
+func (d *deckHandler) fetchDeckSessions(
 	ctx context.Context,
-	_ trace.Span,
+	span trace.Span,
 	logger *zap.Logger,
-	_ http.ResponseWriter,
+	w http.ResponseWriter,
 	r *http.Request) (render.Renderer, Status) {
 
-	logger.Debug("fetching deck public resource")
+	logger.Debug("fetching deck analytics")
 
 	ref := chi.URLParam(r, "reference")
 
@@ -620,7 +627,10 @@ func (d *deckHandler) publicDeckDetails(
 		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
 	}
 
-	deck, err := d.deckRepo.PublicDetails(ctx, malak.Reference(ref))
+	deck, err := d.deckRepo.Get(ctx, malak.FetchDeckOptions{
+		Reference:   ref,
+		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
+	})
 	if err != nil {
 		logger.Error("could not fetch deck", zap.Error(err))
 		status := http.StatusInternalServerError
@@ -634,30 +644,105 @@ func (d *deckHandler) publicDeckDetails(
 		return newAPIStatus(status, msg), StatusFailed
 	}
 
-	objectLink, err := d.gulterStore.Path(ctx, gulter.PathOptions{
-		Bucket:         d.cfg.Uploader.S3.DeckBucket,
-		Key:            deck.ObjectKey,
-		ExpirationTime: time.Minute * 15,
-		IsSecure:       true,
-	})
+	paginator := malak.PaginatorFromRequest(r)
+
+	var days int64 = 7 // default to 7 days if not specified
+	if daysStr := r.URL.Query().Get("days"); daysStr != "" {
+		if d, err := strconv.ParseInt(daysStr, 10, 64); err == nil {
+			if d != 7 && d != 14 && d != 30 {
+				return newAPIStatus(http.StatusBadRequest, "days parameter must be 7, 14, or 30"), StatusFailed
+			}
+			days = d
+		}
+	}
+
+	opts := &malak.ListSessionAnalyticsOptions{
+		Paginator: paginator,
+		DeckID:    deck.ID,
+		Days:      days,
+	}
+
+	sessions, total, err := d.deckRepo.SessionAnalytics(ctx, opts)
 	if err != nil {
-		return newAPIStatus(http.StatusInternalServerError, "could not find path to deck"),
+		logger.Error("could not fetch analytics", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch deck analytics"),
 			StatusFailed
 	}
 
-	return fetchPublicDeckResponse{
-		APIStatus: newAPIStatus(http.StatusOK, "fetched deck details"),
-		Deck: malak.PublicDeck{
-			Reference:      malak.Reference(ref),
-			WorkspaceID:    deck.WorkspaceID,
-			Title:          deck.Title,
-			ShortLink:      deck.ShortLink,
-			DeckSize:       deck.DeckSize,
-			IsArchived:     deck.IsArchived,
-			CreatedAt:      deck.CreatedAt,
-			UpdatedAt:      deck.UpdatedAt,
-			DeckPreference: deck.DeckPreference,
-			ObjectLink:     objectLink,
+	return fetchSessionsDeck{
+		APIStatus: newAPIStatus(http.StatusOK, "fetched deck viewing sessions"),
+		Sessions:  sessions,
+		Meta: meta{
+			Paging: pagingInfo{
+				Total:   total,
+				PerPage: paginator.PerPage,
+				Page:    paginator.Page,
+			},
 		},
 	}, StatusSuccess
+}
+
+// @Description fetch deck engagements and geographic stats
+// @Tags decks
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "deck unique reference.. e.g deck_"
+// @Success 200 {object} fetchEngagementsResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /decks/{reference}/analytics [get]
+func (d *deckHandler) fetchEngagements(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("fetching deck engagements")
+
+	ref := chi.URLParam(r, "reference")
+
+	if hermes.IsStringEmpty(ref) {
+		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
+	}
+
+	deck, err := d.deckRepo.Get(ctx, malak.FetchDeckOptions{
+		Reference:   ref,
+		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
+	})
+	if err != nil {
+		logger.Error("could not fetch deck", zap.Error(err))
+		status := http.StatusInternalServerError
+		msg := "an error occurred while fetching deck"
+
+		if errors.Is(err, malak.ErrDeckNotFound) {
+			status = http.StatusNotFound
+			msg = "deck does not exists"
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	opts := &malak.ListDeckEngagementsOptions{
+		DeckID: deck.ID,
+	}
+
+	engagements, err := d.deckRepo.DeckEngagements(ctx, opts)
+	if err != nil {
+		logger.Error("could not fetch engagements", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch deck engagements"),
+			StatusFailed
+	}
+
+	return fetchEngagementsResponse{
+		APIStatus:   newAPIStatus(http.StatusOK, "fetched deck engagements"),
+		Engagements: engagements,
+	}, StatusSuccess
+}
+
+type fetchEngagementsResponse struct {
+	APIStatus
+	Engagements *malak.DeckEngagementResponse `json:"engagements,omitempty" validate:"required"`
 }

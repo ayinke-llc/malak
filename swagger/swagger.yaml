@@ -239,6 +239,58 @@ components:
         workspace_id:
           type: string
       type: object
+    malak.DeckDailyEngagement:
+      properties:
+        created_at:
+          type: string
+        deck_id:
+          type: string
+        engagement_count:
+          type: integer
+        engagement_date:
+          type: string
+        id:
+          type: string
+        reference:
+          type: string
+        updated_at:
+          type: string
+        workspace_id:
+          type: string
+      type: object
+    malak.DeckEngagementResponse:
+      properties:
+        daily_engagements:
+          items:
+            $ref: '#/components/schemas/malak.DeckDailyEngagement'
+          type: array
+        geographic_stats:
+          items:
+            $ref: '#/components/schemas/malak.DeckGeographicStat'
+          type: array
+      required:
+      - daily_engagements
+      - geographic_stats
+      type: object
+    malak.DeckGeographicStat:
+      properties:
+        country:
+          type: string
+        created_at:
+          type: string
+        deck_id:
+          type: string
+        id:
+          type: string
+        reference:
+          type: string
+        stat_date:
+          type: string
+        updated_at:
+          type: string
+        view_count:
+          type: integer
+      type: object
     malak.DeckPreference:
       properties:
         created_at:
@@ -262,6 +314,41 @@ components:
         updated_at:
           type: string
         workspace_id:
+          type: string
+      type: object
+    malak.DeckViewerSession:
+      properties:
+        browser:
+          type: string
+        city:
+          type: string
+        contact:
+          $ref: '#/components/schemas/malak.Contact'
+        contact_id:
+          type: string
+        country:
+          type: string
+        created_at:
+          type: string
+        deck_id:
+          type: string
+        device_info:
+          type: string
+        id:
+          type: string
+        ip_address:
+          type: string
+        os:
+          type: string
+        reference:
+          type: string
+        session_id:
+          type: string
+        time_spent_seconds:
+          type: integer
+        updated_at:
+          type: string
+        viewed_at:
           type: string
       type: object
     malak.Integration:
@@ -441,6 +528,11 @@ components:
           type: object
         deck:
           properties:
+            analytics:
+              properties:
+                can_view_historical_sessions:
+                  type: boolean
+              type: object
             auto_terminate_link:
               type: boolean
             custom_domain:
@@ -490,9 +582,11 @@ components:
         object_link:
           type: string
         preferences:
-          $ref: '#/components/schemas/malak.DeckPreference'
+          $ref: '#/components/schemas/malak.PublicDeckPreference'
         reference:
           type: string
+        session:
+          $ref: '#/components/schemas/malak.DeckViewerSession'
         short_link:
           type: string
         title:
@@ -501,6 +595,15 @@ components:
           type: string
         workspace_id:
           type: string
+      type: object
+    malak.PublicDeckPreference:
+      properties:
+        enable_downloading:
+          type: boolean
+        has_password:
+          type: boolean
+        require_email:
+          type: boolean
       type: object
     malak.RecipientStatus:
       enum:
@@ -843,6 +946,22 @@ components:
         title:
           type: string
       type: object
+    server.createDeckViewerSession:
+      properties:
+        browser:
+          type: string
+        device_info:
+          type: string
+        os:
+          type: string
+        password:
+          type: string
+      required:
+      - browser
+      - device_info
+      - os
+      - password
+      type: object
     server.createUpdateContent:
       properties:
         template:
@@ -1010,6 +1129,16 @@ components:
       - message
       - shared_items
       type: object
+    server.fetchEngagementsResponse:
+      properties:
+        engagements:
+          $ref: '#/components/schemas/malak.DeckEngagementResponse'
+        message:
+          type: string
+      required:
+      - engagements
+      - message
+      type: object
     server.fetchPublicDeckResponse:
       properties:
         deck:
@@ -1019,6 +1148,21 @@ components:
       required:
       - deck
       - message
+      type: object
+    server.fetchSessionsDeck:
+      properties:
+        message:
+          type: string
+        meta:
+          $ref: '#/components/schemas/server.meta'
+        sessions:
+          items:
+            $ref: '#/components/schemas/malak.DeckViewerSession'
+          type: array
+      required:
+      - message
+      - meta
+      - sessions
       type: object
     server.fetchTemplatesResponse:
       properties:
@@ -2336,6 +2480,49 @@ paths:
           description: Internal Server Error
       tags:
       - decks
+  /decks/{reference}/analytics:
+    get:
+      description: fetch deck engagements and geographic stats
+      parameters:
+      - description: deck unique reference.. e.g deck_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchEngagementsResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      tags:
+      - decks
   /decks/{reference}/archive:
     post:
       description: toggle archive status of a deck
@@ -2475,9 +2662,9 @@ paths:
           description: Internal Server Error
       tags:
       - decks
-  /public/decks/{reference}:
+  /decks/{reference}/sessions:
     get:
-      description: public api to fetch a deck
+      description: fetch deck viewing sessions on dashboard
       parameters:
       - description: deck unique reference.. e.g deck_
         in: path
@@ -2485,6 +2672,122 @@ paths:
         required: true
         schema:
           type: string
+      - description: Page to query data from. Defaults to 1
+        in: query
+        name: page
+        schema:
+          type: integer
+      - description: Number to items to return. Defaults to 10 items
+        in: query
+        name: per_page
+        schema:
+          type: integer
+      - description: number of days to fetch deck sessions
+        in: query
+        name: days
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchSessionsDeck'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      tags:
+      - decks
+  /public/decks/{reference}:
+    post:
+      description: public api to fetch a deck
+      parameters:
+      - description: 'deck unique reference.. '
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.createDeckViewerSession'
+        description: deck session request body
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchPublicDeckResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      tags:
+      - decks-viewer
+    put:
+      description: update the session details
+      parameters:
+      - description: 'session unique reference.. '
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.createDeckViewerSession'
+        description: deck session request body
+        required: true
+        x-originalParamName: message
       responses:
         "200":
           content:

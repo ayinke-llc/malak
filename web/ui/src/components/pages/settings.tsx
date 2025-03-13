@@ -53,7 +53,7 @@ export default function Settings() {
 
         <section className="mt-10">
           <Tabs defaultValue={getDefaultValue()} className="space-y-6">
-            <TabsList className="w-full justify-start border-b pb-px mb-4">
+            <TabsList className="w-full justify-start border-b pb-px mb-4" variant="vercel">
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="billing">Billing</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>

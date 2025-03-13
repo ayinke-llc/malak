@@ -59,10 +59,16 @@ func (i *integrationRepo) Create(ctx context.Context,
 				})
 			}
 
-			_, err = tx.NewInsert().
-				Model(&workspaceIntegrations).
-				On("CONFLICT (workspace_id,integration_id) DO NOTHING").
-				Exec(ctx)
+			if len(workspaceIntegrations) > 0 {
+				_, err = tx.NewInsert().
+					Model(&workspaceIntegrations).
+					On("CONFLICT (workspace_id,integration_id) DO NOTHING").
+					Exec(ctx)
+				if err != nil {
+					return err
+				}
+			}
+
 			return err
 		})
 }

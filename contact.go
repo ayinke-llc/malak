@@ -28,18 +28,19 @@ type Contact struct {
 	Company     string    `json:"company,omitempty"`
 
 	// Legacy lmao. should be address but migrations bit ugh :))
-	City  string               `json:"city,omitempty"`
-	Phone string               `json:"phone,omitempty"`
+	City  string `json:"city,omitempty"`
+	Phone string `json:"phone,omitempty"`
+
 	Notes string               `json:"notes,omitempty"`
 	Lists []ContactListMapping `json:"lists" bun:"rel:has-many,join:id=contact_id"`
 
 	// User who owns the contact.
 	// Does not mean who added the contact but who chases
 	// or follows up officially with the contact
-	OwnerID uuid.UUID `json:"owner_id,omitempty"`
+	OwnerID uuid.UUID `json:"owner_id,omitempty" bun:",nullzero"`
 
 	// User who added/created this contact
-	CreatedBy uuid.UUID `json:"created_by,omitempty"`
+	CreatedBy uuid.UUID `json:"created_by,omitempty" bun:",nullzero"`
 
 	Metadata CustomContactMetadata `json:"metadata,omitempty"`
 

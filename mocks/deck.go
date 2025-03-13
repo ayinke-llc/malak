@@ -55,6 +55,35 @@ func (mr *MockDeckRepositoryMockRecorder) Create(arg0, arg1, arg2 any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockDeckRepository)(nil).Create), arg0, arg1, arg2)
 }
 
+// CreateDeckSession mocks base method.
+func (m *MockDeckRepository) CreateDeckSession(arg0 context.Context, arg1 *malak.DeckViewerSession) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateDeckSession", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateDeckSession indicates an expected call of CreateDeckSession.
+func (mr *MockDeckRepositoryMockRecorder) CreateDeckSession(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDeckSession", reflect.TypeOf((*MockDeckRepository)(nil).CreateDeckSession), arg0, arg1)
+}
+
+// DeckEngagements mocks base method.
+func (m *MockDeckRepository) DeckEngagements(arg0 context.Context, arg1 *malak.ListDeckEngagementsOptions) (*malak.DeckEngagementResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeckEngagements", arg0, arg1)
+	ret0, _ := ret[0].(*malak.DeckEngagementResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeckEngagements indicates an expected call of DeckEngagements.
+func (mr *MockDeckRepositoryMockRecorder) DeckEngagements(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeckEngagements", reflect.TypeOf((*MockDeckRepository)(nil).DeckEngagements), arg0, arg1)
+}
+
 // Delete mocks base method.
 func (m *MockDeckRepository) Delete(arg0 context.Context, arg1 *malak.Deck) error {
 	m.ctrl.T.Helper()
@@ -67,6 +96,21 @@ func (m *MockDeckRepository) Delete(arg0 context.Context, arg1 *malak.Deck) erro
 func (mr *MockDeckRepositoryMockRecorder) Delete(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockDeckRepository)(nil).Delete), arg0, arg1)
+}
+
+// FindDeckSession mocks base method.
+func (m *MockDeckRepository) FindDeckSession(arg0 context.Context, arg1 string) (*malak.DeckViewerSession, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindDeckSession", arg0, arg1)
+	ret0, _ := ret[0].(*malak.DeckViewerSession)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindDeckSession indicates an expected call of FindDeckSession.
+func (mr *MockDeckRepositoryMockRecorder) FindDeckSession(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindDeckSession", reflect.TypeOf((*MockDeckRepository)(nil).FindDeckSession), arg0, arg1)
 }
 
 // Get mocks base method.
@@ -114,6 +158,22 @@ func (mr *MockDeckRepositoryMockRecorder) PublicDetails(arg0, arg1 any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublicDetails", reflect.TypeOf((*MockDeckRepository)(nil).PublicDetails), arg0, arg1)
 }
 
+// SessionAnalytics mocks base method.
+func (m *MockDeckRepository) SessionAnalytics(arg0 context.Context, arg1 *malak.ListSessionAnalyticsOptions) ([]*malak.DeckViewerSession, int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SessionAnalytics", arg0, arg1)
+	ret0, _ := ret[0].([]*malak.DeckViewerSession)
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// SessionAnalytics indicates an expected call of SessionAnalytics.
+func (mr *MockDeckRepositoryMockRecorder) SessionAnalytics(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SessionAnalytics", reflect.TypeOf((*MockDeckRepository)(nil).SessionAnalytics), arg0, arg1)
+}
+
 // ToggleArchive mocks base method.
 func (m *MockDeckRepository) ToggleArchive(arg0 context.Context, arg1 *malak.Deck) error {
 	m.ctrl.T.Helper()
@@ -140,6 +200,20 @@ func (m *MockDeckRepository) TogglePinned(arg0 context.Context, arg1 *malak.Deck
 func (mr *MockDeckRepositoryMockRecorder) TogglePinned(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePinned", reflect.TypeOf((*MockDeckRepository)(nil).TogglePinned), arg0, arg1)
+}
+
+// UpdateDeckSession mocks base method.
+func (m *MockDeckRepository) UpdateDeckSession(arg0 context.Context, arg1 *malak.UpdateDeckSessionOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateDeckSession", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateDeckSession indicates an expected call of UpdateDeckSession.
+func (mr *MockDeckRepositoryMockRecorder) UpdateDeckSession(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateDeckSession", reflect.TypeOf((*MockDeckRepository)(nil).UpdateDeckSession), arg0, arg1)
 }
 
 // UpdatePreferences mocks base method.

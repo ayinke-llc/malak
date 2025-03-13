@@ -1318,6 +1318,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/decks/{reference}/analytics": {
+            "get": {
+                "description": "fetch deck engagements and geographic stats",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "decks"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deck unique reference.. e.g deck_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchEngagementsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/decks/{reference}/archive": {
             "post": {
                 "description": "toggle archive status of a deck",
@@ -1494,8 +1549,143 @@ const docTemplate = `{
                 }
             }
         },
-        "/public/decks/{reference}": {
+        "/decks/{reference}/sessions": {
             "get": {
+                "description": "fetch deck viewing sessions on dashboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "decks"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deck unique reference.. e.g deck_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page to query data from. Defaults to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number to items to return. Defaults to 10 items",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "number of days to fetch deck sessions",
+                        "name": "days",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchSessionsDeck"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/decks/{reference}": {
+            "put": {
+                "description": "update the session details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "decks-viewer"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "session unique reference.. ",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "deck session request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createDeckViewerSession"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchPublicDeckResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            },
+            "post": {
                 "description": "public api to fetch a deck",
                 "consumes": [
                     "application/json"
@@ -1509,10 +1699,19 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "deck unique reference.. e.g deck_",
+                        "description": "deck unique reference.. ",
                         "name": "reference",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "deck session request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createDeckViewerSession"
+                        }
                     }
                 ],
                 "responses": {
@@ -3383,6 +3582,85 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.DeckDailyEngagement": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deck_id": {
+                    "type": "string"
+                },
+                "engagement_count": {
+                    "type": "integer"
+                },
+                "engagement_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.DeckEngagementResponse": {
+            "type": "object",
+            "required": [
+                "daily_engagements",
+                "geographic_stats"
+            ],
+            "properties": {
+                "daily_engagements": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.DeckDailyEngagement"
+                    }
+                },
+                "geographic_stats": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.DeckGeographicStat"
+                    }
+                }
+            }
+        },
+        "malak.DeckGeographicStat": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deck_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "stat_date": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "view_count": {
+                    "type": "integer"
+                }
+            }
+        },
         "malak.DeckPreference": {
             "type": "object",
             "properties": {
@@ -3417,6 +3695,59 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.DeckViewerSession": {
+            "type": "object",
+            "properties": {
+                "browser": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "contact": {
+                    "$ref": "#/definitions/malak.Contact"
+                },
+                "contact_id": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deck_id": {
+                    "type": "string"
+                },
+                "device_info": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ip_address": {
+                    "type": "string"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "time_spent_seconds": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "viewed_at": {
                     "type": "string"
                 }
             }
@@ -3674,6 +4005,14 @@ const docTemplate = `{
                 "deck": {
                     "type": "object",
                     "properties": {
+                        "analytics": {
+                            "type": "object",
+                            "properties": {
+                                "can_view_historical_sessions": {
+                                    "type": "boolean"
+                                }
+                            }
+                        },
                         "auto_terminate_link": {
                             "type": "boolean"
                         },
@@ -3750,10 +4089,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "preferences": {
-                    "$ref": "#/definitions/malak.DeckPreference"
+                    "$ref": "#/definitions/malak.PublicDeckPreference"
                 },
                 "reference": {
                     "type": "string"
+                },
+                "session": {
+                    "$ref": "#/definitions/malak.DeckViewerSession"
                 },
                 "short_link": {
                     "type": "string"
@@ -3766,6 +4108,20 @@ const docTemplate = `{
                 },
                 "workspace_id": {
                     "type": "string"
+                }
+            }
+        },
+        "malak.PublicDeckPreference": {
+            "type": "object",
+            "properties": {
+                "enable_downloading": {
+                    "type": "boolean"
+                },
+                "has_password": {
+                    "type": "boolean"
+                },
+                "require_email": {
+                    "type": "boolean"
                 }
             }
         },
@@ -4268,6 +4624,29 @@ const docTemplate = `{
                 }
             }
         },
+        "server.createDeckViewerSession": {
+            "type": "object",
+            "required": [
+                "browser",
+                "device_info",
+                "os",
+                "password"
+            ],
+            "properties": {
+                "browser": {
+                    "type": "string"
+                },
+                "device_info": {
+                    "type": "string"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "server.createUpdateContent": {
             "type": "object",
             "required": [
@@ -4518,6 +4897,21 @@ const docTemplate = `{
                 }
             }
         },
+        "server.fetchEngagementsResponse": {
+            "type": "object",
+            "required": [
+                "engagements",
+                "message"
+            ],
+            "properties": {
+                "engagements": {
+                    "$ref": "#/definitions/malak.DeckEngagementResponse"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "server.fetchPublicDeckResponse": {
             "type": "object",
             "required": [
@@ -4530,6 +4924,28 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "server.fetchSessionsDeck": {
+            "type": "object",
+            "required": [
+                "message",
+                "meta",
+                "sessions"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "meta": {
+                    "$ref": "#/definitions/server.meta"
+                },
+                "sessions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.DeckViewerSession"
+                    }
                 }
             }
         },

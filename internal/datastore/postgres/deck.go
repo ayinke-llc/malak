@@ -8,6 +8,7 @@ import (
 
 	"github.com/ayinke-llc/malak"
 	"github.com/uptrace/bun"
+	"golang.org/x/sync/errgroup"
 )
 
 type decksRepo struct {
@@ -19,6 +20,7 @@ func NewDeckRepository(db *bun.DB) malak.DeckRepository {
 		inner: db,
 	}
 }
+
 func (d *decksRepo) List(ctx context.Context,
 	workspace *malak.Workspace) ([]malak.Deck, error) {
 
@@ -217,7 +219,7 @@ func (d *decksRepo) PublicDetails(ctx context.Context,
 
 	err := d.inner.NewSelect().
 		Model(deck).
-		Where("deck.reference = ?", ref).
+		Where("deck.short_link = ?", ref).
 		Relation("DeckPreference").
 		Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -225,4 +227,130 @@ func (d *decksRepo) PublicDetails(ctx context.Context,
 	}
 
 	return deck, err
+}
+
+func (d *decksRepo) CreateDeckSession(ctx context.Context,
+	session *malak.DeckViewerSession) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return d.inner.RunInTx(ctx, &sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+			_, err := tx.NewInsert().
+				Model(session).
+				Exec(ctx)
+			return err
+		})
+}
+
+func (d *decksRepo) UpdateDeckSession(ctx context.Context,
+	opts *malak.UpdateDeckSessionOptions) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return d.inner.RunInTx(ctx, &sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+			if opts.CreateContact {
+				_, err := tx.NewInsert().
+					Model(opts.Contact).
+					Exec(ctx)
+				if err != nil {
+					return err
+				}
+
+				opts.Session.ContactID = opts.Contact.ID
+			}
+
+			_, err := tx.NewUpdate().
+				Model(opts.Session).
+				Where("id = ?", opts.Session.ID).
+				Exec(ctx)
+			return err
+		})
+}
+
+func (d *decksRepo) FindDeckSession(ctx context.Context,
+	sessionID string) (*malak.DeckViewerSession, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	session := new(malak.DeckViewerSession)
+	err := d.inner.NewSelect().
+		Model(session).
+		Where("session_id = ?", sessionID).
+		Scan(ctx)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, malak.ErrDeckNotFound
+	}
+
+	return session, err
+}
+
+func (d *decksRepo) SessionAnalytics(ctx context.Context,
+	opts *malak.ListSessionAnalyticsOptions) ([]*malak.DeckViewerSession, int64, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	sessions := make([]*malak.DeckViewerSession, 0)
+
+	query := d.inner.NewSelect().
+		Model(&sessions).
+		Where("deck_id = ?", opts.DeckID).
+		Where("deck_viewer_session.created_at >= NOW() - INTERVAL '? days'", opts.Days).
+		Order("deck_viewer_session.created_at DESC")
+
+	total, err := query.Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = query.
+		Relation("Contact").
+		Limit(int(opts.Paginator.PerPage)).
+		Offset(int(opts.Paginator.Offset())).
+		Scan(ctx)
+
+	return sessions, int64(total), err
+}
+
+func (d *decksRepo) DeckEngagements(ctx context.Context,
+	opts *malak.ListDeckEngagementsOptions) (*malak.DeckEngagementResponse, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	var dailyEngagements []malak.DeckDailyEngagement
+	var geographicStats []malak.DeckGeographicStat
+
+	g, ctx := errgroup.WithContext(ctx)
+
+	g.Go(func() error {
+		return d.inner.NewSelect().
+			Model(&dailyEngagements).
+			Where("deck_id = ?", opts.DeckID).
+			Order("engagement_date DESC").
+			Scan(ctx)
+	})
+
+	g.Go(func() error {
+		return d.inner.NewSelect().
+			Model(&geographicStats).
+			Where("deck_id = ?", opts.DeckID).
+			Order("view_count DESC").
+			Scan(ctx)
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	return &malak.DeckEngagementResponse{
+		DailyEngagements: dailyEngagements,
+		GeographicStats:  geographicStats,
+	}, nil
 }
