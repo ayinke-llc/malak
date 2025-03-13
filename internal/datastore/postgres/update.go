@@ -306,6 +306,15 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 	return u.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
 
+			_, err := tx.NewUpdate().
+				Model(new(malak.Update)).
+				Where("reference = ?", opts.UpdateReference).
+				Set("status = ?", malak.UpdateStatusSent).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+
 			contacts := make([]malak.Contact, 0, len(opts.Emails))
 			var insertedContactIDs = make([]uuid.UUID, 0, len(opts.Emails))
 
@@ -321,7 +330,7 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 				})
 			}
 
-			_, err := u.inner.NewInsert().
+			_, err = tx.NewInsert().
 				Model(&contacts).
 				On("CONFLICT (email,workspace_id) DO NOTHING").
 				Returning("id").
@@ -332,7 +341,7 @@ func (u *updatesRepo) SendUpdate(ctx context.Context,
 
 			// Retrieve IDs of all contacts (both newly inserted and existing ones)
 			// Refetching since on CONFLICT skips the existing ids and do not return them
-			err = u.inner.NewSelect().
+			err = tx.NewSelect().
 				Model(&contacts).
 				Column("id").
 				Where("email IN (?)", bun.In(opts.Emails)).

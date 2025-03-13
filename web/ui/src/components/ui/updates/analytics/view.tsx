@@ -93,7 +93,7 @@ export default function View(
 
   const tableContainerRef = useRef<HTMLDivElement>(null)
 
-  const progressPercentage = (update?.unique_opens as number / (update?.total_opens as number)) * 100
+  const progressPercentage = !update?.total_opens ? 0 : (update?.unique_opens as number / update?.total_opens as number) * 100
 
   const table = useReactTable({
     columns,
