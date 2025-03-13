@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/sidebar"
 import { useRouter } from "next/navigation"
 import useAuthStore from "@/store/auth"
+import useWorkspacesStore from "@/store/workspace"
 
 export function NavUser({
   user,
@@ -42,6 +43,13 @@ export function NavUser({
   const router = useRouter()
 
   const logout = useAuthStore((state) => state.logout);
+  const clear = useWorkspacesStore(state => state.clear);
+
+  const handleLogout = () => {
+    clear(); // Clear workspace state first
+    logout(); // Then logout
+    router.push("/login"); // Finally redirect
+  };
 
   return (
     <SidebarMenu>
@@ -89,7 +97,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer" onClick={() => logout()}>
+            <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
               <LogOut />
               Log out
             </DropdownMenuItem>

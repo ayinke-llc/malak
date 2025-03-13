@@ -57,18 +57,26 @@ export function ModalAddWorkspace({
   const setCurrent = useWorkspacesStore(state => state.setCurrent)
 
   useEffect(() => {
+    setOpen(forceOpen);
+  }, [forceOpen]);
+
+  useEffect(() => {
     if (open || forceOpen) {
       // Small delay to ensure the modal is rendered
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         const input = document.getElementById('workspace-name');
         input?.focus();
       }, 100);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [open, forceOpen]);
 
   const handleOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen);
-    onOpenChange(isOpen);
+    if (!forceOpen) {
+      setOpen(isOpen);
+      onOpenChange(isOpen);
+    }
   };
 
 
