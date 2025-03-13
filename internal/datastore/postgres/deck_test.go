@@ -424,6 +424,8 @@ func TestDeck_PublicDetails(t *testing.T) {
 	require.Error(t, err)
 	require.ErrorIs(t, err, malak.ErrDeckNotFound)
 
+	link := malak.NewReferenceGenerator().ShortLink()
+
 	// Create a new deck
 	ref := malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck)
 	err = deck.Create(t.Context(), &malak.Deck{
@@ -431,7 +433,7 @@ func TestDeck_PublicDetails(t *testing.T) {
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
 		Title:       "Public Deck Test",
-		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+		ShortLink:   link,
 		ObjectKey:   uuid.NewString(),
 	}, &malak.CreateDeckOptions{
 		Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
@@ -448,7 +450,7 @@ func TestDeck_PublicDetails(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test fetching the deck's public details
-	deckFromDB, err := deck.PublicDetails(t.Context(), ref)
+	deckFromDB, err := deck.PublicDetails(t.Context(), malak.Reference(link))
 	require.NoError(t, err)
 	require.NotNil(t, deckFromDB)
 	require.Equal(t, ref.String(), deckFromDB.Reference.String())
