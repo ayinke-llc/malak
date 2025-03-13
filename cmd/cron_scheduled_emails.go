@@ -228,12 +228,18 @@ func (p *EmailProcessor) fetchNextBatch(ctx context.Context, updateID uuid.UUID)
 }
 
 func (p *EmailProcessor) createEmailJobs(recipients []recipient, update *malak.Update) []*EmailJob {
+	content, err := prepareEmailTemplate(update)
+	if err != nil {
+		// the template is supposed to be fine so this is okay to do
+		panic(err.Error())
+	}
+
 	jobs := make([]*EmailJob, len(recipients))
 	for i, r := range recipients {
 		jobs[i] = &EmailJob{
 			Recipient:  r,
 			Title:      update.Title,
-			Content:    update.Content.HTML(),
+			Content:    content,
 			RetryCount: 0,
 		}
 	}
@@ -433,85 +439,18 @@ func fetchUpdateDetails(ctx context.Context, db *bun.DB, updateID uuid.UUID) (*m
 	return update, err
 }
 
-func prepareEmailTemplate(content string) (string, error) {
+func prepareEmailTemplate(update *malak.Update) (string, error) {
 	tmpl, err := template.New("template").Parse(email.UpdateHTMLEmailTemplate)
 	if err != nil {
 		return "", err
 	}
 
 	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, map[string]string{"Content": content}); err != nil {
+	if err := tmpl.Execute(&buf, map[string]string{"Content": update.Content.HTML()}); err != nil {
 		return "", err
 	}
 
 	return buf.String(), nil
-}
-
-func processRecipients(ctx context.Context, db *bun.DB, emailClient email.Client, logger *zap.Logger, schedule *malak.UpdateSchedule, update *malak.Update, emailContent string, cfg *config.Config) error {
-	var recipients []recipient
-
-	err := db.NewSelect().
-		Model(&recipients).
-		Limit(10).
-		Where("update_id = ?", schedule.UpdateID).
-		Where("status = ?", malak.RecipientStatusPending).
-		Relation("Contact").
-		Scan(ctx)
-	if err != nil {
-		return err
-	}
-
-	if len(recipients) == 0 {
-		return nil
-	}
-
-	title := update.Title
-	if schedule.UpdateType != malak.UpdateTypeLive {
-		title = fmt.Sprintf("[TEST] %s", title)
-	}
-
-	var wg sync.WaitGroup
-	wg.Add(len(recipients))
-
-	for _, r := range recipients {
-		r := r
-		go func() {
-			defer wg.Done()
-			time.Sleep(time.Second)
-
-			if err := sendEmail(ctx, db, emailClient, r, title, emailContent, cfg); err != nil {
-				logger.Error("failed to send email",
-					zap.Error(err),
-					zap.String("recipient_reference", r.Reference.String()))
-			}
-		}()
-	}
-
-	wg.Wait()
-	return finalizeUpdate(ctx, db, schedule, update)
-}
-
-func sendEmail(ctx context.Context, db *bun.DB, emailClient email.Client, r recipient, title, content string, cfg *config.Config) error {
-	opts := email.SendOptions{
-		HTML:      content,
-		Sender:    cfg.Email.Sender,
-		Recipient: r.Contact.Email,
-		Subject:   title,
-		DKIM: struct {
-			Sign       bool
-			PrivateKey []byte
-		}{
-			Sign:       false,
-			PrivateKey: []byte(""),
-		},
-	}
-
-	emailID, err := emailClient.Send(ctx, opts)
-	if err != nil {
-		return updateRecipientStatus(ctx, db, emailClient, r, malak.RecipientStatusFailed, "")
-	}
-
-	return updateRecipientStatus(ctx, db, emailClient, r, malak.RecipientStatusSent, emailID)
 }
 
 func updateRecipientStatus(ctx context.Context, db *bun.DB, emailClient email.Client, r recipient, status malak.RecipientStatus, emailID string) error {
