@@ -1374,6 +1374,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/decks/{reference}/engagements": {
+            "get": {
+                "description": "fetch deck engagements and geographic stats",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "decks"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "deck unique reference.. e.g deck_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchEngagementsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/decks/{reference}/pin": {
             "post": {
                 "description": "toggle pinned status of a deck",
@@ -3527,6 +3582,85 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.DeckDailyEngagement": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deck_id": {
+                    "type": "string"
+                },
+                "engagement_count": {
+                    "type": "integer"
+                },
+                "engagement_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.DeckEngagementResponse": {
+            "type": "object",
+            "required": [
+                "daily_engagements",
+                "geographic_stats"
+            ],
+            "properties": {
+                "daily_engagements": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.DeckDailyEngagement"
+                    }
+                },
+                "geographic_stats": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.DeckGeographicStat"
+                    }
+                }
+            }
+        },
+        "malak.DeckGeographicStat": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deck_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "stat_date": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "view_count": {
+                    "type": "integer"
+                }
+            }
+        },
         "malak.DeckPreference": {
             "type": "object",
             "properties": {
@@ -4760,6 +4894,21 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/malak.ContactShareItem"
                     }
+                }
+            }
+        },
+        "server.fetchEngagementsResponse": {
+            "type": "object",
+            "required": [
+                "engagements",
+                "message"
+            ],
+            "properties": {
+                "engagements": {
+                    "$ref": "#/definitions/malak.DeckEngagementResponse"
+                },
+                "message": {
+                    "type": "string"
                 }
             }
         },

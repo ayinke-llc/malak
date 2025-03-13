@@ -385,6 +385,9 @@ func buildRoutes(
 			r.Get("/{reference}/sessions",
 				WrapMalakHTTPHandler(logger, deckHandler.fetchDeckSessions, cfg, "decks.sessions"))
 
+			r.Get("/{reference}/analytics",
+				WrapMalakHTTPHandler(logger, deckHandler.fetchEngagements, cfg, "decks.engagements"))
+
 			r.Put("/{reference}/preferences",
 				WrapMalakHTTPHandler(logger, deckHandler.updatePreferences, cfg, "decks.preferences.update"))
 

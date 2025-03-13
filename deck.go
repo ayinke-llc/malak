@@ -188,4 +188,14 @@ type DeckRepository interface {
 	FindDeckSession(context.Context, string) (*DeckViewerSession, error)
 
 	SessionAnalytics(context.Context, *ListSessionAnalyticsOptions) ([]*DeckViewerSession, int64, error)
+	DeckEngagements(context.Context, *ListDeckEngagementsOptions) (*DeckEngagementResponse, error)
+}
+
+type ListDeckEngagementsOptions struct {
+	DeckID uuid.UUID
+}
+
+type DeckEngagementResponse struct {
+	DailyEngagements []DeckDailyEngagement `json:"daily_engagements,omitempty" validate:"required"`
+	GeographicStats  []DeckGeographicStat  `json:"geographic_stats,omitempty" validate:"required"`
 }

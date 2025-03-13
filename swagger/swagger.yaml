@@ -239,6 +239,58 @@ components:
         workspace_id:
           type: string
       type: object
+    malak.DeckDailyEngagement:
+      properties:
+        created_at:
+          type: string
+        deck_id:
+          type: string
+        engagement_count:
+          type: integer
+        engagement_date:
+          type: string
+        id:
+          type: string
+        reference:
+          type: string
+        updated_at:
+          type: string
+        workspace_id:
+          type: string
+      type: object
+    malak.DeckEngagementResponse:
+      properties:
+        daily_engagements:
+          items:
+            $ref: '#/components/schemas/malak.DeckDailyEngagement'
+          type: array
+        geographic_stats:
+          items:
+            $ref: '#/components/schemas/malak.DeckGeographicStat'
+          type: array
+      required:
+      - daily_engagements
+      - geographic_stats
+      type: object
+    malak.DeckGeographicStat:
+      properties:
+        country:
+          type: string
+        created_at:
+          type: string
+        deck_id:
+          type: string
+        id:
+          type: string
+        reference:
+          type: string
+        stat_date:
+          type: string
+        updated_at:
+          type: string
+        view_count:
+          type: integer
+      type: object
     malak.DeckPreference:
       properties:
         created_at:
@@ -1076,6 +1128,16 @@ components:
       - contact
       - message
       - shared_items
+      type: object
+    server.fetchEngagementsResponse:
+      properties:
+        engagements:
+          $ref: '#/components/schemas/malak.DeckEngagementResponse'
+        message:
+          type: string
+      required:
+      - engagements
+      - message
       type: object
     server.fetchPublicDeckResponse:
       properties:
@@ -2435,6 +2497,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/server.fetchDeckResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      tags:
+      - decks
+  /decks/{reference}/engagements:
+    get:
+      description: fetch deck engagements and geographic stats
+      parameters:
+      - description: deck unique reference.. e.g deck_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchEngagementsResponse'
           description: OK
         "400":
           content:

@@ -681,3 +681,68 @@ func (d *deckHandler) fetchDeckSessions(
 		},
 	}, StatusSuccess
 }
+
+// @Description fetch deck engagements and geographic stats
+// @Tags decks
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "deck unique reference.. e.g deck_"
+// @Success 200 {object} fetchEngagementsResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /decks/{reference}/engagements [get]
+func (d *deckHandler) fetchEngagements(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("fetching deck engagements")
+
+	ref := chi.URLParam(r, "reference")
+
+	if hermes.IsStringEmpty(ref) {
+		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
+	}
+
+	deck, err := d.deckRepo.Get(ctx, malak.FetchDeckOptions{
+		Reference:   ref,
+		WorkspaceID: getWorkspaceFromContext(r.Context()).ID,
+	})
+	if err != nil {
+		logger.Error("could not fetch deck", zap.Error(err))
+		status := http.StatusInternalServerError
+		msg := "an error occurred while fetching deck"
+
+		if errors.Is(err, malak.ErrDeckNotFound) {
+			status = http.StatusNotFound
+			msg = "deck does not exists"
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	opts := &malak.ListDeckEngagementsOptions{
+		DeckID: deck.ID,
+	}
+
+	engagements, err := d.deckRepo.DeckEngagements(ctx, opts)
+	if err != nil {
+		logger.Error("could not fetch engagements", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch deck engagements"),
+			StatusFailed
+	}
+
+	return fetchEngagementsResponse{
+		APIStatus:   newAPIStatus(http.StatusOK, "fetched deck engagements"),
+		Engagements: engagements,
+	}, StatusSuccess
+}
+
+type fetchEngagementsResponse struct {
+	APIStatus
+	Engagements *malak.DeckEngagementResponse `json:"engagements,omitempty" validate:"required"`
+}

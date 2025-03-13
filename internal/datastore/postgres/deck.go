@@ -8,6 +8,7 @@ import (
 
 	"github.com/ayinke-llc/malak"
 	"github.com/uptrace/bun"
+	"golang.org/x/sync/errgroup"
 )
 
 type decksRepo struct {
@@ -315,4 +316,41 @@ func (d *decksRepo) SessionAnalytics(ctx context.Context,
 		Scan(ctx)
 
 	return sessions, int64(total), err
+}
+
+func (d *decksRepo) DeckEngagements(ctx context.Context,
+	opts *malak.ListDeckEngagementsOptions) (*malak.DeckEngagementResponse, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	var dailyEngagements []malak.DeckDailyEngagement
+	var geographicStats []malak.DeckGeographicStat
+
+	g, ctx := errgroup.WithContext(ctx)
+
+	g.Go(func() error {
+		return d.inner.NewSelect().
+			Model(&dailyEngagements).
+			Where("deck_id = ?", opts.DeckID).
+			Order("engagement_date DESC").
+			Scan(ctx)
+	})
+
+	g.Go(func() error {
+		return d.inner.NewSelect().
+			Model(&geographicStats).
+			Where("deck_id = ?", opts.DeckID).
+			Order("view_count DESC").
+			Scan(ctx)
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	return &malak.DeckEngagementResponse{
+		DailyEngagements: dailyEngagements,
+		GeographicStats:  geographicStats,
+	}, nil
 }

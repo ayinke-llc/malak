@@ -150,6 +150,33 @@ export interface MalakDeck {
   workspace_id?: string;
 }
 
+export interface MalakDeckDailyEngagement {
+  created_at?: string;
+  deck_id?: string;
+  engagement_count?: number;
+  engagement_date?: string;
+  id?: string;
+  reference?: string;
+  updated_at?: string;
+  workspace_id?: string;
+}
+
+export interface MalakDeckEngagementResponse {
+  daily_engagements: MalakDeckDailyEngagement[];
+  geographic_stats: MalakDeckGeographicStat[];
+}
+
+export interface MalakDeckGeographicStat {
+  country?: string;
+  created_at?: string;
+  deck_id?: string;
+  id?: string;
+  reference?: string;
+  stat_date?: string;
+  updated_at?: string;
+  view_count?: number;
+}
+
 export interface MalakDeckPreference {
   created_at?: string;
   created_by?: string;
@@ -626,6 +653,11 @@ export interface ServerFetchDetailedContactResponse {
   contact: MalakContact;
   message: string;
   shared_items: MalakContactShareItem[];
+}
+
+export interface ServerFetchEngagementsResponse {
+  engagements: MalakDeckEngagementResponse;
+  message: string;
 }
 
 export interface ServerFetchPublicDeckResponse {
@@ -1313,6 +1345,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerFetchDeckResponse, ServerAPIStatus>({
         path: `/decks/${reference}/archive`,
         method: "POST",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description fetch deck engagements and geographic stats
+     *
+     * @tags decks
+     * @name EngagementsDetail
+     * @request GET:/decks/{reference}/engagements
+     */
+    engagementsDetail: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerFetchEngagementsResponse, ServerAPIStatus>({
+        path: `/decks/${reference}/engagements`,
+        method: "GET",
         format: "json",
         ...params,
       }),
