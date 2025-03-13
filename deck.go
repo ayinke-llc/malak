@@ -141,6 +141,22 @@ type ListSessionAnalyticsOptions struct {
 	Days      int64
 }
 
+type DeckDailyEngagement struct {
+	ID uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+
+	Reference       Reference `json:"reference,omitempty"`
+	DeckID          uuid.UUID `json:"deck_id,omitempty"`
+	WorkspaceID     uuid.UUID `json:"workspace_id,omitempty"`
+	EngagementCount int       `json:"engagement_count,omitempty"`
+	EngagementDate  time.Time `json:"engagement_date,omitempty"`
+
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty"`
+
+	bun.BaseModel `bun:"table:deck_daily_engagements" json:"-"`
+}
+
 type DeckRepository interface {
 	Create(context.Context, *Deck, *CreateDeckOptions) error
 	List(context.Context, *Workspace) ([]Deck, error)

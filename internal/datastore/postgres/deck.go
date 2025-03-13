@@ -19,6 +19,7 @@ func NewDeckRepository(db *bun.DB) malak.DeckRepository {
 		inner: db,
 	}
 }
+
 func (d *decksRepo) List(ctx context.Context,
 	workspace *malak.Workspace) ([]malak.Deck, error) {
 

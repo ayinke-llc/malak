@@ -76,11 +76,12 @@ const settingsSchema = yup.object().shape({
 
 function LoadingState() {
   return (
-    <div className="pt-6 space-y-6">
+    <div className="pt-6">
       {/* Header Section */}
       <div className="mb-8 flex items-center justify-between">
-        <div className="w-24">
-          <Skeleton className="h-4" />
+        <div className="flex items-center gap-2">
+          <RiArrowLeftLine className="h-4 w-4 text-muted-foreground" />
+          <Skeleton className="h-4 w-24" />
         </div>
         <div className="flex items-center gap-2">
           {[...Array(4)].map((_, i) => (
@@ -93,38 +94,37 @@ function LoadingState() {
       <Card className="p-6">
         <div className="space-y-8">
           {/* Title and Description */}
-          <div className="space-y-4">
-            <Skeleton className="h-6 w-1/3" />
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-1/3" />
             <Skeleton className="h-4 w-2/3" />
           </div>
 
           {/* Details Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
+              {/* Uploaded Section */}
               <div>
-                <Skeleton className="h-4 w-20 mb-2" />
-                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-4 w-16 mb-1" />
+                <Skeleton className="h-5 w-48" />
               </div>
+              {/* File Size Section */}
               <div>
-                <Skeleton className="h-4 w-20 mb-2" />
+                <Skeleton className="h-4 w-16 mb-1" />
                 <Skeleton className="h-5 w-24" />
               </div>
             </div>
+
+            {/* Share URL Section */}
             <div>
-              <Skeleton className="h-4 w-20 mb-2" />
-              <div className="flex items-center gap-2">
+              <Skeleton className="h-4 w-20 mb-1" />
+              <div className="flex items-center gap-2 max-w-md">
                 <Skeleton className="h-9 flex-1" />
-                <Skeleton className="h-9 w-9" />
+                <Skeleton className="h-9 w-9 shrink-0" />
               </div>
             </div>
           </div>
         </div>
       </Card>
-
-      {/* Analytics Section */}
-      <div className="h-[200px]">
-        <Skeleton className="h-full w-full" />
-      </div>
     </div>
   );
 }
