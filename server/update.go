@@ -378,6 +378,11 @@ func (u *updatesHandler) update(
 			"an error occurred while fetching update"), StatusFailed
 	}
 
+	if update.Status == malak.UpdateStatusSent {
+		return newAPIStatus(http.StatusBadRequest, "Update has been sent alread. you cannot edit it"),
+			StatusFailed
+	}
+
 	update.Content = req.Update
 	update.Title = req.Title
 

@@ -135,8 +135,28 @@ malak plans create
 
 #### Set a default plan for newly created workspaces
 
+> every newly created user inherits this plan by default
+
 ```sh
 malak plans set-default plan_id
+```
+
+#### Cron to send updates to investors
+
+> [!IMPORTANT]
+> You need `google-chrome` in your path as we use Headless Chrome to render and download the image we
+> share in the email if your updates includes bar or pie charts
+
+```sh
+malak cron updates
+```
+
+> You can probably run this cron every 5 minutes or 1 hour or daily depending on what you want
+
+#### Deck analytics cron
+
+```sh
+malak cron analytics
 ```
 
 ### Frontend
@@ -157,9 +177,9 @@ NEXT_PUBLIC_SUPPORT_EMAIL=support@yourdomain
 
 #### Deck viewer
 
-> [!IMPORTANT]
-> The decks viewer is not open sourced at the moment. You need a commercial/
-> Enterprise license for that.
+The deck viewer is hosted in another repo <https://github.com/ayinke-llc/malak-deck> .
+You need to set this up if you want users to view and share decks with investors and track
+them via emails and time spent
 
 ## LICENSE
 
