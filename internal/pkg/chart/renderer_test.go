@@ -1,3 +1,6 @@
+//go:build chrome
+// +build chrome
+
 package chart
 
 import (
