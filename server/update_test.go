@@ -71,6 +71,28 @@ func generateUpdateContentTable() []struct {
 			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
+			name: "update already sent",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+				update.
+					EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Update{
+						Status: malak.UpdateStatusSent,
+					}, nil)
+			},
+			req: contentUpdateRequest{
+				Title: "Valid title",
+				Update: []malak.Block{
+					{
+						ID:   "here is an id",
+						Type: "heading",
+					},
+				},
+			},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
 			name: "update not exists",
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.
