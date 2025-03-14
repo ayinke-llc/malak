@@ -556,20 +556,3 @@ func updateRecipientStatus(ctx context.Context, db *bun.DB, emailClient email.Cl
 		return err
 	})
 }
-
-func finalizeUpdate(ctx context.Context, db *bun.DB, schedule *malak.UpdateSchedule, update *malak.Update) error {
-	return db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
-		if update.Status == malak.UpdateStatusSent {
-			return nil
-		}
-
-		update.Status = malak.UpdateStatusSent
-		update.SentBy = schedule.ScheduledBy
-
-		_, err := tx.NewUpdate().
-			Model(update).
-			Where("id = ?", update.ID).
-			Exec(ctx)
-		return err
-	})
-}

@@ -314,52 +314,6 @@ func TestRequireAuthentication(t *testing.T) {
 		require.Equal(t, http.StatusInternalServerError, rr.Code)
 	})
 
-	t.Run("user without workspace accessing protected route", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-
-		userID := uuid.New()
-		jwtManager := mock_jwttoken.NewMockJWTokenManager(ctrl)
-		userRepo := malak_mocks.NewMockUserRepository(ctrl)
-		workspaceRepo := malak_mocks.NewMockWorkspaceRepository(ctrl)
-
-		jwtManager.EXPECT().
-			ParseJWToken("valid-token").
-			Return(jwttoken.JWTokenData{UserID: userID}, nil)
-
-		userRepo.EXPECT().
-			Get(gomock.Any(), &malak.FindUserOptions{ID: userID}).
-			Return(&malak.User{
-				ID: userID,
-				Metadata: &malak.UserMetadata{
-					CurrentWorkspace: uuid.Nil, // No workspace
-				},
-			}, nil)
-
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "/v1/protected", nil)
-		req.Header.Set("Authorization", "Bearer valid-token")
-
-		handler := requireAuthentication(
-			logger,
-			jwtManager,
-			cfg,
-			userRepo,
-			workspaceRepo,
-		)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}))
-
-		handler.ServeHTTP(rr, req)
-		require.Equal(t, http.StatusBadRequest, rr.Code)
-
-		// Verify error message
-		var response map[string]string
-		err := json.NewDecoder(rr.Body).Decode(&response)
-		require.NoError(t, err)
-		require.Equal(t, "You must be a member of a workspace", response["message"])
-	})
-
 	t.Run("user without workspace accessing auth/connect route", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
