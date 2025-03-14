@@ -71,7 +71,7 @@ export default function Billing() {
             <Separator className="mb-5" />
             <div className="flex flex-col space-y-2">
               <h3 className="text-lg font-semibold">Billing Portal</h3>
-              <p className="text-sm text-muted-foreground">View your invoices and manage your payment method.</p>
+              <p className="text-sm text-muted-foreground">View your invoices and manage your subscription and payment method.</p>
               <Button onClick={handleBillingPortal}
                 variant="outline"
                 loading={mutation.isPending}

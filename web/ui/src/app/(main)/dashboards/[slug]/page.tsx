@@ -1,11 +1,4 @@
-"use client"
-
-import dynamic from 'next/dynamic';
-
-const DashboardDetailsPage = dynamic(
-  () => import('@/components/pages/dashboard-details'),
-  { ssr: false }
-)
+import DashboardDetailsPage from '@/components/pages/dashboard-details'
 
 export default async function Page(
   {
@@ -15,7 +8,7 @@ export default async function Page(
   }
 ) {
 
-  const {slug} = await params ;
+  const { slug } = await params;
 
   return <DashboardDetailsPage reference={slug} />;
 }

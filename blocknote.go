@@ -5,6 +5,7 @@ import (
 	"html"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 )
 
@@ -78,8 +79,9 @@ type ChartBlock struct {
 	Block
 	Props struct {
 		DefaultProps
-		ChartType string      `json:"chartType"`
-		Data      interface{} `json:"data"`
+		ChartType     string      `json:"chartType"`
+		Data          interface{} `json:"data"`
+		SelectedChart string      `json:"selectedChart"` // Integration chart ID
 	} `json:"props"`
 	Content []InlineContent `json:"content"`
 }
@@ -127,15 +129,15 @@ type Styles struct {
 
 type BlockContents []Block
 
-func (bc BlockContents) HTML() string {
+func (bc BlockContents) HTML(workspaceID uuid.UUID, renderer ChartRenderer) string {
 	var html strings.Builder
 	for _, block := range bc {
-		html.WriteString(convertBlockToHTML(block))
+		html.WriteString(convertBlockToHTML(block, workspaceID, renderer))
 	}
 	return html.String()
 }
 
-func convertBlockToHTML(block Block) string {
+func convertBlockToHTML(block Block, workspaceID uuid.UUID, renderer ChartRenderer) string {
 	var s strings.Builder
 	style := getStyleString(block.Props)
 
@@ -161,9 +163,18 @@ func convertBlockToHTML(block Block) string {
 		content := getSimpleContent(block.Content)
 		s.WriteString(fmt.Sprintf(`<div class="dashboard" data-selected-item="%s">%s</div>`, selectedItem, content))
 	case "chart":
-		chartType, _ := block.Props["chartType"].(string)
-		content := getSimpleContent(block.Content)
-		s.WriteString(fmt.Sprintf(`<div class="chart" data-chart-type="%s">%s</div>`, chartType, content))
+		selectedChart, _ := block.Props["selectedChart"].(string)
+		if selectedChart == "" {
+			s.WriteString(`<div class="chart-error">No chart selected</div>`)
+			return s.String()
+		}
+
+		chartKey, err := renderer.RenderChart(workspaceID, selectedChart)
+		if err != nil {
+			s.WriteString(fmt.Sprintf(`<div class="chart-error">Failed to render chart: %s</div>`, err.Error()))
+		} else {
+			s.WriteString(fmt.Sprintf(`<a href='%s' target="_blank"><img src='%s' alt='%s' style="display: block; width: %s; max-width: 600px; height: auto;"></a>`, chartKey, chartKey, "Chart image", "100%"))
+		}
 	case "numberedListItem", "bulletListItem":
 		content := getSimpleContent(block.Content)
 		s.WriteString(fmt.Sprintf("<li style='%s'>%s</li>", style, content))
@@ -178,7 +189,7 @@ func convertBlockToHTML(block Block) string {
 		url, _ := block.Props["url"].(string)
 		name, _ := block.Props["name"].(string)
 
-		s.WriteString(fmt.Sprintf(`<img src='%s' alt='%s' style="display: block; width: %s; max-width: 600px; height: auto;">`, url, name, "100%"))
+		s.WriteString(fmt.Sprintf(`<a href='%s' target="_blank"><img src='%s' alt='%s' style="display: block; width: %s; max-width: 600px; height: auto;"></a>`, url, url, name, "100%"))
 
 		_ = style
 
@@ -190,7 +201,7 @@ func convertBlockToHTML(block Block) string {
 
 	if len(block.Children) > 0 {
 		for _, child := range block.Children {
-			s.WriteString(convertBlockToHTML(child))
+			s.WriteString(convertBlockToHTML(child, workspaceID, renderer))
 		}
 	}
 
@@ -378,4 +389,8 @@ func sanitizeTableContent(table *TableContent, policy *bluemonday.Policy) {
 			}
 		}
 	}
+}
+
+type ChartRenderer interface {
+	RenderChart(workspaceID uuid.UUID, chartID string) (string, error)
 }

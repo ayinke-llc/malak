@@ -1,12 +1,5 @@
-"use client"
-
-import dynamic from 'next/dynamic'
-
-const UpdatesPage = dynamic(
-  () => import('@/components/pages/updates'),
-  { ssr: false }
-)
+import Updates from '@/components/pages/updates'
 
 export default function Page() {
-  return <UpdatesPage />
+  return <Updates />
 }

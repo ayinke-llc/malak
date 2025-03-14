@@ -467,9 +467,17 @@ export default function DashboardDetailsPage({ reference }: { reference: string 
                             </CommandItem>
                           ) : (
                             <>
-                              {(chartsData?.charts || []).filter(chart => chart.chart_type === "bar").length > 0 && (
+                              {(chartsData?.charts || []).filter(chart => 
+                                chart.chart_type === "bar" && 
+                                !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
+                              ).length > 0 && (
                                 <CommandGroup heading="Bar Charts">
-                                  {(chartsData?.charts || []).filter(chart => chart.chart_type === "bar").map(chart => (
+                                  {(chartsData?.charts || [])
+                                    .filter(chart => 
+                                      chart.chart_type === "bar" && 
+                                      !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
+                                    )
+                                    .map(chart => (
                                     <CommandItem
                                       key={chart.reference}
                                       value={`${chart.user_facing_name} ${chart.internal_name}`}
@@ -486,9 +494,17 @@ export default function DashboardDetailsPage({ reference }: { reference: string 
                                   ))}
                                 </CommandGroup>
                               )}
-                              {(chartsData?.charts || []).filter(chart => chart.chart_type === "pie").length > 0 && (
+                              {(chartsData?.charts || []).filter(chart => 
+                                chart.chart_type === "pie" && 
+                                !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
+                              ).length > 0 && (
                                 <CommandGroup heading="Pie Charts">
-                                  {(chartsData?.charts || []).filter(chart => chart.chart_type === "pie").map(chart => (
+                                  {(chartsData?.charts || [])
+                                    .filter(chart => 
+                                      chart.chart_type === "pie" && 
+                                      !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
+                                    )
+                                    .map(chart => (
                                     <CommandItem
                                       key={chart.reference}
                                       value={`${chart.user_facing_name} ${chart.internal_name}`}

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import client from "@/lib/client";
 import {
+  FETCH_SINGLE_UPDATE,
   LIST_CONTACT_LISTS,
   SEND_UPDATE
 } from "@/lib/query-constants";
@@ -19,7 +20,7 @@ import {
   RiCloseLargeLine,
   RiMailSendLine,
 } from "@remixicon/react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as EmailValidator from "email-validator";
 import { Option } from "lucide-react";
 import { useState } from "react";
@@ -43,6 +44,8 @@ const schema = yup
   .required();
 
 const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean }) => {
+
+  const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState<boolean>(false);
   const [showAllRecipients, setShowAllRecipients] = useState<boolean>(false);
@@ -130,6 +133,7 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
     },
     onSuccess: ({ data }) => {
       toast.success(data.message);
+      queryClient.invalidateQueries({ queryKey: [FETCH_SINGLE_UPDATE, reference] })
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message;
