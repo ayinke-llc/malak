@@ -43,26 +43,54 @@ func NewEChartsRenderer(storage gulter.Storage, cfg config.Config, db *bun.DB,
 }
 
 func (r *EChartsRenderer) RenderChart(workspaceID uuid.UUID, chartID string) (string, error) {
-	chartData, err := r.fetchChartData(workspaceID, chartID)
+	chart, err := r.integration.GetChart(context.Background(), malak.FetchChartOptions{
+		WorkspaceID: workspaceID,
+		Reference:   malak.Reference(chartID),
+	})
 	if err != nil {
-		return "", fmt.Errorf("failed to fetch chart data: %w", err)
+		return "", fmt.Errorf("failed to fetch chart: %w", err)
+	}
+
+	// Check for unsupported chart type before fetching data points
+	switch chart.ChartType {
+	case "bar", "pie":
+		// These are supported, continue processing
+	default:
+		return "", fmt.Errorf("unsupported chart type: %s", chart.ChartType)
+	}
+
+	dataPoints, err := r.integration.GetDataPoints(context.Background(), chart)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch chart data points: %w", err)
+	}
+
+	chartData := make([]ChartDataPoint, len(dataPoints))
+	for i, point := range dataPoints {
+		var value interface{} = point.PointValue
+
+		if point.DataPointType == malak.IntegrationDataPointTypeCurrency {
+			value = float64(point.PointValue) / 100.0
+		}
+
+		chartData[i] = ChartDataPoint{
+			Label: point.PointName,
+			Value: value,
+		}
 	}
 
 	var chartHTML []byte
-	switch chartData.ChartType {
+	switch chart.ChartType {
 	case "bar":
-		chartHTML, err = r.renderBarChart(chartData.DataPoints)
+		chartHTML, err = r.renderBarChart(chartData)
 	case "pie":
-		chartHTML, err = r.renderPieChart(chartData.DataPoints)
-	default:
-		return "", fmt.Errorf("unsupported chart type: %s", chartData.ChartType)
+		chartHTML, err = r.renderPieChart(chartData)
 	}
 
 	if err != nil {
 		return "", err
 	}
 
-	filename := fmt.Sprintf("%s-%s.png", chartData.ChartType, uuid.New().String())
+	filename := fmt.Sprintf("%s-%s.png", chart.ChartType, uuid.New().String())
 
 	var b = bytes.NewBuffer(nil)
 
