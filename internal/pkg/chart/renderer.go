@@ -129,40 +129,6 @@ func (r *EChartsRenderer) RenderChart(workspaceID uuid.UUID, chartID string) (st
 	return uploadedURL, nil
 }
 
-func (r *EChartsRenderer) fetchChartData(workspaceID uuid.UUID, chartID string) (*ChartData, error) {
-	chart, err := r.integration.GetChart(context.Background(), malak.FetchChartOptions{
-		WorkspaceID: workspaceID,
-		Reference:   malak.Reference(chartID),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch chart: %w", err)
-	}
-
-	dataPoints, err := r.integration.GetDataPoints(context.Background(), chart)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch chart data points: %w", err)
-	}
-
-	chartData := make([]ChartDataPoint, len(dataPoints))
-	for i, point := range dataPoints {
-		var value interface{} = point.PointValue
-
-		if point.DataPointType == malak.IntegrationDataPointTypeCurrency {
-			value = float64(point.PointValue) / 100.0
-		}
-
-		chartData[i] = ChartDataPoint{
-			Label: point.PointName,
-			Value: value,
-		}
-	}
-
-	return &ChartData{
-		ChartType:  string(chart.ChartType),
-		DataPoints: chartData,
-	}, nil
-}
-
 func (r *EChartsRenderer) renderBarChart(data []ChartDataPoint) ([]byte, error) {
 	bar := charts.NewBar()
 	bar.SetGlobalOptions(
