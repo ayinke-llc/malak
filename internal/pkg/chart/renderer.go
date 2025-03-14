@@ -16,8 +16,8 @@ import (
 )
 
 type ChartDataPoint struct {
-	Label string  `json:"label"`
-	Value float64 `json:"value"`
+	Label string      `json:"label"`
+	Value interface{} `json:"value"`
 }
 
 type ChartData struct {
@@ -117,9 +117,15 @@ func (r *EChartsRenderer) fetchChartData(workspaceID uuid.UUID, chartID string) 
 
 	chartData := make([]ChartDataPoint, len(dataPoints))
 	for i, point := range dataPoints {
+		var value interface{} = point.PointValue
+
+		if point.DataPointType == malak.IntegrationDataPointTypeCurrency {
+			value = float64(point.PointValue) / 100.0
+		}
+
 		chartData[i] = ChartDataPoint{
 			Label: point.PointName,
-			Value: float64(point.PointValue),
+			Value: value,
 		}
 	}
 
