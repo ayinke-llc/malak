@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/adelowo/gulter"
+	"github.com/adelowo/snapshot-chromedp/render"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/go-echarts/go-echarts/v2/charts"
@@ -42,13 +43,12 @@ func NewEChartsRenderer(storage gulter.Storage, cfg config.Config, db *bun.DB,
 }
 
 func (r *EChartsRenderer) RenderChart(workspaceID uuid.UUID, chartID string) (string, error) {
-	// Fetch chart data from database
 	chartData, err := r.fetchChartData(workspaceID, chartID)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch chart data: %w", err)
 	}
 
-	var chartHTML string
+	var chartHTML []byte
 	switch chartData.ChartType {
 	case "bar":
 		chartHTML, err = r.renderBarChart(chartData.DataPoints)
@@ -62,11 +62,15 @@ func (r *EChartsRenderer) RenderChart(workspaceID uuid.UUID, chartID string) (st
 		return "", err
 	}
 
-	// Generate a unique key for the chart
 	filename := fmt.Sprintf("%s-%s.png", chartData.ChartType, uuid.New().String())
 
-	// Upload the chart HTML to storage
-	file, err := r.storage.Upload(context.Background(), bytes.NewReader([]byte(chartHTML)), &gulter.UploadFileOptions{
+	var b = bytes.NewBuffer(nil)
+
+	if err := render.MakeChartSnapshotWriter(chartHTML, b); err != nil {
+		return "", err
+	}
+
+	file, err := r.storage.Upload(context.Background(), b, &gulter.UploadFileOptions{
 		FileName: filename,
 		Bucket:   r.cfg.Uploader.S3.Bucket,
 	})
@@ -110,7 +114,7 @@ func (r *EChartsRenderer) fetchChartData(workspaceID uuid.UUID, chartID string) 
 	}, nil
 }
 
-func (r *EChartsRenderer) renderBarChart(data []ChartDataPoint) (string, error) {
+func (r *EChartsRenderer) renderBarChart(data []ChartDataPoint) ([]byte, error) {
 	bar := charts.NewBar()
 	bar.SetGlobalOptions(
 		charts.WithInitializationOpts(opts.Initialization{
@@ -132,15 +136,10 @@ func (r *EChartsRenderer) renderBarChart(data []ChartDataPoint) (string, error) 
 
 	bar.SetXAxis(xAxis).AddSeries("Values", values)
 
-	buffer := new(bytes.Buffer)
-	if err := bar.Render(buffer); err != nil {
-		return "", fmt.Errorf("failed to render bar chart: %w", err)
-	}
-
-	return buffer.String(), nil
+	return bar.RenderContent(), nil
 }
 
-func (r *EChartsRenderer) renderPieChart(data []ChartDataPoint) (string, error) {
+func (r *EChartsRenderer) renderPieChart(data []ChartDataPoint) ([]byte, error) {
 	pie := charts.NewPie()
 	pie.SetGlobalOptions(
 		charts.WithInitializationOpts(opts.Initialization{
@@ -162,10 +161,5 @@ func (r *EChartsRenderer) renderPieChart(data []ChartDataPoint) (string, error) 
 
 	pie.AddSeries("Values", items)
 
-	buffer := new(bytes.Buffer)
-	if err := pie.Render(buffer); err != nil {
-		return "", fmt.Errorf("failed to render pie chart: %w", err)
-	}
-
-	return buffer.String(), nil
+	return pie.RenderContent(), nil
 }
