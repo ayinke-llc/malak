@@ -44,8 +44,17 @@ const schema = BlockNoteSchema.create({
 
     // custom blocks
     alert: Alert,
-    dashboard: Dashboard,
     chart: Chart,
+    // dashboards disabled because 
+    // 1. insanely hard to chart them. and that is because a dashboard can contain both pie and bar charts
+    // 2. it is really really hard. there is no way to make the dashboard toggleable in email 
+    // so it will just be so hard to read other contents below the dashboard. imagine you hve a dashbaord with 10 charts inside
+    // . Endless scroll before you get to the content beneath and rest of the update 
+    // 3. Might make more sense to just make the dashboard shareable via link instead. Add the link and call it a day. 
+    // there are already plans to add dashboard sharing. 
+    //
+    // But i think 3 is the most sane path but i will sleep over it
+    // dashboard: Dashboard,
   },
 });
 
@@ -82,18 +91,18 @@ const insertAlert = (editor: typeof schema.BlockNoteEditor) => ({
   icon: <RiAlertLine />,
 });
 
-const insertDashboard = (editor: typeof schema.BlockNoteEditor) => ({
-  title: "Dashboard",
-  onItemClick: () => {
-    insertOrUpdateBlock(editor, {
-      type: "dashboard",
-    });
-  },
-  aliases: [
-  ],
-  group: "Data",
-  icon: <RiBarChartLine />,
-});
+// const insertDashboard = (editor: typeof schema.BlockNoteEditor) => ({
+//   title: "Dashboard",
+//   onItemClick: () => {
+//     insertOrUpdateBlock(editor, {
+//       type: "dashboard",
+//     });
+//   },
+//   aliases: [
+//   ],
+//   group: "Data",
+//   icon: <RiBarChartLine />,
+// });
 
 export type EditorProps = {
   reference: string;
@@ -222,7 +231,7 @@ const BlockNoteJSEditor = ({ reference, update }: EditorProps) => {
                 ...getDefaultReactSlashMenuItems(editor),
                 insertAlert(editor),
                 insertChart(editor),
-                insertDashboard(editor)
+                // insertDashboard(editor)
               ],
               query
             )
