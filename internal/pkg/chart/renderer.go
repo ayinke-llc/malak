@@ -66,7 +66,22 @@ func (r *EChartsRenderer) RenderChart(workspaceID uuid.UUID, chartID string) (st
 
 	var b = bytes.NewBuffer(nil)
 
-	if err := render.MakeChartSnapshotWriter(chartHTML, b); err != nil {
+	// Wrap the chart HTML in a container with explicit dimensions
+	fullHTML := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { margin: 0; }
+        #container { width: 600px; height: 400px; }
+    </style>
+</head>
+<body>
+    <div id="container">%s</div>
+</body>
+</html>`, string(chartHTML))
+
+	if err := render.MakeChartSnapshotWriter([]byte(fullHTML), b); err != nil {
 		return "", err
 	}
 
@@ -118,11 +133,26 @@ func (r *EChartsRenderer) renderBarChart(data []ChartDataPoint) ([]byte, error) 
 	bar := charts.NewBar()
 	bar.SetGlobalOptions(
 		charts.WithInitializationOpts(opts.Initialization{
-			Width:  "600px",
-			Height: "400px",
+			Width:      "600px",
+			Height:     "400px",
+			Theme:      "white",
+			AssetsHost: "",
 		}),
 		charts.WithTitleOpts(opts.Title{
 			Title: "Chart",
+		}),
+		charts.WithTooltipOpts(opts.Tooltip{Show: opts.Bool(true)}),
+		charts.WithLegendOpts(opts.Legend{Show: opts.Bool(true)}),
+		charts.WithYAxisOpts(opts.YAxis{
+			Show:      opts.Bool(true),
+			Type:      "value",
+			AxisLabel: &opts.AxisLabel{Show: opts.Bool(true)},
+		}),
+		charts.WithXAxisOpts(opts.XAxis{
+			AxisLabel: &opts.AxisLabel{Show: opts.Bool(true)},
+		}),
+		charts.WithToolboxOpts(opts.Toolbox{
+			Show: opts.Bool(true),
 		}),
 	)
 
@@ -134,7 +164,16 @@ func (r *EChartsRenderer) renderBarChart(data []ChartDataPoint) ([]byte, error) 
 		values[i] = opts.BarData{Value: point.Value}
 	}
 
-	bar.SetXAxis(xAxis).AddSeries("Values", values)
+	bar.SetXAxis(xAxis).AddSeries("Values", values).
+		SetSeriesOptions(
+			charts.WithLabelOpts(opts.Label{
+				Show:     opts.Bool(true),
+				Position: "top",
+			}),
+			charts.WithAnimationOpts(opts.Animation{
+				Animation: opts.Bool(false),
+			}),
+		)
 
 	return bar.RenderContent(), nil
 }
@@ -143,11 +182,18 @@ func (r *EChartsRenderer) renderPieChart(data []ChartDataPoint) ([]byte, error) 
 	pie := charts.NewPie()
 	pie.SetGlobalOptions(
 		charts.WithInitializationOpts(opts.Initialization{
-			Width:  "600px",
-			Height: "400px",
+			Width:      "600px",
+			Height:     "400px",
+			Theme:      "white",
+			AssetsHost: "",
 		}),
 		charts.WithTitleOpts(opts.Title{
 			Title: "Chart",
+		}),
+		charts.WithTooltipOpts(opts.Tooltip{Show: opts.Bool(true)}),
+		charts.WithLegendOpts(opts.Legend{Show: opts.Bool(true)}),
+		charts.WithToolboxOpts(opts.Toolbox{
+			Show: opts.Bool(true),
 		}),
 	)
 
@@ -159,7 +205,16 @@ func (r *EChartsRenderer) renderPieChart(data []ChartDataPoint) ([]byte, error) 
 		}
 	}
 
-	pie.AddSeries("Values", items)
+	pie.AddSeries("Values", items).
+		SetSeriesOptions(
+			charts.WithLabelOpts(opts.Label{
+				Show:     opts.Bool(true),
+				Position: "outside",
+			}),
+			charts.WithAnimationOpts(opts.Animation{
+				Animation: opts.Bool(false),
+			}),
+		)
 
 	return pie.RenderContent(), nil
 }

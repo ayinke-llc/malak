@@ -173,7 +173,7 @@ func convertBlockToHTML(block Block, workspaceID uuid.UUID, renderer ChartRender
 		if err != nil {
 			s.WriteString(fmt.Sprintf(`<div class="chart-error">Failed to render chart: %s</div>`, err.Error()))
 		} else {
-			s.WriteString(fmt.Sprintf(`<img src='%s' alt='%s' style="display: block; width: %s; max-width: 600px; height: auto;">`, chartKey, "Chart image", "100%"))
+			s.WriteString(fmt.Sprintf(`<a href='%s' target="_blank"><img src='%s' alt='%s' style="display: block; width: %s; max-width: 600px; height: auto;"></a>`, chartKey, chartKey, "Chart image", "100%"))
 		}
 	case "numberedListItem", "bulletListItem":
 		content := getSimpleContent(block.Content)
@@ -189,7 +189,7 @@ func convertBlockToHTML(block Block, workspaceID uuid.UUID, renderer ChartRender
 		url, _ := block.Props["url"].(string)
 		name, _ := block.Props["name"].(string)
 
-		s.WriteString(fmt.Sprintf(`<img src='%s' alt='%s' style="display: block; width: %s; max-width: 600px; height: auto;">`, url, name, "100%"))
+		s.WriteString(fmt.Sprintf(`<a href='%s' target="_blank"><img src='%s' alt='%s' style="display: block; width: %s; max-width: 600px; height: auto;"></a>`, url, url, name, "100%"))
 
 		_ = style
 
