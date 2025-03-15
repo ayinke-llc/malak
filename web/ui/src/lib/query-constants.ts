@@ -41,3 +41,4 @@ export const REMOVE_CHART_DASHBOARD = 'REMOVE_CHART_DASHBOARD' as const;
 export const LIST_DECK_SESSIONS = 'LIST_DECK_SESSIONS' as const;
 export const LIST_DECK_ENGAGEMENTS = 'LIST_DECK_ENGAGEMENTS' as const;
 export const LIST_TEMPLATES = 'LIST_TEMPLATES' as const;
+export const GENERATE_ACCESS_LINK = 'GENERATE_ACCESS_LINK' as const;

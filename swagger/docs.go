@@ -932,6 +932,69 @@ const docTemplate = `{
                 }
             }
         },
+        "/dashboards/{reference}/access-control/link": {
+            "post": {
+                "description": "regenerate the default link for a dashboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "parameters": [
+                    {
+                        "description": "Request body to generate link",
+                        "name": "message",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/server.generateDashboardLinkRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "dashboard unique reference.. e.g dashboard_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.regenerateLinkResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/dashboards/{reference}/charts": {
             "put": {
                 "description": "add a chart to a dashboard",
@@ -1593,6 +1656,61 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/server.fetchSessionsDeck"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/public/dashboards/{reference}": {
+            "get": {
+                "description": "fetch public dashboard and charting data points",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dashboard unique reference.. e.g dashboard_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.listDashboardChartsResponse"
                         }
                     },
                     "400": {
@@ -3538,6 +3656,55 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.DashboardLink": {
+            "type": "object",
+            "properties": {
+                "contact": {
+                    "$ref": "#/definitions/malak.Contact"
+                },
+                "contact_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "dashboard": {
+                    "$ref": "#/definitions/malak.Dashboard"
+                },
+                "dashboard_id": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "link_type": {
+                    "$ref": "#/definitions/malak.DashboardLinkType"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.DashboardLinkType": {
+            "type": "string",
+            "enum": [
+                "default",
+                "contact"
+            ],
+            "x-enum-varnames": [
+                "DashboardLinkTypeDefault",
+                "DashboardLinkTypeContact"
+            ]
+        },
         "malak.Deck": {
             "type": "object",
             "properties": {
@@ -5034,6 +5201,14 @@ const docTemplate = `{
                 }
             }
         },
+        "server.generateDashboardLinkRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
         "server.listChartDataPointsResponse": {
             "type": "object",
             "required": [
@@ -5079,6 +5254,7 @@ const docTemplate = `{
             "required": [
                 "charts",
                 "dashboard",
+                "link",
                 "message",
                 "positions"
             ],
@@ -5091,6 +5267,9 @@ const docTemplate = `{
                 },
                 "dashboard": {
                     "$ref": "#/definitions/malak.Dashboard"
+                },
+                "link": {
+                    "$ref": "#/definitions/malak.DashboardLink"
                 },
                 "message": {
                     "type": "string"
@@ -5235,6 +5414,21 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.regenerateLinkResponse": {
+            "type": "object",
+            "required": [
+                "link",
+                "message"
+            ],
+            "properties": {
+                "link": {
+                    "$ref": "#/definitions/malak.DashboardLink"
+                },
+                "message": {
                     "type": "string"
                 }
             }
