@@ -91,6 +91,7 @@ type listDashboardChartsResponse struct {
 	Charts    []malak.DashboardChart         `json:"charts,omitempty" validate:"required"`
 	Positions []malak.DashboardChartPosition `json:"positions,omitempty" validate:"required"`
 	Dashboard malak.Dashboard                `json:"dashboard,omitempty" validate:"required"`
+	Link      malak.DashboardLink            `json:"link,omitempty" validate:"required"`
 	APIStatus
 }
 

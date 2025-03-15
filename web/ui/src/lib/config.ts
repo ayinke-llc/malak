@@ -5,6 +5,7 @@ const MALAK_TERMS_CONDITION_LINK =
 const MALAK_PRIVACY_POLICY_LINK =
   process.env.NEXT_PUBLIC_MALAK_PRIVACY_POLICY_LINK ||
   "https://ayinke.ventures/malak/privacy";
+const MALAK_APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.malak.vc"
 
 const MALAK_SENTRY_ENABLED =
   process.env.NEXT_PUBLIC_SENTRY_DSN ? true : false;
@@ -20,4 +21,5 @@ export {
   MALAK_SENTRY_ENABLED,
   DECKS_DOMAIN,
   SUPPORT_EMAIL,
+  MALAK_APP_URL,
 };

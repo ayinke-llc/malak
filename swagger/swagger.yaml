@@ -210,6 +210,37 @@ components:
         order_index:
           type: integer
       type: object
+    malak.DashboardLink:
+      properties:
+        contact:
+          $ref: '#/components/schemas/malak.Contact'
+        contact_id:
+          type: string
+        created_at:
+          type: string
+        dashboard_id:
+          type: string
+        expires_at:
+          type: string
+        id:
+          type: string
+        link_type:
+          $ref: '#/components/schemas/malak.DashboardLinkType'
+        reference:
+          type: string
+        token:
+          type: string
+        updated_at:
+          type: string
+      type: object
+    malak.DashboardLinkType:
+      enum:
+      - default
+      - contact
+      type: string
+      x-enum-varnames:
+      - DashboardLinkTypeDefault
+      - DashboardLinkTypeContact
     malak.Deck:
       properties:
         created_at:
@@ -1256,6 +1287,8 @@ components:
           type: array
         dashboard:
           $ref: '#/components/schemas/malak.Dashboard'
+        link:
+          $ref: '#/components/schemas/malak.DashboardLink'
         message:
           type: string
         positions:
@@ -1265,6 +1298,7 @@ components:
       required:
       - charts
       - dashboard
+      - link
       - message
       - positions
       type: object

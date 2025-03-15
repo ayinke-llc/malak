@@ -134,6 +134,24 @@ export interface MalakDashboardChartPosition {
   order_index?: number;
 }
 
+export interface MalakDashboardLink {
+  contact?: MalakContact;
+  contact_id?: string;
+  created_at?: string;
+  dashboard_id?: string;
+  expires_at?: string;
+  id?: string;
+  link_type?: MalakDashboardLinkType;
+  reference?: string;
+  token?: string;
+  updated_at?: string;
+}
+
+export enum MalakDashboardLinkType {
+  DashboardLinkTypeDefault = "default",
+  DashboardLinkTypeContact = "contact",
+}
+
 export interface MalakDeck {
   created_at?: string;
   created_by?: string;
@@ -709,6 +727,7 @@ export interface ServerListContactsResponse {
 export interface ServerListDashboardChartsResponse {
   charts: MalakDashboardChart[];
   dashboard: MalakDashboard;
+  link: MalakDashboardLink;
   message: string;
   positions: MalakDashboardChartPosition[];
 }

@@ -28,10 +28,6 @@ func (d *dashboardRepo) Create(ctx context.Context,
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
 
-	if dashboard.Title == "" {
-		return errors.New("dashboard title is required")
-	}
-
 	return d.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
 

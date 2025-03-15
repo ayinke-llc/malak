@@ -44,6 +44,7 @@ func New(logger *zap.Logger,
 	preferenceRepo malak.PreferenceRepository,
 	integrationRepo malak.IntegrationRepository,
 	templatesRepo malak.TemplateRepository,
+	dashboardLinkRepo malak.DashboardLinkRepository,
 	mid *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
@@ -64,6 +65,7 @@ func New(logger *zap.Logger,
 			userRepo, workspaceRepo, planRepo,
 			contactRepo, updateRepo, contactListRepo,
 			deckRepo, shareRepo, preferenceRepo, integrationRepo, templatesRepo,
+			dashboardLinkRepo,
 			googleAuthProvider, mid, gulterHandler,
 			queueHandler, redisCache, billingClient, integrationManager, secretsClient,
 			geolocationService),
@@ -111,6 +113,7 @@ func buildRoutes(
 	preferenceRepo malak.PreferenceRepository,
 	integrationRepo malak.IntegrationRepository,
 	templatesRepo malak.TemplateRepository,
+	dashboardLinkRepo malak.DashboardLinkRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	ratelimiterMiddleware *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
@@ -210,10 +213,11 @@ func buildRoutes(
 	}
 
 	dashHandler := &dashboardHandler{
-		cfg:             cfg,
-		dashboardRepo:   dashboardRepo,
-		generator:       referenceGenerator,
-		integrationRepo: integrationRepo,
+		cfg:               cfg,
+		dashboardRepo:     dashboardRepo,
+		generator:         referenceGenerator,
+		integrationRepo:   integrationRepo,
+		dashboardLinkRepo: dashboardLinkRepo,
 	}
 
 	router.Use(middleware.RequestID)

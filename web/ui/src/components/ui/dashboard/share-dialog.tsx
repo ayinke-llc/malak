@@ -23,18 +23,23 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { AccessLog } from "./access-log";
 import { AccessManagement } from "./access-management";
+import CopyToClipboard from 'react-copy-to-clipboard';
 import { cn } from "@/lib/utils";
+import { MALAK_APP_URL } from "@/lib/config";
 
 interface ShareDialogProps {
   title: string;
   reference: string;
+  token: string
 }
 
 type ShareView = "main" | "email" | "manage" | "log";
 
-export function ShareDialog({ title, reference }: ShareDialogProps) {
+export function ShareDialog({ token, title, reference }: ShareDialogProps) {
   const [view, setView] = useState<ShareView>("main");
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
+
+  const fullShareLink = MALAK_APP_URL + "/shared/dashboards/" + token
 
   const shareDashboardMutation = useMutation({
     mutationFn: async (emails: string[]) => {
@@ -58,12 +63,6 @@ export function ShareDialog({ title, reference }: ShareDialogProps) {
       return;
     }
     await shareDashboardMutation.mutateAsync(selectedEmails);
-  };
-
-  const handleCopyLink = () => {
-    const shareUrl = `${window.location.origin}/shared/dashboards/${reference}`;
-    navigator.clipboard.writeText(shareUrl);
-    toast.success("Share link copied to clipboard");
   };
 
   const renderMainView = () => (
@@ -98,17 +97,26 @@ export function ShareDialog({ title, reference }: ShareDialogProps) {
                 Share with anyone who has the link
               </p>
             </div>
-            <Button 
-              variant="outline" 
-              className="w-full gap-2 mt-2"
-              onClick={handleCopyLink}
-            >
-              <RiFileCopyLine className="h-5 w-5" />
-              Copy Link
-            </Button>
+            <div className="w-full gap-2 mt-2">
+              <CopyToClipboard
+                text={fullShareLink}
+                onCopy={(text, result) => {
+                  if (result) {
+                    toast.success('url copied. Share this with anyone');
+                    return
+                  }
+                  toast.error('Failed to copy share url');
+                }}
+              >
+                <Button variant="outline" className="w-full flex items-center gap-2">
+                  <RiFileCopyLine className="h-5 w-5" />
+                  Copy Link
+                </Button>
+              </CopyToClipboard>
+            </div>
           </div>
         </div>
-      </div>
+      </div >
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -138,7 +146,7 @@ export function ShareDialog({ title, reference }: ShareDialogProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 
   const renderEmailView = () => (
@@ -172,8 +180,8 @@ export function ShareDialog({ title, reference }: ShareDialogProps) {
           >
             Cancel
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="flex-1 gap-2"
             disabled={shareDashboardMutation.isPending}
           >

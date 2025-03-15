@@ -8,6 +8,8 @@ import (
 	"github.com/uptrace/bun"
 )
 
+var ErrDashboardLinkNotFound = MalakError("dashboard link not found")
+
 // ENUM(default,contact)
 type DashboardLinkType string
 
@@ -48,4 +50,5 @@ type DashboardLink struct {
 
 type DashboardLinkRepository interface {
 	Create(context.Context, *DashboardLink) error
+	DefaultLink(context.Context, *Dashboard) (DashboardLink, error)
 }

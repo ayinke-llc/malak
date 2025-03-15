@@ -431,6 +431,7 @@ export default function DashboardDetailsPage({ reference }: { reference: string 
           <ShareDialog
             title={dashboard.title || "Dashboard"}
             reference={dashboardID}
+            token={dashboardData?.link?.token as string}
           />
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>

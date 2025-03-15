@@ -18,10 +18,11 @@ import (
 )
 
 type dashboardHandler struct {
-	cfg             config.Config
-	dashboardRepo   malak.DashboardRepository
-	integrationRepo malak.IntegrationRepository
-	generator       malak.ReferenceGeneratorOperation
+	cfg               config.Config
+	dashboardRepo     malak.DashboardRepository
+	integrationRepo   malak.IntegrationRepository
+	generator         malak.ReferenceGeneratorOperation
+	dashboardLinkRepo malak.DashboardLinkRepository
 }
 
 type createDashboardRequest struct {
@@ -354,8 +355,11 @@ func (d *dashboardHandler) fetchDashboard(
 
 	var charts []malak.DashboardChart
 	var positions []malak.DashboardChartPosition
+	var defaultDashLink malak.DashboardLink
 
 	g.Go(func() error {
+
+		var err error
 
 		charts, err = d.dashboardRepo.GetCharts(ctx, malak.FetchDashboardChartsOption{
 			WorkspaceID: workspace.ID,
@@ -374,6 +378,7 @@ func (d *dashboardHandler) fetchDashboard(
 
 	g.Go(func() error {
 
+		var err error
 		positions, err = d.dashboardRepo.GetDashboardPositions(ctx, dashboard.ID)
 
 		if err != nil {
@@ -382,6 +387,18 @@ func (d *dashboardHandler) fetchDashboard(
 				zap.Error(err))
 
 			return errors.New("could not list dashboard positions")
+		}
+
+		return nil
+	})
+
+	g.Go(func() error {
+		var err error
+
+		defaultDashLink, err = d.dashboardLinkRepo.DefaultLink(ctx, &dashboard)
+		if err != nil {
+			logger.Error("could not fetch default dashboard link", zap.Error(err))
+			return errors.New("could not fetch dashboard link")
 		}
 
 		return nil
@@ -397,6 +414,7 @@ func (d *dashboardHandler) fetchDashboard(
 		Dashboard: dashboard,
 		Charts:    charts,
 		Positions: positions,
+		Link:      defaultDashLink,
 	}, StatusSuccess
 }
 

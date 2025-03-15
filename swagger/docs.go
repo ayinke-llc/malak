@@ -3538,6 +3538,52 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.DashboardLink": {
+            "type": "object",
+            "properties": {
+                "contact": {
+                    "$ref": "#/definitions/malak.Contact"
+                },
+                "contact_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "dashboard_id": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "link_type": {
+                    "$ref": "#/definitions/malak.DashboardLinkType"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.DashboardLinkType": {
+            "type": "string",
+            "enum": [
+                "default",
+                "contact"
+            ],
+            "x-enum-varnames": [
+                "DashboardLinkTypeDefault",
+                "DashboardLinkTypeContact"
+            ]
+        },
         "malak.Deck": {
             "type": "object",
             "properties": {
@@ -5079,6 +5125,7 @@ const docTemplate = `{
             "required": [
                 "charts",
                 "dashboard",
+                "link",
                 "message",
                 "positions"
             ],
@@ -5091,6 +5138,9 @@ const docTemplate = `{
                 },
                 "dashboard": {
                     "$ref": "#/definitions/malak.Dashboard"
+                },
+                "link": {
+                    "$ref": "#/definitions/malak.DashboardLink"
                 },
                 "message": {
                     "type": "string"
