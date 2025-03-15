@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -18,15 +17,12 @@ import {
 } from "@/components/ui/table";
 import {
   RiRefreshLine,
-  RiLoader4Line,
-  RiTimeLine,
-  RiUserLine,
-  RiLinkM,
+  RiLoader4Line, RiLinkM,
   RiMailLine,
   RiArrowLeftLine,
   RiArrowRightLine,
   RiSearchLine,
-  RiFileCopyLine,
+  RiFileCopyLine
 } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -45,17 +41,18 @@ interface ShareAccess {
 
 interface AccessManagementProps {
   reference: string;
+  shareLink: string;
 }
 
 const ITEMS_PER_PAGE = 10;
 
-export function AccessManagement({ reference }: AccessManagementProps) {
+export function AccessManagement({ reference, shareLink }: AccessManagementProps) {
+
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "link" | "email">("all");
-  const [currentLink, setCurrentLink] = useState(`${window.location.origin}/shared/dashboards/${reference}`);
+  const [currentLink, setCurrentLink] = useState(shareLink);
 
-  // Simulate access list with 50 items
   const accessList: ShareAccess[] = Array.from({ length: 50 }, (_, i) => ({
     type: i % 3 === 0 ? "link" : "email",
     email: i % 3 === 0 ? undefined : `user${i}@example.com`,
@@ -104,7 +101,7 @@ export function AccessManagement({ reference }: AccessManagementProps) {
   const filteredList = accessList.filter(access => {
     if (typeFilter !== "all" && access.type !== typeFilter) return false;
     if (!filter) return true;
-    
+
     return access.email?.toLowerCase().includes(filter.toLowerCase());
   });
 
@@ -117,7 +114,6 @@ export function AccessManagement({ reference }: AccessManagementProps) {
   return (
     <div className="space-y-8">
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 space-y-4 pb-4">
-        {/* Link Sharing Section */}
         <div className="rounded-lg border bg-muted/50 p-6 space-y-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="space-y-1.5">
@@ -234,7 +230,6 @@ export function AccessManagement({ reference }: AccessManagementProps) {
         </div>
       </div>
 
-      {/* Access List Table */}
       <div className="rounded-lg border overflow-hidden mt-0">
         <div className="overflow-auto">
           <Table>
@@ -279,11 +274,10 @@ export function AccessManagement({ reference }: AccessManagementProps) {
                     {access.accessCount}
                   </TableCell>
                   <TableCell className="align-middle">
-                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                      access.status === "active"
-                        ? "bg-green-50 text-green-700"
-                        : "bg-red-50 text-red-700"
-                    }`}>
+                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${access.status === "active"
+                      ? "bg-green-50 text-green-700"
+                      : "bg-red-50 text-red-700"
+                      }`}>
                       {access.status}
                     </span>
                   </TableCell>

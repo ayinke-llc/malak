@@ -130,8 +130,8 @@ export function ShareDialog({ token, title, reference }: ShareDialogProps) {
                   Copy Link
                 </Button>
               </CopyToClipboard>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full flex items-center gap-2"
                 onClick={() => regenerateLinkMutation.mutate()}
                 disabled={regenerateLinkMutation.isPending}
@@ -245,7 +245,7 @@ export function ShareDialog({ token, title, reference }: ShareDialogProps) {
     },
     manage: {
       title: "Manage Access",
-      content: () => <AccessManagement reference={reference} />,
+      content: () => <AccessManagement shareLink={fullShareLink} reference={reference} />,
       showBack: true,
     },
     log: {
