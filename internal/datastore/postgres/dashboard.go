@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -38,6 +39,25 @@ func (d *dashboardRepo) Create(ctx context.Context,
 
 			_, err := tx.NewInsert().
 				Model(dashboard).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+
+			s, err := hermes.Random(20)
+			if err != nil {
+				return err
+			}
+
+			link := &malak.DashboardLink{
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardLink),
+				DashboardID: dashboard.ID,
+				LinkType:    malak.DashboardLinkTypeDefault,
+				Token:       s,
+			}
+
+			_, err = tx.NewInsert().
+				Model(link).
 				Exec(ctx)
 			return err
 		})

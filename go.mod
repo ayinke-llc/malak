@@ -12,7 +12,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.27.36
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.34
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.34.16
-	github.com/ayinke-llc/hermes v0.0.0-20250309181249-aa307cfb2152
+	github.com/ayinke-llc/hermes v0.0.0-20250314225720-9fe8f67cd262
 	github.com/charmbracelet/huh v0.6.0
 	github.com/dentech-floss/watermill-opentelemetry-go-extra v0.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible

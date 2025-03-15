@@ -9,7 +9,7 @@ import (
 )
 
 // ENUM(default,contact)
-type DashboardLinkType uint8
+type DashboardLinkType string
 
 type DashboardLink struct {
 	ID          uuid.UUID         `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`

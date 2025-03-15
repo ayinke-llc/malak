@@ -12,39 +12,29 @@ import (
 )
 
 const (
-	// DashboardLinkTypeDefault is a DashboardLinkType of type Default.
-	DashboardLinkTypeDefault DashboardLinkType = iota
-	// DashboardLinkTypeContact is a DashboardLinkType of type Contact.
-	DashboardLinkTypeContact
+	// DashboardLinkTypeDefault is a DashboardLinkType of type default.
+	DashboardLinkTypeDefault DashboardLinkType = "default"
+	// DashboardLinkTypeContact is a DashboardLinkType of type contact.
+	DashboardLinkTypeContact DashboardLinkType = "contact"
 )
 
 var ErrInvalidDashboardLinkType = errors.New("not a valid DashboardLinkType")
 
-const _DashboardLinkTypeName = "defaultcontact"
-
-var _DashboardLinkTypeMap = map[DashboardLinkType]string{
-	DashboardLinkTypeDefault: _DashboardLinkTypeName[0:7],
-	DashboardLinkTypeContact: _DashboardLinkTypeName[7:14],
-}
-
 // String implements the Stringer interface.
 func (x DashboardLinkType) String() string {
-	if str, ok := _DashboardLinkTypeMap[x]; ok {
-		return str
-	}
-	return fmt.Sprintf("DashboardLinkType(%d)", x)
+	return string(x)
 }
 
 // IsValid provides a quick way to determine if the typed value is
 // part of the allowed enumerated values
 func (x DashboardLinkType) IsValid() bool {
-	_, ok := _DashboardLinkTypeMap[x]
-	return ok
+	_, err := ParseDashboardLinkType(string(x))
+	return err == nil
 }
 
 var _DashboardLinkTypeValue = map[string]DashboardLinkType{
-	_DashboardLinkTypeName[0:7]:  DashboardLinkTypeDefault,
-	_DashboardLinkTypeName[7:14]: DashboardLinkTypeContact,
+	"default": DashboardLinkTypeDefault,
+	"contact": DashboardLinkTypeContact,
 }
 
 // ParseDashboardLinkType attempts to convert a string to a DashboardLinkType.
@@ -52,5 +42,5 @@ func ParseDashboardLinkType(name string) (DashboardLinkType, error) {
 	if x, ok := _DashboardLinkTypeValue[name]; ok {
 		return x, nil
 	}
-	return DashboardLinkType(0), fmt.Errorf("%s is %w", name, ErrInvalidDashboardLinkType)
+	return DashboardLinkType(""), fmt.Errorf("%s is %w", name, ErrInvalidDashboardLinkType)
 }
