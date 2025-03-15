@@ -1,12 +1,9 @@
 "use client";
 
 import type {
-  MalakDashboardChart, ServerAPIStatus,
-  ServerListDashboardChartsResponse,
-  ServerListIntegrationChartsResponse,
-  ServerFetchDashboardResponse
+  MalakDashboardChart, ServerAPIStatus, ServerListDashboardChartsResponse,
+  ServerListIntegrationChartsResponse
 } from "@/client/Api";
-import { ContentType } from "@/client/Api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
@@ -18,6 +15,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { ShareDialog } from "@/components/ui/dashboard/share-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +37,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { formatChartData, formatTooltipValue, getChartColors } from "@/lib/chart-utils";
 import client from "@/lib/client";
 import {
   ADD_CHART_DASHBOARD,
@@ -47,7 +46,6 @@ import {
   LIST_CHARTS,
   REMOVE_CHART_DASHBOARD
 } from "@/lib/query-constants";
-import { formatChartData, formatTooltipValue, getChartColors } from "@/lib/chart-utils";
 import {
   closestCenter,
   DndContext,
@@ -66,19 +64,12 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
   RiArrowDownSLine,
-  RiBarChart2Line,
-  RiLoader4Line,
-  RiPieChartLine,
-  RiSettings4Line,
-  RiShareBoxLine,
-  RiLinkM,
-  RiMailLine,
-  RiGlobalLine,
-  RiFileCopyLine
+  RiBarChart2Line, RiLoader4Line, RiPieChartLine,
+  RiSettings4Line
 } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Bar, BarChart,
   Cell,
@@ -90,18 +81,6 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import styles from "./styles.module.css";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import CreatableSelect from "@/components/ui/multi-select";
-import type { OptionType } from "@/components/ui/multi-select";
-import { ShareDialog } from "@/components/ui/dashboard/share-dialog";
 
 function ChartCard({ chart }: { chart: MalakDashboardChart }) {
   const { data: chartData, isLoading: isLoadingChartData, error } = useQuery({
@@ -313,7 +292,6 @@ export default function DashboardDetailsPage({ reference }: { reference: string 
     },
     onError: (err: AxiosError<ServerAPIStatus>) => {
       toast.error(err?.response?.data?.message || "Failed to update chart positions");
-      // Revert to the previous state on error
       if (dashboardData?.charts) {
         setCharts(dashboardData.charts);
       }
@@ -493,60 +471,60 @@ export default function DashboardDetailsPage({ reference }: { reference: string 
                               </CommandItem>
                             ) : (
                               <>
-                                {(chartsData?.charts || []).filter(chart => 
-                                  chart.chart_type === "bar" && 
+                                {(chartsData?.charts || []).filter(chart =>
+                                  chart.chart_type === "bar" &&
                                   !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
                                 ).length > 0 && (
-                                  <CommandGroup heading="Bar Charts">
-                                    {(chartsData?.charts || [])
-                                      .filter(chart => 
-                                        chart.chart_type === "bar" && 
-                                        !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
-                                      )
-                                      .map(chart => (
-                                      <CommandItem
-                                        key={chart.reference}
-                                        value={`${chart.user_facing_name} ${chart.internal_name}`}
-                                        onSelect={() => {
-                                          setSelectedChart(chart.reference || "");
-                                          setSelectedChartLabel(chart.user_facing_name || "");
-                                          setIsPopoverOpen(false);
-                                        }}
-                                        className="flex items-center gap-2"
-                                      >
-                                        <RiBarChart2Line className="h-4 w-4" />
-                                        <span>{chart.user_facing_name}</span>
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                                )}
-                                {(chartsData?.charts || []).filter(chart => 
-                                  chart.chart_type === "pie" && 
+                                    <CommandGroup heading="Bar Charts">
+                                      {(chartsData?.charts || [])
+                                        .filter(chart =>
+                                          chart.chart_type === "bar" &&
+                                          !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
+                                        )
+                                        .map(chart => (
+                                          <CommandItem
+                                            key={chart.reference}
+                                            value={`${chart.user_facing_name} ${chart.internal_name}`}
+                                            onSelect={() => {
+                                              setSelectedChart(chart.reference || "");
+                                              setSelectedChartLabel(chart.user_facing_name || "");
+                                              setIsPopoverOpen(false);
+                                            }}
+                                            className="flex items-center gap-2"
+                                          >
+                                            <RiBarChart2Line className="h-4 w-4" />
+                                            <span>{chart.user_facing_name}</span>
+                                          </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                  )}
+                                {(chartsData?.charts || []).filter(chart =>
+                                  chart.chart_type === "pie" &&
                                   !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
                                 ).length > 0 && (
-                                  <CommandGroup heading="Pie Charts">
-                                    {(chartsData?.charts || [])
-                                      .filter(chart => 
-                                        chart.chart_type === "pie" && 
-                                        !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
-                                      )
-                                      .map(chart => (
-                                      <CommandItem
-                                        key={chart.reference}
-                                        value={`${chart.user_facing_name} ${chart.internal_name}`}
-                                        onSelect={() => {
-                                          setSelectedChart(chart.reference || "");
-                                          setSelectedChartLabel(chart.user_facing_name || "");
-                                          setIsPopoverOpen(false);
-                                        }}
-                                        className="flex items-center gap-2"
-                                      >
-                                        <RiPieChartLine className="h-4 w-4" />
-                                        <span>{chart.user_facing_name}</span>
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                                )}
+                                    <CommandGroup heading="Pie Charts">
+                                      {(chartsData?.charts || [])
+                                        .filter(chart =>
+                                          chart.chart_type === "pie" &&
+                                          !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
+                                        )
+                                        .map(chart => (
+                                          <CommandItem
+                                            key={chart.reference}
+                                            value={`${chart.user_facing_name} ${chart.internal_name}`}
+                                            onSelect={() => {
+                                              setSelectedChart(chart.reference || "");
+                                              setSelectedChartLabel(chart.user_facing_name || "");
+                                              setIsPopoverOpen(false);
+                                            }}
+                                            className="flex items-center gap-2"
+                                          >
+                                            <RiPieChartLine className="h-4 w-4" />
+                                            <span>{chart.user_facing_name}</span>
+                                          </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                  )}
                               </>
                             )}
                           </CommandList>

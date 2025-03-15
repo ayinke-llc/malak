@@ -125,16 +125,17 @@ export function ShareDialog({ title, reference }: ShareDialogProps) {
               <p className="text-sm text-muted-foreground">Control who has access</p>
             </div>
           </button>
-          <button
-            onClick={() => setView("log")}
-            className="flex items-center gap-3 rounded-lg border p-4 hover:bg-muted/50 transition-colors"
-          >
-            <RiHistoryLine className="h-5 w-5 text-muted-foreground" />
-            <div className="text-left">
-              <h4 className="font-medium">Access Log</h4>
-              <p className="text-sm text-muted-foreground">View access history</p>
+          <div className="relative flex items-center gap-3 rounded-lg border p-4 bg-gradient-to-br from-muted/30 via-muted/20 to-muted/10 overflow-hidden group cursor-not-allowed">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+            <RiHistoryLine className="h-5 w-5 text-muted-foreground relative" />
+            <div className="text-left relative">
+              <div className="flex items-center gap-2">
+                <h4 className="font-medium text-muted-foreground/80">Access Log</h4>
+                <span className="text-[10px] font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full animate-pulse">Coming soon</span>
+              </div>
+              <p className="text-sm text-muted-foreground/70">View access history</p>
             </div>
-          </button>
+          </div>
         </div>
       </div>
     </div>
@@ -211,7 +212,13 @@ export function ShareDialog({ title, reference }: ShareDialogProps) {
     },
     log: {
       title: "Access Log",
-      content: () => <AccessLog reference={reference} />,
+      content: () => (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <RiHistoryLine className="h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium mb-2">Coming soon</h3>
+          <p className="text-sm text-muted-foreground">Access log functionality will be available soon.</p>
+        </div>
+      ),
       showBack: true,
     },
   };
