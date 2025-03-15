@@ -1490,6 +1490,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
+     * @description fetch charting data
+     *
+     * @tags dashboards
+     * @name DashboardsChartsDetail
+     * @request GET:/public/dashboards/{reference}/charts/{chart_reference}
+     */
+    dashboardsChartsDetail: (reference: string, chartReference: string, params: RequestParams = {}) =>
+      this.request<ServerListChartDataPointsResponse, ServerAPIStatus>({
+        path: `/public/dashboards/${reference}/charts/${chartReference}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description public api to fetch a deck
      *
      * @tags decks-viewer

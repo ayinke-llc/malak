@@ -461,8 +461,11 @@ func buildRoutes(
 			r.Put("/decks/{reference}",
 				WrapMalakHTTPHandler(logger, deckHandler.updateDeckViewerSession, cfg, "public.decks.update"))
 
-			r.Post("/dashboards/{reference}",
+			r.Get("/dashboards/{reference}",
 				WrapMalakHTTPHandler(logger, dashHandler.publicDashboardDetails, cfg, "public.dashboards.fetch"))
+
+			r.Get("/dashboards/{reference}/charts/{chart_reference}",
+				WrapMalakHTTPHandler(logger, dashHandler.publicChartingDataFetch, cfg, "public.charts.datapoints"))
 		})
 	})
 

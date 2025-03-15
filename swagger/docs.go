@@ -1740,6 +1740,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/dashboards/{reference}/charts/{chart_reference}": {
+            "get": {
+                "description": "fetch charting data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dashboard unique reference.. e.g dashboard_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "chart unique reference.. e.g integration_chart_km31C.e6xV",
+                        "name": "chart_reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.listChartDataPointsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/public/decks/{reference}": {
             "put": {
                 "description": "update the session details",

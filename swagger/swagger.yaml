@@ -2864,6 +2864,55 @@ paths:
           description: Internal Server Error
       tags:
       - dashboards
+  /public/dashboards/{reference}/charts/{chart_reference}:
+    get:
+      description: fetch charting data
+      parameters:
+      - description: dashboard unique reference.. e.g dashboard_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      - description: chart unique reference.. e.g integration_chart_km31C.e6xV
+        in: path
+        name: chart_reference
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.listChartDataPointsResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      tags:
+      - dashboards
   /public/decks/{reference}:
     post:
       description: public api to fetch a deck
