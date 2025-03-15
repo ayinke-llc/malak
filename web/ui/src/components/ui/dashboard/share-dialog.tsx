@@ -17,6 +17,7 @@ import {
   RiHistoryLine,
   RiSettings4Line,
   RiArrowRightLine,
+  RiRefreshLine,
 } from "@remixicon/react";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -38,8 +39,24 @@ type ShareView = "main" | "email" | "manage" | "log";
 export function ShareDialog({ token, title, reference }: ShareDialogProps) {
   const [view, setView] = useState<ShareView>("main");
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
+  const [currentToken, setCurrentToken] = useState(token);
 
-  const fullShareLink = MALAK_APP_URL + "/shared/dashboards/" + token
+  const fullShareLink = MALAK_APP_URL + "/shared/dashboards/" + currentToken;
+
+  const regenerateLinkMutation = useMutation({
+    mutationFn: async () => {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const newToken = Date.now().toString(); // This is just a mock, the actual token will come from the API
+      return { token: newToken };
+    },
+    onSuccess: (data) => {
+      setCurrentToken(data.token);
+      toast.success("New link generated successfully");
+    },
+    onError: () => {
+      toast.error("Failed to regenerate link");
+    }
+  });
 
   const shareDashboardMutation = useMutation({
     mutationFn: async (emails: string[]) => {
@@ -97,15 +114,15 @@ export function ShareDialog({ token, title, reference }: ShareDialogProps) {
                 Share with anyone who has the link
               </p>
             </div>
-            <div className="w-full gap-2 mt-2">
+            <div className="flex flex-col gap-2">
               <CopyToClipboard
                 text={fullShareLink}
                 onCopy={(text, result) => {
                   if (result) {
-                    toast.success('url copied. Share this with anyone');
+                    toast.success('Link copied to clipboard');
                     return
                   }
-                  toast.error('Failed to copy share url');
+                  toast.error('Failed to copy link');
                 }}
               >
                 <Button variant="outline" className="w-full flex items-center gap-2">
@@ -113,10 +130,23 @@ export function ShareDialog({ token, title, reference }: ShareDialogProps) {
                   Copy Link
                 </Button>
               </CopyToClipboard>
+              <Button 
+                variant="outline" 
+                className="w-full flex items-center gap-2"
+                onClick={() => regenerateLinkMutation.mutate()}
+                disabled={regenerateLinkMutation.isPending}
+              >
+                {regenerateLinkMutation.isPending ? (
+                  <RiLoader4Line className="h-5 w-5 animate-spin" />
+                ) : (
+                  <RiRefreshLine className="h-5 w-5" />
+                )}
+                Regenerate Link
+              </Button>
             </div>
           </div>
         </div>
-      </div >
+      </div>
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -146,7 +176,7 @@ export function ShareDialog({ token, title, reference }: ShareDialogProps) {
           </div>
         </div>
       </div>
-    </div >
+    </div>
   );
 
   const renderEmailView = () => (

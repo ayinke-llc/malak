@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -27,11 +26,13 @@ import {
   RiArrowLeftLine,
   RiArrowRightLine,
   RiSearchLine,
+  RiFileCopyLine,
 } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
+import CopyToClipboard from "react-copy-to-clipboard";
 
 interface ShareAccess {
   type: 'link' | 'email';
@@ -49,11 +50,10 @@ interface AccessManagementProps {
 const ITEMS_PER_PAGE = 10;
 
 export function AccessManagement({ reference }: AccessManagementProps) {
-  const [linkEnabled, setLinkEnabled] = useState(true);
-  const [expiryDays, setExpiryDays] = useState<string>("never");
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "link" | "email">("all");
+  const [currentLink, setCurrentLink] = useState(`${window.location.origin}/shared/dashboards/${reference}`);
 
   // Simulate access list with 50 items
   const accessList: ShareAccess[] = Array.from({ length: 50 }, (_, i) => ({
@@ -68,11 +68,12 @@ export function AccessManagement({ reference }: AccessManagementProps) {
   const regenerateLinkMutation = useMutation({
     mutationFn: async () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      return { newLink: `${window.location.origin}/shared/dashboards/${reference}?key=${Date.now()}` };
+      const newLink = `${window.location.origin}/shared/dashboards/${reference}?key=${Date.now()}`;
+      return { newLink };
     },
     onSuccess: (data) => {
-      navigator.clipboard.writeText(data.newLink);
-      toast.success("New link generated and copied to clipboard");
+      setCurrentLink(data.newLink);
+      toast.success("New link generated");
     },
     onError: () => {
       toast.error("Failed to regenerate link");
@@ -128,44 +129,42 @@ export function AccessManagement({ reference }: AccessManagementProps) {
                 Anyone with the link can view this dashboard
               </p>
             </div>
-            <Switch
-              checked={linkEnabled}
-              onCheckedChange={setLinkEnabled}
-            />
           </div>
 
-          {linkEnabled && (
-            <div className="flex items-center gap-4 pt-2">
-              <Select
-                value={expiryDays}
-                onValueChange={setExpiryDays}
+          <div className="flex items-center gap-4 pt-2">
+            <div className="flex-1 flex items-center gap-2">
+              <Input
+                value={currentLink}
+                readOnly
+                className="bg-background flex-1"
+              />
+              <CopyToClipboard
+                text={currentLink}
+                onCopy={() => toast.success("Link copied to clipboard")}
               >
-                <SelectTrigger className="w-[180px] bg-background">
-                  <SelectValue placeholder="Expiry" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="never">Never expires</SelectItem>
-                  <SelectItem value="7">7 days</SelectItem>
-                  <SelectItem value="30">30 days</SelectItem>
-                  <SelectItem value="90">90 days</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Button
-                variant="outline"
-                onClick={handleRegenerateLink}
-                disabled={regenerateLinkMutation.isPending}
-                className="bg-background"
-              >
-                {regenerateLinkMutation.isPending ? (
-                  <RiLoader4Line className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RiRefreshLine className="h-4 w-4" />
-                )}
-                <span className="ml-2">Regenerate Link</span>
-              </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="bg-background"
+                >
+                  <RiFileCopyLine className="h-4 w-4" />
+                </Button>
+              </CopyToClipboard>
             </div>
-          )}
+            <Button
+              variant="outline"
+              onClick={handleRegenerateLink}
+              disabled={regenerateLinkMutation.isPending}
+              className="bg-background shrink-0"
+            >
+              {regenerateLinkMutation.isPending ? (
+                <RiLoader4Line className="h-4 w-4 animate-spin" />
+              ) : (
+                <RiRefreshLine className="h-4 w-4" />
+              )}
+              <span className="ml-2">Regenerate Link</span>
+            </Button>
+          </div>
         </div>
 
         {/* Access List Header */}
