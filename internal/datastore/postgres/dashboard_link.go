@@ -59,6 +59,8 @@ func (d *dashboardLinkRepo) Create(ctx context.Context,
 					if err != nil {
 						return err
 					}
+
+					link.ContactID = contact.ID
 				}
 			}
 

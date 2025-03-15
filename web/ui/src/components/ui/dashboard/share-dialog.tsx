@@ -6,8 +6,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import CreatableSelect from "@/components/ui/multi-select";
-import type { OptionType } from "@/components/ui/multi-select";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   RiShareBoxLine,
   RiMailLine,
@@ -27,6 +34,13 @@ import { AccessManagement } from "./access-management";
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { cn } from "@/lib/utils";
 import { MALAK_APP_URL } from "@/lib/config";
+import * as yup from "yup";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { ServerAPIStatus } from "@/client/Api";
+import client from "@/lib/client";
+import { GENERATE_ACCESS_LINK } from "@/lib/query-constants";
+import { AxiosError } from "axios";
 
 interface ShareDialogProps {
   title: string;
@@ -36,33 +50,40 @@ interface ShareDialogProps {
 
 type ShareView = "main" | "email" | "manage" | "log";
 
+const schema = yup.object({
+  email: yup.string().email("Please enter a valid email address").required("Email is required"),
+});
+
+type FormData = yup.InferType<typeof schema>;
+
 export function ShareDialog({ token, title, reference }: ShareDialogProps) {
   const [view, setView] = useState<ShareView>("main");
-  const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [fullShareLink, setFullShareLink] = useState<string>(MALAK_APP_URL + "/shared/dashboards/" + token)
 
-  const shareDashboardMutation = useMutation({
-    mutationFn: async (emails: string[]) => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true };
+  const form = useForm<FormData>({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      email: "",
     },
-    onSuccess: () => {
-      toast.success("Dashboard shared successfully");
-      setSelectedEmails([]);
-      setView("main");
-    },
-    onError: () => {
-      toast.error("Failed to share dashboard");
-    }
   });
 
-  const handleShareViaEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedEmails.length === 0) {
-      toast.error("Please select at least one recipient");
-      return;
-    }
-    await shareDashboardMutation.mutateAsync(selectedEmails);
+  const shareDashboardMutation = useMutation({
+    mutationKey: [GENERATE_ACCESS_LINK],
+    mutationFn: (email: string) => client.dashboards.accessControlLinkCreate(reference, {
+      email,
+    }),
+    onSuccess: () => {
+      toast.success("link generated and sent to email")
+    },
+    onError(err: AxiosError<ServerAPIStatus>) {
+      toast.error(err.response?.data.message ?? "Could not generate link");
+    },
+    retry: false,
+    gcTime: Number.POSITIVE_INFINITY,
+  })
+
+  const handleShareViaEmail = (values: FormData) => {
+    shareDashboardMutation.mutate(values.email);
   };
 
   const renderMainView = () => (
@@ -79,7 +100,7 @@ export function ShareDialog({ token, title, reference }: ShareDialogProps) {
             <div className="space-y-2">
               <h3 className="text-xl font-semibold">Share via Email</h3>
               <p className="text-sm text-muted-foreground">
-                Send an invite to specific people
+                Send an invite to a specific person
               </p>
             </div>
           </div>
@@ -151,54 +172,53 @@ export function ShareDialog({ token, title, reference }: ShareDialogProps) {
 
   const renderEmailView = () => (
     <div className="space-y-6">
-      <form onSubmit={handleShareViaEmail} className="space-y-6">
-        <div className="space-y-3">
-          <label htmlFor="email-input" className="text-sm font-medium">
-            Email addresses
-          </label>
-          <CreatableSelect
-            id="email-input"
-            placeholder="Type or paste email addresses"
-            isMulti
-            value={selectedEmails.map(email => ({ value: email, label: email } as OptionType))}
-            onChange={(newValue: OptionType[]) => {
-              setSelectedEmails(newValue.map(v => v.value.toString()));
-            }}
-            allowCustomInput={true}
-            className="min-h-[42px]"
-          />
-          <p className="text-sm text-muted-foreground">
-            Recipients will receive an email with a link to access this dashboard
-          </p>
-        </div>
-        <div className="flex gap-3 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            className="gap-2"
-            onClick={() => setView("main")}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            className="flex-1 gap-2"
-            disabled={shareDashboardMutation.isPending}
-          >
-            {shareDashboardMutation.isPending ? (
-              <>
-                <RiLoader4Line className="h-5 w-5 animate-spin" />
-                Sharing...
-              </>
-            ) : (
-              <>
-                <RiMailLine className="h-5 w-5" />
-                Share via Email
-              </>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleShareViaEmail)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email address</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter email address"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </Button>
-        </div>
-      </form>
+          />
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="gap-2"
+              onClick={() => setView("main")}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="flex-1 gap-2"
+              loading={shareDashboardMutation.isPending}
+            >
+              {shareDashboardMutation.isPending ? (
+                <>
+                  <RiLoader4Line className="h-5 w-5 animate-spin" />
+                  Sharing...
+                </>
+              ) : (
+                <>
+                  <RiMailLine className="h-5 w-5" />
+                  Share via Email
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 
