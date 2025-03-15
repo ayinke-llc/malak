@@ -42,7 +42,7 @@ func (m *MockDashboardLinkRepository) EXPECT() *MockDashboardLinkRepositoryMockR
 }
 
 // Create mocks base method.
-func (m *MockDashboardLinkRepository) Create(arg0 context.Context, arg1 *malak.DashboardLink) error {
+func (m *MockDashboardLinkRepository) Create(arg0 context.Context, arg1 *malak.CreateDashboardLinkOptions) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
 	ret0, _ := ret[0].(error)

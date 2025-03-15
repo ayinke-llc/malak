@@ -1854,6 +1854,14 @@
 				],
 				"type": "object"
 			},
+			"server.generateDashboardLinkRequest": {
+				"properties": {
+					"email": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
 			"server.listChartDataPointsResponse": {
 				"properties": {
 					"data_points": {
@@ -2060,6 +2068,21 @@
 				},
 				"required": [
 					"email"
+				],
+				"type": "object"
+			},
+			"server.regenerateLinkResponse": {
+				"properties": {
+					"link": {
+						"$ref": "#/components/schemas/malak.DashboardLink"
+					},
+					"message": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"link",
+					"message"
 				],
 				"type": "object"
 			},
@@ -3340,6 +3363,88 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/server.listDashboardChartsResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"dashboards"
+				]
+			}
+		},
+		"/dashboards/{reference}/access-control/link": {
+			"post": {
+				"description": "regenerate the default link for a dashboard",
+				"parameters": [
+					{
+						"description": "dashboard unique reference.. e.g dashboard_",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.generateDashboardLinkRequest"
+							}
+						}
+					},
+					"description": "Request body to generate link",
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.regenerateLinkResponse"
 								}
 							}
 						},

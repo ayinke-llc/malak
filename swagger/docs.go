@@ -932,6 +932,69 @@ const docTemplate = `{
                 }
             }
         },
+        "/dashboards/{reference}/access-control/link": {
+            "post": {
+                "description": "regenerate the default link for a dashboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "parameters": [
+                    {
+                        "description": "Request body to generate link",
+                        "name": "message",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/server.generateDashboardLinkRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "dashboard unique reference.. e.g dashboard_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.regenerateLinkResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/dashboards/{reference}/charts": {
             "put": {
                 "description": "add a chart to a dashboard",
@@ -5080,6 +5143,14 @@ const docTemplate = `{
                 }
             }
         },
+        "server.generateDashboardLinkRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
         "server.listChartDataPointsResponse": {
             "type": "object",
             "required": [
@@ -5285,6 +5356,21 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.regenerateLinkResponse": {
+            "type": "object",
+            "required": [
+                "link",
+                "message"
+            ],
+            "properties": {
+                "link": {
+                    "$ref": "#/definitions/malak.DashboardLink"
+                },
+                "message": {
                     "type": "string"
                 }
             }

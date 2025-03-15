@@ -29,6 +29,11 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import CopyToClipboard from "react-copy-to-clipboard";
+import { GENERATE_ACCESS_LINK } from "@/lib/query-constants";
+import client from "@/lib/client";
+import { ServerAPIStatus } from "@/client/Api";
+import { AxiosError } from "axios";
+import { MALAK_APP_URL } from "@/lib/config";
 
 interface ShareAccess {
   type: 'link' | 'email';
@@ -63,18 +68,20 @@ export function AccessManagement({ reference, shareLink }: AccessManagementProps
   }));
 
   const regenerateLinkMutation = useMutation({
-    mutationFn: async () => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const newLink = `${window.location.origin}/shared/dashboards/${reference}?key=${Date.now()}`;
-      return { newLink };
+    mutationKey: [GENERATE_ACCESS_LINK],
+    mutationFn: () => client.dashboards.accessControlLinkCreate(reference, {}),
+    onSuccess: ({ data }) => {
+
+      toast.success("link generated")
+
+      const fullShareLink = MALAK_APP_URL + "/shared/dashboards/" + data?.link?.token as string;
+      setCurrentLink(fullShareLink)
     },
-    onSuccess: (data) => {
-      setCurrentLink(data.newLink);
-      toast.success("New link generated");
+    onError(err: AxiosError<ServerAPIStatus>) {
+      toast.error(err.response?.data.message ?? "Could not generate link");
     },
-    onError: () => {
-      toast.error("Failed to regenerate link");
-    }
+    retry: false,
+    gcTime: Number.POSITIVE_INFINITY,
   });
 
   const revokeAccessMutation = useMutation({

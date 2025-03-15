@@ -184,3 +184,8 @@ type fetchSessionsDeck struct {
 	Meta     meta                       `json:"meta,omitempty" validate:"required"`
 	APIStatus
 }
+
+type regenerateLinkResponse struct {
+	Link malak.DashboardLink `json:"link,omitempty" validate:"required"`
+	APIStatus
+}

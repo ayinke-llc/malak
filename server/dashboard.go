@@ -23,6 +23,7 @@ type dashboardHandler struct {
 	integrationRepo   malak.IntegrationRepository
 	generator         malak.ReferenceGeneratorOperation
 	dashboardLinkRepo malak.DashboardLinkRepository
+	contactRepo       malak.ContactRepository
 }
 
 type createDashboardRequest struct {

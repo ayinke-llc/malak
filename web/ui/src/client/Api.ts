@@ -713,6 +713,10 @@ export interface ServerFetchWorkspaceResponse {
   workspace: MalakWorkspace;
 }
 
+export interface ServerGenerateDashboardLinkRequest {
+  email?: string;
+}
+
 export interface ServerListChartDataPointsResponse {
   data_points: MalakIntegrationDataPoint[];
   message: string;
@@ -771,6 +775,11 @@ export interface ServerPreferenceResponse {
 
 export interface ServerPreviewUpdateRequest {
   email: string;
+}
+
+export interface ServerRegenerateLinkResponse {
+  link: MalakDashboardLink;
+  message: string;
 }
 
 export interface ServerSendUpdateRequest {
@@ -1206,6 +1215,27 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerListDashboardChartsResponse, ServerAPIStatus>({
         path: `/dashboards/${reference}`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description regenerate the default link for a dashboard
+     *
+     * @tags dashboards
+     * @name AccessControlLinkCreate
+     * @request POST:/dashboards/{reference}/access-control/link
+     */
+    accessControlLinkCreate: (
+      reference: string,
+      data: ServerGenerateDashboardLinkRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerRegenerateLinkResponse, ServerAPIStatus>({
+        path: `/dashboards/${reference}/access-control/link`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

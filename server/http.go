@@ -218,6 +218,7 @@ func buildRoutes(
 		generator:         referenceGenerator,
 		integrationRepo:   integrationRepo,
 		dashboardLinkRepo: dashboardLinkRepo,
+		contactRepo:       contactRepo,
 	}
 
 	router.Use(middleware.RequestID)
@@ -430,6 +431,9 @@ func buildRoutes(
 
 			r.Delete("/{reference}/charts",
 				WrapMalakHTTPHandler(logger, dashHandler.removeChart, cfg, "dashboards.charts.remove"))
+
+			r.Post("/{reference}/access-control/link",
+				WrapMalakHTTPHandler(logger, dashHandler.generateLink, cfg, "dashboards.access-control.link.generate"))
 		})
 
 		r.Route("/uploads", func(r chi.Router) {

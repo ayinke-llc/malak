@@ -48,7 +48,12 @@ type DashboardLink struct {
 // 	bun.BaseModel `json:"-"`
 // }
 
+type CreateDashboardLinkOptions struct {
+	Link        *DashboardLink
+	Email       Email
+	WorkspaceID uuid.UUID
+}
 type DashboardLinkRepository interface {
-	Create(context.Context, *DashboardLink) error
+	Create(context.Context, *CreateDashboardLinkOptions) error
 	DefaultLink(context.Context, *Dashboard) (DashboardLink, error)
 }
