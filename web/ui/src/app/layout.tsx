@@ -3,7 +3,7 @@ export const fetchCache = "force-no-store"
 
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 import Providers from "@/components/providers/providers";
 import { siteConfig } from "./siteConfig";
@@ -11,12 +11,6 @@ import { ThemeProvider } from "@/components/providers/theme";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { Suspense } from "react";
 import { ErrorBoundary } from "@/components/error-boundary";
-
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-inter",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://malak.vc"),
@@ -58,7 +52,7 @@ export default function RootLayout({
       <html lang="en">
         <body
           suppressHydrationWarning={true}
-          className={`${inter.className} overflow-y-scroll scroll-auto antialiased dark:bg-gray-950 theme-custom`}
+          className={`${GeistSans.className} overflow-y-scroll scroll-auto antialiased dark:bg-gray-950 theme-custom`}
         >
           <ThemeProvider
             attribute="class"
