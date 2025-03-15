@@ -218,6 +218,8 @@ components:
           type: string
         created_at:
           type: string
+        dashboard:
+          $ref: '#/components/schemas/malak.Dashboard'
         dashboard_id:
           type: string
         expires_at:
@@ -2819,6 +2821,49 @@ paths:
           description: Internal Server Error
       tags:
       - decks
+  /public/dashboards/{reference}:
+    get:
+      description: fetch public dashboard and charting data points
+      parameters:
+      - description: dashboard unique reference.. e.g dashboard_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.listDashboardChartsResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      tags:
+      - dashboards
   /public/decks/{reference}:
     post:
       description: public api to fetch a deck

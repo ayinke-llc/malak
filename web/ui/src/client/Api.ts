@@ -138,6 +138,7 @@ export interface MalakDashboardLink {
   contact?: MalakContact;
   contact_id?: string;
   created_at?: string;
+  dashboard?: MalakDashboard;
   dashboard_id?: string;
   expires_at?: string;
   id?: string;
@@ -1473,6 +1474,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
   };
   public = {
+    /**
+     * @description fetch public dashboard and charting data points
+     *
+     * @tags dashboards
+     * @name DashboardsDetail
+     * @request GET:/public/dashboards/{reference}
+     */
+    dashboardsDetail: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerListDashboardChartsResponse, ServerAPIStatus>({
+        path: `/public/dashboards/${reference}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
     /**
      * @description public api to fetch a deck
      *

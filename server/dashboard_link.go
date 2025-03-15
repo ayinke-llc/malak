@@ -130,12 +130,12 @@ func (d *dashboardHandler) generateLink(
 // @Accept  json
 // @Produce  json
 // @Param reference path string required "dashboard unique reference.. e.g dashboard_"
-// @Success 200 {object} regenerateLinkResponse
+// @Success 200 {object} listDashboardChartsResponse
 // @Failure 400 {object} APIStatus
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /public/dashboards/{reference} [post]
+// @Router /public/dashboards/{reference} [get]
 func (d *dashboardHandler) publicDashboardDetails(
 	ctx context.Context,
 	span trace.Span,
@@ -153,10 +153,7 @@ func (d *dashboardHandler) publicDashboardDetails(
 		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
 	}
 
-	dashboard, err := d.dashboardRepo.Get(ctx, malak.FetchDashboardOption{
-		Reference:   malak.Reference(ref),
-		WorkspaceID: workspace.ID,
-	})
+	dashboard, err := d.dashboardLinkRepo.PublicDetails(ctx, malak.Reference(ref))
 	if err != nil {
 		logger.Error("could not fetch dashboard", zap.Error(err))
 		status := http.StatusInternalServerError
@@ -174,7 +171,6 @@ func (d *dashboardHandler) publicDashboardDetails(
 
 	var charts []malak.DashboardChart
 	var positions []malak.DashboardChartPosition
-	var defaultDashLink malak.DashboardLink
 
 	g.Go(func() error {
 
@@ -211,18 +207,6 @@ func (d *dashboardHandler) publicDashboardDetails(
 		return nil
 	})
 
-	g.Go(func() error {
-		var err error
-
-		defaultDashLink, err = d.dashboardLinkRepo.DefaultLink(ctx, &dashboard)
-		if err != nil {
-			logger.Error("could not fetch default dashboard link", zap.Error(err))
-			return errors.New("could not fetch dashboard link")
-		}
-
-		return nil
-	})
-
 	if err := g.Wait(); err != nil {
 		return newAPIStatus(http.StatusInternalServerError, err.Error()),
 			StatusFailed
@@ -233,6 +217,5 @@ func (d *dashboardHandler) publicDashboardDetails(
 		Dashboard: dashboard,
 		Charts:    charts,
 		Positions: positions,
-		Link:      defaultDashLink,
 	}, StatusSuccess
 }

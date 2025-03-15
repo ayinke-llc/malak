@@ -69,3 +69,18 @@ func (mr *MockDashboardLinkRepositoryMockRecorder) DefaultLink(arg0, arg1 any) *
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DefaultLink", reflect.TypeOf((*MockDashboardLinkRepository)(nil).DefaultLink), arg0, arg1)
 }
+
+// PublicDetails mocks base method.
+func (m *MockDashboardLinkRepository) PublicDetails(arg0 context.Context, arg1 malak.Reference) (malak.Dashboard, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PublicDetails", arg0, arg1)
+	ret0, _ := ret[0].(malak.Dashboard)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PublicDetails indicates an expected call of PublicDetails.
+func (mr *MockDashboardLinkRepositoryMockRecorder) PublicDetails(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublicDetails", reflect.TypeOf((*MockDashboardLinkRepository)(nil).PublicDetails), arg0, arg1)
+}

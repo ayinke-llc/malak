@@ -111,15 +111,24 @@ func (d *dashboardLinkRepo) PublicDetails(ctx context.Context,
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	dashboard := malak.Dashboard{}
-
+	link := new(malak.DashboardLink)
 	err := d.inner.NewSelect().
-		Model(&dashboard).
-		Where("reference = ?", ref).
+		Model(link).
+		Relation("Dashboard").
+		Where("token = ?", ref.String()).
 		Scan(ctx)
+
 	if errors.Is(err, sql.ErrNoRows) {
-		err = malak.ErrDashboardNotFound
+		return malak.Dashboard{}, malak.ErrDashboardLinkNotFound
 	}
 
-	return dashboard, err
+	if err != nil {
+		return malak.Dashboard{}, err
+	}
+
+	if link.Dashboard == nil {
+		return malak.Dashboard{}, malak.ErrDashboardNotFound
+	}
+
+	return *link.Dashboard, nil
 }
