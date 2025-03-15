@@ -39,24 +39,7 @@ type ShareView = "main" | "email" | "manage" | "log";
 export function ShareDialog({ token, title, reference }: ShareDialogProps) {
   const [view, setView] = useState<ShareView>("main");
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
-  const [currentToken, setCurrentToken] = useState(token);
-
-  const fullShareLink = MALAK_APP_URL + "/shared/dashboards/" + currentToken;
-
-  const regenerateLinkMutation = useMutation({
-    mutationFn: async () => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const newToken = Date.now().toString(); // This is just a mock, the actual token will come from the API
-      return { token: newToken };
-    },
-    onSuccess: (data) => {
-      setCurrentToken(data.token);
-      toast.success("New link generated successfully");
-    },
-    onError: () => {
-      toast.error("Failed to regenerate link");
-    }
-  });
+  const [fullShareLink, setFullShareLink] = useState<string>(MALAK_APP_URL + "/shared/dashboards/" + token)
 
   const shareDashboardMutation = useMutation({
     mutationFn: async (emails: string[]) => {
@@ -130,19 +113,6 @@ export function ShareDialog({ token, title, reference }: ShareDialogProps) {
                   Copy Link
                 </Button>
               </CopyToClipboard>
-              <Button
-                variant="outline"
-                className="w-full flex items-center gap-2"
-                onClick={() => regenerateLinkMutation.mutate()}
-                disabled={regenerateLinkMutation.isPending}
-              >
-                {regenerateLinkMutation.isPending ? (
-                  <RiLoader4Line className="h-5 w-5 animate-spin" />
-                ) : (
-                  <RiRefreshLine className="h-5 w-5" />
-                )}
-                Regenerate Link
-              </Button>
             </div>
           </div>
         </div>
@@ -245,7 +215,8 @@ export function ShareDialog({ token, title, reference }: ShareDialogProps) {
     },
     manage: {
       title: "Manage Access",
-      content: () => <AccessManagement shareLink={fullShareLink} reference={reference} />,
+      content: () => <AccessManagement
+        shareLink={fullShareLink} reference={reference} onLinkChange={setFullShareLink} />,
       showBack: true,
     },
     log: {

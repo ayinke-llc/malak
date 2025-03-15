@@ -47,11 +47,12 @@ interface ShareAccess {
 interface AccessManagementProps {
   reference: string;
   shareLink: string;
+  onLinkChange: (s: string) => void
 }
 
 const ITEMS_PER_PAGE = 10;
 
-export function AccessManagement({ reference, shareLink }: AccessManagementProps) {
+export function AccessManagement({ onLinkChange, reference, shareLink }: AccessManagementProps) {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState("");
@@ -76,6 +77,7 @@ export function AccessManagement({ reference, shareLink }: AccessManagementProps
 
       const fullShareLink = MALAK_APP_URL + "/shared/dashboards/" + data?.link?.token as string;
       setCurrentLink(fullShareLink)
+      onLinkChange(fullShareLink)
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       toast.error(err.response?.data.message ?? "Could not generate link");
