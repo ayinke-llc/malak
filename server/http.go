@@ -460,6 +460,9 @@ func buildRoutes(
 				WrapMalakHTTPHandler(logger, deckHandler.publicDeckDetails, cfg, "public.decks.fetch"))
 			r.Put("/decks/{reference}",
 				WrapMalakHTTPHandler(logger, deckHandler.updateDeckViewerSession, cfg, "public.decks.update"))
+
+			r.Post("/dashboards/{reference}",
+				WrapMalakHTTPHandler(logger, dashHandler.publicDashboardDetails, cfg, "public.dashboards.fetch"))
 		})
 	})
 

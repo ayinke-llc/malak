@@ -102,3 +102,24 @@ func (d *dashboardLinkRepo) DefaultLink(ctx context.Context,
 
 	return link, err
 }
+
+// same as Get without the workspace_id
+// Separate api so as to not potentially misuse
+func (d *dashboardLinkRepo) PublicDetails(ctx context.Context,
+	ref malak.Reference) (malak.Dashboard, error) {
+
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	dashboard := malak.Dashboard{}
+
+	err := d.inner.NewSelect().
+		Model(&dashboard).
+		Where("reference = ?", ref).
+		Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = malak.ErrDashboardNotFound
+	}
+
+	return dashboard, err
+}

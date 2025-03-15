@@ -56,4 +56,5 @@ type CreateDashboardLinkOptions struct {
 type DashboardLinkRepository interface {
 	Create(context.Context, *CreateDashboardLinkOptions) error
 	DefaultLink(context.Context, *Dashboard) (DashboardLink, error)
+	PublicDetails(context.Context, Reference) (Dashboard, error)
 }

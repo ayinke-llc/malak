@@ -22,7 +22,9 @@ import {
   RiArrowLeftLine,
   RiArrowRightLine,
   RiSearchLine,
-  RiFileCopyLine
+  RiFileCopyLine,
+  RiArrowUpLine,
+  RiArrowDownLine,
 } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -34,6 +36,17 @@ import client from "@/lib/client";
 import { ServerAPIStatus } from "@/client/Api";
 import { AxiosError } from "axios";
 import { MALAK_APP_URL } from "@/lib/config";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  getSortedRowModel,
+  SortingState,
+  getFilteredRowModel,
+  ColumnFiltersState,
+  getPaginationRowModel,
+} from "@tanstack/react-table";
 
 interface ShareAccess {
   type: 'link' | 'email';
@@ -42,6 +55,8 @@ interface ShareAccess {
   lastAccess?: Date;
   accessCount: number;
   status: 'active' | 'revoked';
+  onRevoke?: (email: string) => void;
+  isRevoking?: boolean;
 }
 
 interface AccessManagementProps {
@@ -50,18 +65,95 @@ interface AccessManagementProps {
   onLinkChange: (s: string) => void
 }
 
-const ITEMS_PER_PAGE = 10;
+const columns: ColumnDef<ShareAccess>[] = [
+  {
+    accessorKey: "email",
+    header: "Email",
+    cell: ({ row }) => (
+      <div className="font-medium">
+        {row.original.email}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "createdAt",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        className="p-0 hover:bg-transparent"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Added
+        {column.getIsSorted() === "asc" ? (
+          <RiArrowUpLine className="ml-2 h-4 w-4" />
+        ) : column.getIsSorted() === "desc" ? (
+          <RiArrowDownLine className="ml-2 h-4 w-4" />
+        ) : null}
+      </Button>
+    ),
+    cell: ({ row }) => format(row.original.createdAt, "MMM d, yyyy"),
+  },
+  {
+    id: "shareLink",
+    header: "Share Link",
+    cell: ({ row }) => {
+      const shareUrl = `${MALAK_APP_URL}/shared/dashboards/${row.original.email}`;
+      
+      return (
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-muted-foreground">
+            localhost/.../user
+          </span>
+          <CopyToClipboard
+            text={shareUrl}
+            onCopy={() => toast.success("Share link copied to clipboard")}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+            >
+              <RiFileCopyLine className="h-4 w-4" />
+            </Button>
+          </CopyToClipboard>
+        </div>
+      );
+    },
+  },
+  {
+    id: "actions",
+    header: "",
+    cell: ({ row }) => {
+      const email = row.original.email;
+      return (
+        email && row.original.status === "active" && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => row.original.onRevoke?.(email)}
+            disabled={row.original.isRevoking}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            {row.original.isRevoking ? (
+              <RiLoader4Line className="h-4 w-4 animate-spin" />
+            ) : (
+              "Revoke"
+            )}
+          </Button>
+        )
+      );
+    },
+  },
+];
 
 export function AccessManagement({ onLinkChange, reference, shareLink }: AccessManagementProps) {
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [filter, setFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState<"all" | "link" | "email">("all");
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [currentLink, setCurrentLink] = useState(shareLink);
 
   const accessList: ShareAccess[] = Array.from({ length: 50 }, (_, i) => ({
-    type: i % 3 === 0 ? "link" : "email",
-    email: i % 3 === 0 ? undefined : `user${i}@example.com`,
+    type: "email",
+    email: `user${i}@example.com`,
     createdAt: new Date(Date.now() - i * 86400000),
     lastAccess: i % 4 === 0 ? undefined : new Date(Date.now() - i * 3600000),
     accessCount: Math.floor(Math.random() * 20),
@@ -72,9 +164,7 @@ export function AccessManagement({ onLinkChange, reference, shareLink }: AccessM
     mutationKey: [GENERATE_ACCESS_LINK],
     mutationFn: () => client.dashboards.accessControlLinkCreate(reference, {}),
     onSuccess: ({ data }) => {
-
       toast.success("link generated")
-
       const fullShareLink = MALAK_APP_URL + "/shared/dashboards/" + data?.link?.token as string;
       setCurrentLink(fullShareLink)
       onLinkChange(fullShareLink)
@@ -107,18 +197,31 @@ export function AccessManagement({ onLinkChange, reference, shareLink }: AccessM
     revokeAccessMutation.mutate(email);
   };
 
-  const filteredList = accessList.filter(access => {
-    if (typeFilter !== "all" && access.type !== typeFilter) return false;
-    if (!filter) return true;
+  const data = accessList.map(item => ({
+    ...item,
+    onRevoke: handleRevokeAccess,
+    isRevoking: revokeAccessMutation.isPending,
+  }));
 
-    return access.email?.toLowerCase().includes(filter.toLowerCase());
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    state: {
+      sorting,
+      columnFilters,
+    },
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
   });
-
-  const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE);
-  const paginatedList = filteredList.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
 
   return (
     <div className="space-y-8">
@@ -175,61 +278,41 @@ export function AccessManagement({ onLinkChange, reference, shareLink }: AccessM
         {/* Access List Header */}
         <div className="flex items-center justify-between px-1.5 pt-2">
           <h4 className="text-lg font-semibold">Access List</h4>
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Filter by email..."
-                value={filter}
-                onChange={(e) => {
-                  setFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="pl-9 w-[200px]"
-              />
-            </div>
-            <Select
-              value={typeFilter}
-              onValueChange={(value: "all" | "link" | "email") => {
-                setTypeFilter(value);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="link">Link</SelectItem>
-                <SelectItem value="email">Email</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="relative">
+            <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Filter by email..."
+              value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
+              onChange={(e) => table.getColumn("email")?.setFilterValue(e.target.value)}
+              className="pl-9 w-[200px]"
+            />
           </div>
         </div>
 
         <div className="flex items-center justify-between text-sm text-muted-foreground px-1.5 border-b">
           <div>
-            Showing {paginatedList.length} of {filteredList.length} entries
+            Showing {table.getRowModel().rows.length} of {data.length} entries
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
                 className="h-8 w-8 p-0"
               >
                 <RiArrowLeftLine className="h-4 w-4" />
               </Button>
               <span>
-                Page {currentPage} of {totalPages}
+                Page {table.getState().pagination.pageIndex + 1} of{" "}
+                {table.getPageCount()}
               </span>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
                 className="h-8 w-8 p-0"
               >
                 <RiArrowRightLine className="h-4 w-4" />
@@ -243,72 +326,42 @@ export function AccessManagement({ onLinkChange, reference, shareLink }: AccessM
         <div className="overflow-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/50 hover:bg-muted/50">
-                <TableHead className="w-[120px] font-semibold">Type</TableHead>
-                <TableHead className="font-semibold min-w-[200px]">User</TableHead>
-                <TableHead className="w-[120px] font-semibold">Added</TableHead>
-                <TableHead className="w-[140px] font-semibold">Last Access</TableHead>
-                <TableHead className="w-[100px] font-semibold text-center">Access Count</TableHead>
-                <TableHead className="w-[100px] font-semibold">Status</TableHead>
-                <TableHead className="w-[100px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedList.map((access, index) => (
-                <TableRow key={index} className="hover:bg-muted/50">
-                  <TableCell className="align-middle py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      {access.type === "email" ? (
-                        <RiMailLine className="h-4 w-4 text-primary" />
-                      ) : (
-                        <RiLinkM className="h-4 w-4 text-muted-foreground" />
-                      )}
-                      <span className={access.type === "email" ? "text-primary" : ""}>
-                        {access.type}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="align-middle font-medium">
-                    {access.email || "Anyone with link"}
-                  </TableCell>
-                  <TableCell className="align-middle whitespace-nowrap">
-                    {format(access.createdAt, "MMM d, yyyy")}
-                  </TableCell>
-                  <TableCell className="align-middle whitespace-nowrap">
-                    {access.lastAccess
-                      ? format(access.lastAccess, "MMM d, yyyy HH:mm")
-                      : "Never"}
-                  </TableCell>
-                  <TableCell className="align-middle text-center">
-                    {access.accessCount}
-                  </TableCell>
-                  <TableCell className="align-middle">
-                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${access.status === "active"
-                      ? "bg-green-50 text-green-700"
-                      : "bg-red-50 text-red-700"
-                      }`}>
-                      {access.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="align-middle text-right">
-                    {access.type === "email" && access.status === "active" && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRevokeAccess(access.email!)}
-                        disabled={revokeAccessMutation.isPending}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        {revokeAccessMutation.isPending ? (
-                          <RiLoader4Line className="h-4 w-4 animate-spin" />
-                        ) : (
-                          "Revoke"
-                        )}
-                      </Button>
-                    )}
-                  </TableCell>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="bg-muted/50 hover:bg-muted/50">
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id} className="font-semibold">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  ))}
                 </TableRow>
               ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
