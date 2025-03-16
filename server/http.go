@@ -440,7 +440,7 @@ func buildRoutes(
 				WrapMalakHTTPHandler(logger, dashHandler.listAccessControls, cfg, "dashboards.access-control.list"))
 
 			r.Delete("/{reference}/access-control/{link_reference}",
-				WrapMalakHTTPHandler(logger, dashHandler.listAccessControls, cfg, "dashboards.access-control.delete"))
+				WrapMalakHTTPHandler(logger, dashHandler.revokeAccessControl, cfg, "dashboards.access-control.delete"))
 		})
 
 		r.Route("/uploads", func(r chi.Router) {

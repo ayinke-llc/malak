@@ -26,12 +26,12 @@ import {
   RiArrowUpLine,
   RiArrowDownLine,
 } from "@remixicon/react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import CopyToClipboard from "react-copy-to-clipboard";
-import { GENERATE_ACCESS_LINK, FETCH_ACCESS_LINKS } from "@/lib/query-constants";
+import { GENERATE_ACCESS_LINK, FETCH_ACCESS_LINKS, REVOKE_ACCESS_CONTROL } from "@/lib/query-constants";
 import client from "@/lib/client";
 import { ServerAPIStatus, MalakDashboardLink } from "@/client/Api";
 import { AxiosError } from "axios";
@@ -113,13 +113,13 @@ const columns: ColumnDef<ReturnType<typeof transformLink>>[] = [
     id: "actions",
     header: "",
     cell: ({ row }) => {
-      const email = row.original.email;
+      const linkReference = row.original.reference;
       return (
-        email && row.original.status === "active" && (
+        linkReference && row.original.status === "active" && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => row.original.onRevoke?.(email)}
+            onClick={() => row.original.onRevoke?.(linkReference)}
             disabled={row.original.isRevoking}
             className="text-red-600 hover:text-red-700 hover:bg-red-50"
           >
@@ -139,11 +139,12 @@ const transformLink = (link: MalakDashboardLink) => ({
   type: "email" as const,
   email: link.contact?.email ?? "",
   token: link.token ?? "",
+  reference: link.reference ?? "",
   createdAt: new Date(link.created_at ?? ""),
   lastAccess: link.updated_at ? new Date(link.updated_at) : undefined,
   accessCount: 0,
   status: "active" as const,
-  onRevoke: undefined as ((email: string) => void) | undefined,
+  onRevoke: undefined as ((reference: string) => void) | undefined,
   isRevoking: false,
 });
 
@@ -153,6 +154,7 @@ const truncateUrl = (url: string) => {
 };
 
 export function AccessManagement({ onLinkChange, reference, shareLink }: AccessManagementProps) {
+  const queryClient = useQueryClient();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [currentLink, setCurrentLink] = useState(shareLink);
@@ -181,15 +183,15 @@ export function AccessManagement({ onLinkChange, reference, shareLink }: AccessM
   });
 
   const revokeAccessMutation = useMutation({
-    mutationFn: async (email: string) => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true };
-    },
+    mutationKey: [REVOKE_ACCESS_CONTROL],
+    mutationFn: (linkReference: string) =>
+      client.dashboards.accessControlDelete(reference, linkReference),
     onSuccess: () => {
       toast.success("Access revoked successfully");
+      queryClient.invalidateQueries({ queryKey: [FETCH_ACCESS_LINKS, reference] });
     },
-    onError: () => {
-      toast.error("Failed to revoke access");
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err.response?.data.message ?? "Failed to revoke access");
     }
   });
 
@@ -197,8 +199,8 @@ export function AccessManagement({ onLinkChange, reference, shareLink }: AccessM
     regenerateLinkMutation.mutate();
   };
 
-  const handleRevokeAccess = (email: string) => {
-    revokeAccessMutation.mutate(email);
+  const handleRevokeAccess = (linkReference: string) => {
+    revokeAccessMutation.mutate(linkReference);
   };
 
   const data = (accessLinksData?.data?.links ?? []).map((link: MalakDashboardLink) => {

@@ -147,6 +147,7 @@ func (d *dashboardLinkRepo) List(ctx context.Context,
 		Model(&links).
 		Where("dashboard_id = ?", opts.DashboardID).
 		Where("deleted_at IS NULL").
+		Where("link_type = ?", malak.DashboardLinkTypeContact).
 		Count(ctx)
 
 	if err != nil {
