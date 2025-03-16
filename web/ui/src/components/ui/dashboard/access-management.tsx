@@ -26,14 +26,14 @@ import {
   RiArrowUpLine,
   RiArrowDownLine,
 } from "@remixicon/react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import CopyToClipboard from "react-copy-to-clipboard";
-import { GENERATE_ACCESS_LINK } from "@/lib/query-constants";
+import { GENERATE_ACCESS_LINK, FETCH_ACCESS_LINKS } from "@/lib/query-constants";
 import client from "@/lib/client";
-import { ServerAPIStatus } from "@/client/Api";
+import { ServerAPIStatus, MalakDashboardLink } from "@/client/Api";
 import { AxiosError } from "axios";
 import { MALAK_APP_URL } from "@/lib/config";
 import {
@@ -48,24 +48,13 @@ import {
   getPaginationRowModel,
 } from "@tanstack/react-table";
 
-interface ShareAccess {
-  type: 'link' | 'email';
-  email?: string;
-  createdAt: Date;
-  lastAccess?: Date;
-  accessCount: number;
-  status: 'active' | 'revoked';
-  onRevoke?: (email: string) => void;
-  isRevoking?: boolean;
-}
-
 interface AccessManagementProps {
   reference: string;
   shareLink: string;
   onLinkChange: (s: string) => void
 }
 
-const columns: ColumnDef<ShareAccess>[] = [
+const columns: ColumnDef<ReturnType<typeof transformLink>>[] = [
   {
     accessorKey: "email",
     header: "Email",
@@ -97,12 +86,12 @@ const columns: ColumnDef<ShareAccess>[] = [
     id: "shareLink",
     header: "Share Link",
     cell: ({ row }) => {
-      const shareUrl = `${MALAK_APP_URL}/shared/dashboards/${row.original.email}`;
+      const shareUrl = `${MALAK_APP_URL}/shared/dashboards/${row.original.token}`;
       
       return (
         <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">
-            localhost/.../user
+          <span className="text-sm text-muted-foreground w-[300px] truncate">
+            {truncateUrl(shareUrl)}
           </span>
           <CopyToClipboard
             text={shareUrl}
@@ -146,19 +135,34 @@ const columns: ColumnDef<ShareAccess>[] = [
   },
 ];
 
+const transformLink = (link: MalakDashboardLink) => ({
+  type: "email" as const,
+  email: link.contact?.email ?? "",
+  token: link.token ?? "",
+  createdAt: new Date(link.created_at ?? ""),
+  lastAccess: link.updated_at ? new Date(link.updated_at) : undefined,
+  accessCount: 0,
+  status: "active" as const,
+  onRevoke: undefined as ((email: string) => void) | undefined,
+  isRevoking: false,
+});
+
+const truncateUrl = (url: string) => {
+  if (url.length <= 45) return url;
+  return `${url.slice(0, 30)}...${url.slice(-12)}`;
+};
+
 export function AccessManagement({ onLinkChange, reference, shareLink }: AccessManagementProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [currentLink, setCurrentLink] = useState(shareLink);
+  const [page, setPage] = useState(1);
+  const [perPage] = useState(10);
 
-  const accessList: ShareAccess[] = Array.from({ length: 50 }, (_, i) => ({
-    type: "email",
-    email: `user${i}@example.com`,
-    createdAt: new Date(Date.now() - i * 86400000),
-    lastAccess: i % 4 === 0 ? undefined : new Date(Date.now() - i * 3600000),
-    accessCount: Math.floor(Math.random() * 20),
-    status: i % 5 === 0 ? "revoked" : "active"
-  }));
+  const { data: accessLinksData, isLoading } = useQuery({
+    queryKey: [FETCH_ACCESS_LINKS, reference, page, perPage],
+    queryFn: () => client.dashboards.accessControlDetail(reference, { page, per_page: perPage }),
+  });
 
   const regenerateLinkMutation = useMutation({
     mutationKey: [GENERATE_ACCESS_LINK],
@@ -197,11 +201,12 @@ export function AccessManagement({ onLinkChange, reference, shareLink }: AccessM
     revokeAccessMutation.mutate(email);
   };
 
-  const data = accessList.map(item => ({
-    ...item,
-    onRevoke: handleRevokeAccess,
-    isRevoking: revokeAccessMutation.isPending,
-  }));
+  const data = (accessLinksData?.data?.links ?? []).map((link: MalakDashboardLink) => {
+    const transformed = transformLink(link);
+    transformed.onRevoke = handleRevokeAccess;
+    transformed.isRevoking = revokeAccessMutation.isPending;
+    return transformed;
+  });
 
   const table = useReactTable({
     data,
@@ -218,9 +223,11 @@ export function AccessManagement({ onLinkChange, reference, shareLink }: AccessM
     },
     initialState: {
       pagination: {
-        pageSize: 10,
+        pageSize: perPage,
       },
     },
+    pageCount: Math.ceil((accessLinksData?.data?.meta?.paging?.total ?? 0) / perPage),
+    manualPagination: true,
   });
 
   return (
@@ -291,28 +298,28 @@ export function AccessManagement({ onLinkChange, reference, shareLink }: AccessM
 
         <div className="flex items-center justify-between text-sm text-muted-foreground px-1.5 border-b">
           <div>
-            Showing {table.getRowModel().rows.length} of {data.length} entries
+            Showing {data.length} of {accessLinksData?.data?.meta?.paging?.total ?? 0} entries
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
+                onClick={() => setPage(page => Math.max(1, page - 1))}
+                disabled={page === 1}
                 className="h-8 w-8 p-0"
               >
                 <RiArrowLeftLine className="h-4 w-4" />
               </Button>
               <span>
-                Page {table.getState().pagination.pageIndex + 1} of{" "}
-                {table.getPageCount()}
+                Page {page} of{" "}
+                {Math.ceil((accessLinksData?.data?.meta?.paging?.total ?? 0) / perPage)}
               </span>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
+                onClick={() => setPage(page => page + 1)}
+                disabled={page >= Math.ceil((accessLinksData?.data?.meta?.paging?.total ?? 0) / perPage)}
                 className="h-8 w-8 p-0"
               >
                 <RiArrowRightLine className="h-4 w-4" />
@@ -333,16 +340,24 @@ export function AccessManagement({ onLinkChange, reference, shareLink }: AccessM
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   ))}
                 </TableRow>
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-24">
+                    <div className="flex items-center justify-center">
+                      <RiLoader4Line className="h-6 w-6 animate-spin" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : data.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id}>
                     {row.getVisibleCells().map((cell) => (

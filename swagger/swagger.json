@@ -1938,6 +1938,28 @@
 				],
 				"type": "object"
 			},
+			"server.listDashboardLinkResponse": {
+				"properties": {
+					"links": {
+						"items": {
+							"$ref": "#/components/schemas/malak.DashboardLink"
+						},
+						"type": "array"
+					},
+					"message": {
+						"type": "string"
+					},
+					"meta": {
+						"$ref": "#/components/schemas/server.meta"
+					}
+				},
+				"required": [
+					"links",
+					"message",
+					"meta"
+				],
+				"type": "object"
+			},
 			"server.listDashboardResponse": {
 				"properties": {
 					"dashboards": {
@@ -3366,6 +3388,93 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/server.listDashboardChartsResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"dashboards"
+				]
+			}
+		},
+		"/dashboards/{reference}/access-control": {
+			"get": {
+				"description": "list access controls",
+				"parameters": [
+					{
+						"description": "dashboard unique reference.. e.g dashboard_",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Page to query data from. Defaults to 1",
+						"in": "query",
+						"name": "page",
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"description": "Number to items to return. Defaults to 10 items",
+						"in": "query",
+						"name": "per_page",
+						"schema": {
+							"type": "integer"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.listDashboardLinkResponse"
 								}
 							}
 						},

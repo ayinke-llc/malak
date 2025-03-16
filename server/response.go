@@ -189,3 +189,9 @@ type regenerateLinkResponse struct {
 	Link malak.DashboardLink `json:"link,omitempty" validate:"required"`
 	APIStatus
 }
+
+type listDashboardLinkResponse struct {
+	Meta  meta                  `json:"meta,omitempty" validate:"required"`
+	Links []malak.DashboardLink `json:"links,omitempty" validate:"required"`
+	APIStatus
+}

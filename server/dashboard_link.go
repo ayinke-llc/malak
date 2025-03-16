@@ -135,6 +135,81 @@ func (d *dashboardHandler) generateLink(
 	}, StatusSuccess
 }
 
+// @Description list access controls
+// @Tags dashboards
+// @Accept  json
+// @Produce  json
+// @Param reference path string required "dashboard unique reference.. e.g dashboard_"
+// @Param page query int false "Page to query data from. Defaults to 1"
+// @Param per_page query int false "Number to items to return. Defaults to 10 items"
+// @Success 200 {object} listDashboardLinkResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /dashboards/{reference}/access-control [get]
+func (d *dashboardHandler) listAccessControls(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("listing dashboard access controls")
+
+	workspace := getWorkspaceFromContext(r.Context())
+
+	ref := chi.URLParam(r, "reference")
+
+	if hermes.IsStringEmpty(ref) {
+		return newAPIStatus(http.StatusBadRequest, "reference required"), StatusFailed
+	}
+
+	dashboard, err := d.dashboardRepo.Get(ctx, malak.FetchDashboardOption{
+		Reference:   malak.Reference(ref),
+		WorkspaceID: workspace.ID,
+	})
+	if err != nil {
+		logger.Error("could not fetch dashboard", zap.Error(err))
+		status := http.StatusInternalServerError
+		msg := "an error occurred while fetching dashboard"
+
+		if errors.Is(err, malak.ErrDashboardNotFound) {
+			status = http.StatusNotFound
+			msg = err.Error()
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	opts := malak.ListAccessControlOptions{
+		Paginator:   malak.PaginatorFromRequest(r),
+		DashboardID: dashboard.ID,
+	}
+
+	links, totalCount, err := d.dashboardLinkRepo.List(ctx, opts)
+	if err != nil {
+		logger.Error("could not list contacts",
+			zap.Error(err))
+
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"could not list contacts"), StatusFailed
+	}
+
+	return listDashboardLinkResponse{
+		APIStatus: newAPIStatus(http.StatusOK, "dashboard links fetched"),
+		Links:     links,
+		Meta: meta{
+			Paging: pagingInfo{
+				PerPage: opts.Paginator.PerPage,
+				Page:    opts.Paginator.Page,
+				Total:   totalCount,
+			},
+		},
+	}, StatusSuccess
+}
+
 // @Description fetch public dashboard and charting data points
 // @Tags dashboards
 // @Accept  json

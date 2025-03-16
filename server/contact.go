@@ -520,7 +520,7 @@ func (c *contactHandler) list(
 	}
 
 	return listContactsResponse{
-		APIStatus: newAPIStatus(http.StatusCreated, "contact was successfully created"),
+		APIStatus: newAPIStatus(http.StatusCreated, "contact listed successfully"),
 		Contacts:  contacts,
 		Meta: meta{
 			Paging: pagingInfo{

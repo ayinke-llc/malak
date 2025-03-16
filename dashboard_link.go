@@ -54,8 +54,15 @@ type CreateDashboardLinkOptions struct {
 	Email       Email
 	WorkspaceID uuid.UUID
 }
+
+type ListAccessControlOptions struct {
+	Paginator   Paginator
+	DashboardID uuid.UUID
+}
+
 type DashboardLinkRepository interface {
 	Create(context.Context, *CreateDashboardLinkOptions) error
 	DefaultLink(context.Context, *Dashboard) (DashboardLink, error)
 	PublicDetails(context.Context, Reference) (Dashboard, error)
+	List(context.Context, ListAccessControlOptions) ([]DashboardLink, int64, error)
 }

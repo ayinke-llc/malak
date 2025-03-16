@@ -737,6 +737,12 @@ export interface ServerListDashboardChartsResponse {
   positions: MalakDashboardChartPosition[];
 }
 
+export interface ServerListDashboardLinkResponse {
+  links: MalakDashboardLink[];
+  message: string;
+  meta: ServerMeta;
+}
+
 export interface ServerListDashboardResponse {
   dashboards: MalakDashboard[];
   message: string;
@@ -1216,6 +1222,31 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerListDashboardChartsResponse, ServerAPIStatus>({
         path: `/dashboards/${reference}`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description list access controls
+     *
+     * @tags dashboards
+     * @name AccessControlDetail
+     * @request GET:/dashboards/{reference}/access-control
+     */
+    accessControlDetail: (
+      reference: string,
+      query?: {
+        /** Page to query data from. Defaults to 1 */
+        page?: number;
+        /** Number to items to return. Defaults to 10 items */
+        per_page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerListDashboardLinkResponse, ServerAPIStatus>({
+        path: `/dashboards/${reference}/access-control`,
+        method: "GET",
+        query: query,
         format: "json",
         ...params,
       }),

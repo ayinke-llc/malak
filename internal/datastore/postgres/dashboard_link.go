@@ -133,3 +133,36 @@ func (d *dashboardLinkRepo) PublicDetails(ctx context.Context,
 
 	return *link.Dashboard, nil
 }
+
+func (d *dashboardLinkRepo) List(ctx context.Context,
+	opts malak.ListAccessControlOptions) ([]malak.DashboardLink, int64, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	var links []malak.DashboardLink
+	count := int64(0)
+
+	totalCount, err := d.inner.NewSelect().
+		Model(&links).
+		Where("dashboard_id = ?", opts.DashboardID).
+		Where("deleted_at IS NULL").
+		Count(ctx)
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	count = int64(totalCount)
+
+	return links, count, d.inner.NewSelect().
+		Model(&links).
+		Relation("Contact").
+		Where("dashboard_id = ?", opts.DashboardID).
+		Where("dashboard_link.deleted_at IS NULL").
+		Order("dashboard_link.created_at DESC").
+		Where("link_type = ?", malak.DashboardLinkTypeContact).
+		Limit(int(opts.Paginator.PerPage)).
+		Offset(int(opts.Paginator.Offset())).
+		Scan(ctx)
+}

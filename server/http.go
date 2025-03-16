@@ -435,6 +435,9 @@ func buildRoutes(
 
 			r.Post("/{reference}/access-control/link",
 				WrapMalakHTTPHandler(logger, dashHandler.generateLink, cfg, "dashboards.access-control.link.generate"))
+
+			r.Get("/{reference}/access-control",
+				WrapMalakHTTPHandler(logger, dashHandler.listAccessControls, cfg, "dashboards.access-control.list"))
 		})
 
 		r.Route("/uploads", func(r chi.Router) {
