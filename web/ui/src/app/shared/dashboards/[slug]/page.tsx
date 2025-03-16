@@ -1,6 +1,6 @@
 "use client"
 
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { Bar, BarChart, Cell, Pie, PieChart, Tooltip, XAxis, YAxis } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
 import { PUBLIC_SHARED_DASHBOARD, PUBLIC_SHARED_DASHBOARD_CHARTING_DATA } from '@/lib/query-constants';
@@ -124,12 +124,11 @@ function ChartCard({ chart, dashboard_reference }: { chart: MalakDashboardChart,
   );
 }
 
-export default function SharedDashboardPage({
-  params,
-}: {
-  params: { slug: string }
-}) {
-  const { slug } = params;
+export default function SharedDashboardPage() {
+
+  const params = useParams()
+
+  const slug = params.slug as string
 
   const { data, isLoading, error } = useQuery<ServerListDashboardChartsResponse>({
     queryKey: [PUBLIC_SHARED_DASHBOARD, slug],
@@ -193,7 +192,7 @@ export default function SharedDashboardPage({
           <div>
             <span className="text-gray-500">Last Updated:</span>
             <span className="ml-2 text-gray-900">
-              {dashboard.updated_at 
+              {dashboard.updated_at
                 ? `${formatDistanceToNow(new Date(dashboard.updated_at))} ago`
                 : 'Never'}
             </span>
