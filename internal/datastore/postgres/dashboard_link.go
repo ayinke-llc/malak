@@ -64,7 +64,6 @@ func (d *dashboardLinkRepo) Create(ctx context.Context,
 				}
 			}
 
-			// we can only have one default link type per dashboard at any given time
 			if link.LinkType == malak.DashboardLinkTypeDefault {
 				_, err := tx.NewDelete().
 					Model(new(malak.DashboardLink)).
@@ -79,6 +78,26 @@ func (d *dashboardLinkRepo) Create(ctx context.Context,
 			_, err := tx.NewInsert().
 				Model(link).
 				On("CONFLICT (contact_id,dashboard_id) DO NOTHING").
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+
+			if link.LinkType == malak.DashboardLinkTypeDefault {
+				return nil
+			}
+
+			sharedItem := malak.ContactShare{
+				Reference:     opts.Generator.Generate(malak.EntityTypeContactShare),
+				SharedBy:      opts.UserID,
+				ContactID:     link.ContactID,
+				ItemType:      malak.ContactShareItemTypeDashboard,
+				ItemID:        link.DashboardID,
+				ItemReference: link.Reference,
+			}
+
+			_, err = tx.NewInsert().Model(&sharedItem).
+				On("CONFLICT (item_reference,contact_id) DO NOTHING").
 				Exec(ctx)
 			return err
 		})

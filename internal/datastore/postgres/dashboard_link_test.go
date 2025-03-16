@@ -16,9 +16,15 @@ func TestDashboardLinkRepo_Create(t *testing.T) {
 
 	repo := NewDashboardLinkRepo(db)
 	workspaceRepo := NewWorkspaceRepository(db)
+	userRepo := NewUserRepository(db)
 
 	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
+	})
+	require.NoError(t, err)
+
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
+		ID: uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
 	})
 	require.NoError(t, err)
 
@@ -40,6 +46,8 @@ func TestDashboardLinkRepo_Create(t *testing.T) {
 			name: "create default link without contact",
 			opts: &malak.CreateDashboardLinkOptions{
 				WorkspaceID: workspace.ID,
+				Generator:   malak.NewReferenceGenerator(),
+				UserID:      user.ID,
 				Link: &malak.DashboardLink{
 					DashboardID: dashboard.ID,
 					Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardLink),
@@ -55,6 +63,8 @@ func TestDashboardLinkRepo_Create(t *testing.T) {
 			opts: &malak.CreateDashboardLinkOptions{
 				WorkspaceID: workspace.ID,
 				Email:       malak.Email("test@example.com"),
+				Generator:   malak.NewReferenceGenerator(),
+				UserID:      user.ID,
 				Link: &malak.DashboardLink{
 					DashboardID: dashboard.ID,
 					Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardLink),

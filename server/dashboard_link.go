@@ -108,6 +108,8 @@ func (d *dashboardHandler) generateLink(
 		Link:        link,
 		Email:       req.Email,
 		WorkspaceID: workspace.ID,
+		Generator:   d.generator,
+		UserID:      getUserFromContext(ctx).ID,
 	}
 
 	if err := d.dashboardLinkRepo.Create(ctx, opts); err != nil {

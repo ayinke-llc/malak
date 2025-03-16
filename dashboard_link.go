@@ -53,6 +53,8 @@ type CreateDashboardLinkOptions struct {
 	Link        *DashboardLink
 	Email       Email
 	WorkspaceID uuid.UUID
+	Generator   ReferenceGeneratorOperation
+	UserID      uuid.UUID
 }
 
 type ListAccessControlOptions struct {

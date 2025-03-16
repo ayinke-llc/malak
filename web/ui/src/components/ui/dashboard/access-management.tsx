@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   Select,
   SelectContent,
@@ -60,7 +61,16 @@ const columns: ColumnDef<ReturnType<typeof transformLink>>[] = [
     header: "Email",
     cell: ({ row }) => (
       <div className="font-medium">
-        {row.original.email}
+        {row.original.contactReference ? (
+          <Link 
+            href={`/contacts/${row.original.contactReference}`}
+            className="text-primary hover:underline"
+          >
+            {row.original.email}
+          </Link>
+        ) : (
+          row.original.email
+        )}
       </div>
     ),
   },
@@ -140,6 +150,7 @@ const transformLink = (link: MalakDashboardLink) => ({
   email: link.contact?.email ?? "",
   token: link.token ?? "",
   reference: link.reference ?? "",
+  contactReference: link.contact?.reference ?? "",
   createdAt: new Date(link.created_at ?? ""),
   lastAccess: link.updated_at ? new Date(link.updated_at) : undefined,
   accessCount: 0,
