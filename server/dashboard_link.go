@@ -8,6 +8,7 @@ import (
 
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
+	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"go.opentelemetry.io/otel/trace"
@@ -119,8 +120,21 @@ func (d *dashboardHandler) generateLink(
 			StatusFailed
 	}
 
+	if !hermes.IsStringEmpty(req.Email.String()) {
+		go func() {
+			err := d.queue.Add(context.Background(), queue.QueueTopicShareDashboard, queue.SendEmailOptions{
+				Workspace: workspace,
+				Recipient: req.Email,
+				Token:     s,
+			})
+			if err != nil {
+				logger.Error("could not add item to queue", zap.Error(err))
+			}
+		}()
+	}
+
 	return regenerateLinkResponse{
-		APIStatus: newAPIStatus(http.StatusOK, "Default link regenerated"),
+		APIStatus: newAPIStatus(http.StatusOK, "Link regenerated"),
 		Link:      hermes.DeRef(link),
 	}, StatusSuccess
 }

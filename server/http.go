@@ -219,6 +219,7 @@ func buildRoutes(
 		integrationRepo:   integrationRepo,
 		dashboardLinkRepo: dashboardLinkRepo,
 		contactRepo:       contactRepo,
+		queue:             queueHandler,
 	}
 
 	router.Use(middleware.RequestID)

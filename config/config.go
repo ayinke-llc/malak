@@ -32,6 +32,10 @@ type Config struct {
 		Mode LogMode `yaml:"mode" mapstructure:"mode"`
 	} `yaml:"logging" mapstructure:"logging"`
 
+	Frontend struct {
+		AppURL string `mapstructure:"app_url" yaml:"app_url"`
+	} `mapstructure:"frontend" yaml:"frontend"`
+
 	Database struct {
 		DatabaseType DatabaseType `yaml:"database_type" mapstructure:"database_type"`
 		Postgres     struct {

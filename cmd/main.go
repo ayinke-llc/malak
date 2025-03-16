@@ -113,6 +113,8 @@ func setDefaults() {
 
 	viper.SetDefault("logging.mode", config.LogModeDev)
 
+	viper.SetDefault("frontend.app_url", "https://app.malak.vc")
+
 	viper.SetDefault("database.redis.dsn", "redis://localhost:9379")
 	viper.SetDefault("database.postgres.database_type", config.DatabaseTypePostgres)
 	viper.SetDefault("database.postgres.log_queries", true)

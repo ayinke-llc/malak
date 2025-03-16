@@ -8,6 +8,7 @@ import (
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
@@ -24,6 +25,7 @@ type dashboardHandler struct {
 	generator         malak.ReferenceGeneratorOperation
 	dashboardLinkRepo malak.DashboardLinkRepository
 	contactRepo       malak.ContactRepository
+	queue             queue.QueueHandler
 }
 
 type createDashboardRequest struct {
