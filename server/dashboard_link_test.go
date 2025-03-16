@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
@@ -176,6 +177,9 @@ func TestDashboardHandler_GenerateLink(t *testing.T) {
 				getConfig(), "dashboards.generate_link").ServeHTTP)
 
 			router.ServeHTTP(rr, req)
+
+			// Add a small delay to allow the goroutine to complete
+			time.Sleep(10 * time.Millisecond)
 
 			require.Equal(t, v.expectedStatusCode, rr.Code)
 			verifyMatch(t, rr)
