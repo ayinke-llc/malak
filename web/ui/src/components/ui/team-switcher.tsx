@@ -113,12 +113,10 @@ export function TeamSwitcher() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
               <div
                 className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                {current?.logo_url ? (
-                  <img
-                    className="size-4 shrink-0"
-                    src={current?.logo_url as string}
-                    alt={`${current?.workspace_name}'s logo`} />
-                ) : <Avatar className="size-4 shrink-0" />}
+                <img
+                  className="size-4 shrink-0"
+                  src={current?.logo_url || "http://res.cloudinary.com/dwkjke5ea/image/upload/v1742121952/malak/logos/mtnjuwfl0gb9r11pz5qg.svg"}
+                  alt={`${current?.workspace_name}'s logo`} />
               </div>
 
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -149,12 +147,10 @@ export function TeamSwitcher() {
                 disabled={mutation.isPending}
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
-                  {workspace?.logo_url ? (
-                    <img
-                      className="size-4 shrink-0"
-                      src={workspace?.logo_url as string}
-                      alt={`${workspace?.workspace_name}'s logo`} />
-                  ) : <Avatar className="size-4 shrink-0" />}
+                  <img
+                    className="size-4 shrink-0"
+                    src={workspace?.logo_url || "http://res.cloudinary.com/dwkjke5ea/image/upload/v1742121952/malak/logos/mtnjuwfl0gb9r11pz5qg.svg"}
+                    alt={`${workspace?.workspace_name}'s logo`} />
                 </div>
                 <span className={cn(
                   workspace?.id == current?.id ? "font-bold" : ""

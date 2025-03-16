@@ -142,7 +142,7 @@ const SingleUpdate = (update: MalakUpdate) => {
     <>
       <div
         key={update.id}
-        className="flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors"
+        className="flex items-center justify-between p-2"
       >
         <div className="flex flex-col space-y-1">
           <div className="flex items-center space-x-2">
