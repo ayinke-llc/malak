@@ -34,8 +34,6 @@ github.com/ThreeDotsLabs/watermill-redisstream v1.4.2 h1:FY6tsBcbhbJpKDOssU4bfyb
 github.com/ThreeDotsLabs/watermill-redisstream v1.4.2/go.mod h1:69++855LyB+ckYDe60PiJLBcUrpckfDE2WwyzuVJRCk=
 github.com/adelowo/gulter v0.0.0-20250212164855-be5012c5f635 h1:AMWTMYnpT/svarHQYlelgdHTYdN9pCkT6FwEflaNk60=
 github.com/adelowo/gulter v0.0.0-20250212164855-be5012c5f635/go.mod h1:emNdddTD8yk9NjprSHOXGqgMGk0Tj7j69gG8zyywv2M=
-github.com/adelowo/snapshot-chromedp v0.0.0-20250314133646-bd936e979fd6 h1:7DNyyDGBZuYx9ujHStrTds6rfgzqOU3DHw9l5hG6seM=
-github.com/adelowo/snapshot-chromedp v0.0.0-20250314133646-bd936e979fd6/go.mod h1:TlCSo7SyXx0TQvKPmhL5lezyrUHKhGsThYIRyvEypAk=
 github.com/adelowo/snapshot-chromedp v0.0.0-20250314134952-a9900b6a3129 h1:gqtQPUiDRHmLQQEYi57w/BVaoUs6Ek3VKwZDPOphXKo=
 github.com/adelowo/snapshot-chromedp v0.0.0-20250314134952-a9900b6a3129/go.mod h1:TlCSo7SyXx0TQvKPmhL5lezyrUHKhGsThYIRyvEypAk=
 github.com/ajg/form v1.5.1 h1:t9c7v8JUKu/XxOGBU0yjNpaMloxGEJhUkqFRq0ibGeU=
@@ -85,8 +83,6 @@ github.com/aws/aws-sdk-go-v2/service/sts v1.31.0 h1:GNVxIHBTi2EgwCxpNiozhNasMOK+
 github.com/aws/aws-sdk-go-v2/service/sts v1.31.0/go.mod h1:yMWe0F+XG0DkRZK5ODZhG7BEFYhLXi2dqGsv6tX0cgI=
 github.com/aws/smithy-go v1.22.2 h1:6D9hW43xKFrRx/tXXfAlIZc4JI+yQe6snnWcQyxSyLQ=
 github.com/aws/smithy-go v1.22.2/go.mod h1:irrKGvNn1InZwb2d7fkIRNucdfwR8R+Ts3wxYa/cJHg=
-github.com/ayinke-llc/hermes v0.0.0-20250309181249-aa307cfb2152 h1:OdYdAiDD2uqkz6ZG9gg/AEo4UdPKjoW8R+skJdcW4qE=
-github.com/ayinke-llc/hermes v0.0.0-20250309181249-aa307cfb2152/go.mod h1:cnEG0FhcGFSCJxabWJIOG2ujyuYY4VrmXXWLymUyDAc=
 github.com/ayinke-llc/hermes v0.0.0-20250314225720-9fe8f67cd262 h1:dqLV1ewaUXl9fTwsb9nKbEGF4lYOcAhy/6BjUJmSF0E=
 github.com/ayinke-llc/hermes v0.0.0-20250314225720-9fe8f67cd262/go.mod h1:cnEG0FhcGFSCJxabWJIOG2ujyuYY4VrmXXWLymUyDAc=
 github.com/aymanbagabas/go-osc52/v2 v2.0.1 h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=
