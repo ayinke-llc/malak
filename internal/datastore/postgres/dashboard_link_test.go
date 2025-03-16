@@ -265,7 +265,7 @@ func TestDashboardLinkRepo_List(t *testing.T) {
 		got, count, err := repo.List(context.Background(), opts)
 		require.NoError(t, err)
 		require.Equal(t, int64(2), count)
-		require.Len(t, got, len(links))
+		require.Len(t, got, 2)
 	})
 
 	t.Run("list with pagination", func(t *testing.T) {

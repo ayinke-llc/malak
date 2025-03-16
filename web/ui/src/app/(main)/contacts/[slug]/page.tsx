@@ -1,11 +1,4 @@
-"use client"
-
-import dynamic from 'next/dynamic';
-
-const ContactDetailsPage = dynamic(
-  () => import('@/components/pages/contact-details'),
-  { ssr: false }
-)
+import ContactDetailsPage from "@/components/pages/contact-details"
 
 export default async function Page(
   {
@@ -14,7 +7,7 @@ export default async function Page(
     params: Promise<{ slug: string }>
   }
 ) {
-  const {slug} = await params
+  const { slug } = await params
 
   return <ContactDetailsPage reference={slug} />;
 }
