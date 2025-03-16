@@ -288,3 +288,51 @@ func TestDashboardLinkRepo_List(t *testing.T) {
 		require.Empty(t, got)
 	})
 }
+
+func TestDashboardLinkRepo_Delete(t *testing.T) {
+	db, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	repo := NewDashboardLinkRepo(db)
+	workspaceRepo := NewWorkspaceRepository(db)
+
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("c12da796-9362-4c70-b2cb-fc8a1eba2526"),
+	})
+	require.NoError(t, err)
+
+	dashboard := &malak.Dashboard{
+		WorkspaceID: workspace.ID,
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
+		Title:       "Test Dashboard",
+		Description: "Test Dashboard Description",
+	}
+	_, err = db.NewInsert().Model(dashboard).Exec(context.Background())
+	require.NoError(t, err)
+
+	link := &malak.DashboardLink{
+		DashboardID: dashboard.ID,
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardLink),
+		Token:       malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardLink).String(),
+		LinkType:    malak.DashboardLinkType("default"),
+		ExpiresAt:   &time.Time{},
+	}
+	_, err = db.NewInsert().Model(link).Exec(context.Background())
+	require.NoError(t, err)
+
+	t.Run("delete existing link", func(t *testing.T) {
+		err := repo.Delete(context.Background(), *dashboard, link.Reference)
+		require.NoError(t, err)
+
+		var count int
+		count, err = db.NewSelect().Model((*malak.DashboardLink)(nil)).Where("reference = ?", link.Reference).Count(context.Background())
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
+	})
+
+	t.Run("delete non-existent link", func(t *testing.T) {
+		nonExistentRef := malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardLink)
+		err := repo.Delete(context.Background(), *dashboard, nonExistentRef)
+		require.NoError(t, err)
+	})
+}

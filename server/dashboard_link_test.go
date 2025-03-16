@@ -492,3 +492,227 @@ func TestDashboardHandler_PublicChartingDataFetch(t *testing.T) {
 		})
 	}
 }
+
+func generateRevokeAccessControlTestCases() []struct {
+	name               string
+	mockFn             func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository)
+	expectedStatusCode int
+} {
+	return []struct {
+		name               string
+		mockFn             func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository)
+		expectedStatusCode int
+	}{
+		{
+			name: "dashboard not found",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository) {
+				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.Dashboard{}, malak.ErrDashboardNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "error fetching dashboard",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository) {
+				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.Dashboard{}, errors.New("error fetching dashboard"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "error revoking access",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository) {
+				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.Dashboard{
+						ID:          workspaceID,
+						Title:       "Test Dashboard",
+						Description: "Test description",
+						Reference:   "DASH_123",
+						ChartCount:  0,
+						WorkspaceID: workspaceID,
+					}, nil)
+
+				dashboardLink.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(errors.New("error revoking access"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "successfully revoked access",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository) {
+				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.Dashboard{
+						ID:          workspaceID,
+						Title:       "Test Dashboard",
+						Description: "Test description",
+						Reference:   "DASH_123",
+						ChartCount:  0,
+						WorkspaceID: workspaceID,
+					}, nil)
+
+				dashboardLink.EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
+func TestDashboardHandler_RevokeAccessControl(t *testing.T) {
+	for _, v := range generateRevokeAccessControlTestCases() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			dashboardRepo := malak_mocks.NewMockDashboardRepository(controller)
+			dashboardLinkRepo := malak_mocks.NewMockDashboardLinkRepository(controller)
+			v.mockFn(dashboardRepo, dashboardLinkRepo)
+
+			h := &dashboardHandler{
+				dashboardRepo:     dashboardRepo,
+				dashboardLinkRepo: dashboardLinkRepo,
+				generator:         &mockReferenceGenerator{},
+				cfg:               getConfig(),
+			}
+
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodDelete, "/dashboards/DASH_123/access-control/LINK_123", nil)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{ID: workspaceID}))
+
+			router := chi.NewRouter()
+			router.Delete("/dashboards/{reference}/access-control/{link_reference}", WrapMalakHTTPHandler(getLogger(t),
+				h.revokeAccessControl,
+				getConfig(), "dashboards.revoke_access").ServeHTTP)
+
+			router.ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateListAccessControlsTestCases() []struct {
+	name               string
+	mockFn             func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository)
+	expectedStatusCode int
+} {
+	return []struct {
+		name               string
+		mockFn             func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository)
+		expectedStatusCode int
+	}{
+		{
+			name: "dashboard not found",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository) {
+				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.Dashboard{}, malak.ErrDashboardNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "error fetching dashboard",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository) {
+				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.Dashboard{}, errors.New("error fetching dashboard"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "error listing links",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository) {
+				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.Dashboard{
+						ID:          workspaceID,
+						Title:       "Test Dashboard",
+						Description: "Test description",
+						Reference:   "DASH_123",
+						ChartCount:  0,
+						WorkspaceID: workspaceID,
+					}, nil)
+
+				dashboardLink.EXPECT().List(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, int64(0), errors.New("error listing links"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "successfully listed links",
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository) {
+				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.Dashboard{
+						ID:          workspaceID,
+						Title:       "Test Dashboard",
+						Description: "Test description",
+						Reference:   "DASH_123",
+						ChartCount:  0,
+						WorkspaceID: workspaceID,
+					}, nil)
+
+				dashboardLink.EXPECT().List(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]malak.DashboardLink{
+						{
+							ID:          workspaceID,
+							DashboardID: workspaceID,
+							Reference:   "LINK_123",
+							Token:       "test_token",
+							LinkType:    malak.DashboardLinkTypeDefault,
+						},
+					}, int64(1), nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
+func TestDashboardHandler_ListAccessControls(t *testing.T) {
+	for _, v := range generateListAccessControlsTestCases() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			dashboardRepo := malak_mocks.NewMockDashboardRepository(controller)
+			dashboardLinkRepo := malak_mocks.NewMockDashboardLinkRepository(controller)
+			v.mockFn(dashboardRepo, dashboardLinkRepo)
+
+			h := &dashboardHandler{
+				dashboardRepo:     dashboardRepo,
+				dashboardLinkRepo: dashboardLinkRepo,
+				generator:         &mockReferenceGenerator{},
+				cfg:               getConfig(),
+			}
+
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, "/dashboards/DASH_123/access-control", nil)
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{ID: workspaceID}))
+
+			router := chi.NewRouter()
+			router.Get("/dashboards/{reference}/access-control", WrapMalakHTTPHandler(getLogger(t),
+				h.listAccessControls,
+				getConfig(), "dashboards.list_access").ServeHTTP)
+
+			router.ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
