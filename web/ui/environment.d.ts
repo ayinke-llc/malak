@@ -14,6 +14,7 @@ declare global {
       NEXT_PUBLIC_SENTRY_DSN?: string;
       NEXT_PUBLIC_DECKS_DOMAIN: string,
       NEXT_PUBLIC_SUPPORT_EMAIL: string,
+      NEXT_PUBLIC_API_URL: string,
 
       // Integrations
       NEXT_PUBLIC_INTEGRATION_STRIPE_CLIENT_ID: string

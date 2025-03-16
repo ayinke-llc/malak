@@ -4307,5 +4307,3 @@ paths:
           description: Internal Server Error
       tags:
       - updates
-servers:
-- url: https://api.malak.vc/v1
