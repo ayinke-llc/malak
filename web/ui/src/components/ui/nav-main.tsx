@@ -1,4 +1,3 @@
-
 "use client"
 
 import { ChevronRight } from "lucide-react";
@@ -28,6 +27,7 @@ export function NavMain({
     title: string
     url: string
     icon?: RemixiconComponentType
+    comingSoon?: boolean
     radisActive?: boolean
     items?: {
       title: string
@@ -59,6 +59,11 @@ export function NavMain({
                     <SidebarMenuButton tooltip={item.title}>
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>
+                      {item.comingSoon && (
+                        <span className="ml-2 inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 animate-pulse">
+                          Coming Soon
+                        </span>
+                      )}
                       <ChevronRight
                         className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                     </SidebarMenuButton>
@@ -83,6 +88,11 @@ export function NavMain({
                 <Link href={item.url}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
+                  {item.comingSoon && (
+                    <span className="ml-2 inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 animate-pulse">
+                      Coming Soon
+                    </span>
+                  )}
                 </Link>
               </SidebarMenuButton>
             )}

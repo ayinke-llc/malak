@@ -44,30 +44,30 @@ export const metadata: Metadata = {
 
 
 export default function RootLayout({
-    children,
-  }: Readonly<{
-    children: React.ReactNode;
-  }>) {
-    return (
-      <html lang="en">
-        <body
-          suppressHydrationWarning={true}
-          className={`${GeistSans.className} overflow-y-scroll scroll-auto antialiased dark:bg-gray-950 theme-custom`}
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        suppressHydrationWarning={true}
+        className={`${GeistSans.className} overflow-y-scroll scroll-auto antialiased dark:bg-gray-950 theme-custom`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          disableTransitionOnChange
         >
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            disableTransitionOnChange
-          >
-            <Suspense>
-              <ErrorBoundary>
-                <TooltipProvider>
-                  <Providers>{children}</Providers>
-                </TooltipProvider>
-              </ErrorBoundary>
-            </Suspense>
-          </ThemeProvider>
-        </body>
-      </html>
-    );
+          <Suspense>
+            <ErrorBoundary>
+              <TooltipProvider>
+                <Providers>{children}</Providers>
+              </TooltipProvider>
+            </ErrorBoundary>
+          </Suspense>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
 }

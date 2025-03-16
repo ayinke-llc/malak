@@ -45,11 +45,13 @@ export const links = [
     title: "Fundraising",
     url: "/fundraising",
     icon: RiMoneyDollarCircleLine,
+    comingSoon: true,
   },
   {
     title: "Captable",
     url: "/captable",
     icon: RiPieChartLine,
+    comingSoon: true,
   },
   {
     title: "Settings",

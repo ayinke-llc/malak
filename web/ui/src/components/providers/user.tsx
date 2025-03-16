@@ -9,6 +9,47 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+// Setup interceptors outside component to ensure they're always available
+client.instance.interceptors.request.use(
+  async (config) => {
+    // Skip adding auth header for shared routes
+    if (config.url?.startsWith('/shared')) {
+      return config;
+    }
+    
+    const token = useAuthStore.getState().token;
+    if (!token) {
+      return Promise.reject(new Error('No authentication token available'));
+    }
+    
+    config.headers.Authorization = `Bearer ${token}`;
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+
+client.instance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      const pathname = window.location.pathname;
+      // Skip auth checks for shared routes
+      if (!pathname?.startsWith('/shared')) {
+        if (error.response.status === 401) {
+          useAuthStore.getState().logout();
+          window.location.href = '/login';
+        }
+
+        if (error.response.status === 402) {
+          window.location.href = "/settings?tab=billing";
+        }
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export default function UserProvider({
   children,
 }: { children: React.ReactNode }) {
@@ -48,37 +89,11 @@ export default function UserProvider({
       return;
     }
 
-    const requestInterceptor = client.instance.interceptors.request.use(
-      async (config) => {
-        // Skip adding auth header for shared routes
-        if (config.url?.startsWith('/shared')) {
-          return config;
-        }
-        config.headers.Authorization = `Bearer ${token}`;
-        return config;
-      },
-      (error) => Promise.reject(error),
-    );
-
-    const responseInterceptor = client.instance.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        if (error.response) {
-          // Skip auth checks for shared routes
-          if (!pathname?.startsWith('/shared')) {
-            if (error.response.status === 401) {
-              handleLogout();
-            }
-
-            if (error.response.status === 402) {
-              router.push("/settings?tab=billing");
-            }
-          }
-        }
-
-        return Promise.reject(error);
-      }
-    );
+    // Validate token exists before making the request
+    if (!token) {
+      handleLogout();
+      return;
+    }
 
     client.user
       .userList()
@@ -102,11 +117,6 @@ export default function UserProvider({
         toast.error(err?.response?.data?.message);
         handleLogout();
       });
-
-    return () => {
-      client.instance.interceptors.request.eject(requestInterceptor);
-      client.instance.interceptors.response.eject(responseInterceptor);
-    };
   }, [token, isRehydrated, clear, isAuthenticated, logout, router, setCurrent, setUser, setWorkspaces, pathname]);
 
   if (loading) {

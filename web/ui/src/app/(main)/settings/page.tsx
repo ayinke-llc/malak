@@ -1,11 +1,4 @@
-"use client"
-
-import dynamic from 'next/dynamic'
-
-const SettingsPage = dynamic(
-  () => import('@/components/pages/settings'),
-  { ssr: false }
-)
+import SettingsPage from '@/components/pages/settings'
 
 export default function Page() {
   return <SettingsPage />

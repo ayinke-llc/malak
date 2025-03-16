@@ -100,6 +100,12 @@ interface DeckEngagementsProps {
   reference: string;
 }
 
+function generateRandomHSLColor() {
+  const hue = Math.floor(Math.random() * 360);
+  const saturation = Math.floor(Math.random() * 30) + 60; // 60-90%
+  const lightness = Math.floor(Math.random() * 20) + 40; // 40-60%
+  return `hsl(${hue} ${saturation}% ${lightness}%)`;
+}
 
 function DeckEngagements({ reference }: DeckEngagementsProps) {
   const { data: engagementsData, isLoading, error } = useQuery({
@@ -218,7 +224,7 @@ function DeckEngagements({ reference }: DeckEngagementsProps) {
                 data={geographic_stats?.map((item: MalakDeckGeographicStat) => ({
                   name: item.country,
                   value: item.view_count,
-                  fill: `var(--color-${item.country?.replace(/\s+/g, "_")})`,
+                  fill: generateRandomHSLColor(),
                 })) || []}
                 dataKey="value"
                 nameKey="name"

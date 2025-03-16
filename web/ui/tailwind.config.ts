@@ -118,54 +118,51 @@ const config: Config = {
   		},
   		colors: {
   			background: "hsl(0 0% 100%)",
-  			foreground: "hsl(222 47% 11%)",
+  			foreground: "#2c4975",
   			card: {
   				DEFAULT: "hsl(0 0% 100%)",
-  				foreground: "hsl(222 47% 11%)",
+  				foreground: "#2c4975",
   			},
   			popover: {
   				DEFAULT: "hsl(0 0% 100%)",
-  				foreground: "hsl(222 47% 11%)",
+  				foreground: "#2c4975",
   			},
   			primary: {
-  				DEFAULT: "hsl(160 84% 39%)",
-  				foreground: "hsl(0 0% 100%)",
+  				DEFAULT: "#0a3171",
+  				foreground: "#ffffff",
   			},
   			secondary: {
-  				DEFAULT: "hsl(210 40% 96.1%)",
-  				foreground: "hsl(222 47% 11%)",
+  				DEFAULT: "#1150db",
+  				foreground: "#ffffff",
+  			},
+  			tertiary: {
+  				DEFAULT: "#4178cd",
+  				foreground: "#ffffff",
   			},
   			muted: {
-  				DEFAULT: "hsl(210 40% 96.1%)",
-  				foreground: "hsl(215.4 16.3% 46.9%)",
+  				DEFAULT: "#e6edf7",
+  				foreground: "#2c4975",
   			},
   			accent: {
-  				DEFAULT: "hsl(210 40% 96.1%)",
-  				foreground: "hsl(222 47% 11%)",
+  				DEFAULT: "#1150db",
+  				foreground: "#ffffff",
   			},
   			destructive: {
   				DEFAULT: "hsl(0 84.2% 60.2%)",
-  				foreground: "hsl(210 40% 98%)",
+  				foreground: "#ffffff",
   			},
-  			border: "hsl(214.3 31.8% 91.4%)",
-  			input: "hsl(214.3 31.8% 91.4%)",
-  			ring: "hsl(222 47% 11%)",
-  			chart: {
-  				"1": "hsl(222 47% 11%)",
-  				"2": "hsl(215.4 16.3% 46.9%)",
-  				"3": "hsl(214.3 31.8% 91.4%)",
-  				"4": "hsl(210 40% 96.1%)",
-  				"5": "hsl(0 0% 100%)",
+  			border: "#e6edf7",
+  			input: "#e6edf7",
+  			ring: "#0a3171",
+  			theme: {
+  				light: "#f0f5fc",
+  				dark: "#092657"
   			},
-  			sidebar: {
-  				DEFAULT: "hsl(0 0% 100%)",
-  				foreground: "hsl(222 47% 11%)",
-  				primary: "hsl(222 47% 11%)",
-  				"primary-foreground": "hsl(0 0% 100%)",
-  				accent: "hsl(210 40% 96.1%)",
-  				"accent-foreground": "hsl(222 47% 11%)",
-  				border: "hsl(214.3 31.8% 91.4%)",
-  				ring: "hsl(222 47% 11%)",
+  			body: "#ffffff",
+  			text: {
+  				DEFAULT: "#2c4975",
+  				dark: "#0a3171",
+  				light: "#f0f5fc"
   			}
   		}
   	}

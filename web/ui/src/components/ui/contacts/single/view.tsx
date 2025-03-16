@@ -367,7 +367,7 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
               {shared_items.
                 filter((value) => value.item_type === "update").
                 map((item) => (
-                  <div key={item.item_reference} className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                  <div key={item.item_reference} className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent/5 hover:text-accent-foreground cursor-pointer">
                     <Link href={`/updates/${item?.item_reference}`} className="text-sm font-medium text-foreground">
                       {item?.title}
                     </Link>
@@ -397,7 +397,7 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
               {shared_items.
                 filter((value) => value.item_type === "dashboard").
                 map((item) => (
-                  <div key={item.item_reference} className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                  <div key={item.item_reference} className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent/5 hover:text-accent-foreground cursor-pointer">
                     <Link href={`/dashboards/${item?.item_reference}`} className="text-sm font-medium text-foreground">
                       {item?.title}
                     </Link>
@@ -427,7 +427,7 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
               {shared_items.
                 filter((value) => value.item_type === "deck").
                 map((item) => (
-                  <div key={item.item_reference} className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                  <div key={item.item_reference} className="flex items-center justify-between p-3 -mx-2 rounded-md transition-colors hover:bg-accent/5 hover:text-accent-foreground cursor-pointer">
                     <Link href={`/data-rooms/${item?.item_reference}`} className="text-sm font-medium text-foreground">
                       {item?.title}
                     </Link>

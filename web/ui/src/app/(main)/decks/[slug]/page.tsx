@@ -1,11 +1,4 @@
-"use client"
-
-import dynamic from 'next/dynamic';
-
-const DeckDetailsPage = dynamic(
-  () => import('@/components/pages/deck-details'),
-  { ssr: false }
-)
+import DeckDetailsPage from '@/components/pages/deck-details'
 
 export default async function Page(
   {
