@@ -12,16 +12,16 @@ import { toast } from "sonner";
 // Setup interceptors outside component to ensure they're always available
 client.instance.interceptors.request.use(
   async (config) => {
-    // Skip adding auth header for shared routes
+    // Skip adding auth header for shared routes or when no token is available
     if (config.url?.startsWith('/shared')) {
       return config;
     }
-    
+
     const token = useAuthStore.getState().token;
     if (!token) {
-      return Promise.reject(new Error('No authentication token available'));
+      return config;
     }
-    
+
     config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
