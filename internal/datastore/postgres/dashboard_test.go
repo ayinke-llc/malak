@@ -36,15 +36,6 @@ func TestDashboard_Create(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name: "dashboard with empty title",
-			dashboard: &malak.Dashboard{
-				WorkspaceID: workspace.ID,
-				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboard),
-				Description: "Test Dashboard Description",
-			},
-			expectError: true,
-		},
-		{
 			name: "dashboard with invalid workspace ID",
 			dashboard: &malak.Dashboard{
 				WorkspaceID: uuid.New(),

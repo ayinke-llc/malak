@@ -78,6 +78,7 @@ func (d *dashboardLinkRepo) Create(ctx context.Context,
 
 			_, err := tx.NewInsert().
 				Model(link).
+				On("CONFLICT (contact_id,dashboard_id) DO NOTHING").
 				Exec(ctx)
 			return err
 		})

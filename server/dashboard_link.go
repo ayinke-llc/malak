@@ -91,11 +91,7 @@ func (d *dashboardHandler) generateLink(
 		return newAPIStatus(status, msg), StatusFailed
 	}
 
-	s, err := hermes.Random(20)
-	if err != nil {
-		logger.Error("could not generate random token")
-		return newAPIStatus(http.StatusInternalServerError, "could not generate link token"), StatusFailed
-	}
+	s := d.generator.Token()
 
 	link := &malak.DashboardLink{
 		LinkType:    malak.DashboardLinkTypeDefault,

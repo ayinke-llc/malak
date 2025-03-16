@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/ayinke-llc/hermes"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
@@ -34,6 +35,7 @@ func (r Reference) String() string { return string(r) }
 type ReferenceGeneratorOperation interface {
 	Generate(EntityType) Reference
 	ShortLink() string
+	Token() string
 }
 
 type ReferenceGenerator struct{}
@@ -49,6 +51,15 @@ func (r *ReferenceGenerator) Generate(e EntityType) Reference {
 		fmt.Sprintf(
 			"%s_%s",
 			e.String(), nanoID))
+}
+
+func (r *ReferenceGenerator) Token() string {
+	s, err := hermes.Random(20)
+	if err != nil {
+		panic(err)
+	}
+
+	return s
 }
 
 func (r *ReferenceGenerator) ShortLink() string {

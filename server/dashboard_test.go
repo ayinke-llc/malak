@@ -490,17 +490,17 @@ func TestDashboardHandler_AddChart(t *testing.T) {
 
 func generateFetchDashboardRequest() []struct {
 	name               string
-	mockFn             func(dashboard *malak_mocks.MockDashboardRepository)
+	mockFn             func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository)
 	expectedStatusCode int
 } {
 	return []struct {
 		name               string
-		mockFn             func(dashboard *malak_mocks.MockDashboardRepository)
+		mockFn             func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository)
 		expectedStatusCode int
 	}{
 		{
 			name: "dashboard not found",
-			mockFn: func(dashboard *malak_mocks.MockDashboardRepository) {
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository) {
 				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(malak.Dashboard{}, malak.ErrDashboardNotFound)
@@ -509,7 +509,7 @@ func generateFetchDashboardRequest() []struct {
 		},
 		{
 			name: "error fetching dashboard",
-			mockFn: func(dashboard *malak_mocks.MockDashboardRepository) {
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository) {
 				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(malak.Dashboard{}, errors.New("error fetching dashboard"))
@@ -518,7 +518,7 @@ func generateFetchDashboardRequest() []struct {
 		},
 		{
 			name: "error fetching dashboard positions",
-			mockFn: func(dashboard *malak_mocks.MockDashboardRepository) {
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository) {
 				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(malak.Dashboard{
@@ -537,12 +537,16 @@ func generateFetchDashboardRequest() []struct {
 				dashboard.EXPECT().GetDashboardPositions(gomock.Any(), workspaceID).
 					Times(1).
 					Return(nil, errors.New("error fetching dashboard positions"))
+
+				dashboardLink.EXPECT().DefaultLink(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.DashboardLink{}, nil)
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
 			name: "error fetching dashboard charts",
-			mockFn: func(dashboard *malak_mocks.MockDashboardRepository) {
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository) {
 				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(malak.Dashboard{
@@ -561,12 +565,16 @@ func generateFetchDashboardRequest() []struct {
 				dashboard.EXPECT().GetDashboardPositions(gomock.Any(), workspaceID).
 					Times(1).
 					Return([]malak.DashboardChartPosition{}, nil)
+
+				dashboardLink.EXPECT().DefaultLink(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.DashboardLink{}, nil)
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
 			name: "successfully fetched dashboard and charts",
-			mockFn: func(dashboard *malak_mocks.MockDashboardRepository) {
+			mockFn: func(dashboard *malak_mocks.MockDashboardRepository, dashboardLink *malak_mocks.MockDashboardLinkRepository) {
 				dashboard.EXPECT().Get(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(malak.Dashboard{
@@ -601,6 +609,16 @@ func generateFetchDashboardRequest() []struct {
 							OrderIndex:  1,
 						},
 					}, nil)
+
+				dashboardLink.EXPECT().DefaultLink(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(malak.DashboardLink{
+						ID:          workspaceID,
+						DashboardID: workspaceID,
+						Reference:   "DASHLINK_123",
+						Token:       "test_token",
+						LinkType:    malak.DashboardLinkTypeDefault,
+					}, nil)
 			},
 			expectedStatusCode: http.StatusOK,
 		},
@@ -614,12 +632,14 @@ func TestDashboardHandler_FetchDashboard(t *testing.T) {
 			defer controller.Finish()
 
 			dashboardRepo := malak_mocks.NewMockDashboardRepository(controller)
-			v.mockFn(dashboardRepo)
+			dashboardLinkRepo := malak_mocks.NewMockDashboardLinkRepository(controller)
+			v.mockFn(dashboardRepo, dashboardLinkRepo)
 
 			h := &dashboardHandler{
-				dashboardRepo: dashboardRepo,
-				generator:     &mockReferenceGenerator{},
-				cfg:           getConfig(),
+				dashboardRepo:     dashboardRepo,
+				dashboardLinkRepo: dashboardLinkRepo,
+				generator:         &mockReferenceGenerator{},
+				cfg:               getConfig(),
 			}
 
 			rr := httptest.NewRecorder()
