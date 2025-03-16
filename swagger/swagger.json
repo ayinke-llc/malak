@@ -6813,10 +6813,5 @@
 				]
 			}
 		}
-	},
-	"servers": [
-		{
-			"url": "https://api.malak.vc/v1"
-		}
-	]
+	}
 }
