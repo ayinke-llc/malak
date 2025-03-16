@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## fetch the token from Infisical
-## safe to store here. token Only valid for about 2-5 minutes
+## safe to store here. token Only valid for about 60 seconds
 
 # Check if required environment variables are set
 if [ -z "$INFISICAL_CLIENT_ID" ]; then
