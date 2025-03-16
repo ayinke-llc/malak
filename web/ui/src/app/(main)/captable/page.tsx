@@ -1,11 +1,4 @@
-"use client"
-
-import dynamic from 'next/dynamic'
-
-const CapTablePage = dynamic(
-  () => import('@/components/pages/captable'),
-  { ssr: false }
-)
+import CapTablePage from "@/components/pages/captable"
 
 export default function Page() {
   return <CapTablePage />

@@ -42,7 +42,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 // Add formatFileSize utility function
 function formatFileSize(bytes: number | undefined): string {
   if (bytes === undefined) return '-';
-  
+
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
   let size = bytes;
   let unitIndex = 0;
@@ -141,8 +141,6 @@ export default function DeckDetails(
   const { data, isLoading, error } = useQuery({
     queryKey: [FETCH_DECK],
     queryFn: () => client.decks.decksDetail(reference),
-    retry: false,
-    gcTime: Number.POSITIVE_INFINITY,
   });
 
   const defaultValues = useMemo(() => ({
