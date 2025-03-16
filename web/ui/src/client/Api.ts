@@ -1252,6 +1252,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
+     * @description delete access controls
+     *
+     * @tags dashboards
+     * @name AccessControlDelete
+     * @request DELETE:/dashboards/{reference}/access-control/{link_reference}
+     */
+    accessControlDelete: (reference: string, linkReference: string, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/dashboards/${reference}/access-control/${linkReference}`,
+        method: "DELETE",
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description regenerate the default link for a dashboard
      *
      * @tags dashboards

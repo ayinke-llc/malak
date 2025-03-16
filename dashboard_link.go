@@ -65,4 +65,5 @@ type DashboardLinkRepository interface {
 	DefaultLink(context.Context, *Dashboard) (DashboardLink, error)
 	PublicDetails(context.Context, Reference) (Dashboard, error)
 	List(context.Context, ListAccessControlOptions) ([]DashboardLink, int64, error)
+	Delete(context.Context, Dashboard, Reference) error
 }

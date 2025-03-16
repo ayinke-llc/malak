@@ -87,7 +87,7 @@ const columns: ColumnDef<ReturnType<typeof transformLink>>[] = [
     header: "Share Link",
     cell: ({ row }) => {
       const shareUrl = `${MALAK_APP_URL}/shared/dashboards/${row.original.token}`;
-      
+
       return (
         <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground w-[300px] truncate">

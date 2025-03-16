@@ -166,3 +166,18 @@ func (d *dashboardLinkRepo) List(ctx context.Context,
 		Offset(int(opts.Paginator.Offset())).
 		Scan(ctx)
 }
+
+func (d *dashboardLinkRepo) Delete(ctx context.Context,
+	dash malak.Dashboard, ref malak.Reference) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	_, err := d.inner.NewDelete().
+		Model(new(malak.DashboardLink)).
+		Where("reference = ?", ref).
+		Where("dashboard_id = ?", dash.ID).
+		Exec(ctx)
+
+	return err
+}
