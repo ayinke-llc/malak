@@ -28,8 +28,8 @@ func (o *shareRepo) All(ctx context.Context,
 	err := o.inner.NewSelect().
 		Table("contact_shares").
 		ColumnExpr("contact_shares.shared_at, contact_shares.item_type").
-		ColumnExpr("COALESCE(updates.title, dashboards.reference) AS title").
-		ColumnExpr("updates.updated_at AS updated_at").
+		ColumnExpr("COALESCE(updates.title, dashboards.title) AS title").
+		ColumnExpr("COALESCE(updates.updated_at, dashboards.updated_at) AS updated_at").
 		Column("item_reference", "shared_by").
 		Join("LEFT JOIN updates ON contact_shares.item_type = 'update' AND contact_shares.item_id = updates.id").
 		Join("LEFT JOIN dashboards ON contact_shares.item_type = 'dashboard' AND contact_shares.item_id = dashboards.id").

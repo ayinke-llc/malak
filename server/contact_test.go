@@ -22,6 +22,10 @@ import (
 
 type mockReferenceGenerator struct{}
 
+func (m *mockReferenceGenerator) Token() string {
+	return "oops"
+}
+
 func (m *mockReferenceGenerator) ShortLink() string {
 	return "oops"
 }

@@ -10,7 +10,7 @@ import (
 )
 
 // ENUM(billing_trial_ending,billing_create_customer,
-// invite_team_member)
+// invite_team_member, share_dashboard)
 type QueueTopic string
 
 type Message struct {
@@ -36,4 +36,10 @@ func ToPayload(m any) []byte {
 type BillingCreateCustomerOptions struct {
 	Workspace *malak.Workspace
 	Email     malak.Email
+}
+
+type SendEmailOptions struct {
+	Workspace *malak.Workspace
+	Token     string
+	Recipient malak.Email
 }

@@ -91,6 +91,7 @@ type listDashboardChartsResponse struct {
 	Charts    []malak.DashboardChart         `json:"charts,omitempty" validate:"required"`
 	Positions []malak.DashboardChartPosition `json:"positions,omitempty" validate:"required"`
 	Dashboard malak.Dashboard                `json:"dashboard,omitempty" validate:"required"`
+	Link      malak.DashboardLink            `json:"link,omitempty" validate:"required"`
 	APIStatus
 }
 
@@ -181,5 +182,16 @@ type fetchTemplatesResponse struct {
 type fetchSessionsDeck struct {
 	Sessions []*malak.DeckViewerSession `json:"sessions,omitempty" validate:"required"`
 	Meta     meta                       `json:"meta,omitempty" validate:"required"`
+	APIStatus
+}
+
+type regenerateLinkResponse struct {
+	Link malak.DashboardLink `json:"link,omitempty" validate:"required"`
+	APIStatus
+}
+
+type listDashboardLinkResponse struct {
+	Meta  meta                  `json:"meta,omitempty" validate:"required"`
+	Links []malak.DashboardLink `json:"links,omitempty" validate:"required"`
 	APIStatus
 }

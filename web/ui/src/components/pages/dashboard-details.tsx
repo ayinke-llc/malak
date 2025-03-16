@@ -1,8 +1,7 @@
 "use client";
 
 import type {
-  MalakDashboardChart, ServerAPIStatus,
-  ServerListDashboardChartsResponse,
+  MalakDashboardChart, ServerAPIStatus, ServerListDashboardChartsResponse,
   ServerListIntegrationChartsResponse
 } from "@/client/Api";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { ShareDialog } from "@/components/ui/dashboard/share-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +37,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { formatChartData, formatTooltipValue, getChartColors } from "@/lib/chart-utils";
 import client from "@/lib/client";
 import {
   ADD_CHART_DASHBOARD,
@@ -45,7 +46,6 @@ import {
   LIST_CHARTS,
   REMOVE_CHART_DASHBOARD
 } from "@/lib/query-constants";
-import { formatChartData, formatTooltipValue, getChartColors } from "@/lib/chart-utils";
 import {
   closestCenter,
   DndContext,
@@ -64,14 +64,12 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
   RiArrowDownSLine,
-  RiBarChart2Line,
-  RiLoader4Line,
-  RiPieChartLine,
+  RiBarChart2Line, RiLoader4Line, RiPieChartLine,
   RiSettings4Line
 } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Bar, BarChart,
   Cell,
@@ -294,7 +292,6 @@ export default function DashboardDetailsPage({ reference }: { reference: string 
     },
     onError: (err: AxiosError<ServerAPIStatus>) => {
       toast.error(err?.response?.data?.message || "Failed to update chart positions");
-      // Revert to the previous state on error
       if (dashboardData?.charts) {
         setCharts(dashboardData.charts);
       }
@@ -421,137 +418,146 @@ export default function DashboardDetailsPage({ reference }: { reference: string 
     );
   }
 
+  const dashboard = dashboardData.dashboard;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{dashboardData.dashboard.title}</h1>
-          <p className="text-muted-foreground">{dashboardData.dashboard.description}</p>
+          <h1 className="text-2xl font-bold">{dashboard.title}</h1>
+          <p className="text-muted-foreground">{dashboard.description}</p>
         </div>
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild>
-            <Button>Add Chart</Button>
-          </SheetTrigger>
-          <SheetContent className="sm:max-w-xl">
-            <SheetHeader>
-              <SheetTitle>Add Chart</SheetTitle>
-              <SheetDescription>
-                Select a chart to add to your dashboard
-              </SheetDescription>
-            </SheetHeader>
-            <div className="mt-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Chart Type</Label>
-                  <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        className="w-full justify-between"
-                        aria-expanded={isPopoverOpen}
-                      >
-                        {selectedChart ? selectedChartLabel : "Select a chart..."}
-                        <RiArrowDownSLine className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start" side="bottom">
-                      <Command>
-                        <CommandInput placeholder="Search charts..." />
-                        <CommandList>
-                          <CommandEmpty>No charts found.</CommandEmpty>
-                          {isLoadingCharts ? (
-                            <CommandItem disabled className="flex items-center gap-2 opacity-60">
-                              <RiLoader4Line className="h-4 w-4 animate-spin" />
-                              <span>Loading available charts...</span>
-                            </CommandItem>
-                          ) : (
-                            <>
-                              {(chartsData?.charts || []).filter(chart => 
-                                chart.chart_type === "bar" && 
-                                !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
-                              ).length > 0 && (
-                                <CommandGroup heading="Bar Charts">
-                                  {(chartsData?.charts || [])
-                                    .filter(chart => 
-                                      chart.chart_type === "bar" && 
-                                      !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
-                                    )
-                                    .map(chart => (
-                                    <CommandItem
-                                      key={chart.reference}
-                                      value={`${chart.user_facing_name} ${chart.internal_name}`}
-                                      onSelect={() => {
-                                        setSelectedChart(chart.reference || "");
-                                        setSelectedChartLabel(chart.user_facing_name || "");
-                                        setIsPopoverOpen(false);
-                                      }}
-                                      className="flex items-center gap-2"
-                                    >
-                                      <RiBarChart2Line className="h-4 w-4" />
-                                      <span>{chart.user_facing_name}</span>
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              )}
-                              {(chartsData?.charts || []).filter(chart => 
-                                chart.chart_type === "pie" && 
-                                !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
-                              ).length > 0 && (
-                                <CommandGroup heading="Pie Charts">
-                                  {(chartsData?.charts || [])
-                                    .filter(chart => 
-                                      chart.chart_type === "pie" && 
-                                      !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
-                                    )
-                                    .map(chart => (
-                                    <CommandItem
-                                      key={chart.reference}
-                                      value={`${chart.user_facing_name} ${chart.internal_name}`}
-                                      onSelect={() => {
-                                        setSelectedChart(chart.reference || "");
-                                        setSelectedChartLabel(chart.user_facing_name || "");
-                                        setIsPopoverOpen(false);
-                                      }}
-                                      className="flex items-center gap-2"
-                                    >
-                                      <RiPieChartLine className="h-4 w-4" />
-                                      <span>{chart.user_facing_name}</span>
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              )}
-                            </>
-                          )}
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  {selectedChart && (
-                    <p className="text-sm text-muted-foreground">
-                      Selected: {selectedChartLabel}
-                    </p>
-                  )}
+        <div className="flex items-center gap-2">
+          <ShareDialog
+            title={dashboard.title || "Dashboard"}
+            reference={dashboardID}
+            token={dashboardData?.link?.token as string}
+          />
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button>Add Chart</Button>
+            </SheetTrigger>
+            <SheetContent className="sm:max-w-xl">
+              <SheetHeader>
+                <SheetTitle>Add Chart</SheetTitle>
+                <SheetDescription>
+                  Select a chart to add to your dashboard
+                </SheetDescription>
+              </SheetHeader>
+              <div className="mt-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Chart Type</Label>
+                    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-between"
+                          aria-expanded={isPopoverOpen}
+                        >
+                          {selectedChart ? selectedChartLabel : "Select a chart..."}
+                          <RiArrowDownSLine className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start" side="bottom">
+                        <Command>
+                          <CommandInput placeholder="Search charts..." />
+                          <CommandList>
+                            <CommandEmpty>No charts found.</CommandEmpty>
+                            {isLoadingCharts ? (
+                              <CommandItem disabled className="flex items-center gap-2 opacity-60">
+                                <RiLoader4Line className="h-4 w-4 animate-spin" />
+                                <span>Loading available charts...</span>
+                              </CommandItem>
+                            ) : (
+                              <>
+                                {(chartsData?.charts || []).filter(chart =>
+                                  chart.chart_type === "bar" &&
+                                  !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
+                                ).length > 0 && (
+                                    <CommandGroup heading="Bar Charts">
+                                      {(chartsData?.charts || [])
+                                        .filter(chart =>
+                                          chart.chart_type === "bar" &&
+                                          !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
+                                        )
+                                        .map(chart => (
+                                          <CommandItem
+                                            key={chart.reference}
+                                            value={`${chart.user_facing_name} ${chart.internal_name}`}
+                                            onSelect={() => {
+                                              setSelectedChart(chart.reference || "");
+                                              setSelectedChartLabel(chart.user_facing_name || "");
+                                              setIsPopoverOpen(false);
+                                            }}
+                                            className="flex items-center gap-2"
+                                          >
+                                            <RiBarChart2Line className="h-4 w-4" />
+                                            <span>{chart.user_facing_name}</span>
+                                          </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                  )}
+                                {(chartsData?.charts || []).filter(chart =>
+                                  chart.chart_type === "pie" &&
+                                  !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
+                                ).length > 0 && (
+                                    <CommandGroup heading="Pie Charts">
+                                      {(chartsData?.charts || [])
+                                        .filter(chart =>
+                                          chart.chart_type === "pie" &&
+                                          !charts.some(dashboardChart => dashboardChart.chart?.reference === chart.reference)
+                                        )
+                                        .map(chart => (
+                                          <CommandItem
+                                            key={chart.reference}
+                                            value={`${chart.user_facing_name} ${chart.internal_name}`}
+                                            onSelect={() => {
+                                              setSelectedChart(chart.reference || "");
+                                              setSelectedChartLabel(chart.user_facing_name || "");
+                                              setIsPopoverOpen(false);
+                                            }}
+                                            className="flex items-center gap-2"
+                                          >
+                                            <RiPieChartLine className="h-4 w-4" />
+                                            <span>{chart.user_facing_name}</span>
+                                          </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                  )}
+                              </>
+                            )}
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    {selectedChart && (
+                      <p className="text-sm text-muted-foreground">
+                        Selected: {selectedChartLabel}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-            <SheetFooter className="mt-4">
-              <Button
-                onClick={handleAddChart}
-                disabled={!selectedChart || addChartMutation.isPending}
-              >
-                {addChartMutation.isPending ? (
-                  <div className="flex items-center gap-2">
-                    <RiLoader4Line className="h-4 w-4 animate-spin" />
-                    Adding Chart...
-                  </div>
-                ) : (
-                  "Add to Dashboard"
-                )}
-              </Button>
-            </SheetFooter>
-          </SheetContent>
-        </Sheet>
+              <SheetFooter className="mt-4">
+                <Button
+                  onClick={handleAddChart}
+                  disabled={!selectedChart || addChartMutation.isPending}
+                >
+                  {addChartMutation.isPending ? (
+                    <div className="flex items-center gap-2">
+                      <RiLoader4Line className="h-4 w-4 animate-spin" />
+                      Adding Chart...
+                    </div>
+                  ) : (
+                    "Add to Dashboard"
+                  )}
+                </Button>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
       <DndContext

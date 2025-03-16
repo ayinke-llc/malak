@@ -312,6 +312,55 @@
 				},
 				"type": "object"
 			},
+			"malak.DashboardLink": {
+				"properties": {
+					"contact": {
+						"$ref": "#/components/schemas/malak.Contact"
+					},
+					"contact_id": {
+						"type": "string"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"dashboard": {
+						"$ref": "#/components/schemas/malak.Dashboard"
+					},
+					"dashboard_id": {
+						"type": "string"
+					},
+					"expires_at": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"link_type": {
+						"$ref": "#/components/schemas/malak.DashboardLinkType"
+					},
+					"reference": {
+						"type": "string"
+					},
+					"token": {
+						"type": "string"
+					},
+					"updated_at": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"malak.DashboardLinkType": {
+				"enum": [
+					"default",
+					"contact"
+				],
+				"type": "string",
+				"x-enum-varnames": [
+					"DashboardLinkTypeDefault",
+					"DashboardLinkTypeContact"
+				]
+			},
 			"malak.Deck": {
 				"properties": {
 					"created_at": {
@@ -1808,6 +1857,14 @@
 				],
 				"type": "object"
 			},
+			"server.generateDashboardLinkRequest": {
+				"properties": {
+					"email": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
 			"server.listChartDataPointsResponse": {
 				"properties": {
 					"data_points": {
@@ -1859,6 +1916,9 @@
 					"dashboard": {
 						"$ref": "#/components/schemas/malak.Dashboard"
 					},
+					"link": {
+						"$ref": "#/components/schemas/malak.DashboardLink"
+					},
 					"message": {
 						"type": "string"
 					},
@@ -1872,8 +1932,31 @@
 				"required": [
 					"charts",
 					"dashboard",
+					"link",
 					"message",
 					"positions"
+				],
+				"type": "object"
+			},
+			"server.listDashboardLinkResponse": {
+				"properties": {
+					"links": {
+						"items": {
+							"$ref": "#/components/schemas/malak.DashboardLink"
+						},
+						"type": "array"
+					},
+					"message": {
+						"type": "string"
+					},
+					"meta": {
+						"$ref": "#/components/schemas/server.meta"
+					}
+				},
+				"required": [
+					"links",
+					"message",
+					"meta"
 				],
 				"type": "object"
 			},
@@ -2010,6 +2093,21 @@
 				},
 				"required": [
 					"email"
+				],
+				"type": "object"
+			},
+			"server.regenerateLinkResponse": {
+				"properties": {
+					"link": {
+						"$ref": "#/components/schemas/malak.DashboardLink"
+					},
+					"message": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"link",
+					"message"
 				],
 				"type": "object"
 			},
@@ -3341,6 +3439,255 @@
 				]
 			}
 		},
+		"/dashboards/{reference}/access-control": {
+			"get": {
+				"description": "list access controls",
+				"parameters": [
+					{
+						"description": "dashboard unique reference.. e.g dashboard_",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Page to query data from. Defaults to 1",
+						"in": "query",
+						"name": "page",
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"description": "Number to items to return. Defaults to 10 items",
+						"in": "query",
+						"name": "per_page",
+						"schema": {
+							"type": "integer"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.listDashboardLinkResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"dashboards"
+				]
+			}
+		},
+		"/dashboards/{reference}/access-control/link": {
+			"post": {
+				"description": "regenerate the default link for a dashboard",
+				"parameters": [
+					{
+						"description": "dashboard unique reference.. e.g dashboard_",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.generateDashboardLinkRequest"
+							}
+						}
+					},
+					"description": "Request body to generate link",
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.regenerateLinkResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"dashboards"
+				]
+			}
+		},
+		"/dashboards/{reference}/access-control/{link_reference}": {
+			"delete": {
+				"description": "delete access controls",
+				"parameters": [
+					{
+						"description": "dashboard unique reference.. e.g dashboard_",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "link unique reference.. e.g dashboard_link_",
+						"in": "path",
+						"name": "link_reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"dashboards"
+				]
+			}
+		},
 		"/dashboards/{reference}/charts": {
 			"delete": {
 				"description": "remove a chart from a dashboard",
@@ -4227,6 +4574,157 @@
 				},
 				"tags": [
 					"decks"
+				]
+			}
+		},
+		"/public/dashboards/{reference}": {
+			"get": {
+				"description": "fetch public dashboard and charting data points",
+				"parameters": [
+					{
+						"description": "dashboard unique reference.. e.g dashboard_",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.listDashboardChartsResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"dashboards"
+				]
+			}
+		},
+		"/public/dashboards/{reference}/charts/{chart_reference}": {
+			"get": {
+				"description": "fetch charting data",
+				"parameters": [
+					{
+						"description": "dashboard unique reference.. e.g dashboard_",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "chart unique reference.. e.g integration_chart_km31C.e6xV",
+						"in": "path",
+						"name": "chart_reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.listChartDataPointsResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"dashboards"
 				]
 			}
 		},

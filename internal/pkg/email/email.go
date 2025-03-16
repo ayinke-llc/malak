@@ -13,6 +13,9 @@ import (
 var (
 	//go:embed templates/updates/view.html
 	UpdateHTMLEmailTemplate string
+
+	//go:embed templates/sharing/dashboard_share.html
+	DashboardSharingTemplate string
 )
 
 type SendOptionsBatch []SendOptions

@@ -78,6 +78,10 @@ const (
 	EntityTypeDeckGeographicStat EntityType = "deck_geographic_stat"
 	// EntityTypeSession is a EntityType of type session.
 	EntityTypeSession EntityType = "session"
+	// EntityTypeDashboardLink is a EntityType of type dashboard_link.
+	EntityTypeDashboardLink EntityType = "dashboard_link"
+	// EntityTypeDashboardLinkAccessLog is a EntityType of type dashboard_link_access_log.
+	EntityTypeDashboardLinkAccessLog EntityType = "dashboard_link_access_log"
 )
 
 var ErrInvalidEntityType = errors.New("not a valid EntityType")
@@ -128,6 +132,8 @@ var _EntityTypeValue = map[string]EntityType{
 	"deck_viewer_session":         EntityTypeDeckViewerSession,
 	"deck_geographic_stat":        EntityTypeDeckGeographicStat,
 	"session":                     EntityTypeSession,
+	"dashboard_link":              EntityTypeDashboardLink,
+	"dashboard_link_access_log":   EntityTypeDashboardLinkAccessLog,
 }
 
 // ParseEntityType attempts to convert a string to a EntityType.

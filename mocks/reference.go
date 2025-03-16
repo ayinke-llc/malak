@@ -67,3 +67,17 @@ func (mr *MockReferenceGeneratorOperationMockRecorder) ShortLink() *gomock.Call 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShortLink", reflect.TypeOf((*MockReferenceGeneratorOperation)(nil).ShortLink))
 }
+
+// Token mocks base method.
+func (m *MockReferenceGeneratorOperation) Token() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Token")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Token indicates an expected call of Token.
+func (mr *MockReferenceGeneratorOperationMockRecorder) Token() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Token", reflect.TypeOf((*MockReferenceGeneratorOperation)(nil).Token))
+}

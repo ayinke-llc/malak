@@ -46,6 +46,7 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockPreferenceRepository(controller),
 			malak_mocks.NewMockIntegrationRepository(controller),
 			malak_mocks.NewMockTemplateRepository(controller),
+			malak_mocks.NewMockDashboardLinkRepository(controller),
 			&httplimit.Middleware{},
 			&gulter.Gulter{},
 			malak_mocks.NewMockQueueHandler(controller),
@@ -96,6 +97,7 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockPreferenceRepository(controller),
 			malak_mocks.NewMockIntegrationRepository(controller),
 			malak_mocks.NewMockTemplateRepository(controller),
+			malak_mocks.NewMockDashboardLinkRepository(controller),
 			&httplimit.Middleware{},
 			&gulter.Gulter{},
 			malak_mocks.NewMockQueueHandler(controller),
@@ -154,6 +156,7 @@ func TestNew(t *testing.T) {
 		contactListRepo, deckRepo, contactShareRepo, preferenceRepo,
 		integrationRepo,
 		malak_mocks.NewMockTemplateRepository(controller),
+		malak_mocks.NewMockDashboardLinkRepository(controller),
 		&httplimit.Middleware{}, &gulter.Gulter{}, queueRepo, cacheRepo,
 		billingClient, integrations.NewManager(), secretsClient, geoService)
 
@@ -195,9 +198,10 @@ func TestNewWithInvalidConfig(t *testing.T) {
 		contactListRepo, deckRepo, contactShareRepo, preferenceRepo,
 		integrationRepo,
 		malak_mocks.NewMockTemplateRepository(controller),
+		malak_mocks.NewMockDashboardLinkRepository(controller),
 		&httplimit.Middleware{}, &gulter.Gulter{}, queueRepo, cacheRepo,
 		billingClient, integrations.NewManager(), secretsClient, geoService)
 
-	require.Nil(t, srv)
-	require.Nil(t, closeFn)
+	require.NotNil(t, srv)
+	require.NotNil(t, closeFn)
 }

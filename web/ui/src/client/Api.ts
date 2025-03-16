@@ -134,6 +134,25 @@ export interface MalakDashboardChartPosition {
   order_index?: number;
 }
 
+export interface MalakDashboardLink {
+  contact?: MalakContact;
+  contact_id?: string;
+  created_at?: string;
+  dashboard?: MalakDashboard;
+  dashboard_id?: string;
+  expires_at?: string;
+  id?: string;
+  link_type?: MalakDashboardLinkType;
+  reference?: string;
+  token?: string;
+  updated_at?: string;
+}
+
+export enum MalakDashboardLinkType {
+  DashboardLinkTypeDefault = "default",
+  DashboardLinkTypeContact = "contact",
+}
+
 export interface MalakDeck {
   created_at?: string;
   created_by?: string;
@@ -695,6 +714,10 @@ export interface ServerFetchWorkspaceResponse {
   workspace: MalakWorkspace;
 }
 
+export interface ServerGenerateDashboardLinkRequest {
+  email?: string;
+}
+
 export interface ServerListChartDataPointsResponse {
   data_points: MalakIntegrationDataPoint[];
   message: string;
@@ -709,8 +732,15 @@ export interface ServerListContactsResponse {
 export interface ServerListDashboardChartsResponse {
   charts: MalakDashboardChart[];
   dashboard: MalakDashboard;
+  link: MalakDashboardLink;
   message: string;
   positions: MalakDashboardChartPosition[];
+}
+
+export interface ServerListDashboardLinkResponse {
+  links: MalakDashboardLink[];
+  message: string;
+  meta: ServerMeta;
 }
 
 export interface ServerListDashboardResponse {
@@ -752,6 +782,11 @@ export interface ServerPreferenceResponse {
 
 export interface ServerPreviewUpdateRequest {
   email: string;
+}
+
+export interface ServerRegenerateLinkResponse {
+  link: MalakDashboardLink;
+  message: string;
 }
 
 export interface ServerSendUpdateRequest {
@@ -1192,6 +1227,67 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
+     * @description list access controls
+     *
+     * @tags dashboards
+     * @name AccessControlDetail
+     * @request GET:/dashboards/{reference}/access-control
+     */
+    accessControlDetail: (
+      reference: string,
+      query?: {
+        /** Page to query data from. Defaults to 1 */
+        page?: number;
+        /** Number to items to return. Defaults to 10 items */
+        per_page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerListDashboardLinkResponse, ServerAPIStatus>({
+        path: `/dashboards/${reference}/access-control`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description delete access controls
+     *
+     * @tags dashboards
+     * @name AccessControlDelete
+     * @request DELETE:/dashboards/{reference}/access-control/{link_reference}
+     */
+    accessControlDelete: (reference: string, linkReference: string, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/dashboards/${reference}/access-control/${linkReference}`,
+        method: "DELETE",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description regenerate the default link for a dashboard
+     *
+     * @tags dashboards
+     * @name AccessControlLinkCreate
+     * @request POST:/dashboards/{reference}/access-control/link
+     */
+    accessControlLinkCreate: (
+      reference: string,
+      data: ServerGenerateDashboardLinkRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerRegenerateLinkResponse, ServerAPIStatus>({
+        path: `/dashboards/${reference}/access-control/link`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description remove a chart from a dashboard
      *
      * @tags dashboards
@@ -1424,6 +1520,36 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
   };
   public = {
+    /**
+     * @description fetch public dashboard and charting data points
+     *
+     * @tags dashboards
+     * @name DashboardsDetail
+     * @request GET:/public/dashboards/{reference}
+     */
+    dashboardsDetail: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerListDashboardChartsResponse, ServerAPIStatus>({
+        path: `/public/dashboards/${reference}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description fetch charting data
+     *
+     * @tags dashboards
+     * @name DashboardsChartsDetail
+     * @request GET:/public/dashboards/{reference}/charts/{chart_reference}
+     */
+    dashboardsChartsDetail: (reference: string, chartReference: string, params: RequestParams = {}) =>
+      this.request<ServerListChartDataPointsResponse, ServerAPIStatus>({
+        path: `/public/dashboards/${reference}/charts/${chartReference}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
     /**
      * @description public api to fetch a deck
      *

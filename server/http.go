@@ -44,6 +44,7 @@ func New(logger *zap.Logger,
 	preferenceRepo malak.PreferenceRepository,
 	integrationRepo malak.IntegrationRepository,
 	templatesRepo malak.TemplateRepository,
+	dashboardLinkRepo malak.DashboardLinkRepository,
 	mid *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
@@ -64,6 +65,7 @@ func New(logger *zap.Logger,
 			userRepo, workspaceRepo, planRepo,
 			contactRepo, updateRepo, contactListRepo,
 			deckRepo, shareRepo, preferenceRepo, integrationRepo, templatesRepo,
+			dashboardLinkRepo,
 			googleAuthProvider, mid, gulterHandler,
 			queueHandler, redisCache, billingClient, integrationManager, secretsClient,
 			geolocationService),
@@ -111,6 +113,7 @@ func buildRoutes(
 	preferenceRepo malak.PreferenceRepository,
 	integrationRepo malak.IntegrationRepository,
 	templatesRepo malak.TemplateRepository,
+	dashboardLinkRepo malak.DashboardLinkRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	ratelimiterMiddleware *httplimit.Middleware,
 	gulterHandler *gulter.Gulter,
@@ -210,10 +213,13 @@ func buildRoutes(
 	}
 
 	dashHandler := &dashboardHandler{
-		cfg:             cfg,
-		dashboardRepo:   dashboardRepo,
-		generator:       referenceGenerator,
-		integrationRepo: integrationRepo,
+		cfg:               cfg,
+		dashboardRepo:     dashboardRepo,
+		generator:         referenceGenerator,
+		integrationRepo:   integrationRepo,
+		dashboardLinkRepo: dashboardLinkRepo,
+		contactRepo:       contactRepo,
+		queue:             queueHandler,
 	}
 
 	router.Use(middleware.RequestID)
@@ -426,6 +432,15 @@ func buildRoutes(
 
 			r.Delete("/{reference}/charts",
 				WrapMalakHTTPHandler(logger, dashHandler.removeChart, cfg, "dashboards.charts.remove"))
+
+			r.Post("/{reference}/access-control/link",
+				WrapMalakHTTPHandler(logger, dashHandler.generateLink, cfg, "dashboards.access-control.link.generate"))
+
+			r.Get("/{reference}/access-control",
+				WrapMalakHTTPHandler(logger, dashHandler.listAccessControls, cfg, "dashboards.access-control.list"))
+
+			r.Delete("/{reference}/access-control/{link_reference}",
+				WrapMalakHTTPHandler(logger, dashHandler.revokeAccessControl, cfg, "dashboards.access-control.delete"))
 		})
 
 		r.Route("/uploads", func(r chi.Router) {
@@ -452,6 +467,12 @@ func buildRoutes(
 				WrapMalakHTTPHandler(logger, deckHandler.publicDeckDetails, cfg, "public.decks.fetch"))
 			r.Put("/decks/{reference}",
 				WrapMalakHTTPHandler(logger, deckHandler.updateDeckViewerSession, cfg, "public.decks.update"))
+
+			r.Get("/dashboards/{reference}",
+				WrapMalakHTTPHandler(logger, dashHandler.publicDashboardDetails, cfg, "public.dashboards.fetch"))
+
+			r.Get("/dashboards/{reference}/charts/{chart_reference}",
+				WrapMalakHTTPHandler(logger, dashHandler.publicChartingDataFetch, cfg, "public.charts.datapoints"))
 		})
 	})
 
