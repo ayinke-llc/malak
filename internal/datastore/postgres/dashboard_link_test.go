@@ -43,6 +43,7 @@ func TestDashboardLinkRepo_Create(t *testing.T) {
 				WorkspaceID: workspace.ID,
 				Link: &malak.DashboardLink{
 					DashboardID: dashboard.ID,
+					Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardLink),
 					Token:       malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardLink).String(),
 					LinkType:    malak.DashboardLinkType("default"),
 					ExpiresAt:   &time.Time{},
@@ -57,6 +58,7 @@ func TestDashboardLinkRepo_Create(t *testing.T) {
 				Email:       malak.Email("test@example.com"),
 				Link: &malak.DashboardLink{
 					DashboardID: dashboard.ID,
+					Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardLink),
 					Token:       malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardLink).String(),
 					LinkType:    malak.DashboardLinkType("contact"),
 					ExpiresAt:   &time.Time{},
@@ -85,6 +87,7 @@ func TestDashboardLinkRepo_Create(t *testing.T) {
 
 			assert.Equal(t, tt.opts.Link.DashboardID, link.DashboardID)
 			assert.Equal(t, tt.opts.Link.LinkType, link.LinkType)
+			assert.Equal(t, tt.opts.Link.Reference, link.Reference)
 
 			if tt.opts.Email != "" {
 				// Verify contact was created and linked
@@ -123,6 +126,7 @@ func TestDashboardLinkRepo_DefaultLink(t *testing.T) {
 
 	link := &malak.DashboardLink{
 		DashboardID: dashboard.ID,
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardLink),
 		Token:       malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardLink).String(),
 		LinkType:    malak.DashboardLinkType("default"),
 		ExpiresAt:   &time.Time{},
@@ -135,6 +139,7 @@ func TestDashboardLinkRepo_DefaultLink(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, link.Token, got.Token)
 		assert.Equal(t, link.DashboardID, got.DashboardID)
+		assert.Equal(t, link.Reference, got.Reference)
 	})
 
 	t.Run("get non-existent default link", func(t *testing.T) {
@@ -167,6 +172,7 @@ func TestDashboardLinkRepo_PublicDetails(t *testing.T) {
 
 	link := &malak.DashboardLink{
 		DashboardID: dashboard.ID,
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardLink),
 		Token:       malak.NewReferenceGenerator().Generate(malak.EntityTypeDashboardLink).String(),
 		LinkType:    malak.DashboardLinkType("default"),
 		ExpiresAt:   &time.Time{},
