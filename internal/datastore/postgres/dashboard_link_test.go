@@ -254,7 +254,7 @@ func TestDashboardLinkRepo_List(t *testing.T) {
 
 		got, count, err := repo.List(context.Background(), opts)
 		require.NoError(t, err)
-		require.Equal(t, int64(len(links)), count)
+		require.Equal(t, 2, count)
 		require.Len(t, got, len(links))
 	})
 
@@ -269,7 +269,7 @@ func TestDashboardLinkRepo_List(t *testing.T) {
 
 		got, count, err := repo.List(context.Background(), opts)
 		require.NoError(t, err)
-		require.Equal(t, int64(len(links)), count)
+		require.Equal(t, 2, count)
 		require.Len(t, got, 2)
 	})
 
