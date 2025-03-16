@@ -4,9 +4,9 @@
 // @contact.name Ayinke Ventures
 // @contact.email lanre@ayinke.ventures
 
-// @host localhost:5300
+// @host api.malak.vc
 // @BasePath /v1
-// @schemes http
+// @schemes https
 //
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header

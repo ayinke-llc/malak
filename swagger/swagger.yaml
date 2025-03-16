@@ -4308,4 +4308,4 @@ paths:
       tags:
       - updates
 servers:
-- url: http://localhost:5300/v1
+- url: https://api.malak.vc/v1

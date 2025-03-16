@@ -5787,9 +5787,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.1.0",
-	Host:             "localhost:5300",
+	Host:             "api.malak.vc",
 	BasePath:         "/v1",
-	Schemes:          []string{"http"},
+	Schemes:          []string{"https"},
 	Title:            "Malak's API documentation",
 	Description:      "",
 	InfoInstanceName: "swagger",

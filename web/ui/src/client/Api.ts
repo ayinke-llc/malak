@@ -878,7 +878,7 @@ export class HttpClient<SecurityDataType = unknown> {
   private format?: ResponseType;
 
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
-    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "http://localhost:5300/v1" });
+    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "https://api.malak.vc/v1" });
     this.secure = secure;
     this.format = format;
     this.securityWorker = securityWorker;
@@ -970,7 +970,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Malak's API documentation
  * @version 0.1.0
- * @baseUrl http://localhost:5300/v1
+ * @baseUrl https://api.malak.vc/v1
  * @contact Ayinke Ventures <lanre@ayinke.ventures>
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
