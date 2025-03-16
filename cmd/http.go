@@ -28,6 +28,8 @@ import (
 	"github.com/ayinke-llc/malak/internal/integrations/mercury"
 	"github.com/ayinke-llc/malak/internal/pkg/billing/stripe"
 	"github.com/ayinke-llc/malak/internal/pkg/cache/rediscache"
+	"github.com/ayinke-llc/malak/internal/pkg/email"
+	"github.com/ayinke-llc/malak/internal/pkg/email/resend"
 	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
 	"github.com/ayinke-llc/malak/internal/pkg/geolocation/maxmind"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
@@ -157,10 +159,29 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 					zap.Error(err))
 			}
 
-			emailClient, err := smtp.New(*cfg)
-			if err != nil {
-				logger.Fatal("could not set up smtp client",
-					zap.Error(err))
+			var emailClient email.Client
+
+			switch cfg.Email.Provider {
+			case config.EmailProviderSmtp:
+				var err error
+
+				emailClient, err = smtp.New(*cfg)
+				if err != nil {
+					logger.Fatal("could not set up smtp client",
+						zap.Error(err))
+				}
+
+			case config.EmailProviderResend:
+				var err error
+
+				emailClient, err = resend.New(*cfg)
+				if err != nil {
+					logger.Fatal("could not set up smtp client",
+						zap.Error(err))
+				}
+
+			default:
+				logger.Fatal("unsupported email provider", zap.String("provider", cfg.Email.Provider.String()))
 			}
 
 			billingClient, err := stripe.New(hermes.DeRef(cfg))
