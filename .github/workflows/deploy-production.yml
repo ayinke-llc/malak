@@ -1,8 +1,14 @@
 name: Deploy to Linode
+
+# Long term, this needs to be fixed
+# because of backports. If we are running v1.4.4 that has commit xyz that fixes a bug
+# backported to v1.0.9, we do not want to migrate the cloud version
+# So makes sense to be more strict on what gets pushed and branch
+# but for now this works
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*.*.*"
 
 jobs:
   deploy:
