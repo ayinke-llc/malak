@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/ThreeDotsLabs/watermill v1.3.7
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.2
-	github.com/adelowo/gulter v0.0.0-20250317221458-f302f42179f3
+	github.com/adelowo/gulter v0.0.0-20250317235002-4258f621b0cd
 	github.com/adelowo/snapshot-chromedp v0.0.0-20250314134952-a9900b6a3129
 	github.com/alexlast/bunzap v0.1.0
 	github.com/aws/aws-sdk-go-v2 v1.36.0

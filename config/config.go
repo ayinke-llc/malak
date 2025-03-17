@@ -138,6 +138,9 @@ type Config struct {
 			// Enabled by default but you can disable this if running
 			// your own internal Minio or something
 			UseTLS bool `yaml:"use_tls" mapstructure:"use_tls"`
+
+			CloudflareBucketDomain     string `yaml:"cloudflare_bucket_domain" mapstructure:"cloudflare_bucket_domain"`
+			CloudflareDeckBucketDomain string `yaml:"cloudflare_deck_bucket_domain" mapstructure:"cloudflare_deck_bucket_domain"`
 		} `yaml:"s3" mapstructure:"s3"`
 	} `yaml:"uploader" mapstructure:"uploader"`
 

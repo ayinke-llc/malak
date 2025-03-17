@@ -32,14 +32,8 @@ github.com/ThreeDotsLabs/watermill v1.3.7 h1:NV0PSTmuACVEOV4dMxRnmGXrmbz8U83LENO
 github.com/ThreeDotsLabs/watermill v1.3.7/go.mod h1:lBnrLbxOjeMRgcJbv+UiZr8Ylz8RkJ4m6i/VN/Nk+to=
 github.com/ThreeDotsLabs/watermill-redisstream v1.4.2 h1:FY6tsBcbhbJpKDOssU4bfybstqY0hQHwiZmVq9qyILQ=
 github.com/ThreeDotsLabs/watermill-redisstream v1.4.2/go.mod h1:69++855LyB+ckYDe60PiJLBcUrpckfDE2WwyzuVJRCk=
-github.com/adelowo/gulter v0.0.0-20250212164855-be5012c5f635 h1:AMWTMYnpT/svarHQYlelgdHTYdN9pCkT6FwEflaNk60=
-github.com/adelowo/gulter v0.0.0-20250212164855-be5012c5f635/go.mod h1:emNdddTD8yk9NjprSHOXGqgMGk0Tj7j69gG8zyywv2M=
-github.com/adelowo/gulter v0.0.0-20250317213013-648cd352454b h1:uIE8hbCiqVE1B27/zmkcU2ZnqDsJUjIaJD0/ogykN64=
-github.com/adelowo/gulter v0.0.0-20250317213013-648cd352454b/go.mod h1:emNdddTD8yk9NjprSHOXGqgMGk0Tj7j69gG8zyywv2M=
-github.com/adelowo/gulter v0.0.0-20250317215139-63942c5eab39 h1:3tQc4FSh5QBzPH3z83Ijfiou1fNMuTTIi2xcdCNEdi4=
-github.com/adelowo/gulter v0.0.0-20250317215139-63942c5eab39/go.mod h1:emNdddTD8yk9NjprSHOXGqgMGk0Tj7j69gG8zyywv2M=
-github.com/adelowo/gulter v0.0.0-20250317221458-f302f42179f3 h1:DzxPNZCZ4w/kVyWIlufIpbjV+b8HqyM7paS1ugA/VQ4=
-github.com/adelowo/gulter v0.0.0-20250317221458-f302f42179f3/go.mod h1:emNdddTD8yk9NjprSHOXGqgMGk0Tj7j69gG8zyywv2M=
+github.com/adelowo/gulter v0.0.0-20250317235002-4258f621b0cd h1:chIGOuXMp3paby9UufzgoWjL0UX9xWglte4QRXWgrtw=
+github.com/adelowo/gulter v0.0.0-20250317235002-4258f621b0cd/go.mod h1:emNdddTD8yk9NjprSHOXGqgMGk0Tj7j69gG8zyywv2M=
 github.com/adelowo/snapshot-chromedp v0.0.0-20250314134952-a9900b6a3129 h1:gqtQPUiDRHmLQQEYi57w/BVaoUs6Ek3VKwZDPOphXKo=
 github.com/adelowo/snapshot-chromedp v0.0.0-20250314134952-a9900b6a3129/go.mod h1:TlCSo7SyXx0TQvKPmhL5lezyrUHKhGsThYIRyvEypAk=
 github.com/ajg/form v1.5.1 h1:t9c7v8JUKu/XxOGBU0yjNpaMloxGEJhUkqFRq0ibGeU=
