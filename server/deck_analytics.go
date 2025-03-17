@@ -109,7 +109,6 @@ func (d *deckHandler) publicDeckDetails(
 		var err error
 
 		objectLink, err = d.gulterStore.Path(ctx, gulter.PathOptions{
-			Bucket:         d.cfg.Uploader.S3.DeckBucket,
 			Key:            deck.ObjectKey,
 			ExpirationTime: time.Minute * 15,
 			IsSecure:       true,

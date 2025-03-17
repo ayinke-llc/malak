@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/adelowo/gulter"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/cache"
@@ -27,6 +28,7 @@ type updatesHandler struct {
 	queueHandler       queue.QueueHandler
 	uuidGenerator      malak.UuidGenerator
 	templateRepo       malak.TemplateRepository
+	gulter             gulter.Storage
 }
 
 // @Description list all templates. this will include both systems and your own created templates
