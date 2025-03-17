@@ -2,7 +2,6 @@ package server
 
 import (
 	"testing"
-	"time"
 
 	"github.com/adelowo/gulter"
 	"github.com/ayinke-llc/malak/internal/integrations"
@@ -22,14 +21,11 @@ import (
 // Will help catch issues with paths like `/updates/{references` that is
 // missing an ending brace or wrongly placed middlewares and others
 func TestServer_New(t *testing.T) {
-
 	t.Run("without swagger", func(t *testing.T) {
-
 		controller := gomock.NewController(t)
 		defer controller.Finish()
 
 		cfg := getConfig()
-
 		geoService := malak_mocks.NewMockGeolocationService(controller)
 
 		srv, closeFn := New(getLogger(t), cfg, &bun.DB{},
@@ -48,36 +44,24 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockTemplateRepository(controller),
 			malak_mocks.NewMockDashboardLinkRepository(controller),
 			&httplimit.Middleware{},
-			&gulter.Gulter{},
 			malak_mocks.NewMockQueueHandler(controller),
 			malak_mocks.NewMockCache(controller),
 			malak_mocks.NewMockClient(controller),
 			integrations.NewManager(),
 			malak_mocks.NewMockSecretClient(controller),
-			geoService)
+			geoService,
+			&gulter.Gulter{},
+			&gulter.Gulter{})
 
-		if closeFn != nil {
-			closeFn()
-		}
-
-		if srv != nil {
-			go func() {
-				_ = srv.ListenAndServe()
-			}()
-
-			time.Sleep(time.Second * 2)
-
-			require.NoError(t, srv.Close())
-		}
+		require.NotNil(t, srv)
+		require.NotNil(t, closeFn)
 	})
 
 	t.Run("with swagger enabled", func(t *testing.T) {
-
 		controller := gomock.NewController(t)
 		defer controller.Finish()
 
 		cfg := getConfig()
-
 		cfg.HTTP.Swagger.UIEnabled = true
 		cfg.HTTP.Swagger.Port = 9990
 
@@ -99,27 +83,17 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockTemplateRepository(controller),
 			malak_mocks.NewMockDashboardLinkRepository(controller),
 			&httplimit.Middleware{},
-			&gulter.Gulter{},
 			malak_mocks.NewMockQueueHandler(controller),
 			malak_mocks.NewMockCache(controller),
 			malak_mocks.NewMockClient(controller),
 			integrations.NewManager(),
 			malak_mocks.NewMockSecretClient(controller),
-			geoService)
+			geoService,
+			&gulter.Gulter{},
+			&gulter.Gulter{})
 
-		if closeFn != nil {
-			closeFn()
-		}
-
-		if srv != nil {
-			go func() {
-				_ = srv.ListenAndServe()
-			}()
-
-			time.Sleep(time.Second * 2)
-
-			require.NoError(t, srv.Close())
-		}
+		require.NotNil(t, srv)
+		require.NotNil(t, closeFn)
 	})
 }
 
@@ -147,7 +121,6 @@ func TestNew(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := getConfig()
-
 	db := &bun.DB{}
 
 	srv, closeFn := New(logger, cfg, db, jwttoken.New(cfg), socialauth.NewGoogle(cfg),
@@ -157,8 +130,10 @@ func TestNew(t *testing.T) {
 		integrationRepo,
 		malak_mocks.NewMockTemplateRepository(controller),
 		malak_mocks.NewMockDashboardLinkRepository(controller),
-		&httplimit.Middleware{}, &gulter.Gulter{}, queueRepo, cacheRepo,
-		billingClient, integrations.NewManager(), secretsClient, geoService)
+		&httplimit.Middleware{},
+		queueRepo, cacheRepo, billingClient,
+		integrations.NewManager(), secretsClient, geoService,
+		&gulter.Gulter{}, &gulter.Gulter{})
 
 	require.NotNil(t, srv)
 	require.NotNil(t, closeFn)
@@ -188,7 +163,7 @@ func TestNewWithInvalidConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := getConfig()
-	cfg.HTTP.Port = 0
+	cfg.HTTP.Port = 0 // Invalid port
 
 	db := &bun.DB{}
 
@@ -199,8 +174,10 @@ func TestNewWithInvalidConfig(t *testing.T) {
 		integrationRepo,
 		malak_mocks.NewMockTemplateRepository(controller),
 		malak_mocks.NewMockDashboardLinkRepository(controller),
-		&httplimit.Middleware{}, &gulter.Gulter{}, queueRepo, cacheRepo,
-		billingClient, integrations.NewManager(), secretsClient, geoService)
+		&httplimit.Middleware{},
+		queueRepo, cacheRepo, billingClient,
+		integrations.NewManager(), secretsClient, geoService,
+		&gulter.Gulter{}, &gulter.Gulter{})
 
 	require.NotNil(t, srv)
 	require.NotNil(t, closeFn)

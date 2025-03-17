@@ -955,7 +955,7 @@ func (m *mockStorage) Path(ctx context.Context, opts gulter.PathOptions) (string
 	if m.file == nil {
 		return "", errors.New("no file")
 	}
-	return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", opts.Bucket, opts.Key), nil
+	return fmt.Sprintf("https://s3.amazonaws.com/%s", opts.Key), nil
 }
 
 func (m *mockStorage) Close() error {

@@ -2,14 +2,10 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/adelowo/gulter"
-	"github.com/adelowo/gulter/storage"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/integrations"
@@ -23,7 +19,6 @@ import (
 	_ "github.com/ayinke-llc/malak/swagger"
 	chi "github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/google/uuid"
 	"github.com/riandyrn/otelchi"
 	"github.com/rs/cors"
 	"github.com/sethvargo/go-limiter/httplimit"
@@ -51,13 +46,14 @@ func New(logger *zap.Logger,
 	templatesRepo malak.TemplateRepository,
 	dashboardLinkRepo malak.DashboardLinkRepository,
 	mid *httplimit.Middleware,
-	s3Config aws.Config,
 	queueHandler queue.QueueHandler,
 	redisCache cache.Cache,
 	billingClient billing.Client,
 	integrationManager *integrations.IntegrationsManager,
 	secretsClient secret.SecretClient,
-	geolocationService geolocation.GeolocationService) (*http.Server, func()) {
+	geolocationService geolocation.GeolocationService,
+	imageUploadGulterHandler *gulter.Gulter,
+	deckUploadGulterHandler *gulter.Gulter) (*http.Server, func()) {
 
 	if err := cfg.Validate(); err != nil {
 		logger.Error("invalid configuration", zap.Error(err))
@@ -71,9 +67,9 @@ func New(logger *zap.Logger,
 			contactRepo, updateRepo, contactListRepo,
 			deckRepo, shareRepo, preferenceRepo, integrationRepo, templatesRepo,
 			dashboardLinkRepo,
-			googleAuthProvider, mid, s3Config,
+			googleAuthProvider, mid,
 			queueHandler, redisCache, billingClient, integrationManager, secretsClient,
-			geolocationService),
+			geolocationService, imageUploadGulterHandler, deckUploadGulterHandler),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -121,13 +117,14 @@ func buildRoutes(
 	dashboardLinkRepo malak.DashboardLinkRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	ratelimiterMiddleware *httplimit.Middleware,
-	s3Config aws.Config,
 	queueHandler queue.QueueHandler,
 	redisCache cache.Cache,
 	billingClient billing.Client,
 	integrationManager *integrations.IntegrationsManager,
 	secretsClient secret.SecretClient,
-	geolocationService geolocation.GeolocationService) http.Handler {
+	geolocationService geolocation.GeolocationService,
+	imageUploadGulterHandler *gulter.Gulter,
+	deckUploadGulterHandler *gulter.Gulter) http.Handler {
 
 	if cfg.HTTP.Swagger.UIEnabled {
 		go func() {
@@ -141,78 +138,6 @@ func buildRoutes(
 				logger.Error("error with swagger server", zap.Error(err))
 			}
 		}()
-	}
-
-	s3Store, err := storage.NewS3FromConfig(s3Config, storage.S3Options{
-		DebugMode:    cfg.Uploader.S3.LogOperations,
-		UsePathStyle: true,
-		Bucket:       cfg.Uploader.S3.Bucket,
-	})
-	if err != nil {
-		logger.Fatal("could not set up S3 client",
-			zap.Error(err))
-	}
-
-	imageUploadGulterHandler, err := gulter.New(
-		gulter.WithMaxFileSize(cfg.Uploader.MaxUploadSize),
-		gulter.WithValidationFunc(
-			gulter.MimeTypeValidator("image/jpeg", "image/png")),
-		gulter.WithStorage(s3Store),
-		gulter.WithIgnoreNonExistentKey(true),
-		gulter.WithErrorResponseHandler(func(err error) http.HandlerFunc {
-			return func(w http.ResponseWriter, _ *http.Request) {
-				logger.Error("could not upload file", zap.Error(err))
-
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusInternalServerError)
-				_ = json.NewEncoder(w).Encode(APIStatus{
-					Message: fmt.Sprintf("could not upload file...%s", err.Error()),
-				})
-			}
-		}),
-		gulter.WithNameFuncGenerator(func(s string) string {
-			return uuid.New().String() + strings.Replace(s, " ", "", -1)
-		}),
-	)
-	if err != nil {
-		logger.Fatal("could not set up gulter uploader",
-			zap.Error(err))
-	}
-
-	decks3Store, err := storage.NewS3FromConfig(s3Config, storage.S3Options{
-		DebugMode:    cfg.Uploader.S3.LogOperations,
-		UsePathStyle: true,
-		Bucket:       cfg.Uploader.S3.DeckBucket,
-	})
-	if err != nil {
-		logger.Fatal("could not set up S3 client",
-			zap.Error(err))
-	}
-
-	deckUploadGulterHandler, err := gulter.New(
-		gulter.WithMaxFileSize(cfg.Uploader.MaxUploadSize),
-		gulter.WithValidationFunc(
-			gulter.MimeTypeValidator("application/pdf")),
-		gulter.WithStorage(decks3Store),
-		gulter.WithIgnoreNonExistentKey(true),
-		gulter.WithErrorResponseHandler(func(err error) http.HandlerFunc {
-			return func(w http.ResponseWriter, _ *http.Request) {
-				logger.Error("could not upload file", zap.Error(err))
-
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusInternalServerError)
-				_ = json.NewEncoder(w).Encode(APIStatus{
-					Message: fmt.Sprintf("could not upload file...%s", err.Error()),
-				})
-			}
-		}),
-		gulter.WithNameFuncGenerator(func(s string) string {
-			return uuid.New().String() + strings.Replace(s, " ", "", -1)
-		}),
-	)
-	if err != nil {
-		logger.Fatal("could not set up gulter deck uploader",
-			zap.Error(err))
 	}
 
 	router := chi.NewRouter()
