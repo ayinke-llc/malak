@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	awsCreds "github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
@@ -296,6 +297,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				UsePathStyle:     true,
 				Bucket:           cfg.Uploader.S3.DeckBucket,
 				CloudflareDomain: cfg.Uploader.S3.CloudflareDeckBucketDomain,
+				ACL:              types.ObjectCannedACLPrivate,
 			})
 			if err != nil {
 				logger.Fatal("could not set up S3 client",

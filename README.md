@@ -202,6 +202,10 @@ But 3rd party integrations and auto-syncing are under a commercial/Enterprise li
 
 #### Buckets
 
+> [!IMPORTANT]
+> If you use Cloudflare R2, you need to set up a domain name from the dashboard.
+> Set the following in your config, `MALAK_UPLOADER_S3_CLOUDFLARE_BUCKET_DOMAIN` and `MALAK_UPLOADER_S3_CLOUDFLARE_DECK_BUCKET_DOMAIN`
+
 You need to create two buckets:
 
 - `malak` : for publicly available objects
