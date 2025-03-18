@@ -1,0 +1,25 @@
+name: Run Deck anayltics Job
+
+on:
+  schedule:
+    - cron: "0 */5 * * *"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restart Malak systemd service
+        uses: appleboy/ssh-action@master
+        env:
+          INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
+          INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+          CRON_TYPE: decks-analytics
+        with:
+          host: ${{ secrets.IP_ADDRESS }}
+          username: "root"
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script_path: deploy/linode.sh
+          envs: INFISICAL_CLIENT_ID,INFISICAL_CLIENT_SECRET,CRON_TYPE
