@@ -46,6 +46,9 @@ Own full control of your data and company state if you decide to selfhost.
 - Tailwind CSS
 - Stripe ( optional )
 
+> [!IMPORTANT]
+> Please checkout complete docs at <https://docs.malak.vc>
+
 ## Self-hosting
 
 ### Migrations
