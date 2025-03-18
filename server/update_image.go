@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/adelowo/gulter"
@@ -42,10 +41,15 @@ func (u *updatesHandler) uploadImage(
 	// only one file we are expecting at a time
 	file := files[0]
 
-	uploadedURL := fmt.Sprintf("%s/%s/%s",
-		u.cfg.Uploader.S3.Endpoint,
-		file.FolderDestination,
-		file.UploadedFileName)
+	uploadedURL, err := u.gulter.Path(ctx, gulter.PathOptions{
+		Key: file.StorageKey,
+	})
+
+	if err != nil {
+		logger.Error("could not fetch gulter uploaded file path", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"internal failure while fetching path from storage"), StatusFailed
+	}
 
 	return uploadImageResponse{
 		URL:       uploadedURL,
