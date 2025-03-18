@@ -182,7 +182,7 @@ func setDefaults() {
 	viper.SetDefault("http.port", 5300)
 	viper.SetDefault("http.rate_limit.is_enabled", true)
 	viper.SetDefault("http.rate_limit.type", config.RateLimiterTypeMemory)
-	viper.SetDefault("http.rate_limit.requests_per_minute", 10)
+	viper.SetDefault("http.rate_limit.requests_per_minute", 300)
 	viper.SetDefault("http.rate_limit.burst_interval", time.Minute)
 
 	viper.SetDefault("biling.is_enabled", false)

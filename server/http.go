@@ -46,13 +46,14 @@ func New(logger *zap.Logger,
 	templatesRepo malak.TemplateRepository,
 	dashboardLinkRepo malak.DashboardLinkRepository,
 	mid *httplimit.Middleware,
-	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
 	redisCache cache.Cache,
 	billingClient billing.Client,
 	integrationManager *integrations.IntegrationsManager,
 	secretsClient secret.SecretClient,
-	geolocationService geolocation.GeolocationService) (*http.Server, func()) {
+	geolocationService geolocation.GeolocationService,
+	imageUploadGulterHandler *gulter.Gulter,
+	deckUploadGulterHandler *gulter.Gulter) (*http.Server, func()) {
 
 	if err := cfg.Validate(); err != nil {
 		logger.Error("invalid configuration", zap.Error(err))
@@ -66,9 +67,9 @@ func New(logger *zap.Logger,
 			contactRepo, updateRepo, contactListRepo,
 			deckRepo, shareRepo, preferenceRepo, integrationRepo, templatesRepo,
 			dashboardLinkRepo,
-			googleAuthProvider, mid, gulterHandler,
+			googleAuthProvider, mid,
 			queueHandler, redisCache, billingClient, integrationManager, secretsClient,
-			geolocationService),
+			geolocationService, imageUploadGulterHandler, deckUploadGulterHandler),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -116,13 +117,14 @@ func buildRoutes(
 	dashboardLinkRepo malak.DashboardLinkRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	ratelimiterMiddleware *httplimit.Middleware,
-	gulterHandler *gulter.Gulter,
 	queueHandler queue.QueueHandler,
 	redisCache cache.Cache,
 	billingClient billing.Client,
 	integrationManager *integrations.IntegrationsManager,
 	secretsClient secret.SecretClient,
-	geolocationService geolocation.GeolocationService) http.Handler {
+	geolocationService geolocation.GeolocationService,
+	imageUploadGulterHandler *gulter.Gulter,
+	deckUploadGulterHandler *gulter.Gulter) http.Handler {
 
 	if cfg.HTTP.Swagger.UIEnabled {
 		go func() {
@@ -172,6 +174,7 @@ func buildRoutes(
 	}
 
 	updateHandler := &updatesHandler{
+		gulter:             imageUploadGulterHandler.Storage(),
 		referenceGenerator: referenceGenerator,
 		updateRepo:         updateRepo,
 		cfg:                cfg,
@@ -203,7 +206,7 @@ func buildRoutes(
 	}
 
 	deckHandler := &deckHandler{
-		gulterStore:        gulterHandler.Storage(),
+		gulterStore:        deckUploadGulterHandler.Storage(),
 		referenceGenerator: referenceGenerator,
 		cache:              redisCache,
 		deckRepo:           deckRepo,
@@ -443,11 +446,13 @@ func buildRoutes(
 				WrapMalakHTTPHandler(logger, dashHandler.revokeAccessControl, cfg, "dashboards.access-control.delete"))
 		})
 
+		var images = []string{"image_body"}
+
 		r.Route("/uploads", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 
 			r.Route("/decks", func(r chi.Router) {
-				r.Use(gulterHandler.Upload(cfg.Uploader.S3.DeckBucket, "image_body"))
+				r.Use(deckUploadGulterHandler.Upload(images...))
 
 				r.Post("/",
 					WrapMalakHTTPHandler(logger, deckHandler.uploadImage, cfg, "decks.upload"))
@@ -455,7 +460,7 @@ func buildRoutes(
 
 			r.Route("/images", func(r chi.Router) {
 				r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
-				r.Use(gulterHandler.Upload(cfg.Uploader.S3.Bucket, "image_body"))
+				r.Use(imageUploadGulterHandler.Upload(images...))
 
 				r.Post("/",
 					WrapMalakHTTPHandler(logger, updateHandler.uploadImage, cfg, "updates.image_upload"))

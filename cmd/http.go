@@ -58,6 +58,10 @@ const (
 	maxExportBatchSize = sdktrace.DefaultMaxExportBatchSize
 )
 
+type APIStatus struct {
+	Message string `json:"message"`
+}
+
 func parseHTTPPortFromEnv() int {
 	s := os.Getenv(("ENV_HTTP_PORT"))
 	if s == "" {
@@ -251,18 +255,20 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			}
 
 			s3Store, err := storage.NewS3FromConfig(s3Config, storage.S3Options{
-				DebugMode:    cfg.Uploader.S3.LogOperations,
-				UsePathStyle: true,
+				DebugMode:        cfg.Uploader.S3.LogOperations,
+				UsePathStyle:     true,
+				Bucket:           cfg.Uploader.S3.Bucket,
+				CloudflareDomain: cfg.Uploader.S3.CloudflareBucketDomain,
 			})
 			if err != nil {
 				logger.Fatal("could not set up S3 client",
 					zap.Error(err))
 			}
 
-			gulterHandler, err := gulter.New(
+			imageUploadGulterHandler, err := gulter.New(
 				gulter.WithMaxFileSize(cfg.Uploader.MaxUploadSize),
 				gulter.WithValidationFunc(
-					gulter.MimeTypeValidator("image/jpeg", "image/png", "application/pdf")),
+					gulter.MimeTypeValidator("image/jpeg", "image/png")),
 				gulter.WithStorage(s3Store),
 				gulter.WithIgnoreNonExistentKey(true),
 				gulter.WithErrorResponseHandler(func(err error) http.HandlerFunc {
@@ -271,17 +277,54 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 						w.Header().Set("Content-Type", "application/json")
 						w.WriteHeader(http.StatusInternalServerError)
-						_ = json.NewEncoder(w).Encode(server.APIStatus{
+						_ = json.NewEncoder(w).Encode(APIStatus{
 							Message: fmt.Sprintf("could not upload file...%s", err.Error()),
 						})
 					}
 				}),
 				gulter.WithNameFuncGenerator(func(s string) string {
-					return uuid.New().String()
+					return uuid.New().String() + strings.Replace(s, " ", "", -1)
 				}),
 			)
 			if err != nil {
 				logger.Fatal("could not set up gulter uploader",
+					zap.Error(err))
+			}
+
+			decks3Store, err := storage.NewS3FromConfig(s3Config, storage.S3Options{
+				DebugMode:        cfg.Uploader.S3.LogOperations,
+				UsePathStyle:     true,
+				Bucket:           cfg.Uploader.S3.DeckBucket,
+				CloudflareDomain: cfg.Uploader.S3.CloudflareDeckBucketDomain,
+			})
+			if err != nil {
+				logger.Fatal("could not set up S3 client",
+					zap.Error(err))
+			}
+
+			deckUploadGulterHandler, err := gulter.New(
+				gulter.WithMaxFileSize(cfg.Uploader.MaxUploadSize),
+				gulter.WithValidationFunc(
+					gulter.MimeTypeValidator("application/pdf")),
+				gulter.WithStorage(decks3Store),
+				gulter.WithIgnoreNonExistentKey(true),
+				gulter.WithErrorResponseHandler(func(err error) http.HandlerFunc {
+					return func(w http.ResponseWriter, _ *http.Request) {
+						logger.Error("could not upload file", zap.Error(err))
+
+						w.Header().Set("Content-Type", "application/json")
+						w.WriteHeader(http.StatusInternalServerError)
+						_ = json.NewEncoder(w).Encode(APIStatus{
+							Message: fmt.Sprintf("could not upload file...%s", err.Error()),
+						})
+					}
+				}),
+				gulter.WithNameFuncGenerator(func(s string) string {
+					return uuid.New().String() + strings.Replace(s, " ", "", -1)
+				}),
+			)
+			if err != nil {
+				logger.Fatal("could not set up gulter deck uploader",
 					zap.Error(err))
 			}
 
@@ -309,9 +352,10 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				updateRepo, contactlistRepo, deckRepo, shareRepo,
 				preferenceRepo, integrationRepo,
 				templatesRepo, dashboardLinkRepo,
-				mid, gulterHandler,
+				mid,
 				queueHandler, redisCache, billingClient,
-				integrationManager, secretsProvider, geoService)
+				integrationManager, secretsProvider, geoService,
+				imageUploadGulterHandler, deckUploadGulterHandler)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {

@@ -18,7 +18,6 @@ export default function UpdateDetailsPage({ reference }: { reference: string }) 
     queryKey: [FETCH_SINGLE_UPDATE, reference],
     queryFn: () => client.workspaces.fetchUpdate(reference),
     retry: false,
-    gcTime: Number.POSITIVE_INFINITY,
   });
 
   if (error) {

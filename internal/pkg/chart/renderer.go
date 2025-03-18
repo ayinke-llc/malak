@@ -115,16 +115,14 @@ func (r *EChartsRenderer) RenderChart(workspaceID uuid.UUID, chartID string) (st
 
 	file, err := r.storage.Upload(context.Background(), b, &gulter.UploadFileOptions{
 		FileName: filename,
-		Bucket:   r.cfg.Uploader.S3.Bucket,
+	})
+
+	uploadedURL, err := r.storage.Path(context.Background(), gulter.PathOptions{
+		Key: file.Key,
 	})
 	if err != nil {
 		return "", fmt.Errorf("failed to upload chart: %w", err)
 	}
-
-	uploadedURL := fmt.Sprintf("%s/%s/%s",
-		r.cfg.Uploader.S3.Endpoint,
-		file.FolderDestination,
-		file.Key)
 
 	return uploadedURL, nil
 }

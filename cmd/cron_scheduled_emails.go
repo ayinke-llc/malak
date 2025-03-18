@@ -13,12 +13,11 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/adelowo/gulter"
+	"github.com/adelowo/gulter/storage"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	awsCreds "github.com/aws/aws-sdk-go-v2/credentials"
-
-	"github.com/adelowo/gulter"
-	"github.com/adelowo/gulter/storage"
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
@@ -168,10 +167,10 @@ func (p *EmailProcessor) processUpdate(ctx context.Context, update *malak.Update
 	ctx, span := p.tracer.Start(ctx, "processUpdate")
 	defer span.End()
 
-	ctx, cancel := context.WithTimeout(ctx, defaultProcessingTimeout)
-	defer cancel()
+	dbCtx, dbCancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer dbCancel()
 
-	locked, err := p.acquireProcessingLock(ctx, update.ID)
+	locked, err := p.acquireProcessingLock(dbCtx, update.ID)
 	if err != nil {
 		return fmt.Errorf("failed to acquire lock: %w", err)
 	}
@@ -179,19 +178,22 @@ func (p *EmailProcessor) processUpdate(ctx context.Context, update *malak.Update
 		return errors.New("update is being processed by another instance")
 	}
 
-	if err := updateScheduleStatus(ctx, p.db, update, malak.UpdateSendScheduleProcessing); err != nil {
+	if err := updateScheduleStatus(dbCtx, p.db, update, malak.UpdateSendScheduleProcessing); err != nil {
 		return fmt.Errorf("failed to update status: %w", err)
 	}
 
-	updateDetails, err := fetchUpdateDetails(ctx, p.db, update.UpdateID)
+	updateDetails, err := fetchUpdateDetails(dbCtx, p.db, update.UpdateID)
 	if err != nil {
 		return fmt.Errorf("failed to fetch update details: %w", err)
 	}
 
-	g, ctx := errgroup.WithContext(ctx)
+	emailCtx, emailCancel := context.WithTimeout(ctx, defaultProcessingTimeout)
+	defer emailCancel()
+
+	g, emailCtx := errgroup.WithContext(emailCtx)
 
 	for {
-		recipients, err := p.fetchNextBatch(ctx, update.UpdateID)
+		recipients, err := p.fetchNextBatch(dbCtx, update.UpdateID)
 		if err != nil {
 			return fmt.Errorf("failed to fetch recipients: %w", err)
 		}
@@ -204,7 +206,7 @@ func (p *EmailProcessor) processUpdate(ctx context.Context, update *malak.Update
 
 		results := make(chan error, len(jobs))
 		g.Go(func() error {
-			return p.processEmailBatch(ctx, jobs, results)
+			return p.processEmailBatch(emailCtx, jobs, results)
 		})
 
 		for i := 0; i < len(jobs); i++ {
@@ -221,13 +223,13 @@ func (p *EmailProcessor) processUpdate(ctx context.Context, update *malak.Update
 	}
 
 	if p.metrics.FailedEmails > 0 {
-		if err := updateScheduleStatus(ctx, p.db, update, malak.UpdateSendScheduleFailed); err != nil {
+		if err := updateScheduleStatus(dbCtx, p.db, update, malak.UpdateSendScheduleFailed); err != nil {
 			return fmt.Errorf("failed to update final status: %w", err)
 		}
 		return fmt.Errorf("some emails failed to send: %d/%d", p.metrics.FailedEmails, p.metrics.TotalEmails)
 	}
 
-	return updateScheduleStatus(ctx, p.db, update, malak.UpdateSendScheduleSent)
+	return updateScheduleStatus(dbCtx, p.db, update, malak.UpdateSendScheduleSent)
 }
 
 func (p *EmailProcessor) fetchNextBatch(ctx context.Context, updateID uuid.UUID) ([]recipient, error) {
@@ -420,6 +422,7 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 			s3Store, err := storage.NewS3FromConfig(s3Config, storage.S3Options{
 				DebugMode:    cfg.Uploader.S3.LogOperations,
 				UsePathStyle: true,
+				Bucket:       cfg.Uploader.S3.Bucket,
 			})
 			if err != nil {
 				logger.Fatal("could not set up S3 client",
@@ -485,7 +488,8 @@ func setupLogger(cfg *config.Config) (*zap.Logger, error) {
 	), nil
 }
 
-func updateScheduleStatus(ctx context.Context, db *bun.DB, schedule *malak.UpdateSchedule, status malak.UpdateSendSchedule) error {
+func updateScheduleStatus(ctx context.Context, db *bun.DB, schedule *malak.UpdateSchedule,
+	status malak.UpdateSendSchedule) error {
 	schedule.Status = status
 	_, err := db.NewUpdate().
 		Model(schedule).
