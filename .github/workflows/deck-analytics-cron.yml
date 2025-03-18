@@ -5,7 +5,7 @@ on:
     - cron: "0 */2 * * *"
 
 jobs:
-  deploy:
+  decks-analytics:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
