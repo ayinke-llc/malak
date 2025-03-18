@@ -18,12 +18,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { usePostHog } from "posthog-js/react";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
   const posthog = usePostHog();
 
-  const { setUser, setToken } = useAuthStore();
+  const { setUser, setToken, token } = useAuthStore();
+
+  useEffect(() => {
+    if (token) {
+      router.push("/");
+    }
+  }, [router, token]);
 
   const mutation = useMutation({
     mutationFn: ({ code }: { code: string }) => {
