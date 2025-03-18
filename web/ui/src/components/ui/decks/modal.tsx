@@ -47,6 +47,7 @@ const truncateText = (text: string, maxLength: number) => {
 export default function UploadDeckModal() {
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
@@ -65,6 +66,7 @@ export default function UploadDeckModal() {
     mutationFn: (file: File) => client.uploads.uploadDeck({ image_body: file }),
     onSuccess: ({ data }) => {
       setValue("pdfUrl", data.url);
+      setUploadSuccess(true);
       toast.success("File uploaded successfully");
     },
     onError: (err: AxiosError<ServerAPIStatus>) => {
@@ -72,6 +74,7 @@ export default function UploadDeckModal() {
       if (err.response !== undefined) {
         msg = err.response.data.message;
       }
+      setUploadSuccess(false);
       toast.error(msg);
     }
   });
@@ -102,9 +105,11 @@ export default function UploadDeckModal() {
     if (file) {
       if (file.type !== "application/pdf") {
         toast.error("Please upload a PDF file");
+        setUploadSuccess(false);
         return;
       }
       setSelectedFile(file);
+      setUploadSuccess(false);
       // Set the title to the file name without the extension
       const fileName = file.name.replace(/\.[^/.]+$/, "");
       setValue("title", fileName);
@@ -118,12 +123,14 @@ export default function UploadDeckModal() {
     const file = e.dataTransfer.files?.[0];
     if (file && file.type === "application/pdf") {
       setSelectedFile(file);
+      setUploadSuccess(false);
       const fileName = file.name.replace(/\.[^/.]+$/, "");
       setValue("title", fileName);
 
       uploadMutation.mutate(file);
     } else {
       toast.error("Please upload a PDF file");
+      setUploadSuccess(false);
     }
   };
 
@@ -238,7 +245,7 @@ export default function UploadDeckModal() {
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !uploadSuccess}
               className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Uploading..." : "Upload"}
