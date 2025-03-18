@@ -84,6 +84,12 @@ export default function UserProvider({
       return;
     }
 
+    // Redirect from login to home if authenticated
+    if (pathname === '/login' && isAuthenticated()) {
+      router.push('/');
+      return;
+    }
+
     if (!isAuthenticated()) {
       handleLogout();
       return;
