@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import CreatableSelect, { OptionType } from "@/components/ui/multi-select";
 import { ServerAPIStatus, ServerSendUpdateRequest } from "@/client/Api";
 import { AxiosError } from "axios";
+import { usePostHog } from "posthog-js/react";
 
 interface Option {
   readonly label: string;
@@ -44,6 +45,8 @@ const schema = yup
   .required();
 
 const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean }) => {
+
+  const posthog = usePostHog()
 
   const queryClient = useQueryClient();
 
@@ -134,6 +137,9 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
     onSuccess: ({ data }) => {
       toast.success(data.message);
       queryClient.invalidateQueries({ queryKey: [FETCH_SINGLE_UPDATE, reference] })
+      posthog?.capture(AnalyticsEvent.SendUpdate, {
+        liveRecipient: true
+      })
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message;

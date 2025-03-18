@@ -72,7 +72,7 @@ const SingleUpdate = (update: MalakUpdate) => {
     retry: false,
     gcTime: Number.POSITIVE_INFINITY,
     onMutate: () => {
-      posthog?.capture(EVENT_UPDATE_DUPLICATE);
+      posthog?.capture(AnalyticsEvent.DuplicateUpdate);
     },
     onSettled: () => setLoading(false),
     mutationFn: (reference: string) =>
@@ -96,7 +96,7 @@ const SingleUpdate = (update: MalakUpdate) => {
     retry: false,
     gcTime: Number.POSITIVE_INFINITY,
     onMutate: () => {
-      posthog?.capture(EVENT_UPDATE_DELETE);
+      posthog?.capture(AnalyticsEvent.DeleteUpdate);
     },
     onSettled: () => setLoading(false),
     mutationFn: (reference: string) =>
@@ -120,7 +120,7 @@ const SingleUpdate = (update: MalakUpdate) => {
     retry: false,
     gcTime: Number.POSITIVE_INFINITY,
     onMutate: () => {
-      posthog?.capture(EVENT_TOGGLE_PINNED_STATE);
+      posthog?.capture(AnalyticsEvent.TogglePinnedState);
     },
     onSettled: () => setLoading(false),
     mutationFn: (reference: string) =>

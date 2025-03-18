@@ -54,7 +54,7 @@ export default function LoginPage() {
   });
 
   const loginWithGoogle = () => {
-    posthog?.capture(EVENT_LOGIN_BUTTON_CLICKED, {
+    posthog?.capture(AnalyticsEvent.LoginButtonClicked, {
       auth: "google",
     });
     googleLogin();

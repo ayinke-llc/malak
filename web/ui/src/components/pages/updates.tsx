@@ -18,11 +18,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { usePostHog } from "posthog-js/react";
 
 export default function Updates() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const router = useRouter();
+  const posthog = usePostHog()
 
   const mutation = useMutation({
     mutationFn: () => {
@@ -42,6 +44,10 @@ export default function Updates() {
     retry: false,
     onSuccess: (resp: AxiosResponse<ServerFetchUpdateReponse>) => {
       router.push(`/updates/${resp.data.update.reference}`);
+
+      posthog?.capture(AnalyticsEvent.CreateUpdate, {
+        template: false
+      })
     },
     onMutate: () => setIsLoading(true),
     onSettled: () => setIsLoading(false)
@@ -71,7 +77,7 @@ export default function Updates() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => mutation.mutate()}
                     className="cursor-pointer"
                   >
