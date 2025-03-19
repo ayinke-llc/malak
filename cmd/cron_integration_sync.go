@@ -19,7 +19,7 @@ import (
 
 func syncDataPointForIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "sync",
+		Use:   "integrations",
 		Short: `Sync integration data points`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			logger, err := getLogger(hermes.DeRef(cfg))

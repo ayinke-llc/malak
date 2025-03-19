@@ -13,6 +13,7 @@ func addCronCommand(c *cobra.Command, cfg *config.Config) {
 
 	cmd.AddCommand(sendScheduledUpdates(c, cfg))
 	cmd.AddCommand(processDeckAnalytics(c, cfg))
+	cmd.AddCommand(syncDataPointForIntegration(c, cfg))
 
 	c.AddCommand(cmd)
 }

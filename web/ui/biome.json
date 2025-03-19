@@ -7,7 +7,11 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "ignore": [".next/", "node_modules/", "./src/lib/chartUtils.ts"]
+    "ignore": [
+      ".next/",
+      "node_modules/",
+      "./src/lib/chartUtils.ts"
+    ]
   },
   "formatter": {
     "enabled": true,

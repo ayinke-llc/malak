@@ -21,7 +21,6 @@ func addIntegrationCommand(c *cobra.Command, cfg *config.Config) {
 	}
 
 	cmd.AddCommand(createIntegration(c, cfg))
-	cmd.AddCommand(syncDataPointForIntegration(c, cfg))
 
 	c.AddCommand(cmd)
 }
