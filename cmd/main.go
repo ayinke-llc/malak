@@ -14,6 +14,7 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/email"
 	"github.com/ayinke-llc/malak/internal/pkg/email/resend"
 	"github.com/ayinke-llc/malak/internal/pkg/email/smtp"
+	"github.com/ayinke-llc/malak/internal/secret"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -184,6 +185,8 @@ func setDefaults() {
 	viper.SetDefault("http.rate_limit.type", config.RateLimiterTypeMemory)
 	viper.SetDefault("http.rate_limit.requests_per_minute", 300)
 	viper.SetDefault("http.rate_limit.burst_interval", time.Minute)
+
+	viper.SetDefault("api.provider", secret.SecretProviderAesGcm)
 
 	viper.SetDefault("biling.is_enabled", false)
 	viper.SetDefault("billing.default_plan", uuid.Nil)

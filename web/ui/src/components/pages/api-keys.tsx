@@ -71,6 +71,11 @@ import {
   flexRender,
   ColumnDef,
 } from "@tanstack/react-table";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { CREATE_API_KEY } from "@/lib/query-constants";
+import client from "@/lib/client";
+import { usePostHog } from "posthog-js/react";
+import { AnalyticsEvent } from "@/lib/events";
 
 // Mock data for initial list
 const mockApiKeys = [
@@ -99,20 +104,24 @@ type ApiKey = {
 };
 
 const apiKeySchema = yup.object().shape({
-  name: yup.string().required("Name is required"),
+  name: yup.string()
+    .required("Name is required")
+    .min(3, "Name must be at least 3 characters")
+    .max(20, "Name must not exceed 20 characters"),
 });
 
 type ApiKeyFormData = yup.InferType<typeof apiKeySchema>;
 
 export default function ApiKeys() {
-  const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedKey, setSelectedKey] = useState<ApiKey | null>(null);
   const [apiKeys, setApiKeys] = useState<ApiKey[]>(mockApiKeys);
   const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set());
   const [revokeExpiration, setRevokeExpiration] = useState<string>("immediately");
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const posthog = usePostHog();
 
   const form = useForm<ApiKeyFormData>({
     resolver: yupResolver(apiKeySchema) as any,
@@ -120,6 +129,83 @@ export default function ApiKeys() {
       name: "",
     },
   });
+
+  const createMutation = useMutation({
+    mutationKey: [CREATE_API_KEY],
+    mutationFn: (data: ApiKeyFormData) => {
+      return client.developers.keysCreate({
+        title: data.name,
+      });
+    },
+    onSuccess: ({ data }) => {
+      setNewlyCreatedKey(data.value);
+      toast.success(data.message);
+      form.reset();
+      setIsCreateDialogOpen(false);
+      posthog?.capture(AnalyticsEvent.CreateApiKey);
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Failed to create API key");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationKey: ["UPDATE_API_KEY"],
+    mutationFn: async (data: ApiKeyFormData) => {
+      if (!selectedKey) throw new Error("No key selected");
+      // TODO: Replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return { data: { message: "API key updated successfully" } };
+    },
+    onSuccess: ({ data }) => {
+      setApiKeys(prev => prev.map(key =>
+        key.id === selectedKey?.id
+          ? {
+            ...key,
+            name: form.getValues().name,
+          }
+          : key
+      ));
+      toast.success(data.message);
+      setIsEditing(false);
+      setSelectedKey(null);
+      form.reset();
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Failed to update API key");
+    },
+  });
+
+  const revokeMutation = useMutation({
+    mutationKey: ["REVOKE_API_KEY"],
+    mutationFn: async ({ id, expiration }: { id: string, expiration: string }) => {
+      // TODO: Replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return { data: { message: "API key revoked successfully" } };
+    },
+    onSuccess: ({ data }, variables) => {
+      if (variables.expiration === "immediately") {
+        setApiKeys(prev => prev.filter(key => key.id !== variables.id));
+        toast.success("API key revoked immediately");
+      } else {
+        const hours = variables.expiration === "24h" ? 24 : 168;
+        const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+        setApiKeys(prev => prev.map(key =>
+          key.id === variables.id
+            ? { ...key, expires_at: expiresAt }
+            : key
+        ));
+        toast.success(`API key will expire in ${hours === 24 ? "24 hours" : "7 days"}`);
+      }
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Failed to revoke API key");
+    },
+  });
+
+  const handleCreate = async (data: ApiKeyFormData) => {
+    createMutation.mutate(data);
+  };
 
   const toggleKeyVisibility = (keyId: string) => {
     setRevealedKeys(prev => {
@@ -133,54 +219,9 @@ export default function ApiKeys() {
     });
   };
 
-  const handleCreate = async (data: ApiKeyFormData) => {
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const newKey = `pk_${Math.random().toString(36).substr(2, 9)}`;
-      const newApiKey: ApiKey = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: data.name,
-        key: newKey,
-        created_at: new Date().toISOString(),
-        expires_at: null,
-      };
-      setApiKeys(prev => [...prev, newApiKey]);
-      setNewlyCreatedKey(newKey);
-      toast.success("API key created successfully");
-      form.reset();
-      setIsCreating(false);
-    } catch (error) {
-      toast.error("Failed to create API key");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleUpdate = async (data: ApiKeyFormData) => {
     if (!selectedKey) return;
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setApiKeys(prev => prev.map(key => 
-        key.id === selectedKey.id 
-          ? {
-              ...key,
-              name: data.name,
-            }
-          : key
-      ));
-      toast.success("API key updated successfully");
-      setIsEditing(false);
-      setSelectedKey(null);
-      form.reset();
-    } catch (error) {
-      toast.error("Failed to update API key");
-    } finally {
-      setIsLoading(false);
-    }
+    updateMutation.mutate(data);
   };
 
   const handleEdit = (key: ApiKey) => {
@@ -192,29 +233,7 @@ export default function ApiKeys() {
   };
 
   const handleRevoke = async (id: string) => {
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (revokeExpiration === "immediately") {
-        setApiKeys(prev => prev.filter(key => key.id !== id));
-        toast.success("API key revoked immediately");
-      } else {
-        const hours = revokeExpiration === "24h" ? 24 : 168; // 7 days = 168 hours
-        const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
-        setApiKeys(prev => prev.map(key => 
-          key.id === id 
-            ? { ...key, expires_at: expiresAt }
-            : key
-        ));
-        toast.success(`API key will expire in ${hours === 24 ? "24 hours" : "7 days"}`);
-      }
-    } catch (error) {
-      toast.error("Failed to revoke API key");
-    } finally {
-      setIsLoading(false);
-    }
+    revokeMutation.mutate({ id, expiration: revokeExpiration });
   };
 
   const getRevokeTimeLabel = (value: string) => {
@@ -364,7 +383,9 @@ export default function ApiKeys() {
     getCoreRowModel: getCoreRowModel(),
   });
 
-  if (isLoading) {
+  const isMutating = createMutation.isPending || updateMutation.isPending || revokeMutation.isPending;
+
+  if (isMutating) {
     return (
       <div className="flex items-center justify-center h-64">
         <RiLoader4Line className="w-8 h-8 animate-spin" />
@@ -376,7 +397,7 @@ export default function ApiKeys() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-medium">API Keys</h2>
-        <Dialog open={isCreating} onOpenChange={setIsCreating}>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <RiAddLine className="w-4 h-4 mr-2" />
@@ -409,12 +430,22 @@ export default function ApiKeys() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setIsCreating(false)}
+                    onClick={() => setIsCreateDialogOpen(false)}
                   >
                     Cancel
                   </Button>
-                  <Button type="submit">
-                    Create Key
+                  <Button 
+                    type="submit" 
+                    disabled={createMutation.isPending || !form.formState.isValid || !form.formState.isDirty}
+                  >
+                    {createMutation.isPending ? (
+                      <>
+                        <RiLoader4Line className="mr-2 h-4 w-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      "Create Key"
+                    )}
                   </Button>
                 </div>
               </form>
@@ -440,7 +471,7 @@ export default function ApiKeys() {
           </p>
           <div className="flex items-center space-x-2 p-3 bg-background rounded-md">
             <code className="font-mono text-sm flex-1">{newlyCreatedKey}</code>
-            <CopyToClipboard text={newlyCreatedKey}>
+            <CopyToClipboard text={newlyCreatedKey} onCopy={() => toast.success("API key copied to clipboard")}>
               <Button variant="ghost" size="icon">
                 <RiFileCopyLine className="w-4 h-4" />
               </Button>
@@ -459,9 +490,9 @@ export default function ApiKeys() {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>

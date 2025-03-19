@@ -31,6 +31,14 @@ func (c *createAPIKeyRequest) Validate() error {
 		return errors.New("please provide the title of the api key")
 	}
 
+	if len(c.Title) < 3 {
+		return errors.New("title must be more than 3 characters")
+	}
+
+	if len(c.Title) > 20 {
+		return errors.New("title must be more than 20 characters")
+	}
+
 	p := bluemonday.StrictPolicy()
 
 	c.Title = p.Sanitize(c.Title)
@@ -39,7 +47,7 @@ func (c *createAPIKeyRequest) Validate() error {
 }
 
 // @Description Creates a new api key
-// @Tags decks
+// @Tags developers
 // @Accept  json
 // @Produce  json
 // @Param message body createAPIKeyRequest true "api key request body"
@@ -48,7 +56,7 @@ func (c *createAPIKeyRequest) Validate() error {
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /developer/keys [post]
+// @Router /developers/keys [post]
 func (d *apiKeyHandler) create(
 	ctx context.Context,
 	span trace.Span,
@@ -87,7 +95,7 @@ func (d *apiKeyHandler) create(
 	key := &malak.APIKey{
 		WorkspaceID: workspace.ID,
 		CreatedBy:   user.ID,
-		Reference:   malak.Reference(value),
+		Reference:   d.generator.Generate(malak.EntityTypeApiKey),
 		Value:       encrypted,
 		KeyName:     req.Title,
 	}

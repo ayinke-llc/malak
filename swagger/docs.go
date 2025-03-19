@@ -1814,6 +1814,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/developers/keys": {
+            "post": {
+                "description": "Creates a new api key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "developers"
+                ],
+                "parameters": [
+                    {
+                        "description": "api key request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createAPIKeyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.createdAPIKeyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/public/dashboards/{reference}": {
             "get": {
                 "description": "fetch public dashboard and charting data points",
@@ -4278,11 +4335,13 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "oauth2",
-                "api_key"
+                "api_key",
+                "default"
             ],
             "x-enum-varnames": [
                 "IntegrationTypeOauth2",
-                "IntegrationTypeApiKey"
+                "IntegrationTypeApiKey",
+                "IntegrationTypeDefault"
             ]
         },
         "malak.PasswordDeckPreferences": {
@@ -4931,6 +4990,14 @@ const docTemplate = `{
                 }
             }
         },
+        "server.createAPIKeyRequest": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "server.createContactListRequest": {
             "type": "object",
             "required": [
@@ -5034,6 +5101,21 @@ const docTemplate = `{
             ],
             "properties": {
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.createdAPIKeyResponse": {
+            "type": "object",
+            "required": [
+                "message",
+                "value"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "value": {
                     "type": "string"
                 }
             }
