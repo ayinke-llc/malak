@@ -77,6 +77,7 @@ import client from "@/lib/client";
 import { MalakAPIKey } from "@/client/Api";
 import { usePostHog } from "posthog-js/react";
 import { AnalyticsEvent } from "@/lib/events";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type ServerListAPIKeysResponse = {
   data: {
@@ -363,7 +364,60 @@ export default function ApiKeys() {
 
   const isMutating = createMutation.isPending || updateMutation.isPending || revokeMutation.isPending;
 
-  if (isLoading || isMutating) {
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-7 w-32" />
+          <Skeleton className="h-10 w-[140px]" />
+        </div>
+
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>
+                  <Skeleton className="h-4 w-24" />
+                </TableHead>
+                <TableHead>
+                  <Skeleton className="h-4 w-32" />
+                </TableHead>
+                <TableHead>
+                  <Skeleton className="h-4 w-32" />
+                </TableHead>
+                <TableHead>
+                  <Skeleton className="h-4 w-20" />
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 3 }).map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <Skeleton className="h-5 w-32" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-40" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-40" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Skeleton className="h-8 w-8 rounded" />
+                      <Skeleton className="h-8 w-8 rounded" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  }
+
+  if (isMutating) {
     return (
       <div className="flex items-center justify-center h-64">
         <RiLoader4Line className="w-8 h-8 animate-spin" />
