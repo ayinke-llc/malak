@@ -24,7 +24,7 @@ func (r *apiKeyImpl) List(ctx context.Context, worskpaceID uuid.UUID) ([]malak.A
 
 	var apiKeys = make([]malak.APIKey, 0, 15)
 
-	return apiKeys, r.inner.NewInsert().Model(&apiKeys).
+	return apiKeys, r.inner.NewSelect().Model(&apiKeys).
 		Where("workspace_id = ?", worskpaceID).
 		Scan(ctx)
 }

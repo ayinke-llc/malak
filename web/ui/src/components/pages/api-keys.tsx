@@ -85,7 +85,7 @@ type ServerListAPIKeysResponse = {
 };
 
 const apiKeySchema = yup.object().shape({
-  name: yup.string()
+  key_name: yup.string()
     .required("Name is required")
     .min(3, "Name must be at least 3 characters")
     .max(20, "Name must not exceed 20 characters"),
@@ -103,7 +103,14 @@ export default function ApiKeys() {
   const queryClient = useQueryClient();
   const posthog = usePostHog();
 
-  const { data, isLoading } = useQuery({
+  const form = useForm<ApiKeyFormData>({
+    resolver: yupResolver(apiKeySchema) as any,
+    defaultValues: {
+      key_name: "",
+    },
+  });
+
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: [LIST_API_KEYS],
     queryFn: async () => {
       const response = await client.developers.keysList();
@@ -113,18 +120,11 @@ export default function ApiKeys() {
 
   const apiKeys = data || [];
 
-  const form = useForm<ApiKeyFormData>({
-    resolver: yupResolver(apiKeySchema) as any,
-    defaultValues: {
-      name: "",
-    },
-  });
-
   const createMutation = useMutation({
     mutationKey: [CREATE_API_KEY],
     mutationFn: (data: ApiKeyFormData) => {
       return client.developers.keysCreate({
-        title: data.name,
+        title: data.key_name,
       });
     },
     onSuccess: ({ data }) => {
@@ -205,7 +205,7 @@ export default function ApiKeys() {
   const handleEdit = (key: MalakAPIKey) => {
     setSelectedKey(key);
     form.reset({
-      name: key.name,
+      key_name: key.key_name || "",
     });
     setIsEditing(true);
   };
@@ -230,13 +230,13 @@ export default function ApiKeys() {
 
   const columns: ColumnDef<MalakAPIKey>[] = [
     {
-      accessorKey: "name",
+      accessorKey: "key_name",
       header: "Name",
     },
     {
       accessorKey: "created_at",
       header: "Created At",
-      cell: ({ row }) => format(new Date(row.original.created_at), "PPp"),
+      cell: ({ row }) => row.original.created_at ? format(new Date(row.original.created_at), "PPp") : "-",
     },
     {
       accessorKey: "expires_at",
@@ -250,7 +250,7 @@ export default function ApiKeys() {
         const key = row.original;
         return (
           <div className="flex items-center space-x-2">
-            <Dialog open={isEditing && selectedKey?.id === key.id} onOpenChange={setIsEditing}>
+            <Dialog>
               <DialogTrigger asChild>
                 <Button
                   variant="ghost"
@@ -271,7 +271,7 @@ export default function ApiKeys() {
                   <form onSubmit={form.handleSubmit(handleUpdate)} className="space-y-4">
                     <FormField
                       control={form.control}
-                      name="name"
+                      name="key_name"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Name</FormLabel>
@@ -341,7 +341,7 @@ export default function ApiKeys() {
                     </Button>
                     <Button
                       variant="destructive"
-                      onClick={() => handleRevoke(key.id)}
+                      onClick={() => handleRevoke(key.id || "")}
                     >
                       Revoke
                     </Button>
@@ -355,6 +355,12 @@ export default function ApiKeys() {
     },
   ];
 
+  const table = useReactTable({
+    columns,
+    data: apiKeys,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
   const isMutating = createMutation.isPending || updateMutation.isPending || revokeMutation.isPending;
 
   if (isLoading || isMutating) {
@@ -365,11 +371,75 @@ export default function ApiKeys() {
     );
   }
 
-  const table = useReactTable({
-    columns,
-    data: apiKeys,
-    getCoreRowModel: getCoreRowModel(),
-  });
+  if (error) {
+    return (
+      <div className="min-h-[400px] p-8">
+        <div className="max-w-2xl mx-auto bg-background border rounded-lg shadow-sm">
+          <div className="p-6">
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-10 rounded-full bg-red-50 flex items-center justify-center">
+                <RiDeleteBinLine className="h-5 w-5 text-red-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold">Error Loading API Keys</h3>
+                <p className="text-sm text-muted-foreground">
+                  We couldn't retrieve your API keys at this time
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 bg-muted/50 rounded-md p-4">
+              <p className="text-sm text-muted-foreground font-mono">
+                {error instanceof Error ? (
+                  <span className="text-destructive">{error.message}</span>
+                ) : (
+                  "An unexpected error occurred while fetching your API keys"
+                )}
+              </p>
+            </div>
+
+            <div className="mt-6">
+              <div className="flex items-center justify-between p-4 bg-muted/30 rounded-md">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Retry the request</p>
+                  <p className="text-sm text-muted-foreground">
+                    Attempt to fetch your API keys again
+                  </p>
+                </div>
+                <Button 
+                  variant="outline"
+                  onClick={() => refetch()}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <RiLoader4Line className="w-4 h-4 mr-2 animate-spin" />
+                      Retrying...
+                    </>
+                  ) : (
+                    <>
+                      <RiLoader4Line className="w-4 h-4 mr-2" />
+                      Try Again
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
+              <p>
+                Error Code: <code className="text-xs bg-muted px-1 py-0.5 rounded">ERR_API_KEYS_FETCH</code>
+              </p>
+              <span>•</span>
+              <p>
+                Timestamp: {new Date().toLocaleTimeString()}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -393,7 +463,7 @@ export default function ApiKeys() {
               <form onSubmit={form.handleSubmit(handleCreate)} className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="key_name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Name</FormLabel>

@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { usePostHog } from "posthog-js/react";
+import { AnalyticsEvent } from "@/lib/events";
 
 export default function Updates() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
