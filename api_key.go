@@ -2,10 +2,16 @@ package malak
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
+)
+
+var (
+	ErrAPIKeyNotFound = errors.New("api key not found")
+	ErrAPIKeyMaxLimit = errors.New("you can only have a maximum of 15 active api keys")
 )
 
 type APIKey struct {

@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/ayinke-llc/malak"
@@ -19,8 +20,27 @@ func NewAPIKeyRepository(db *bun.DB) malak.APIKeyRepository {
 }
 
 func (r *apiKeyImpl) Create(ctx context.Context, apiKey *malak.APIKey) error {
-	_, err := r.inner.NewInsert().Model(apiKey).Exec(ctx)
-	return err
+	return r.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		_, err := tx.NewInsert().Model(apiKey).Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		count, err := tx.NewSelect().
+			Model(new(malak.APIKey)).
+			Where("workspace_id = ?", apiKey.WorkspaceID).
+			Count(ctx)
+		if err != nil {
+			return err
+		}
+
+		if count > 15 {
+			return malak.ErrAPIKeyMaxLimit
+		}
+
+		return nil
+	})
 }
 
 func (r *apiKeyImpl) Revoke(ctx context.Context, opts malak.RevokeAPIKeyOptions) error {

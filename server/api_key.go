@@ -103,8 +103,16 @@ func (d *apiKeyHandler) create(
 	if err := d.apiRepo.Create(ctx, key); err != nil {
 		logger.Error("could not create api key",
 			zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError, "could not create api key"),
-			StatusFailed
+
+		var status = http.StatusInternalServerError
+		var msg = "could not create api key"
+
+		if errors.Is(err, malak.ErrAPIKeyMaxLimit) {
+			status = http.StatusBadRequest
+			msg = err.Error()
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
 	}
 
 	return createdAPIKeyResponse{
