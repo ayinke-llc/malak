@@ -195,3 +195,8 @@ type listDashboardLinkResponse struct {
 	Links []malak.DashboardLink `json:"links,omitempty" validate:"required"`
 	APIStatus
 }
+
+type createdAPIKeyResponse struct {
+	APIStatus
+	Value string `json:"value,omitempty" validate:"required"`
+}

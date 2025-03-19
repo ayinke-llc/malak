@@ -10,6 +10,7 @@ import { useSearchParams } from "next/navigation";
 import GeneralSettings from "./general-settings";
 import Billing from "./billing";
 import Soon from "./soon";
+import ApiKeys from "./api-keys";
 
 export default function Settings() {
 
@@ -58,6 +59,7 @@ export default function Settings() {
               <TabsTrigger value="billing">Billing</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
               <TabsTrigger value="api">API Key</TabsTrigger>
+              <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
             </TabsList>
             <TabsContent value="general">
               <GeneralSettings />
@@ -69,7 +71,10 @@ export default function Settings() {
               <Soon feature="your team" />
             </TabsContent>
             <TabsContent value="api">
-              <Soon feature="Api keys" />
+              <ApiKeys />
+            </TabsContent>
+            <TabsContent value="webhooks">
+              <Soon feature="Webhooks" />
             </TabsContent>
           </Tabs>
         </section>

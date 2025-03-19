@@ -45,7 +45,7 @@ func syncDataPointForIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Co
 				logger.Fatal("could not build integration manager", zap.Error(err))
 			}
 
-			secretsProvider, err := buildSecretsProvider(hermes.DeRef(cfg))
+			secretsProvider, err := buildSecretsProvider(cfg.Secrets.Provider, hermes.DeRef(cfg))
 			if err != nil {
 				logger.Fatal("could not build secrets provider", zap.Error(err))
 			}
