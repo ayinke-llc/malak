@@ -19,7 +19,7 @@ type APIKey struct {
 	WorkspaceID uuid.UUID `json:"workspace_id,omitempty"`
 	CreatedBy   uuid.UUID `json:"created_by,omitempty"`
 	Reference   Reference `json:"reference,omitempty"`
-	Value       string    `json:"value,omitempty"`
+	Value       string    `json:"-"`
 	KeyName     string    `json:"key_name,omitempty"`
 
 	ExpiresAt *time.Time `bun:",nullzero" json:"expires_at,omitempty"`
@@ -42,4 +42,5 @@ type RevokeAPIKeyOptions struct {
 type APIKeyRepository interface {
 	Create(context.Context, *APIKey) error
 	Revoke(context.Context, RevokeAPIKeyOptions) error
+	List(context.Context, uuid.UUID) ([]APIKey, error)
 }

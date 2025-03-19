@@ -71,36 +71,17 @@ import {
   flexRender,
   ColumnDef,
 } from "@tanstack/react-table";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CREATE_API_KEY } from "@/lib/query-constants";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { CREATE_API_KEY, LIST_API_KEYS } from "@/lib/query-constants";
 import client from "@/lib/client";
+import { MalakAPIKey } from "@/client/Api";
 import { usePostHog } from "posthog-js/react";
 import { AnalyticsEvent } from "@/lib/events";
 
-// Mock data for initial list
-const mockApiKeys = [
-  {
-    id: "1",
-    name: "Production API Key",
-    key: "pk_live_123456789",
-    created_at: new Date().toISOString(),
-    expires_at: null,
-  },
-  {
-    id: "2",
-    name: "Development API Key",
-    key: "pk_test_987654321",
-    created_at: new Date().toISOString(),
-    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
-
-type ApiKey = {
-  id: string;
-  name: string;
-  key: string;
-  created_at: string;
-  expires_at: string | null;
+type ServerListAPIKeysResponse = {
+  data: {
+    keys: MalakAPIKey[];
+  };
 };
 
 const apiKeySchema = yup.object().shape({
@@ -115,13 +96,22 @@ type ApiKeyFormData = yup.InferType<typeof apiKeySchema>;
 export default function ApiKeys() {
   const [isEditing, setIsEditing] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedKey, setSelectedKey] = useState<ApiKey | null>(null);
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>(mockApiKeys);
+  const [selectedKey, setSelectedKey] = useState<MalakAPIKey | null>(null);
   const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set());
   const [revokeExpiration, setRevokeExpiration] = useState<string>("immediately");
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const posthog = usePostHog();
+
+  const { data, isLoading } = useQuery({
+    queryKey: [LIST_API_KEYS],
+    queryFn: async () => {
+      const response = await client.developers.keysList();
+      return response.data.keys;
+    },
+  });
+
+  const apiKeys = data || [];
 
   const form = useForm<ApiKeyFormData>({
     resolver: yupResolver(apiKeySchema) as any,
@@ -143,6 +133,7 @@ export default function ApiKeys() {
       form.reset();
       setIsCreateDialogOpen(false);
       posthog?.capture(AnalyticsEvent.CreateApiKey);
+      queryClient.invalidateQueries({ queryKey: [LIST_API_KEYS] });
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Failed to create API key");
@@ -158,18 +149,11 @@ export default function ApiKeys() {
       return { data: { message: "API key updated successfully" } };
     },
     onSuccess: ({ data }) => {
-      setApiKeys(prev => prev.map(key =>
-        key.id === selectedKey?.id
-          ? {
-            ...key,
-            name: form.getValues().name,
-          }
-          : key
-      ));
       toast.success(data.message);
       setIsEditing(false);
       setSelectedKey(null);
       form.reset();
+      queryClient.invalidateQueries({ queryKey: [LIST_API_KEYS] });
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Failed to update API key");
@@ -185,18 +169,12 @@ export default function ApiKeys() {
     },
     onSuccess: ({ data }, variables) => {
       if (variables.expiration === "immediately") {
-        setApiKeys(prev => prev.filter(key => key.id !== variables.id));
         toast.success("API key revoked immediately");
       } else {
         const hours = variables.expiration === "24h" ? 24 : 168;
-        const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
-        setApiKeys(prev => prev.map(key =>
-          key.id === variables.id
-            ? { ...key, expires_at: expiresAt }
-            : key
-        ));
         toast.success(`API key will expire in ${hours === 24 ? "24 hours" : "7 days"}`);
       }
+      queryClient.invalidateQueries({ queryKey: [LIST_API_KEYS] });
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Failed to revoke API key");
@@ -224,7 +202,7 @@ export default function ApiKeys() {
     updateMutation.mutate(data);
   };
 
-  const handleEdit = (key: ApiKey) => {
+  const handleEdit = (key: MalakAPIKey) => {
     setSelectedKey(key);
     form.reset({
       name: key.name,
@@ -250,7 +228,7 @@ export default function ApiKeys() {
     }
   };
 
-  const columns: ColumnDef<ApiKey>[] = [
+  const columns: ColumnDef<MalakAPIKey>[] = [
     {
       accessorKey: "name",
       header: "Name",
@@ -377,21 +355,21 @@ export default function ApiKeys() {
     },
   ];
 
-  const table = useReactTable({
-    columns,
-    data: apiKeys,
-    getCoreRowModel: getCoreRowModel(),
-  });
-
   const isMutating = createMutation.isPending || updateMutation.isPending || revokeMutation.isPending;
 
-  if (isMutating) {
+  if (isLoading || isMutating) {
     return (
       <div className="flex items-center justify-center h-64">
         <RiLoader4Line className="w-8 h-8 animate-spin" />
       </div>
     );
   }
+
+  const table = useReactTable({
+    columns,
+    data: apiKeys,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   return (
     <div className="space-y-6">

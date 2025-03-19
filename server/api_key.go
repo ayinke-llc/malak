@@ -120,3 +120,38 @@ func (d *apiKeyHandler) create(
 		Value:     value,
 	}, StatusSuccess
 }
+
+// @Description list api keys
+// @Tags developers
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} listAPIKeysResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /developers/keys [get]
+func (d *apiKeyHandler) list(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("listing api keys")
+
+	workspace := getWorkspaceFromContext(r.Context())
+
+	keys, err := d.apiRepo.List(ctx, workspace.ID)
+	if err != nil {
+		logger.Error("could not list keys",
+			zap.Error(err))
+
+		return newAPIStatus(http.StatusInternalServerError, "could not list api keys"), StatusFailed
+	}
+
+	return listAPIKeysResponse{
+		APIStatus: newAPIStatus(http.StatusOK, "api key created"),
+		Keys:      keys,
+	}, StatusSuccess
+}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ayinke-llc/malak"
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
@@ -17,6 +18,15 @@ func NewAPIKeyRepository(db *bun.DB) malak.APIKeyRepository {
 	return &apiKeyImpl{
 		inner: db,
 	}
+}
+
+func (r *apiKeyImpl) List(ctx context.Context, worskpaceID uuid.UUID) ([]malak.APIKey, error) {
+
+	var apiKeys = make([]malak.APIKey, 0, 15)
+
+	return apiKeys, r.inner.NewInsert().Model(&apiKeys).
+		Where("workspace_id = ?", worskpaceID).
+		Scan(ctx)
 }
 
 func (r *apiKeyImpl) Create(ctx context.Context, apiKey *malak.APIKey) error {

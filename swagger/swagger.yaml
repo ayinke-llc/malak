@@ -1,5 +1,24 @@
 components:
   schemas:
+    malak.APIKey:
+      properties:
+        created_at:
+          type: string
+        created_by:
+          type: string
+        expires_at:
+          type: string
+        id:
+          type: string
+        key_name:
+          type: string
+        reference:
+          type: string
+        updated_at:
+          type: string
+        workspace_id:
+          type: string
+      type: object
     malak.BillingPreferences:
       properties:
         finance_email:
@@ -1275,6 +1294,18 @@ components:
       properties:
         email:
           type: string
+      type: object
+    server.listAPIKeysResponse:
+      properties:
+        keys:
+          items:
+            $ref: '#/components/schemas/malak.APIKey'
+          type: array
+        message:
+          type: string
+      required:
+      - keys
+      - message
       type: object
     server.listChartDataPointsResponse:
       properties:
@@ -2956,6 +2987,41 @@ paths:
       tags:
       - decks
   /developers/keys:
+    get:
+      description: list api keys
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.listAPIKeysResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      tags:
+      - developers
     post:
       description: Creates a new api key
       requestBody:
