@@ -1915,6 +1915,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/developers/keys/{reference}": {
+            "delete": {
+                "description": "revoke a specific api key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "developers"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "api key unique reference.. e.g api_key_",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "api key request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.revokeAPIKeyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/public/dashboards/{reference}": {
             "get": {
                 "description": "fetch public dashboard and charting data points",
@@ -4628,6 +4692,19 @@ const docTemplate = `{
                 "RecipientStatusFailed"
             ]
         },
+        "malak.RevocationType": {
+            "type": "string",
+            "enum": [
+                "immediate",
+                "day",
+                "week"
+            ],
+            "x-enum-varnames": [
+                "RevocationTypeImmediate",
+                "RevocationTypeDay",
+                "RevocationTypeWeek"
+            ]
+        },
         "malak.Role": {
             "type": "string",
             "enum": [
@@ -5065,6 +5142,9 @@ const docTemplate = `{
         },
         "server.createAPIKeyRequest": {
             "type": "object",
+            "required": [
+                "title"
+            ],
             "properties": {
                 "title": {
                     "type": "string"
@@ -5816,6 +5896,17 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "server.revokeAPIKeyRequest": {
+            "type": "object",
+            "required": [
+                "strategy"
+            ],
+            "properties": {
+                "strategy": {
+                    "$ref": "#/definitions/malak.RevocationType"
                 }
             }
         },

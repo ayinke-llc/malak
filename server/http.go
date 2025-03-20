@@ -465,6 +465,9 @@ func buildRoutes(
 
 			r.Get("/keys",
 				WrapMalakHTTPHandler(logger, apiHandler.list, cfg, "developers.keys.list"))
+
+			r.Delete("/keys/{reference}",
+				WrapMalakHTTPHandler(logger, apiHandler.revoke, cfg, "developers.keys.revoke"))
 		})
 
 		var images = []string{"image_body"}

@@ -5,6 +5,7 @@ export enum AnalyticsEvent {
   TogglePinnedState = "EVENT_TOGGLE_PINNED_STATE",
   CreateUpdate = "EVENT_CREATE_UPDATE",
   SendUpdate = "EVENT_SEND_UPDATE",
-  CreateApiKey = "EVENT_CREATE_API_KEY"
+  CreateApiKey = "EVENT_CREATE_API_KEY",
+  RevokeApiKey = "EVENT_REVOKE_API_KEY"
 }
 

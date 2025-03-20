@@ -48,3 +48,4 @@ export const PUBLIC_SHARED_DASHBOARD_CHARTING_DATA = 'PUBLIC_SHARED_DASHBOARD_CH
 export const REVOKE_ACCESS_CONTROL = 'REVOKE_ACCESS_CONTROL' as const;
 export const CREATE_API_KEY = "CREATE_API_KEY" as const
 export const LIST_API_KEYS = "LIST_API_KEYS" as const
+export const REVOKE_API_KEY = "REVOKE_API_KEY" as const

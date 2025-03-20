@@ -406,6 +406,12 @@ export enum MalakRecipientStatus {
   RecipientStatusFailed = "failed",
 }
 
+export enum MalakRevocationType {
+  RevocationTypeImmediate = "immediate",
+  RevocationTypeDay = "day",
+  RevocationTypeWeek = "week",
+}
+
 export enum MalakRole {
   RoleAdmin = "admin",
   RoleMember = "member",
@@ -583,7 +589,7 @@ export interface ServerContentUpdateRequest {
 }
 
 export interface ServerCreateAPIKeyRequest {
-  title?: string;
+  title: string;
 }
 
 export interface ServerCreateContactListRequest {
@@ -813,6 +819,10 @@ export interface ServerPreviewUpdateRequest {
 export interface ServerRegenerateLinkResponse {
   link: MalakDashboardLink;
   message: string;
+}
+
+export interface ServerRevokeAPIKeyRequest {
+  strategy: MalakRevocationType;
 }
 
 export interface ServerSendUpdateRequest {
@@ -1571,6 +1581,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerCreatedAPIKeyResponse, ServerAPIStatus>({
         path: `/developers/keys`,
         method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description revoke a specific api key
+     *
+     * @tags developers
+     * @name KeysDelete
+     * @request DELETE:/developers/keys/{reference}
+     */
+    keysDelete: (reference: string, data: ServerRevokeAPIKeyRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/developers/keys/${reference}`,
+        method: "DELETE",
         body: data,
         type: ContentType.Json,
         format: "json",
