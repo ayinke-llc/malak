@@ -181,11 +181,11 @@ export default function ApiKeys() {
     queryKey: [LIST_API_KEYS],
     queryFn: async () => {
       const response = await client.developers.keysList();
-      return response.data.keys;
+      return response.data.keys ?? [];
     },
   });
 
-  const apiKeys = data || [];
+  const apiKeys = data ?? [];
 
   const createMutation = useMutation({
     mutationKey: [CREATE_API_KEY],
