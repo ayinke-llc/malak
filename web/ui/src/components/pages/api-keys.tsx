@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import type { MalakAPIKey } from "@/client/Api";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,6 +20,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
   Table,
   TableBody,
   TableCell,
@@ -27,63 +35,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import client from "@/lib/client";
+import { AnalyticsEvent } from "@/lib/events";
+import { CREATE_API_KEY, LIST_API_KEYS } from "@/lib/query-constants";
+import { yupResolver } from "@hookform/resolvers/yup";
 import {
   RiAddLine,
-  RiEditLine,
   RiDeleteBinLine,
   RiFileCopyLine,
-  RiLoader4Line,
-  RiEyeLine,
-  RiEyeOffLine,
+  RiLoader4Line
 } from "@remixicon/react";
-import { toast } from "sonner";
-import { format, addHours, addDays } from "date-fns";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import CopyToClipboard from "react-copy-to-clipboard";
-import { cn } from "@/lib/utils";
-import { MultiSelect } from "@/components/ui/multi-select";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  useReactTable,
-  getCoreRowModel,
-  flexRender,
   ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { CREATE_API_KEY, LIST_API_KEYS } from "@/lib/query-constants";
-import client from "@/lib/client";
-import { MalakAPIKey } from "@/client/Api";
+import { addDays, addHours, format } from "date-fns";
+import { X } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
-import { AnalyticsEvent } from "@/lib/events";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
+import CopyToClipboard from "react-copy-to-clipboard";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as yup from "yup";
 
-type ServerListAPIKeysResponse = {
-  data: {
-    keys: MalakAPIKey[];
-  };
-};
 
 const apiKeySchema = yup.object().shape({
   key_name: yup.string()
@@ -95,7 +72,6 @@ const apiKeySchema = yup.object().shape({
 type ApiKeyFormData = yup.InferType<typeof apiKeySchema>;
 
 export default function ApiKeys() {
-  const [isEditing, setIsEditing] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedKey, setSelectedKey] = useState<MalakAPIKey | null>(null);
   const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set());
@@ -151,7 +127,6 @@ export default function ApiKeys() {
     },
     onSuccess: ({ data }) => {
       toast.success(data.message);
-      setIsEditing(false);
       setSelectedKey(null);
       form.reset();
       queryClient.invalidateQueries({ queryKey: [LIST_API_KEYS] });
@@ -198,19 +173,6 @@ export default function ApiKeys() {
     });
   };
 
-  const handleUpdate = async (data: ApiKeyFormData) => {
-    if (!selectedKey) return;
-    updateMutation.mutate(data);
-  };
-
-  const handleEdit = (key: MalakAPIKey) => {
-    setSelectedKey(key);
-    form.reset({
-      key_name: key.key_name || "",
-    });
-    setIsEditing(true);
-  };
-
   const handleRevoke = async (id: string) => {
     revokeMutation.mutate({ id, expiration: revokeExpiration });
   };
@@ -251,54 +213,6 @@ export default function ApiKeys() {
         const key = row.original;
         return (
           <div className="flex items-center space-x-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleEdit(key)}
-                >
-                  <RiEditLine className="w-4 h-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Edit API Key</DialogTitle>
-                  <DialogDescription>
-                    Update your API key settings
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(handleUpdate)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="key_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter key name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsEditing(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button type="submit">
-                        Update Key
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -460,7 +374,7 @@ export default function ApiKeys() {
                     Attempt to fetch your API keys again
                   </p>
                 </div>
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => refetch()}
                   disabled={isLoading}
@@ -536,8 +450,8 @@ export default function ApiKeys() {
                   >
                     Cancel
                   </Button>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={createMutation.isPending || !form.formState.isValid || !form.formState.isDirty}
                   >
                     {createMutation.isPending ? (

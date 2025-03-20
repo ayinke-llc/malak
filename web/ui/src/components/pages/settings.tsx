@@ -7,10 +7,10 @@ import {
   TabsTrigger
 } from "@/components/ui/tabs";
 import { useSearchParams } from "next/navigation";
-import GeneralSettings from "./general-settings";
-import Billing from "./billing";
-import Soon from "./soon";
 import ApiKeys from "./api-keys";
+import Billing from "./billing";
+import GeneralSettings from "./general-settings";
+import Soon from "./soon";
 
 export default function Settings() {
 
@@ -74,7 +74,7 @@ export default function Settings() {
               <ApiKeys />
             </TabsContent>
             <TabsContent value="webhooks">
-              <Soon feature="Webhooks" />
+              <Soon feature="your webhooks" />
             </TabsContent>
           </Tabs>
         </section>

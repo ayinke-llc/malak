@@ -105,3 +105,58 @@ func TestAPIKey_Revoke(t *testing.T) {
 		require.Equal(t, expectedExpiry.Unix(), revokedAPIKey.ExpiresAt.Unix())
 	})
 }
+
+func TestAPIKey_List(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	repo := NewAPIKeyRepository(client)
+	workspaceID := uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0")
+	createdBy := uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6")
+
+	// Create multiple API keys
+	apiKeys := []*malak.APIKey{
+		{
+			ID:          uuid.New(),
+			WorkspaceID: workspaceID,
+			CreatedBy:   createdBy,
+			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeApiKey),
+			Value:       "test_value_1",
+			KeyName:     "key1",
+		},
+		{
+			ID:          uuid.New(),
+			WorkspaceID: workspaceID,
+			CreatedBy:   createdBy,
+			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeApiKey),
+			Value:       "test_value_2",
+			KeyName:     "key2",
+		},
+	}
+
+	for _, key := range apiKeys {
+		err := repo.Create(t.Context(), key)
+		require.NoError(t, err)
+	}
+
+	// Test listing API keys
+	listed, err := repo.List(t.Context(), workspaceID)
+	require.NoError(t, err)
+	require.Len(t, listed, 2)
+
+	// Verify the listed keys match what we created
+	for i, key := range apiKeys {
+		require.Equal(t, key.ID, listed[i].ID)
+		require.Equal(t, key.WorkspaceID, listed[i].WorkspaceID)
+		require.Equal(t, key.CreatedBy, listed[i].CreatedBy)
+		require.Equal(t, key.Reference, listed[i].Reference)
+		require.Equal(t, key.Value, listed[i].Value)
+		require.Equal(t, key.KeyName, listed[i].KeyName)
+	}
+
+	// Test listing for a different workspace returns no results
+	differentWorkspaceID := uuid.New()
+	emptyList, err := repo.List(t.Context(), differentWorkspaceID)
+	require.NoError(t, err)
+	require.Empty(t, emptyList)
+}
