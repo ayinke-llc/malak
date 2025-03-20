@@ -256,12 +256,12 @@ export default function ApiKeys() {
     {
       accessorKey: "created_at",
       header: "Created At",
-      cell: ({ row }) => row.original.created_at ? format(new Date(row.original.created_at), "MMM dd, yyyy, hh:mm:ss aa") : "-",
+      cell: ({ row }) => row.original.created_at ? format(row.original.created_at, "MMM dd, yyyy, hh:mm:ss aa") : "-",
     },
     {
       accessorKey: "expires_at",
       header: "Expires At",
-      cell: ({ row }) => row.original.expires_at ? format(new Date(row.original.expires_at), "MMM dd, yyyy, hh:mm:ss aa") : "Never",
+      cell: ({ row }) => row.original.expires_at ? format(row.original.expires_at, "MMM dd, yyyy, hh:mm:ss aa") : "Never",
     },
     {
       id: "actions",
