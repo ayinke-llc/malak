@@ -2,7 +2,7 @@ name: Run API keys revocation job
 
 on:
   schedule:
-    - cron: "0 23 * * *"
+    - cron: "10 0 * * *"
 
 jobs:
   delete-keys:
