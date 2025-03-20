@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/ayinke-llc/malak"
@@ -18,6 +19,23 @@ func NewAPIKeyRepository(db *bun.DB) malak.APIKeyRepository {
 	return &apiKeyImpl{
 		inner: db,
 	}
+}
+
+func (a *apiKeyImpl) Fetch(ctx context.Context, opts malak.FetchAPIKeyOptions) (
+	*malak.APIKey, error) {
+
+	var apiKey = new(malak.APIKey)
+
+	err := a.inner.NewSelect().
+		Model(apiKey).
+		Where("workspace_id = ?", opts.WorkspaceID).
+		Where("reference = ?", opts.Reference).
+		Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = malak.ErrAPIKeyNotFound
+	}
+
+	return apiKey, err
 }
 
 func (r *apiKeyImpl) List(ctx context.Context, worskpaceID uuid.UUID) ([]malak.APIKey, error) {
@@ -55,28 +73,23 @@ func (r *apiKeyImpl) Create(ctx context.Context, apiKey *malak.APIKey) error {
 
 func (r *apiKeyImpl) Revoke(ctx context.Context, opts malak.RevokeAPIKeyOptions) error {
 	now := time.Now()
-	var expiresAt *time.Time
+
+	q := r.inner.NewUpdate().
+		Model(opts.APIKey).
+		Set("updated_at = ?", now)
 
 	switch opts.RevocationType {
 	case malak.RevocationTypeImmediate:
-		endOfDay := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, now.Location())
-		expiresAt = &endOfDay
+		q = q.Set("expires_at = CURRENT_DATE + INTERVAL '1 day' - INTERVAL '1 hour'")
+		q = q.Set("deleted_at = NOW()")
 	case malak.RevocationTypeDay:
-		tomorrow := now.AddDate(0, 0, 1)
-		endOfDay := time.Date(tomorrow.Year(), tomorrow.Month(), tomorrow.Day(), 23, 59, 59, 0, tomorrow.Location())
-		expiresAt = &endOfDay
+		q = q.Set("expires_at = CURRENT_DATE + INTERVAL '2 days' - INTERVAL '1 hour'")
 	case malak.RevocationTypeWeek:
-		weekFromNow := now.AddDate(0, 0, 7)
-		endOfDay := time.Date(weekFromNow.Year(), weekFromNow.Month(), weekFromNow.Day(), 23, 59, 59, 0, weekFromNow.Location())
-		expiresAt = &endOfDay
+		q = q.Set("expires_at = CURRENT_DATE + INTERVAL '8 days' - INTERVAL '1 hour'")
 	}
 
-	_, err := r.inner.NewUpdate().
-		Model(opts.APIKey).
-		Set("expires_at = ?", expiresAt).
-		Set("updated_at = ?", now).
-		Where("id = ?", opts.APIKey.ID).
-		Exec(ctx)
+	q = q.Where("id = ?", opts.APIKey.ID)
 
+	_, err := q.Exec(ctx)
 	return err
 }

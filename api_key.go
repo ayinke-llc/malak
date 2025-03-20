@@ -31,6 +31,8 @@ type APIKey struct {
 	bun.BaseModel `json:"-"`
 }
 
+func (a *APIKey) IsRevoked() bool { return a.ExpiresAt != nil }
+
 // ENUM(immediate,day,week)
 type RevocationType string
 
@@ -39,8 +41,14 @@ type RevokeAPIKeyOptions struct {
 	RevocationType RevocationType
 }
 
+type FetchAPIKeyOptions struct {
+	WorkspaceID uuid.UUID
+	Reference   Reference
+}
+
 type APIKeyRepository interface {
 	Create(context.Context, *APIKey) error
 	Revoke(context.Context, RevokeAPIKeyOptions) error
 	List(context.Context, uuid.UUID) ([]APIKey, error)
+	Fetch(context.Context, FetchAPIKeyOptions) (*APIKey, error)
 }

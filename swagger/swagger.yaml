@@ -669,6 +669,16 @@ components:
       - RecipientStatusPending
       - RecipientStatusSent
       - RecipientStatusFailed
+    malak.RevocationType:
+      enum:
+      - immediate
+      - day
+      - week
+      type: string
+      x-enum-varnames:
+      - RevocationTypeImmediate
+      - RevocationTypeDay
+      - RevocationTypeWeek
     malak.Role:
       enum:
       - admin
@@ -971,6 +981,8 @@ components:
       properties:
         title:
           type: string
+      required:
+      - title
       type: object
     server.createContactListRequest:
       properties:
@@ -1472,6 +1484,13 @@ components:
       required:
       - link
       - message
+      type: object
+    server.revokeAPIKeyRequest:
+      properties:
+        strategy:
+          $ref: '#/components/schemas/malak.RevocationType'
+      required:
+      - strategy
       type: object
     server.sendUpdateRequest:
       properties:
@@ -3038,6 +3057,57 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/server.createdAPIKeyResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      tags:
+      - developers
+  /developers/keys/{reference}:
+    delete:
+      description: revoke a specific api key
+      parameters:
+      - description: api key unique reference.. e.g api_key_
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.revokeAPIKeyRequest'
+        description: api key request body
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
           description: OK
         "400":
           content:

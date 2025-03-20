@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/table";
 import client from "@/lib/client";
 import { AnalyticsEvent } from "@/lib/events";
-import { CREATE_API_KEY, LIST_API_KEYS } from "@/lib/query-constants";
+import { CREATE_API_KEY, LIST_API_KEYS, REVOKE_API_KEY } from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   RiAddLine,
@@ -60,6 +60,7 @@ import CopyToClipboard from "react-copy-to-clipboard";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as yup from "yup";
+import { MalakRevocationType } from "@/client/Api";
 
 
 const apiKeySchema = yup.object().shape({
@@ -71,11 +72,100 @@ const apiKeySchema = yup.object().shape({
 
 type ApiKeyFormData = yup.InferType<typeof apiKeySchema>;
 
+interface RevokeDialogProps {
+  apiKey: MalakAPIKey;
+  onRevoke: (id: string, expiration: string) => void;
+}
+
+const RevokeDialog = ({ apiKey, onRevoke }: RevokeDialogProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedExpiration, setSelectedExpiration] = useState("immediately");
+
+  const handleRevoke = () => {
+    if (!apiKey.reference) {
+      toast.error("Invalid API key");
+      return;
+    }
+    onRevoke(apiKey.reference, selectedExpiration);
+    setIsOpen(false);
+  };
+
+  const handleCancel = () => {
+    setSelectedExpiration("immediately");
+    setIsOpen(false);
+  };
+
+  const getRevokeTimeLabel = (value: string) => {
+    const now = new Date();
+    switch (value) {
+      case "immediately":
+        return "Immediately. This action cannot be undone.";
+      case "24h":
+        return `At ${format(addHours(now, 24), "PPp")}`;
+      case "7d":
+        return `At ${format(addDays(now, 7), "PPp")}`;
+      default:
+        return "Immediately. This action cannot be undone.";
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <RiDeleteBinLine className="w-4 h-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Revoke API Key</DialogTitle>
+          <DialogDescription>
+            Choose when to revoke this API key
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Revoke</label>
+            <Select
+              value={selectedExpiration}
+              onValueChange={setSelectedExpiration}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select when to revoke" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="immediately">Immediately</SelectItem>
+                <SelectItem value="24h">In 24 hours</SelectItem>
+                <SelectItem value="7d">In 7 days</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-muted-foreground">
+              {getRevokeTimeLabel(selectedExpiration)}
+            </p>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRevoke}
+            >
+              Revoke
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export default function ApiKeys() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedKey, setSelectedKey] = useState<MalakAPIKey | null>(null);
-  const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set());
-  const [revokeExpiration, setRevokeExpiration] = useState<string>("immediately");
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const posthog = usePostHog();
@@ -91,11 +181,11 @@ export default function ApiKeys() {
     queryKey: [LIST_API_KEYS],
     queryFn: async () => {
       const response = await client.developers.keysList();
-      return response.data.keys;
+      return response.data.keys ?? [];
     },
   });
 
-  const apiKeys = data || [];
+  const apiKeys = data ?? [];
 
   const createMutation = useMutation({
     mutationKey: [CREATE_API_KEY],
@@ -117,33 +207,25 @@ export default function ApiKeys() {
     },
   });
 
-  const updateMutation = useMutation({
-    mutationKey: ["UPDATE_API_KEY"],
-    mutationFn: async (data: ApiKeyFormData) => {
-      if (!selectedKey) throw new Error("No key selected");
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { data: { message: "API key updated successfully" } };
-    },
-    onSuccess: ({ data }) => {
-      toast.success(data.message);
-      setSelectedKey(null);
-      form.reset();
-      queryClient.invalidateQueries({ queryKey: [LIST_API_KEYS] });
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Failed to update API key");
-    },
-  });
-
   const revokeMutation = useMutation({
-    mutationKey: ["REVOKE_API_KEY"],
+    mutationKey: [REVOKE_API_KEY],
     mutationFn: async ({ id, expiration }: { id: string, expiration: string }) => {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { data: { message: "API key revoked successfully" } };
+      const strategyMap = {
+        'immediately': MalakRevocationType.RevocationTypeImmediate,
+        '24h': MalakRevocationType.RevocationTypeDay,
+        '7d': MalakRevocationType.RevocationTypeWeek
+      } as const;
+
+      const strategy = strategyMap[expiration as keyof typeof strategyMap];
+      if (!strategy) {
+        throw new Error('Invalid revocation strategy');
+      }
+
+      return client.developers.keysDelete(id, {
+        strategy
+      });
     },
-    onSuccess: ({ data }, variables) => {
+    onSuccess: (_, variables) => {
       if (variables.expiration === "immediately") {
         toast.success("API key revoked immediately");
       } else {
@@ -161,34 +243,9 @@ export default function ApiKeys() {
     createMutation.mutate(data);
   };
 
-  const toggleKeyVisibility = (keyId: string) => {
-    setRevealedKeys(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(keyId)) {
-        newSet.delete(keyId);
-      } else {
-        newSet.add(keyId);
-      }
-      return newSet;
-    });
-  };
 
-  const handleRevoke = async (id: string) => {
-    revokeMutation.mutate({ id, expiration: revokeExpiration });
-  };
-
-  const getRevokeTimeLabel = (value: string) => {
-    const now = new Date();
-    switch (value) {
-      case "immediately":
-        return "Immediately. This action cannot be undone.";
-      case "24h":
-        return `At ${format(addHours(now, 24), "PPp")}`;
-      case "7d":
-        return `At ${format(addDays(now, 7), "PPp")}`;
-      default:
-        return "Immediately. This action cannot be undone.";
-    }
+  const handleRevokeKey = (id: string, expiration: string) => {
+    revokeMutation.mutate({ id, expiration });
   };
 
   const columns: ColumnDef<MalakAPIKey>[] = [
@@ -199,12 +256,12 @@ export default function ApiKeys() {
     {
       accessorKey: "created_at",
       header: "Created At",
-      cell: ({ row }) => row.original.created_at ? format(new Date(row.original.created_at), "PPp") : "-",
+      cell: ({ row }) => row.original.created_at ? format(row.original.created_at, "MMM dd, yyyy, hh:mm:ss aa") : "-",
     },
     {
       accessorKey: "expires_at",
       header: "Expires At",
-      cell: ({ row }) => row.original.expires_at ? format(new Date(row.original.expires_at), "PPp") : "Never",
+      cell: ({ row }) => row.original.expires_at ? format(row.original.expires_at, "MMM dd, yyyy, hh:mm:ss aa") : "Never",
     },
     {
       id: "actions",
@@ -213,57 +270,7 @@ export default function ApiKeys() {
         const key = row.original;
         return (
           <div className="flex items-center space-x-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <RiDeleteBinLine className="w-4 h-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Revoke API Key</DialogTitle>
-                  <DialogDescription>
-                    Choose when to revoke this API key
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Revoke</label>
-                    <Select
-                      value={revokeExpiration}
-                      onValueChange={setRevokeExpiration}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select when to revoke" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="immediately">Immediately</SelectItem>
-                        <SelectItem value="24h">In 24 hours</SelectItem>
-                        <SelectItem value="7d">In 7 days</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-sm text-muted-foreground">
-                      {getRevokeTimeLabel(revokeExpiration)}
-                    </p>
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setRevokeExpiration("immediately")}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleRevoke(key.id || "")}
-                    >
-                      Revoke
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <RevokeDialog key={key.id} apiKey={key} onRevoke={handleRevokeKey} />
           </div>
         );
       },
@@ -276,7 +283,7 @@ export default function ApiKeys() {
     getCoreRowModel: getCoreRowModel(),
   });
 
-  const isMutating = createMutation.isPending || updateMutation.isPending || revokeMutation.isPending;
+  const isMutating = createMutation.isPending || revokeMutation.isPending;
 
   if (isLoading) {
     return (

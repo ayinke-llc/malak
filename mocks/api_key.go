@@ -56,6 +56,21 @@ func (mr *MockAPIKeyRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAPIKeyRepository)(nil).Create), arg0, arg1)
 }
 
+// Fetch mocks base method.
+func (m *MockAPIKeyRepository) Fetch(arg0 context.Context, arg1 malak.FetchAPIKeyOptions) (*malak.APIKey, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Fetch", arg0, arg1)
+	ret0, _ := ret[0].(*malak.APIKey)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Fetch indicates an expected call of Fetch.
+func (mr *MockAPIKeyRepositoryMockRecorder) Fetch(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Fetch", reflect.TypeOf((*MockAPIKeyRepository)(nil).Fetch), arg0, arg1)
+}
+
 // List mocks base method.
 func (m *MockAPIKeyRepository) List(arg0 context.Context, arg1 uuid.UUID) ([]malak.APIKey, error) {
 	m.ctrl.T.Helper()
