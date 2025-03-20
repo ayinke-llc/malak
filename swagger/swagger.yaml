@@ -1,5 +1,24 @@
 components:
   schemas:
+    malak.APIKey:
+      properties:
+        created_at:
+          type: string
+        created_by:
+          type: string
+        expires_at:
+          type: string
+        id:
+          type: string
+        key_name:
+          type: string
+        reference:
+          type: string
+        updated_at:
+          type: string
+        workspace_id:
+          type: string
+      type: object
     malak.BillingPreferences:
       properties:
         finance_email:
@@ -499,10 +518,12 @@ components:
       enum:
       - oauth2
       - api_key
+      - default
       type: string
       x-enum-varnames:
       - IntegrationTypeOauth2
       - IntegrationTypeApiKey
+      - IntegrationTypeDefault
     malak.PasswordDeckPreferences:
       properties:
         enabled:
@@ -946,6 +967,11 @@ components:
       - title
       - update
       type: object
+    server.createAPIKeyRequest:
+      properties:
+        title:
+          type: string
+      type: object
     server.createContactListRequest:
       properties:
         name:
@@ -1015,6 +1041,16 @@ components:
           type: string
       required:
       - name
+      type: object
+    server.createdAPIKeyResponse:
+      properties:
+        message:
+          type: string
+        value:
+          type: string
+      required:
+      - message
+      - value
       type: object
     server.createdUpdateResponse:
       properties:
@@ -1258,6 +1294,18 @@ components:
       properties:
         email:
           type: string
+      type: object
+    server.listAPIKeysResponse:
+      properties:
+        keys:
+          items:
+            $ref: '#/components/schemas/malak.APIKey'
+          type: array
+        message:
+          type: string
+      required:
+      - keys
+      - message
       type: object
     server.listChartDataPointsResponse:
       properties:
@@ -2938,6 +2986,85 @@ paths:
           description: Internal Server Error
       tags:
       - decks
+  /developers/keys:
+    get:
+      description: list api keys
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.listAPIKeysResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      tags:
+      - developers
+    post:
+      description: Creates a new api key
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.createAPIKeyRequest'
+        description: api key request body
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.createdAPIKeyResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      tags:
+      - developers
   /public/dashboards/{reference}:
     get:
       description: fetch public dashboard and charting data points

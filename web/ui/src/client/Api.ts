@@ -9,6 +9,17 @@
  * ---------------------------------------------------------------
  */
 
+export interface MalakAPIKey {
+  created_at?: string;
+  created_by?: string;
+  expires_at?: string;
+  id?: string;
+  key_name?: string;
+  reference?: string;
+  updated_at?: string;
+  workspace_id?: string;
+}
+
 export interface MalakBillingPreferences {
   finance_email?: string;
 }
@@ -299,6 +310,7 @@ export interface MalakIntegrationMetadata {
 export enum MalakIntegrationType {
   IntegrationTypeOauth2 = "oauth2",
   IntegrationTypeApiKey = "api_key",
+  IntegrationTypeDefault = "default",
 }
 
 export interface MalakPasswordDeckPreferences {
@@ -570,6 +582,10 @@ export interface ServerContentUpdateRequest {
   update: MalakBlock[];
 }
 
+export interface ServerCreateAPIKeyRequest {
+  title?: string;
+}
+
 export interface ServerCreateContactListRequest {
   name: string;
 }
@@ -607,6 +623,11 @@ export interface ServerCreateUpdateContent {
 
 export interface ServerCreateWorkspaceRequest {
   name: string;
+}
+
+export interface ServerCreatedAPIKeyResponse {
+  message: string;
+  value: string;
 }
 
 export interface ServerCreatedUpdateResponse {
@@ -716,6 +737,11 @@ export interface ServerFetchWorkspaceResponse {
 
 export interface ServerGenerateDashboardLinkRequest {
   email?: string;
+}
+
+export interface ServerListAPIKeysResponse {
+  keys: MalakAPIKey[];
+  message: string;
 }
 
 export interface ServerListChartDataPointsResponse {
@@ -1514,6 +1540,39 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/decks/${reference}/sessions`,
         method: "GET",
         query: query,
+        format: "json",
+        ...params,
+      }),
+  };
+  developers = {
+    /**
+     * @description list api keys
+     *
+     * @tags developers
+     * @name KeysList
+     * @request GET:/developers/keys
+     */
+    keysList: (params: RequestParams = {}) =>
+      this.request<ServerListAPIKeysResponse, ServerAPIStatus>({
+        path: `/developers/keys`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Creates a new api key
+     *
+     * @tags developers
+     * @name KeysCreate
+     * @request POST:/developers/keys
+     */
+    keysCreate: (data: ServerCreateAPIKeyRequest, params: RequestParams = {}) =>
+      this.request<ServerCreatedAPIKeyResponse, ServerAPIStatus>({
+        path: `/developers/keys`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

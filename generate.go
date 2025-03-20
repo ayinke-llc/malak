@@ -32,3 +32,4 @@ package malak
 //go:generate mockgen -source=dashboard_link.go -destination=mocks/dashboard_link.go -package=malak_mocks
 //go:generate mockgen -source=template.go -destination=mocks/template.go -package=malak_mocks
 //go:generate mockgen -source=internal/pkg/geolocation/location.go -destination=mocks/location.go -package=malak_mocks
+//go:generate mockgen -source=api_key.go -destination=mocks/api_key.go -package=malak_mocks

@@ -43,11 +43,13 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockIntegrationRepository(controller),
 			malak_mocks.NewMockTemplateRepository(controller),
 			malak_mocks.NewMockDashboardLinkRepository(controller),
+			malak_mocks.NewMockAPIKeyRepository(controller),
 			&httplimit.Middleware{},
 			malak_mocks.NewMockQueueHandler(controller),
 			malak_mocks.NewMockCache(controller),
 			malak_mocks.NewMockClient(controller),
 			integrations.NewManager(),
+			malak_mocks.NewMockSecretClient(controller),
 			malak_mocks.NewMockSecretClient(controller),
 			geoService,
 			&gulter.Gulter{},
@@ -82,11 +84,13 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockIntegrationRepository(controller),
 			malak_mocks.NewMockTemplateRepository(controller),
 			malak_mocks.NewMockDashboardLinkRepository(controller),
+			malak_mocks.NewMockAPIKeyRepository(controller),
 			&httplimit.Middleware{},
 			malak_mocks.NewMockQueueHandler(controller),
 			malak_mocks.NewMockCache(controller),
 			malak_mocks.NewMockClient(controller),
 			integrations.NewManager(),
+			malak_mocks.NewMockSecretClient(controller),
 			malak_mocks.NewMockSecretClient(controller),
 			geoService,
 			&gulter.Gulter{},
@@ -130,9 +134,10 @@ func TestNew(t *testing.T) {
 		integrationRepo,
 		malak_mocks.NewMockTemplateRepository(controller),
 		malak_mocks.NewMockDashboardLinkRepository(controller),
+		malak_mocks.NewMockAPIKeyRepository(controller),
 		&httplimit.Middleware{},
 		queueRepo, cacheRepo, billingClient,
-		integrations.NewManager(), secretsClient, geoService,
+		integrations.NewManager(), secretsClient, secretsClient, geoService,
 		&gulter.Gulter{}, &gulter.Gulter{})
 
 	require.NotNil(t, srv)
@@ -174,9 +179,10 @@ func TestNewWithInvalidConfig(t *testing.T) {
 		integrationRepo,
 		malak_mocks.NewMockTemplateRepository(controller),
 		malak_mocks.NewMockDashboardLinkRepository(controller),
+		malak_mocks.NewMockAPIKeyRepository(controller),
 		&httplimit.Middleware{},
 		queueRepo, cacheRepo, billingClient,
-		integrations.NewManager(), secretsClient, geoService,
+		integrations.NewManager(), secretsClient, secretsClient, geoService,
 		&gulter.Gulter{}, &gulter.Gulter{})
 
 	require.NotNil(t, srv)

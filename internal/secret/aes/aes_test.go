@@ -235,20 +235,16 @@ func TestAESClientContextCancellation(t *testing.T) {
 	client, err := New(cfg)
 	require.NoError(t, err)
 
-	// First create a valid encrypted value
 	plaintext := "test value"
 	encrypted, err := client.Create(t.Context(), &secret.CreateSecretOptions{Value: plaintext})
 	require.NoError(t, err)
 
-	// Now test with cancelled context
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel() // Cancel context immediately
 
-	// Test Create with cancelled context
 	_, err = client.Create(ctx, &secret.CreateSecretOptions{Value: "test"})
 	require.NoError(t, err) // Should still work as the operation is synchronous
 
-	// Test Get with cancelled context using valid encrypted value
 	decrypted, err := client.Get(ctx, encrypted)
 	require.NoError(t, err) // Should still work as the operation is synchronous
 	require.Equal(t, plaintext, decrypted)

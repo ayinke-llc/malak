@@ -91,6 +91,10 @@ type Config struct {
 		DefaultPlanReference string `yaml:"default_plan_reference" mapstructure:"default_plan_reference"`
 	} `yaml:"billing" mapstructure:"billing"`
 
+	API struct {
+		Provider secret.SecretProvider `yaml:"provider" mapstructure:"provider"`
+	} `yaml:"api" mapstructure:"api"`
+
 	Secrets struct {
 		ClientTimeout time.Duration `yaml:"client_timeout" mapstructure:"client_timeout"`
 

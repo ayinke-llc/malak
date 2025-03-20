@@ -45,12 +45,14 @@ func New(logger *zap.Logger,
 	integrationRepo malak.IntegrationRepository,
 	templatesRepo malak.TemplateRepository,
 	dashboardLinkRepo malak.DashboardLinkRepository,
+	apiRepo malak.APIKeyRepository,
 	mid *httplimit.Middleware,
 	queueHandler queue.QueueHandler,
 	redisCache cache.Cache,
 	billingClient billing.Client,
 	integrationManager *integrations.IntegrationsManager,
 	secretsClient secret.SecretClient,
+	apiSecretsClient secret.SecretClient,
 	geolocationService geolocation.GeolocationService,
 	imageUploadGulterHandler *gulter.Gulter,
 	deckUploadGulterHandler *gulter.Gulter) (*http.Server, func()) {
@@ -66,9 +68,9 @@ func New(logger *zap.Logger,
 			userRepo, workspaceRepo, planRepo,
 			contactRepo, updateRepo, contactListRepo,
 			deckRepo, shareRepo, preferenceRepo, integrationRepo, templatesRepo,
-			dashboardLinkRepo,
+			dashboardLinkRepo, apiRepo,
 			googleAuthProvider, mid,
-			queueHandler, redisCache, billingClient, integrationManager, secretsClient,
+			queueHandler, redisCache, billingClient, integrationManager, secretsClient, apiSecretsClient,
 			geolocationService, imageUploadGulterHandler, deckUploadGulterHandler),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
@@ -115,6 +117,7 @@ func buildRoutes(
 	integrationRepo malak.IntegrationRepository,
 	templatesRepo malak.TemplateRepository,
 	dashboardLinkRepo malak.DashboardLinkRepository,
+	apiRepo malak.APIKeyRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	ratelimiterMiddleware *httplimit.Middleware,
 	queueHandler queue.QueueHandler,
@@ -122,6 +125,7 @@ func buildRoutes(
 	billingClient billing.Client,
 	integrationManager *integrations.IntegrationsManager,
 	secretsClient secret.SecretClient,
+	apiSecretsClient secret.SecretClient,
 	geolocationService geolocation.GeolocationService,
 	imageUploadGulterHandler *gulter.Gulter,
 	deckUploadGulterHandler *gulter.Gulter) http.Handler {
@@ -223,6 +227,12 @@ func buildRoutes(
 		dashboardLinkRepo: dashboardLinkRepo,
 		contactRepo:       contactRepo,
 		queue:             queueHandler,
+	}
+
+	apiHandler := &apiKeyHandler{
+		secretsClient: apiSecretsClient,
+		generator:     referenceGenerator,
+		apiRepo:       apiRepo,
 	}
 
 	router.Use(middleware.RequestID)
@@ -444,6 +454,17 @@ func buildRoutes(
 
 			r.Delete("/{reference}/access-control/{link_reference}",
 				WrapMalakHTTPHandler(logger, dashHandler.revokeAccessControl, cfg, "dashboards.access-control.delete"))
+		})
+
+		r.Route("/developers", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
+
+			r.Post("/keys",
+				WrapMalakHTTPHandler(logger, apiHandler.create, cfg, "developers.keys.create"))
+
+			r.Get("/keys",
+				WrapMalakHTTPHandler(logger, apiHandler.list, cfg, "developers.keys.list"))
 		})
 
 		var images = []string{"image_body"}

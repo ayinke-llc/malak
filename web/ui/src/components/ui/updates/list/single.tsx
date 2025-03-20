@@ -1,5 +1,6 @@
 "use client";
 
+import { AnalyticsEvent } from "@/lib/events";
 import type {
   MalakUpdate,
   ServerAPIStatus,

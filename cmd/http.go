@@ -131,6 +131,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			dashRepo := postgres.NewDashboardRepo(db)
 			templatesRepo := postgres.NewTemplateRepository(db)
 			dashboardLinkRepo := postgres.NewDashboardLinkRepo(db)
+			apiRepo := postgres.NewAPIKeyRepository(db)
 
 			googleAuthProvider := socialauth.NewGoogle(*cfg)
 
@@ -341,23 +342,26 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				logger.Fatal("could not build integration manager", zap.Error(err))
 			}
 
-			secretsProvider, err := buildSecretsProvider(*cfg)
+			secretsProvider, err := buildSecretsProvider(cfg.Secrets.Provider, hermes.DeRef(cfg))
 			if err != nil {
 				logger.Fatal("could not build secrets provider", zap.Error(err))
+			}
+
+			apiSecretProvider, err := buildSecretsProvider(cfg.API.Provider, hermes.DeRef(cfg))
+			if err != nil {
+				logger.Fatal("could not build api secrets provider", zap.Error(err))
 			}
 
 			srv, cleanupSrv := server.New(logger,
 				util.DeRef(cfg), db,
 				tokenManager, googleAuthProvider,
-				dashRepo,
-				userRepo, workspaceRepo, planRepo, contactRepo,
+				dashRepo, userRepo, workspaceRepo, planRepo, contactRepo,
 				updateRepo, contactlistRepo, deckRepo, shareRepo,
 				preferenceRepo, integrationRepo,
-				templatesRepo, dashboardLinkRepo,
-				mid,
-				queueHandler, redisCache, billingClient,
-				integrationManager, secretsProvider, geoService,
-				imageUploadGulterHandler, deckUploadGulterHandler)
+				templatesRepo, dashboardLinkRepo, apiRepo,
+				mid, queueHandler, redisCache, billingClient,
+				integrationManager, secretsProvider, apiSecretProvider,
+				geoService, imageUploadGulterHandler, deckUploadGulterHandler)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {
@@ -449,8 +453,8 @@ func getRatelimiter(cfg config.Config) (limiter.Store, error) {
 	}
 }
 
-func buildSecretsProvider(cfg config.Config) (secret.SecretClient, error) {
-	switch cfg.Secrets.Provider {
+func buildSecretsProvider(provider secret.SecretProvider, cfg config.Config) (secret.SecretClient, error) {
+	switch provider {
 	case secret.SecretProviderVault:
 		return vault.New(cfg)
 	case secret.SecretProviderInfisical:

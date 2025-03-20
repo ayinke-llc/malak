@@ -34,6 +34,7 @@ import CreatableSelect, { OptionType } from "@/components/ui/multi-select";
 import { ServerAPIStatus, ServerSendUpdateRequest } from "@/client/Api";
 import { AxiosError } from "axios";
 import { usePostHog } from "posthog-js/react";
+import { AnalyticsEvent } from "@/lib/events";
 
 interface Option {
   readonly label: string;

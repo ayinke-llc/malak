@@ -2,12 +2,12 @@
 
 import type { ServerCreatedUserResponse } from "@/client/Api";
 import { Button } from "@/components/ui/button";
-import { EVENT_LOGIN_BUTTON_CLICKED } from "@/lib/analytics-constansts";
 import client from "@/lib/client";
 import {
   MALAK_PRIVACY_POLICY_LINK,
   MALAK_TERMS_CONDITION_LINK,
 } from "@/lib/config";
+import { AnalyticsEvent } from "@/lib/events";
 import useAuthStore from "@/store/auth";
 import { useGoogleLogin } from "@react-oauth/google";
 import { RiMicrosoftLine } from "@remixicon/react";
