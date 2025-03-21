@@ -91,6 +91,7 @@ func createIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 						Options(
 							huh.NewOption("oauth2", malak.IntegrationTypeOauth2),
 							huh.NewOption("api key", malak.IntegrationTypeApiKey),
+							huh.NewOption("system", malak.IntegrationTypeSystem),
 						).
 						Value(&integrationType),
 
@@ -113,7 +114,7 @@ func createIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 
 			valid, err := malak.IsImageFromURL(logoURL)
 			if err != nil {
-				return errors.New("integration name cannot be more than 30")
+				return err
 			}
 
 			if !valid {

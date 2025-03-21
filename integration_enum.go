@@ -211,8 +211,8 @@ const (
 	IntegrationTypeOauth2 IntegrationType = "oauth2"
 	// IntegrationTypeApiKey is a IntegrationType of type api_key.
 	IntegrationTypeApiKey IntegrationType = "api_key"
-	// IntegrationTypeDefault is a IntegrationType of type default.
-	IntegrationTypeDefault IntegrationType = "default"
+	// IntegrationTypeSystem is a IntegrationType of type system.
+	IntegrationTypeSystem IntegrationType = "system"
 )
 
 var ErrInvalidIntegrationType = errors.New("not a valid IntegrationType")
@@ -232,7 +232,7 @@ func (x IntegrationType) IsValid() bool {
 var _IntegrationTypeValue = map[string]IntegrationType{
 	"oauth2":  IntegrationTypeOauth2,
 	"api_key": IntegrationTypeApiKey,
-	"default": IntegrationTypeDefault,
+	"system":  IntegrationTypeSystem,
 }
 
 // ParseIntegrationType attempts to convert a string to a IntegrationType.

@@ -14,7 +14,7 @@ var (
 	ErrChartNotFound                = MalakError("chart not found")
 )
 
-// ENUM(oauth2,api_key,default)
+// ENUM(oauth2,api_key,system)
 type IntegrationType string
 
 // ENUM(stripe,paystack,flutterwave,mercury,brex)

@@ -5,7 +5,7 @@ migrate:
 	go run cmd/*.go migrate
 
 migrate-down:
-	migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://malak:malak@localhost:9432/malak?sslmode=disable" down
+	migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://malak:malak@localhost:9432/malak?sslmode=disable" down 1
 
 run:
 	go run cmd/*.go http
