@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import { 
   RiErrorWarningLine, 
   RiBarChartBoxLine, 
@@ -13,12 +16,29 @@ import {
   RiArrowRightSLine,
   RiCheckLine,
   RiCloseLine,
-  RiArrowLeftLine
+  RiArrowLeftLine,
+  RiAddLine
 } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import client from "@/lib/client";
 import { LIST_INTEGRATIONS, LIST_CHARTS, FETCH_CHART_DATA_POINTS } from "@/lib/query-constants";
 import { IntegrationsList } from "@/components/ui/integrations/list";
@@ -39,6 +59,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { MalakIntegrationType } from "@/client/Api";
 
 interface DataPoint {
   name: string;
@@ -73,10 +94,11 @@ function IntegrationCard({ integration, isSelected, onClick }: {
   return (
     <Button
       key={integration.id}
-      variant={isSelected ? "secondary" : "outline"}
+      variant="outline"
       className={cn(
-        "w-full justify-between p-4 h-auto",
+        "w-full justify-between p-4 h-auto hover:bg-muted hover:border-muted-foreground/20",
         isDisabled && "opacity-50 cursor-not-allowed",
+        isSelected && "bg-muted border-primary hover:border-primary",
         "text-left"
       )}
       onClick={onClick}
@@ -252,6 +274,102 @@ function ChartCard({ chart, onClick, isSelected }: {
   );
 }
 
+interface CreateChartFormData {
+  title: string;
+  type: "bar" | "pie";
+}
+
+const createChartSchema = yup.object({
+  title: yup.string().required("Chart title is required"),
+  type: yup.string().oneOf(["bar", "pie"], "Invalid chart type").required("Chart type is required"),
+});
+
+function CreateChartDialog({ integration }: { integration: MalakWorkspaceIntegration }) {
+  const [open, setOpen] = useState(false);
+  
+  const form = useForm<CreateChartFormData>({
+    resolver: yupResolver(createChartSchema),
+    defaultValues: {
+      title: "",
+      type: "bar"
+    }
+  });
+
+  const handleCreateChart = (data: CreateChartFormData) => {
+    // This will be implemented later
+    toast.success("Chart creation will be implemented soon");
+    setOpen(false);
+    form.reset();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      setOpen(isOpen);
+      if (!isOpen) {
+        form.reset();
+      }
+    }}>
+      <DialogTrigger asChild>
+        <Button className="gap-2">
+          <RiAddLine className="h-4 w-4" />
+          Create Chart
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Chart</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={form.handleSubmit(handleCreateChart)} className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Chart Title</Label>
+            <Input
+              id="title"
+              placeholder="Enter chart title"
+              {...form.register("title")}
+            />
+            {form.formState.errors.title && (
+              <p className="text-sm text-destructive mt-1">{form.formState.errors.title.message}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="type">Chart Type</Label>
+            <Select 
+              value={form.watch("type")} 
+              onValueChange={(value: "bar" | "pie") => form.setValue("type", value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bar">Bar Chart</SelectItem>
+                <SelectItem value="pie">Pie Chart</SelectItem>
+              </SelectContent>
+            </Select>
+            {form.formState.errors.type && (
+              <p className="text-sm text-destructive mt-1">{form.formState.errors.type.message}</p>
+            )}
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button 
+              type="button" 
+              variant="destructive" 
+              onClick={() => {
+                setOpen(false);
+                form.reset();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button type="submit">
+              Create Chart
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function Metrics() {
   const [selectedIntegration, setSelectedIntegration] = useState<MalakWorkspaceIntegration | null>(null);
   const [selectedChart, setSelectedChart] = useState<MalakIntegrationChart | null>(null);
@@ -271,6 +389,18 @@ export default function Metrics() {
   const integrationCharts = chartsData?.data?.charts?.filter(
     (chart: MalakIntegrationChart) => chart.workspace_integration_id === selectedIntegration?.id
   ) || [];
+
+  // Sort integrations by active status and creation date
+  const sortedIntegrations = [...(integrationsData?.data?.integrations || [])].sort((a, b) => {
+    // First sort by active status (active ones first)
+    if (a.is_active !== b.is_active) {
+      return b.is_active ? 1 : -1;
+    }
+    // Then sort by creation date (newest first)
+    const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return dateB - dateA;
+  });
 
   if (integrationsError) {
     return (
@@ -339,7 +469,7 @@ export default function Metrics() {
                       <Skeleton className="h-20 w-full" />
                     </>
                   ) : (
-                    (integrationsData?.data?.integrations || []).map((integration) => (
+                    sortedIntegrations.map((integration) => (
                       <IntegrationCard
                         key={integration.id}
                         integration={integration}
@@ -374,21 +504,26 @@ export default function Metrics() {
               </div>
             ) : (
               <Card className="h-[calc(100vh-200px)] overflow-hidden">
-                <div className="p-4 border-b">
-                  <h4 className="font-medium">
-                    {selectedIntegration ? (
-                      <>Charts for {selectedIntegration.integration?.integration_name}</>
-                    ) : (
-                      <>Available Charts</>
-                    )}
-                  </h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {selectedIntegration ? (
-                      <>Select a chart to view its data points</>
-                    ) : (
-                      <>Select an integration to view its charts</>
-                    )}
-                  </p>
+                <div className="p-4 border-b flex justify-between items-center">
+                  <div>
+                    <h4 className="font-medium">
+                      {selectedIntegration ? (
+                        <>Charts for {selectedIntegration.integration?.integration_name}</>
+                      ) : (
+                        <>Available Charts</>
+                      )}
+                    </h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {selectedIntegration ? (
+                        <>Select a chart to view its data points</>
+                      ) : (
+                        <>Select an integration to view its charts</>
+                      )}
+                    </p>
+                  </div>
+                  {selectedIntegration?.integration?.integration_type === MalakIntegrationType.IntegrationTypeSystem && (
+                    <CreateChartDialog integration={selectedIntegration} />
+                  )}
                 </div>
                 <ScrollArea className="h-[calc(100vh-280px)]">
                   <div className="p-4">
