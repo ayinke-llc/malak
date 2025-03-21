@@ -50,6 +50,8 @@ const getConnectionTypeBadge = (type: MalakIntegrationType) => {
       return <Badge variant="default">OAuth2</Badge>
     case MalakIntegrationType.IntegrationTypeApiKey:
       return <Badge variant="default">API Key</Badge>
+    case MalakIntegrationType.IntegrationTypeSystem:
+      return <Badge variant="default">System</Badge>
   }
 }
 
@@ -400,10 +402,10 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
               )}
               <Switch
                 checked={localEnabled}
-                disabled={!integration?.integration?.is_enabled}
+                disabled={!integration?.integration?.is_enabled || integration?.integration?.integration_type === MalakIntegrationType.IntegrationTypeSystem}
                 onCheckedChange={handleToggleIntegration}
               />
-              {integration?.is_enabled && integration?.integration?.is_enabled && (
+              {integration?.is_enabled && integration?.integration?.is_enabled && integration?.integration?.integration_type !== MalakIntegrationType.IntegrationTypeSystem && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>

@@ -310,7 +310,7 @@ export interface MalakIntegrationMetadata {
 export enum MalakIntegrationType {
   IntegrationTypeOauth2 = "oauth2",
   IntegrationTypeApiKey = "api_key",
-  IntegrationTypeDefault = "default",
+  IntegrationTypeSystem = "system",
 }
 
 export interface MalakPasswordDeckPreferences {

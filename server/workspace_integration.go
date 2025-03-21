@@ -218,6 +218,10 @@ func (wo *workspaceHandler) enableIntegration(
 		return newAPIStatus(http.StatusBadRequest, "integration already enabled"), StatusFailed
 	}
 
+	if integration.Integration.IntegrationType == malak.IntegrationTypeSystem {
+		return newAPIStatus(http.StatusBadRequest, "you cannot enable a system level integration"), StatusFailed
+	}
+
 	if integration.Integration.IntegrationType != malak.IntegrationTypeApiKey {
 		return newAPIStatus(http.StatusBadRequest, "You can only update the api key for this integration"), StatusFailed
 	}
@@ -433,6 +437,10 @@ func (wo *workspaceHandler) disableIntegration(
 			Error(msg,
 				zap.Error(err))
 		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	if integration.Integration.IntegrationType == malak.IntegrationTypeSystem {
+		return newAPIStatus(http.StatusBadRequest, "you cannot disable a system level integration"), StatusFailed
 	}
 
 	if !integration.Integration.IsEnabled {

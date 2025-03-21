@@ -4473,12 +4473,12 @@ const docTemplate = `{
             "enum": [
                 "oauth2",
                 "api_key",
-                "default"
+                "system"
             ],
             "x-enum-varnames": [
                 "IntegrationTypeOauth2",
                 "IntegrationTypeApiKey",
-                "IntegrationTypeDefault"
+                "IntegrationTypeSystem"
             ]
         },
         "malak.PasswordDeckPreferences": {
