@@ -30,22 +30,25 @@ func (i *integrationRepo) Create(ctx context.Context,
 
 	return i.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
-			c, err := tx.NewSelect().Model(new(malak.Integration)).
-				Where("integration_type = ?", malak.IntegrationTypeSystem).
-				Count(ctx)
-			if err != nil {
-				return err
-			}
+			if integration.IntegrationType == malak.IntegrationTypeSystem {
 
-			if c == 1 {
-				return errors.New("you can only have one system level Integration")
+				c, err := tx.NewSelect().Model(new(malak.Integration)).
+					Where("integration_type = ?", malak.IntegrationTypeSystem).
+					Count(ctx)
+				if err != nil {
+					return err
+				}
+
+				if c == 1 {
+					return errors.New("you can only have one system level Integration")
+				}
 			}
 
 			if integration.IntegrationType == malak.IntegrationTypeSystem {
 				integration.IsEnabled = true
 			}
 
-			_, err = tx.NewInsert().
+			_, err := tx.NewInsert().
 				Model(integration).
 				Exec(ctx)
 			if err != nil {

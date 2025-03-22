@@ -39,10 +39,6 @@ archives:
 changelog:
   use: git
   sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^test:"
 
 checksum:
   name_template: "checksums.txt"
