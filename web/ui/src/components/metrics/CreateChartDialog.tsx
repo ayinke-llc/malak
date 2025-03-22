@@ -30,13 +30,13 @@ import { AxiosError } from "axios";
 
 interface CreateChartFormData {
   title: string;
-  type: MalakIntegrationChartType;
+  type: MalakIntegrationChartType.IntegrationChartTypeBar;
   datapoint: MalakIntegrationDataPointType;
 }
 
 const createChartSchema = yup.object({
   title: yup.string().required("Chart title is required"),
-  type: yup.string().oneOf([MalakIntegrationChartType.IntegrationChartTypeBar, MalakIntegrationChartType.IntegrationChartTypePie], "Invalid chart type").required("Chart type is required"),
+  type: yup.string().oneOf([MalakIntegrationChartType.IntegrationChartTypeBar], "Invalid chart type").required("Chart type is required"),
   datapoint: yup.string().oneOf([MalakIntegrationDataPointType.IntegrationDataPointTypeCurrency, MalakIntegrationDataPointType.IntegrationDataPointTypeOthers], "Invalid datapoint type").required("Datapoint type is required"),
 });
 
@@ -123,14 +123,13 @@ export function CreateChartDialog({ integration }: { integration: MalakWorkspace
             <Label htmlFor="type">Chart Type</Label>
             <Select
               value={form.watch("type")}
-              onValueChange={(value: MalakIntegrationChartType) => form.setValue("type", value)}
+              onValueChange={(value) => form.setValue("type", MalakIntegrationChartType.IntegrationChartTypeBar)}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={MalakIntegrationChartType.IntegrationChartTypeBar}>Bar Chart</SelectItem>
-                <SelectItem value={MalakIntegrationChartType.IntegrationChartTypePie}>Pie Chart</SelectItem>
               </SelectContent>
             </Select>
             {form.formState.errors.type && (

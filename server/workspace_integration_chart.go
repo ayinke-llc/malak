@@ -36,7 +36,7 @@ func (t *createChartRequest) Validate() error {
 		return errors.New("title can not be less than 5 characters")
 	}
 
-	if !t.ChartType.IsValid() {
+	if t.ChartType != malak.IntegrationChartTypeBar {
 		return errors.New("unsupported chart type")
 	}
 
