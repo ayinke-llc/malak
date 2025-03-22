@@ -549,12 +549,14 @@ func TestIntegration_CreateChartsDuplicate(t *testing.T) {
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 			ProviderID:     "account_123",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 		},
 		{
 			UserFacingName: "Account Balance",
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 			ProviderID:     "account_123",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 		},
 	}
 
@@ -569,6 +571,44 @@ func TestIntegration_CreateChartsDuplicate(t *testing.T) {
 	charts, err := integrationRepo.ListCharts(t.Context(), workspace.ID)
 	require.NoError(t, err)
 	require.Len(t, charts, 1)
+
+	// Verify chart properties
+	chart := charts[0]
+	require.Equal(t, "Account Balance", chart.UserFacingName)
+	require.Equal(t, malak.IntegrationChartInternalNameTypeMercuryAccount, chart.InternalName)
+	require.Equal(t, malak.IntegrationChartTypeBar, chart.ChartType)
+	require.Equal(t, malak.IntegrationDataPointTypeCurrency, chart.DataPointType)
+	require.Equal(t, "account_123", chart.Metadata.ProviderID)
+	require.Equal(t, workspaceIntegration.ID, chart.WorkspaceIntegrationID)
+	require.Equal(t, workspace.ID, chart.WorkspaceID)
+	require.NotEmpty(t, chart.Reference)
+	require.NotZero(t, chart.CreatedAt)
+	require.NotZero(t, chart.UpdatedAt)
+
+	// Test unique constraint with different workspace integration
+	newIntegration := &malak.Integration{
+		IntegrationName: "Mercury 2",
+		Reference:       malak.NewReferenceGenerator().Generate(malak.EntityTypeIntegration),
+		Description:     "Mercury Banking Integration 2",
+		IsEnabled:       true,
+		IntegrationType: malak.IntegrationTypeOauth2,
+		LogoURL:         "https://mercury.com/logo.png",
+	}
+	err = integrationRepo.Create(t.Context(), newIntegration)
+	require.NoError(t, err)
+
+	integrations, err = integrationRepo.List(t.Context(), workspace)
+	require.NoError(t, err)
+	require.Len(t, integrations, 2)
+	newWorkspaceIntegration := integrations[1]
+
+	// Should be able to create chart with same name for different integration
+	err = integrationRepo.CreateCharts(t.Context(), &newWorkspaceIntegration, chartValues[:1])
+	require.NoError(t, err)
+
+	charts, err = integrationRepo.ListCharts(t.Context(), workspace.ID)
+	require.NoError(t, err)
+	require.Len(t, charts, 2)
 }
 
 func TestIntegration_AddDataPointErrors(t *testing.T) {
@@ -693,6 +733,7 @@ func TestIntegration_GetDataPoints(t *testing.T) {
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 			ProviderID:     "account_123",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 		},
 	}
 	err = integrationRepo.CreateCharts(t.Context(), &workspaceIntegration, chartValues)
@@ -709,7 +750,7 @@ func TestIntegration_GetDataPoints(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, dataPoints)
 
-	// Add data points
+	// Add first data point
 	dataPointValues := []malak.IntegrationDataValues{
 		{
 			UserFacingName: "Account Balance",
@@ -726,7 +767,7 @@ func TestIntegration_GetDataPoints(t *testing.T) {
 	err = integrationRepo.AddDataPoint(t.Context(), &workspaceIntegration, dataPointValues)
 	require.NoError(t, err)
 
-	// Add another data point
+	// Add second data point
 	dataPointValues = []malak.IntegrationDataValues{
 		{
 			UserFacingName: "Account Balance",
@@ -754,6 +795,30 @@ func TestIntegration_GetDataPoints(t *testing.T) {
 	require.Equal(t, int64(20000), dataPoints[1].PointValue)
 	require.Equal(t, "Day 2", dataPoints[1].PointName)
 
+	// Test updating an existing data point
+	dataPointValues = []malak.IntegrationDataValues{
+		{
+			UserFacingName: "Account Balance",
+			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
+			ProviderID:     "account_123",
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
+			Data: malak.IntegrationDataPoint{
+				PointName:  "Day 1", // Same point name as first data point
+				PointValue: 15000,   // Updated value
+				Metadata:   malak.IntegrationDataPointMetadata{},
+			},
+		},
+	}
+	err = integrationRepo.AddDataPoint(t.Context(), &workspaceIntegration, dataPointValues)
+	require.NoError(t, err)
+
+	// Verify data point was updated
+	dataPoints, err = integrationRepo.GetDataPoints(t.Context(), chart)
+	require.NoError(t, err)
+	require.Len(t, dataPoints, 2)
+	require.Equal(t, int64(15000), dataPoints[0].PointValue) // Updated value
+	require.Equal(t, "Day 1", dataPoints[0].PointName)
+
 	// Verify data point fields
 	for _, dp := range dataPoints {
 		require.NotEmpty(t, dp.ID)
@@ -771,4 +836,28 @@ func TestIntegration_GetDataPoints(t *testing.T) {
 	dataPoints, err = integrationRepo.GetDataPoints(t.Context(), nonExistentChart)
 	require.NoError(t, err)
 	require.Empty(t, dataPoints)
+
+	// Test unique constraint violation
+	dataPointValues = []malak.IntegrationDataValues{
+		{
+			UserFacingName: "Account Balance",
+			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
+			ProviderID:     "account_123",
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
+			Data: malak.IntegrationDataPoint{
+				PointName:  "Day 1", // Duplicate point name
+				PointValue: 25000,   // Different value
+				Metadata:   malak.IntegrationDataPointMetadata{},
+			},
+		},
+	}
+	err = integrationRepo.AddDataPoint(t.Context(), &workspaceIntegration, dataPointValues)
+	require.NoError(t, err) // Should succeed due to UPSERT behavior
+
+	// Verify the value was updated
+	dataPoints, err = integrationRepo.GetDataPoints(t.Context(), chart)
+	require.NoError(t, err)
+	require.Len(t, dataPoints, 2)
+	require.Equal(t, int64(25000), dataPoints[0].PointValue) // Updated value
+	require.Equal(t, "Day 1", dataPoints[0].PointName)
 }
