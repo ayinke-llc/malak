@@ -85,7 +85,8 @@ export function AddDataPointDialog({
         <DialogHeader>
           <DialogTitle>Add Data Point</DialogTitle>
           <DialogDescription>
-            Add a new data point to {chart.user_facing_name}
+            Add a new data point to {chart.user_facing_name}. Note: Data points can only be modified on
+            the day they are created. Once the day ends, they become permanent and cannot be changed.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
