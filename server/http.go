@@ -268,6 +268,14 @@ func buildRoutes(
 				WrapMalakHTTPHandler(logger, auth.fetchCurrentUser, cfg, "Auth.fetchCurrentUser"))
 		})
 
+		r.Route("/overview", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
+
+			r.Get("/",
+				WrapMalakHTTPHandler(logger, workspaceHandler.overview, cfg, "workspaces.overview"))
+		})
+
 		r.Route("/workspaces", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 			r.Use(requireWorkspaceValidSubscription(cfg))
