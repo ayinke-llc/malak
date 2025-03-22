@@ -256,6 +256,7 @@ export interface MalakIntegration {
 export interface MalakIntegrationChart {
   chart_type?: MalakIntegrationChartType;
   created_at?: string;
+  data_point_type?: MalakIntegrationDataPointType;
   id?: string;
   internal_name?: MalakIntegrationChartInternalNameType;
   metadata?: MalakIntegrationChartMetadata;
@@ -284,7 +285,6 @@ export enum MalakIntegrationChartType {
 
 export interface MalakIntegrationDataPoint {
   created_at?: string;
-  data_point_type?: MalakIntegrationDataPointType;
   id?: string;
   integration_chart_id?: string;
   metadata?: MalakIntegrationDataPointMetadata;

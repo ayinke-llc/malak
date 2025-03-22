@@ -432,6 +432,8 @@ components:
           $ref: '#/components/schemas/malak.IntegrationChartType'
         created_at:
           type: string
+        data_point_type:
+          $ref: '#/components/schemas/malak.IntegrationDataPointType'
         id:
           type: string
         internal_name:
@@ -478,8 +480,6 @@ components:
       properties:
         created_at:
           type: string
-        data_point_type:
-          $ref: '#/components/schemas/malak.IntegrationDataPointType'
         id:
           type: string
         integration_chart_id:

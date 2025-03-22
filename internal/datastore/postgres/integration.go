@@ -198,7 +198,8 @@ func (i *integrationRepo) CreateCharts(ctx context.Context,
 				Metadata: malak.IntegrationChartMetadata{
 					ProviderID: value.ProviderID,
 				},
-				ChartType: value.ChartType,
+				ChartType:     value.ChartType,
+				DataPointType: value.DataPointType,
 			}
 
 			_, err := tx.NewInsert().Model(chart).

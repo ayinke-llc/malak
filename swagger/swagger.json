@@ -647,6 +647,9 @@
 					"created_at": {
 						"type": "string"
 					},
+					"data_point_type": {
+						"$ref": "#/components/schemas/malak.IntegrationDataPointType"
+					},
 					"id": {
 						"type": "string"
 					},
@@ -712,9 +715,6 @@
 				"properties": {
 					"created_at": {
 						"type": "string"
-					},
-					"data_point_type": {
-						"$ref": "#/components/schemas/malak.IntegrationDataPointType"
 					},
 					"id": {
 						"type": "string"

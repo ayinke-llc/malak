@@ -4405,6 +4405,9 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
+                "data_point_type": {
+                    "$ref": "#/definitions/malak.IntegrationDataPointType"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -4470,9 +4473,6 @@ const docTemplate = `{
             "properties": {
                 "created_at": {
                     "type": "string"
-                },
-                "data_point_type": {
-                    "$ref": "#/definitions/malak.IntegrationDataPointType"
                 },
                 "id": {
                     "type": "string"

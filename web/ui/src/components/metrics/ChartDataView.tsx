@@ -43,7 +43,7 @@ export function ChartDataView({ chart, isSystemIntegration }: ChartDataViewProps
     enabled: !!chart?.reference,
   });
 
-  const formattedData = formatChartData(chartData?.data_points);
+  const formattedData = formatChartData(chartData?.data_points, chart.data_point_type);
   
   // Sort data points by created_at in descending order
   const sortedData = [...(formattedData || [])].sort((a, b) => {
@@ -53,7 +53,7 @@ export function ChartDataView({ chart, isSystemIntegration }: ChartDataViewProps
     return new Date(bDate).getTime() - new Date(aDate).getTime();
   }).map(point => ({
     name: point.name,
-    value: formatTooltipValue(point.value, chartData?.data_points?.[0]?.data_point_type)[0],
+    value: formatTooltipValue(point.value, chart.data_point_type)[0],
   }));
 
   const table = useReactTable({

@@ -47,7 +47,7 @@ function MiniChartCard({ chart }: { chart: MalakIntegrationChart; dashboardType:
     enabled: !!chart.reference,
   });
 
-  const formattedData = formatChartData(chartData?.data_points);
+  const formattedData = formatChartData(chartData?.data_points, chart.data_point_type);
 
   if (isLoadingChartData) {
     return (
@@ -114,7 +114,7 @@ function MiniChartCard({ chart }: { chart: MalakIntegrationChart; dashboardType:
             </Pie>
             <RechartsTooltip
               formatter={(value: number) =>
-                formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
+                formatTooltipValue(value, chart.data_point_type)
               }
             />
           </PieChart>
@@ -131,7 +131,7 @@ function MiniChartCard({ chart }: { chart: MalakIntegrationChart; dashboardType:
             <YAxis stroke="#888888" fontSize={8} />
             <RechartsTooltip
               formatter={(value: number) =>
-                formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
+                formatTooltipValue(value, chart.data_point_type)
               }
             />
             <Bar dataKey="value" fill="#3B82F6" radius={[2, 2, 0, 0]} />
