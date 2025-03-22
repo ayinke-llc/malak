@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { MalakWorkspaceIntegration } from "@/client/Api";
 
-export function IntegrationCard({ integration, isSelected, onClick }: { 
-  integration: MalakWorkspaceIntegration; 
+export function IntegrationCard({ integration, isSelected, onClick }: {
+  integration: MalakWorkspaceIntegration;
   isSelected: boolean;
   onClick: () => void;
 }) {
@@ -26,9 +26,9 @@ export function IntegrationCard({ integration, isSelected, onClick }: {
     >
       <div className="flex items-center gap-3">
         {integration.integration?.logo_url ? (
-          <img 
-            src={integration.integration.logo_url} 
-            alt={integration.integration.integration_name || "Integration"} 
+          <img
+            src={integration.integration.logo_url}
+            alt={integration.integration.integration_name || "Integration"}
             className="w-6 h-6 rounded"
           />
         ) : (

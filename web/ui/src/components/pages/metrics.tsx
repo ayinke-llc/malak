@@ -31,7 +31,6 @@ export default function Metrics() {
     enabled: !!selectedIntegration,
   });
 
-  // Filter charts for the selected integration
   const integrationCharts = chartsData?.data?.charts?.filter(
     (chart: MalakIntegrationChart) => chart.workspace_integration_id === selectedIntegration?.id
   ) || [];
@@ -146,9 +145,9 @@ export default function Metrics() {
                     Back to Charts
                   </Button>
                 </div>
-                <ChartDataView 
-                  chart={selectedChart} 
-                  isSystemIntegration={selectedIntegration?.integration?.integration_type === MalakIntegrationType.IntegrationTypeSystem} 
+                <ChartDataView
+                  chart={selectedChart}
+                  isSystemIntegration={selectedIntegration?.integration?.integration_type === MalakIntegrationType.IntegrationTypeSystem}
                   workspaceIntegration={selectedIntegration!}
                 />
               </div>
@@ -187,8 +186,8 @@ export default function Metrics() {
                       ) : integrationCharts.length > 0 ? (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                           {integrationCharts.map((chart: MalakIntegrationChart) => (
-                            <ChartCard 
-                              key={chart.id} 
+                            <ChartCard
+                              key={chart.id}
                               chart={chart}
                               isSelected={false}
                               onClick={() => setSelectedChart(chart)}

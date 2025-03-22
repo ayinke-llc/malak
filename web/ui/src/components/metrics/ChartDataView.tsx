@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ChartTypeIcon } from "./ChartTypeIcon";
-import type { MalakIntegrationChart, MalakIntegrationType, MalakWorkspaceIntegration } from "@/client/Api";
+import type { MalakIntegrationChart, MalakWorkspaceIntegration } from "@/client/Api";
 import client from "@/lib/client";
 import { FETCH_CHART_DATA_POINTS } from "@/lib/query-constants";
 import { formatChartData, formatTooltipValue } from "@/lib/chart-utils";
@@ -51,7 +51,7 @@ export function ChartDataView({ chart, isSystemIntegration, workspaceIntegration
   const sortedData = useMemo(() => {
     const formattedData = formatChartData(chartData?.data_points, chart.data_point_type);
     if (!formattedData) return [];
-    
+
     return [...formattedData]
       .sort((a, b) => {
         const aDate = chartData?.data_points?.find(dp => dp.point_name === a.name)?.created_at;
@@ -91,9 +91,9 @@ export function ChartDataView({ chart, isSystemIntegration, workspaceIntegration
                 <RiAddLine className="h-4 w-4" />
                 Add Data Point
               </Button>
-              <AddDataPointDialog 
-                chart={chart} 
-                open={open} 
+              <AddDataPointDialog
+                chart={chart}
+                open={open}
                 onOpenChange={setOpen}
                 workspaceIntegration={workspaceIntegration}
               />
@@ -118,9 +118,9 @@ export function ChartDataView({ chart, isSystemIntegration, workspaceIntegration
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                         </TableHead>
                       ))}
                     </TableRow>

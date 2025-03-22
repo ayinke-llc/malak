@@ -4,13 +4,13 @@ import { cn } from "@/lib/utils";
 import type { MalakIntegrationChart } from "@/client/Api";
 import { ChartTypeIcon } from "./ChartTypeIcon";
 
-export function ChartCard({ chart, onClick, isSelected }: { 
-  chart: MalakIntegrationChart; 
+export function ChartCard({ chart, onClick, isSelected }: {
+  chart: MalakIntegrationChart;
   onClick: () => void;
   isSelected: boolean;
 }) {
   return (
-    <Card 
+    <Card
       className={cn(
         "p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer",
         isSelected && "border-primary"

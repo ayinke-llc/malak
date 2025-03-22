@@ -485,6 +485,7 @@ func TestIntegration_GetChart(t *testing.T) {
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 			ProviderID:     "account_123",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 		},
 	}
 	err = integrationRepo.CreateCharts(t.Context(), &workspaceIntegration, chartValues)
@@ -665,6 +666,7 @@ func TestIntegration_AddDataPointErrors(t *testing.T) {
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 			ProviderID:     "account_123",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 		},
 	}
 	err = integrationRepo.CreateCharts(t.Context(), &workspaceIntegration, chartValues)
