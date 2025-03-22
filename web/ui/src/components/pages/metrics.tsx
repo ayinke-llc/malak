@@ -146,7 +146,10 @@ export default function Metrics() {
                     Back to Charts
                   </Button>
                 </div>
-                <ChartDataView chart={selectedChart} />
+                <ChartDataView 
+                  chart={selectedChart} 
+                  isSystemIntegration={selectedIntegration?.integration?.integration_type === MalakIntegrationType.IntegrationTypeSystem} 
+                />
               </div>
             ) : (
               <Card className="h-[calc(100vh-200px)] overflow-hidden">

@@ -4,11 +4,12 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ChartTypeIcon } from "./ChartTypeIcon";
-import type { MalakIntegrationChart } from "@/client/Api";
+import type { MalakIntegrationChart, MalakIntegrationType } from "@/client/Api";
 import client from "@/lib/client";
 import { FETCH_CHART_DATA_POINTS } from "@/lib/query-constants";
 import { formatChartData, formatTooltipValue } from "@/lib/chart-utils";
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { AddDataPointDialog } from "./AddDataPointDialog";
 
 interface DataPoint {
   name: string;
@@ -26,7 +27,12 @@ const columns: ColumnDef<DataPoint>[] = [
   },
 ];
 
-export function ChartDataView({ chart }: { chart: MalakIntegrationChart }) {
+interface ChartDataViewProps {
+  chart: MalakIntegrationChart;
+  isSystemIntegration?: boolean;
+}
+
+export function ChartDataView({ chart, isSystemIntegration }: ChartDataViewProps) {
   const { data: chartData, isLoading } = useQuery({
     queryKey: [FETCH_CHART_DATA_POINTS, chart?.reference],
     queryFn: async () => {
@@ -59,14 +65,19 @@ export function ChartDataView({ chart }: { chart: MalakIntegrationChart }) {
   return (
     <Card className="h-[calc(100vh-200px)] overflow-hidden">
       <div className="p-4 border-b">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-md bg-primary/10">
-            <ChartTypeIcon type={chart.chart_type} />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-md bg-primary/10">
+              <ChartTypeIcon type={chart.chart_type} />
+            </div>
+            <div>
+              <h4 className="font-medium">{chart.user_facing_name}</h4>
+              <p className="text-sm text-muted-foreground">{chart.internal_name || "No description available"}</p>
+            </div>
           </div>
-          <div>
-            <h4 className="font-medium">{chart.user_facing_name}</h4>
-            <p className="text-sm text-muted-foreground">{chart.internal_name || "No description available"}</p>
-          </div>
+          {isSystemIntegration && (
+            <AddDataPointDialog chart={chart} />
+          )}
         </div>
       </div>
       <ScrollArea className="h-[calc(100vh-280px)]">
