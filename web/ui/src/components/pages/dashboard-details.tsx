@@ -93,7 +93,7 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
     enabled: !!chart.chart?.reference,
   });
 
-  const formattedData = formatChartData(chartData?.data_points);
+  const formattedData = formatChartData(chartData?.data_points, chart.chart?.data_point_type);
 
   if (isLoadingChartData) {
     return (
@@ -154,7 +154,7 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
               <YAxis stroke="#888888" fontSize={11} />
               <Tooltip
                 formatter={(value: number) =>
-                  formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
+                  formatTooltipValue(value, chart.chart?.data_point_type)
                 }
               />
               <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
@@ -182,7 +182,7 @@ function ChartCard({ chart }: { chart: MalakDashboardChart }) {
               </Pie>
               <Tooltip
                 formatter={(value: number) =>
-                  formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
+                  formatTooltipValue(value, chart.chart?.data_point_type)
                 }
               />
             </PieChart>

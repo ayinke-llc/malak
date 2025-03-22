@@ -30,6 +30,24 @@ func (i *integrationRepo) Create(ctx context.Context,
 
 	return i.inner.RunInTx(ctx, &sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
+			if integration.IntegrationType == malak.IntegrationTypeSystem {
+
+				c, err := tx.NewSelect().Model(new(malak.Integration)).
+					Where("integration_type = ?", malak.IntegrationTypeSystem).
+					Count(ctx)
+				if err != nil {
+					return err
+				}
+
+				if c == 1 {
+					return errors.New("you can only have one system level Integration")
+				}
+			}
+
+			if integration.IntegrationType == malak.IntegrationTypeSystem {
+				integration.IsEnabled = true
+			}
+
 			_, err := tx.NewInsert().
 				Model(integration).
 				Exec(ctx)
@@ -55,7 +73,9 @@ func (i *integrationRepo) Create(ctx context.Context,
 					WorkspaceID:   workspace.ID,
 					Reference:     gen.Generate(malak.EntityTypeWorkspaceIntegration),
 					IntegrationID: integration.ID,
-					IsEnabled:     false,
+					// enable by default if system level
+					IsEnabled: integration.IntegrationType == malak.IntegrationTypeSystem,
+					IsActive:  integration.IntegrationType == malak.IntegrationTypeSystem,
 				})
 			}
 
@@ -181,7 +201,8 @@ func (i *integrationRepo) CreateCharts(ctx context.Context,
 				Metadata: malak.IntegrationChartMetadata{
 					ProviderID: value.ProviderID,
 				},
-				ChartType: value.ChartType,
+				ChartType:     value.ChartType,
+				DataPointType: value.DataPointType,
 			}
 
 			_, err := tx.NewInsert().Model(chart).
@@ -237,6 +258,7 @@ func (i *integrationRepo) AddDataPoint(ctx context.Context,
 
 			_, err = tx.NewInsert().
 				Model(&value.Data).
+				On("CONFLICT (workspace_id, workspace_integration_id, integration_chart_id, point_name) DO UPDATE SET point_value = EXCLUDED.point_value").
 				Exec(ctx)
 			if err != nil {
 				return err

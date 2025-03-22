@@ -1,3 +1,4 @@
+import { MalakIntegrationDataPointType } from "@/client/Api";
 import type { MalakIntegrationDataPoint } from "@/client/Api";
 
 export interface ChartDataPoint {
@@ -5,11 +6,14 @@ export interface ChartDataPoint {
   value: number;
 }
 
-export const formatChartData = (dataPoints: MalakIntegrationDataPoint[] | undefined): ChartDataPoint[] => {
+export const formatChartData = (
+  dataPoints: MalakIntegrationDataPoint[] | undefined,
+  dataPointType?: MalakIntegrationDataPointType
+): ChartDataPoint[] => {
   if (!dataPoints) return [];
 
   return dataPoints.map(point => {
-    const value = point.data_point_type === 'currency'
+    const value = dataPointType === MalakIntegrationDataPointType.IntegrationDataPointTypeCurrency
       ? (point.point_value || 0) / 100
       : point.point_value || 0;
 

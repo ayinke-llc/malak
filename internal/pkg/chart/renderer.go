@@ -42,10 +42,10 @@ func NewEChartsRenderer(storage gulter.Storage, cfg config.Config, db *bun.DB,
 	}
 }
 
-func (r *EChartsRenderer) RenderChart(workspaceID uuid.UUID, chartID string) (string, error) {
+func (r *EChartsRenderer) RenderChart(workspaceID uuid.UUID, chartReference string) (string, error) {
 	chart, err := r.integration.GetChart(context.Background(), malak.FetchChartOptions{
 		WorkspaceID: workspaceID,
-		Reference:   malak.Reference(chartID),
+		Reference:   malak.Reference(chartReference),
 	})
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch chart: %w", err)
@@ -53,7 +53,7 @@ func (r *EChartsRenderer) RenderChart(workspaceID uuid.UUID, chartID string) (st
 
 	// Check for unsupported chart type before fetching data points
 	switch chart.ChartType {
-	case "bar", "pie":
+	case malak.IntegrationChartTypeBar, malak.IntegrationChartTypePie:
 		// These are supported, continue processing
 	default:
 		return "", fmt.Errorf("unsupported chart type: %s", chart.ChartType)
@@ -68,7 +68,7 @@ func (r *EChartsRenderer) RenderChart(workspaceID uuid.UUID, chartID string) (st
 	for i, point := range dataPoints {
 		var value interface{} = point.PointValue
 
-		if point.DataPointType == malak.IntegrationDataPointTypeCurrency {
+		if chart.DataPointType == malak.IntegrationDataPointTypeCurrency {
 			value = float64(point.PointValue) / 100.0
 		}
 

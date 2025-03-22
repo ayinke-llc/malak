@@ -5,7 +5,8 @@
   ],
   "parser": "@typescript-eslint/parser",
   "plugins": [
-    "@typescript-eslint"
+    "@typescript-eslint",
+    "react-query-keys"
   ],
   "rules": {
     "no-unused-vars": "off",
@@ -14,6 +15,7 @@
       {
         "argsIgnorePattern": "^_"
       }
-    ]
+    ],
+    "react-query-keys/no-plain-query-keys": "error"
   }
 }

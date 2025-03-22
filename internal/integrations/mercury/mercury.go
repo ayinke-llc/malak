@@ -43,7 +43,10 @@ type AccountsResponse struct {
 }
 
 type AccountTransaction struct {
-	Total int64 `json:"total"`
+	Total        int64 `json:"total,omitempty"`
+	Transactions []struct {
+		Status string `json:"status,omitempty"`
+	} `json:"transactions,omitempty"`
 }
 
 var tracer = otel.Tracer("integrations.mercury")
@@ -188,8 +191,8 @@ func (m *mercuryClient) Data(ctx context.Context,
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 			ProviderID:     account.ID,
 			UserFacingName: account.Name,
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 			Data: malak.IntegrationDataPoint{
-				DataPointType:          malak.IntegrationDataPointTypeCurrency,
 				WorkspaceIntegrationID: opts.IntegrationID,
 				WorkspaceID:            opts.WorkspaceID,
 				Reference:              opts.ReferenceGenerator.Generate(malak.EntityTypeIntegrationDatapoint),
@@ -204,7 +207,7 @@ func (m *mercuryClient) Data(ctx context.Context,
 			dateFormatterd := time.Now().Format("2006-01-02")
 
 			req, span, err := m.buildRequest(ctx, token, "account.transactions.fetch",
-				fmt.Sprintf("/account/%s/transactions?start=%s&end=%s&status=sent", account.ID, dateFormatterd, dateFormatterd))
+				fmt.Sprintf("/account/%s/transactions?start=%s&end=%s", account.ID, dateFormatterd, dateFormatterd))
 			if err != nil {
 				return err
 			}
@@ -237,16 +240,24 @@ func (m *mercuryClient) Data(ctx context.Context,
 				return err
 			}
 
+			var count int64
+
+			for _, tx := range txs.Transactions {
+				if tx.Status == "pending" || tx.Status == "sent" {
+					count++
+				}
+			}
+
 			dataPoints = append(dataPoints, malak.IntegrationDataValues{
 				InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccountTransaction,
 				UserFacingName: "Transactions count for " + account.Name,
+				DataPointType:  malak.IntegrationDataPointTypeOthers,
 				Data: malak.IntegrationDataPoint{
-					DataPointType:          malak.IntegrationDataPointTypeOthers,
 					WorkspaceIntegrationID: opts.IntegrationID,
 					WorkspaceID:            opts.WorkspaceID,
 					Reference:              opts.ReferenceGenerator.Generate(malak.EntityTypeIntegrationDatapoint),
 					PointName:              malak.GetTodayFormatted(),
-					PointValue:             txs.Total,
+					PointValue:             count,
 					Metadata:               malak.IntegrationDataPointMetadata{},
 				},
 			})

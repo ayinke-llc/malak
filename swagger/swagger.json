@@ -647,6 +647,9 @@
 					"created_at": {
 						"type": "string"
 					},
+					"data_point_type": {
+						"$ref": "#/components/schemas/malak.IntegrationDataPointType"
+					},
 					"id": {
 						"type": "string"
 					},
@@ -713,9 +716,6 @@
 					"created_at": {
 						"type": "string"
 					},
-					"data_point_type": {
-						"$ref": "#/components/schemas/malak.IntegrationDataPointType"
-					},
 					"id": {
 						"type": "string"
 					},
@@ -772,13 +772,13 @@
 				"enum": [
 					"oauth2",
 					"api_key",
-					"default"
+					"system"
 				],
 				"type": "string",
 				"x-enum-varnames": [
 					"IntegrationTypeOauth2",
 					"IntegrationTypeApiKey",
-					"IntegrationTypeDefault"
+					"IntegrationTypeSystem"
 				]
 			},
 			"malak.PasswordDeckPreferences": {
@@ -1411,6 +1411,17 @@
 				},
 				"type": "object"
 			},
+			"server.addDataPointRequest": {
+				"properties": {
+					"value": {
+						"type": "integer"
+					}
+				},
+				"required": [
+					"value"
+				],
+				"type": "object"
+			},
 			"server.authenticateUserRequest": {
 				"properties": {
 					"code": {
@@ -1447,6 +1458,25 @@
 					}
 				},
 				"required": [
+					"title"
+				],
+				"type": "object"
+			},
+			"server.createChartRequest": {
+				"properties": {
+					"chart_type": {
+						"$ref": "#/components/schemas/malak.IntegrationChartType"
+					},
+					"datapoint": {
+						"$ref": "#/components/schemas/malak.IntegrationDataPointType"
+					},
+					"title": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"chart_type",
+					"datapoint",
 					"title"
 				],
 				"type": "object"
@@ -5905,6 +5935,150 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/server.testAPIIntegrationRequest"
+							}
+						}
+					},
+					"description": "request body",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"integrations"
+				]
+			}
+		},
+		"/workspaces/integrations/{reference}/charts": {
+			"post": {
+				"description": "create chart",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.createChartRequest"
+							}
+						}
+					},
+					"description": "request body",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"integrations"
+				]
+			}
+		},
+		"/workspaces/integrations/{reference}/charts/{chart_reference}/points": {
+			"post": {
+				"description": "add data point values to chart",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.addDataPointRequest"
 							}
 						}
 					},

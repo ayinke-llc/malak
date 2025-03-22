@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import type { MalakIntegrationChart } from "@/client/Api";
+import type { MalakIntegrationChart, ServerListDashboardResponse, MalakIntegrationDataPointType } from "@/client/Api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -24,16 +24,18 @@ interface ChartConfig {
   type: "bar" | "pie";
   description: string;
   reference: string;
+  data_point_type?: MalakIntegrationDataPointType;
 }
 
 // Convert API chart to internal chart config
-const convertApiChartToConfig = (chart: MalakIntegrationChart): ChartConfig => {
+const toChartConfig = (chart: MalakIntegrationChart): ChartConfig => {
   return {
-    id: chart.reference || "",
-    name: chart.user_facing_name || "Untitled Chart",
+    id: chart.id || "",
+    name: chart.user_facing_name || "",
     type: chart.chart_type === "pie" ? "pie" : "bar",
     description: `${chart.user_facing_name || "Chart"} visualization`,
     reference: chart.reference || "",
+    data_point_type: chart.data_point_type || undefined,
   };
 };
 
@@ -51,7 +53,7 @@ function ChartDisplay({ chart }: ChartDisplayProps) {
     enabled: !!chart.reference,
   });
 
-  const formattedData = formatChartData(chartData?.data_points);
+  const formattedData = formatChartData(chartData?.data_points, chart.data_point_type);
 
   if (isLoadingChartData) {
     return (
@@ -113,7 +115,7 @@ function ChartDisplay({ chart }: ChartDisplayProps) {
               <YAxis stroke="#888888" />
               <Tooltip
                 formatter={(value: number) =>
-                  formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
+                  formatTooltipValue(value, chart.data_point_type)
                 }
               />
               <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
@@ -145,7 +147,7 @@ function ChartDisplay({ chart }: ChartDisplayProps) {
               </Pie>
               <Tooltip
                 formatter={(value: number) =>
-                  formatTooltipValue(value, chartData?.data_points?.[0]?.data_point_type)
+                  formatTooltipValue(value, chart.data_point_type)
                 }
               />
             </PieChart>
@@ -179,10 +181,10 @@ export const Chart = createReactBlockSpec(
       });
 
       // Convert API charts to internal chart configs
-      const availableCharts = chartsResponse?.data.charts?.map(convertApiChartToConfig) || [];
+      const availableCharts = chartsResponse?.data.charts?.map(toChartConfig) || [];
 
       const selectedChart = availableCharts.find(
-        (chart) => chart.id === props.block.props.selectedChart
+        (chart) => chart.reference === props.block.props.selectedChart
       );
 
       const filteredCharts = availableCharts.filter((chart) => {
@@ -265,7 +267,7 @@ export const Chart = createReactBlockSpec(
                         onSelect={() => {
                           props.editor.updateBlock(props.block, {
                             type: "chart",
-                            props: { selectedChart: chart.id },
+                            props: { selectedChart: chart.reference },
                           });
                           setSearch("");
                         }}

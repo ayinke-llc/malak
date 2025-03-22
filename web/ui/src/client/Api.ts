@@ -256,6 +256,7 @@ export interface MalakIntegration {
 export interface MalakIntegrationChart {
   chart_type?: MalakIntegrationChartType;
   created_at?: string;
+  data_point_type?: MalakIntegrationDataPointType;
   id?: string;
   internal_name?: MalakIntegrationChartInternalNameType;
   metadata?: MalakIntegrationChartMetadata;
@@ -284,7 +285,6 @@ export enum MalakIntegrationChartType {
 
 export interface MalakIntegrationDataPoint {
   created_at?: string;
-  data_point_type?: MalakIntegrationDataPointType;
   id?: string;
   integration_chart_id?: string;
   metadata?: MalakIntegrationDataPointMetadata;
@@ -310,7 +310,7 @@ export interface MalakIntegrationMetadata {
 export enum MalakIntegrationType {
   IntegrationTypeOauth2 = "oauth2",
   IntegrationTypeApiKey = "api_key",
-  IntegrationTypeDefault = "default",
+  IntegrationTypeSystem = "system",
 }
 
 export interface MalakPasswordDeckPreferences {
@@ -579,6 +579,10 @@ export interface ServerAddContactToListRequest {
   reference?: string;
 }
 
+export interface ServerAddDataPointRequest {
+  value: number;
+}
+
 export interface ServerAuthenticateUserRequest {
   code: string;
 }
@@ -589,6 +593,12 @@ export interface ServerContentUpdateRequest {
 }
 
 export interface ServerCreateAPIKeyRequest {
+  title: string;
+}
+
+export interface ServerCreateChartRequest {
+  chart_type: MalakIntegrationChartType;
+  datapoint: MalakIntegrationDataPointType;
   title: string;
 }
 
@@ -1871,6 +1881,45 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerAPIStatus, ServerAPIStatus>({
         path: `/workspaces/integrations/${reference}`,
         method: "PUT",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description create chart
+     *
+     * @tags integrations
+     * @name IntegrationsChartsCreate
+     * @request POST:/workspaces/integrations/{reference}/charts
+     */
+    integrationsChartsCreate: (reference: string, data: ServerCreateChartRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/workspaces/integrations/${reference}/charts`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description add data point values to chart
+     *
+     * @tags integrations
+     * @name IntegrationsChartsPointsCreate
+     * @request POST:/workspaces/integrations/{reference}/charts/{chart_reference}/points
+     */
+    integrationsChartsPointsCreate: (
+      reference: string,
+      chartReference: string,
+      data: ServerAddDataPointRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/workspaces/integrations/${reference}/charts/${chartReference}/points`,
+        method: "POST",
         body: data,
         type: ContentType.Json,
         format: "json",

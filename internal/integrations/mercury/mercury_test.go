@@ -1,6 +1,7 @@
 package mercury
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -47,7 +48,7 @@ func TestMercuryClient_buildRequest(t *testing.T) {
 	require.NoError(t, err)
 	mercuryClient := client.(*mercuryClient)
 
-	req, span, err := mercuryClient.buildRequest(t.Context(), "test-token", "test.span", "/accounts")
+	req, span, err := mercuryClient.buildRequest(context.Background(), "test-token", "test.span", "/accounts")
 	require.NoError(t, err)
 	require.NotNil(t, req)
 	require.NotNil(t, span)
@@ -70,7 +71,7 @@ func TestMercuryClient_InvalidToken(t *testing.T) {
 	defer client.Close()
 
 	// Test Ping with invalid token
-	_, err = client.Ping(t.Context(), "invalid-token")
+	_, err = client.Ping(context.Background(), "invalid-token")
 	require.Error(t, err)
 
 	// Test Data with invalid token
@@ -80,7 +81,7 @@ func TestMercuryClient_InvalidToken(t *testing.T) {
 		ReferenceGenerator: malak.NewReferenceGenerator(),
 		LastFetchedAt:      time.Now(),
 	}
-	_, err = client.Data(t.Context(), "invalid-token", opts)
+	_, err = client.Data(context.Background(), "invalid-token", opts)
 	require.Error(t, err)
 }
 
@@ -102,7 +103,7 @@ func TestMercuryClient_ValidToken(t *testing.T) {
 	defer client.Close()
 
 	// Test Ping with valid token
-	_, err = client.Ping(t.Context(), malak.AccessToken(token))
+	_, err = client.Ping(context.Background(), malak.AccessToken(token))
 	require.NoError(t, err)
 
 	// Test Data with valid token
@@ -112,7 +113,7 @@ func TestMercuryClient_ValidToken(t *testing.T) {
 		ReferenceGenerator: malak.NewReferenceGenerator(),
 		LastFetchedAt:      time.Now(),
 	}
-	dataPoints, err := client.Data(t.Context(), malak.AccessToken(token), opts)
+	dataPoints, err := client.Data(context.Background(), malak.AccessToken(token), opts)
 	if err != nil {
 		t.Skip("MERCURY_API_TOKEN does not have access to any accounts")
 	}

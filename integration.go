@@ -14,7 +14,7 @@ var (
 	ErrChartNotFound                = MalakError("chart not found")
 )
 
-// ENUM(oauth2,api_key,default)
+// ENUM(oauth2,api_key,system)
 type IntegrationType string
 
 // ENUM(stripe,paystack,flutterwave,mercury,brex)
@@ -92,7 +92,6 @@ type IntegrationDataPoint struct {
 	Reference              Reference                    `json:"reference,omitempty"`
 	PointName              string                       `json:"point_name,omitempty"`
 	PointValue             int64                        `json:"point_value,omitempty"`
-	DataPointType          IntegrationDataPointType     `json:"data_point_type,omitempty"`
 	Metadata               IntegrationDataPointMetadata `json:"metadata,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
@@ -115,6 +114,7 @@ type IntegrationChart struct {
 	InternalName           IntegrationChartInternalNameType `json:"internal_name,omitempty"`
 	Metadata               IntegrationChartMetadata         `json:"metadata,omitempty"`
 	ChartType              IntegrationChartType             `json:"chart_type,omitempty"`
+	DataPointType          IntegrationDataPointType         `json:"data_point_type,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty"`
@@ -133,6 +133,7 @@ type IntegrationDataValues struct {
 	InternalName   IntegrationChartInternalNameType
 	UserFacingName string
 	ProviderID     string
+	DataPointType  IntegrationDataPointType
 	Data           IntegrationDataPoint
 }
 
@@ -141,6 +142,7 @@ type IntegrationChartValues struct {
 	UserFacingName string
 	ProviderID     string
 	ChartType      IntegrationChartType
+	DataPointType  IntegrationDataPointType
 }
 
 type IntegrationFetchDataOptions struct {

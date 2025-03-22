@@ -124,6 +124,10 @@ func (wo *workspaceHandler) pingIntegration(
 
 	logger = logger.With(zap.String("integration_name", integration.Integration.IntegrationName))
 
+	if integration.Integration.IntegrationType == malak.IntegrationTypeSystem {
+		return newAPIStatus(http.StatusBadRequest, "you cannot enable a system level integration"), StatusFailed
+	}
+
 	provider, err := malak.ParseIntegrationProvider(strings.ToLower(integration.Integration.IntegrationName))
 	if err != nil {
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
@@ -216,6 +220,10 @@ func (wo *workspaceHandler) enableIntegration(
 
 	if integration.IsEnabled {
 		return newAPIStatus(http.StatusBadRequest, "integration already enabled"), StatusFailed
+	}
+
+	if integration.Integration.IntegrationType == malak.IntegrationTypeSystem {
+		return newAPIStatus(http.StatusBadRequest, "you cannot enable a system level integration"), StatusFailed
 	}
 
 	if integration.Integration.IntegrationType != malak.IntegrationTypeApiKey {
@@ -433,6 +441,10 @@ func (wo *workspaceHandler) disableIntegration(
 			Error(msg,
 				zap.Error(err))
 		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	if integration.Integration.IntegrationType == malak.IntegrationTypeSystem {
+		return newAPIStatus(http.StatusBadRequest, "you cannot disable a system level integration"), StatusFailed
 	}
 
 	if !integration.Integration.IsEnabled {
