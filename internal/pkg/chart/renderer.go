@@ -42,10 +42,10 @@ func NewEChartsRenderer(storage gulter.Storage, cfg config.Config, db *bun.DB,
 	}
 }
 
-func (r *EChartsRenderer) RenderChart(workspaceID uuid.UUID, chartID string) (string, error) {
+func (r *EChartsRenderer) RenderChart(workspaceID uuid.UUID, chartReference string) (string, error) {
 	chart, err := r.integration.GetChart(context.Background(), malak.FetchChartOptions{
 		WorkspaceID: workspaceID,
-		Reference:   malak.Reference(chartID),
+		Reference:   malak.Reference(chartReference),
 	})
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch chart: %w", err)

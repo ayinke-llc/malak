@@ -184,7 +184,7 @@ export const Chart = createReactBlockSpec(
       const availableCharts = chartsResponse?.data.charts?.map(toChartConfig) || [];
 
       const selectedChart = availableCharts.find(
-        (chart) => chart.id === props.block.props.selectedChart
+        (chart) => chart.reference === props.block.props.selectedChart
       );
 
       const filteredCharts = availableCharts.filter((chart) => {
@@ -267,7 +267,7 @@ export const Chart = createReactBlockSpec(
                         onSelect={() => {
                           props.editor.updateBlock(props.block, {
                             type: "chart",
-                            props: { selectedChart: chart.id },
+                            props: { selectedChart: chart.reference },
                           });
                           setSearch("");
                         }}
