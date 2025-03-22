@@ -253,6 +253,25 @@ func generateWorkspacePingIntegrationTestTable() []struct {
 				APIKey: "test-key",
 			},
 		},
+		{
+			name: "cannot ping system integration",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient) {
+				integrationRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.WorkspaceIntegration{
+						Integration: &malak.Integration{
+							IntegrationName: "system",
+							IsEnabled:       true,
+							IntegrationType: malak.IntegrationTypeSystem,
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: testAPIIntegrationRequest{
+				APIKey: "test-key",
+			},
+		},
 	}
 }
 
@@ -563,6 +582,25 @@ func generateWorkspaceEnableIntegrationTestTable() []struct {
 					Return(nil)
 			},
 			expectedStatusCode: http.StatusCreated,
+			req: testAPIIntegrationRequest{
+				APIKey: "test-key",
+			},
+		},
+		{
+			name: "cannot enable system integration",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
+				integrationRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.WorkspaceIntegration{
+						Integration: &malak.Integration{
+							IntegrationName: "system",
+							IsEnabled:       true,
+							IntegrationType: malak.IntegrationTypeSystem,
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusBadRequest,
 			req: testAPIIntegrationRequest{
 				APIKey: "test-key",
 			},
@@ -1045,6 +1083,22 @@ func generateWorkspaceDisableIntegrationTestTable() []struct {
 					Return(nil)
 			},
 			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "cannot disable system integration",
+			mockFn: func(integrationRepo *malak_mocks.MockIntegrationRepository, integrationManager *malak_mocks.MockIntegrationProviderClient, secretsClient *malak_mocks.MockSecretClient) {
+				integrationRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.WorkspaceIntegration{
+						Integration: &malak.Integration{
+							IntegrationName: "system",
+							IsEnabled:       true,
+							IntegrationType: malak.IntegrationTypeSystem,
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusBadRequest,
 		},
 	}
 }

@@ -259,7 +259,7 @@ func TestIntegration_CreateCharts(t *testing.T) {
 		Description:     "Stripe stripe stripe",
 		IsEnabled:       true,
 		IntegrationType: malak.IntegrationTypeOauth2,
-		LogoURL:         "https://google.com",
+		LogoURL:         "https://stripe.com",
 	})
 	require.NoError(t, err)
 
@@ -316,7 +316,7 @@ func TestIntegration_AddDataPoint(t *testing.T) {
 		Description:     "Stripe stripe stripe",
 		IsEnabled:       true,
 		IntegrationType: malak.IntegrationTypeOauth2,
-		LogoURL:         "https://google.com",
+		LogoURL:         "https://ddgoogle.com",
 	})
 	require.NoError(t, err)
 
@@ -592,7 +592,7 @@ func TestIntegration_CreateChartsDuplicate(t *testing.T) {
 		Description:     "Mercury Banking Integration 2",
 		IsEnabled:       true,
 		IntegrationType: malak.IntegrationTypeOauth2,
-		LogoURL:         "https://mercury.com/logo.png",
+		LogoURL:         "https://ssmercury.com/logo.png",
 	}
 	err = integrationRepo.Create(t.Context(), newIntegration)
 	require.NoError(t, err)
@@ -630,7 +630,7 @@ func TestIntegration_AddDataPointErrors(t *testing.T) {
 		Description:     "Mercury Banking Integration",
 		IsEnabled:       true,
 		IntegrationType: malak.IntegrationTypeOauth2,
-		LogoURL:         "https://mercury.com/logo.png",
+		LogoURL:         "https://mercuryddd.com/logo.png",
 	}
 	err = integrationRepo.Create(t.Context(), integration)
 	require.NoError(t, err)
