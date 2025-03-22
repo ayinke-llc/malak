@@ -255,6 +255,7 @@ func (i *integrationRepo) AddDataPoint(ctx context.Context,
 
 			_, err = tx.NewInsert().
 				Model(&value.Data).
+				On("CONFLICT (workspace_id, workspace_integration_id, integration_chart_id, point_name) DO UPDATE SET point_value = EXCLUDED.point_value").
 				Exec(ctx)
 			if err != nil {
 				return err
