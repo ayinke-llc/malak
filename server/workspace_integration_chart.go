@@ -136,3 +136,133 @@ func (wo *workspaceHandler) createChart(
 	return newAPIStatus(http.StatusCreated, "created chart for integration"),
 		StatusSuccess
 }
+
+type addDataPointRequest struct {
+	Value int64 `validate:"required" json:"value,omitempty"`
+	GenericRequest
+}
+
+func (t *addDataPointRequest) Validate() error {
+
+	if t.Value < 0 {
+		return errors.New("provide a valid value")
+	}
+
+	return nil
+}
+
+// @Description add data point values to chart
+// @Tags integrations
+// @Accept  json
+// @Produce  json
+// @Param message body addDataPointRequest true "request body"
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /workspaces/integrations/{reference}/charts/{chart_reference}/points [post]
+func (wo *workspaceHandler) addDataPoint(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	ref := chi.URLParam(r, "reference")
+
+	chartRef := chi.URLParam(r, "chart_reference")
+
+	span.SetAttributes(attribute.String("reference", ref))
+
+	logger = logger.With(zap.String("reference", ref))
+
+	logger.Debug("add data point values to chart")
+
+	req := new(addDataPointRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	logger = logger.With(zap.String("integration_reference", ref))
+
+	integration, err := wo.integrationRepo.Get(ctx, malak.FindWorkspaceIntegrationOptions{
+		Reference: malak.Reference(ref),
+	})
+	if err != nil {
+		var msg string = "could not fetch integration"
+		var status = http.StatusInternalServerError
+
+		if errors.Is(err, malak.ErrWorkspaceIntegrationNotFound) {
+			msg = err.Error()
+			status = http.StatusNotFound
+		}
+
+		logger.
+			Error(msg,
+				zap.Error(err))
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	if !integration.Integration.IsEnabled {
+		return newAPIStatus(http.StatusBadRequest, "integration not enabled yet and coming soon"), StatusFailed
+	}
+
+	if !integration.IsEnabled || !integration.IsActive {
+		return newAPIStatus(http.StatusBadRequest, "integration not enabled"), StatusFailed
+	}
+
+	if integration.Integration.IntegrationType != malak.IntegrationTypeSystem {
+		return newAPIStatus(http.StatusBadRequest,
+				"you can only manually add a datapoint for a system integration"),
+			StatusFailed
+	}
+
+	logger = logger.With(zap.String("integration_name", integration.Integration.IntegrationName))
+
+	chart, err := wo.integrationRepo.GetChart(ctx, malak.FetchChartOptions{
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
+		Reference:   malak.Reference(chartRef),
+	})
+	if err != nil {
+		logger.Error("could not fetch chart", zap.Error(err))
+		status := http.StatusInternalServerError
+		msg := "an error occurred while fetching chart"
+
+		if errors.Is(err, malak.ErrChartNotFound) {
+			status = http.StatusNotFound
+			msg = err.Error()
+		}
+
+		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	value := malak.IntegrationDataValues{
+		InternalName:   chart.InternalName,
+		UserFacingName: chart.UserFacingName,
+		Data: malak.IntegrationDataPoint{
+			WorkspaceID:            getWorkspaceFromContext(ctx).ID,
+			WorkspaceIntegrationID: integration.ID,
+			IntegrationChartID:     chart.ID,
+			Reference:              wo.referenceGenerator.Generate(malak.EntityTypeIntegrationDatapoint),
+			PointName:              malak.GetTodayFormatted(),
+			PointValue:             req.Value,
+			Metadata:               malak.IntegrationDataPointMetadata{},
+		},
+	}
+
+	if err := wo.integrationRepo.AddDataPoint(ctx, integration, []malak.IntegrationDataValues{value}); err != nil {
+		logger.Error("could not insert data points",
+			zap.Error(err))
+
+		return newAPIStatus(http.StatusInternalServerError, "could not create data points"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusCreated, "created chart for integration"),
+		StatusSuccess
+}

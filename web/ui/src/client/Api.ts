@@ -579,6 +579,10 @@ export interface ServerAddContactToListRequest {
   reference?: string;
 }
 
+export interface ServerAddDataPointRequest {
+  value: number;
+}
+
 export interface ServerAuthenticateUserRequest {
   code: string;
 }
@@ -1893,6 +1897,28 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     integrationsChartsCreate: (reference: string, data: ServerCreateChartRequest, params: RequestParams = {}) =>
       this.request<ServerAPIStatus, ServerAPIStatus>({
         path: `/workspaces/integrations/${reference}/charts`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description add data point values to chart
+     *
+     * @tags integrations
+     * @name IntegrationsChartsPointsCreate
+     * @request POST:/workspaces/integrations/{reference}/charts/{chart_reference}/points
+     */
+    integrationsChartsPointsCreate: (
+      reference: string,
+      chartReference: string,
+      data: ServerAddDataPointRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/workspaces/integrations/${reference}/charts/${chartReference}/points`,
         method: "POST",
         body: data,
         type: ContentType.Json,

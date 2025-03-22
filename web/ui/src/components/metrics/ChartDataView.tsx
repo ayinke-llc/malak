@@ -1,15 +1,17 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { RiLoader4Line, RiBarChartBoxLine } from "@remixicon/react";
+import { RiLoader4Line, RiBarChartBoxLine, RiAddLine } from "@remixicon/react";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ChartTypeIcon } from "./ChartTypeIcon";
-import type { MalakIntegrationChart, MalakIntegrationType } from "@/client/Api";
+import type { MalakIntegrationChart, MalakIntegrationType, MalakWorkspaceIntegration } from "@/client/Api";
 import client from "@/lib/client";
 import { FETCH_CHART_DATA_POINTS } from "@/lib/query-constants";
 import { formatChartData, formatTooltipValue } from "@/lib/chart-utils";
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { AddDataPointDialog } from "./AddDataPointDialog";
+import { Button } from "@/components/ui/button";
 
 interface DataPoint {
   name: string;
@@ -30,9 +32,11 @@ const columns: ColumnDef<DataPoint>[] = [
 interface ChartDataViewProps {
   chart: MalakIntegrationChart;
   isSystemIntegration?: boolean;
+  workspaceIntegration: MalakWorkspaceIntegration;
 }
 
-export function ChartDataView({ chart, isSystemIntegration }: ChartDataViewProps) {
+export function ChartDataView({ chart, isSystemIntegration, workspaceIntegration }: ChartDataViewProps) {
+  const [open, setOpen] = useState(false);
   const { data: chartData, isLoading } = useQuery({
     queryKey: [FETCH_CHART_DATA_POINTS, chart?.reference],
     queryFn: async () => {
@@ -76,7 +80,18 @@ export function ChartDataView({ chart, isSystemIntegration }: ChartDataViewProps
             </div>
           </div>
           {isSystemIntegration && (
-            <AddDataPointDialog chart={chart} />
+            <>
+              <Button variant="outline" size="sm" onClick={() => setOpen(true)} className="gap-2">
+                <RiAddLine className="h-4 w-4" />
+                Add Data Point
+              </Button>
+              <AddDataPointDialog 
+                chart={chart} 
+                open={open} 
+                onOpenChange={setOpen}
+                workspaceIntegration={workspaceIntegration}
+              />
+            </>
           )}
         </div>
       </div>

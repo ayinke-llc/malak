@@ -149,6 +149,7 @@ export default function Metrics() {
                 <ChartDataView 
                   chart={selectedChart} 
                   isSystemIntegration={selectedIntegration?.integration?.integration_type === MalakIntegrationType.IntegrationTypeSystem} 
+                  workspaceIntegration={selectedIntegration!}
                 />
               </div>
             ) : (

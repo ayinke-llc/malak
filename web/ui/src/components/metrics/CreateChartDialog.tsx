@@ -43,7 +43,7 @@ const createChartSchema = yup.object({
 export function CreateChartDialog({ integration }: { integration: MalakWorkspaceIntegration }) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
-  
+
   const form = useForm<CreateChartFormData>({
     resolver: yupResolver(createChartSchema),
     defaultValues: {
@@ -75,13 +75,13 @@ export function CreateChartDialog({ integration }: { integration: MalakWorkspace
   });
 
   const handleCreateChart = (data: CreateChartFormData) => {
-  
+
     if (!Object.values(MalakIntegrationChartType).includes(data.type)) {
       toast.error("Invalid chart type selected");
       return;
     }
 
-   
+
     if (!Object.values(MalakIntegrationDataPointType).includes(data.datapoint)) {
       toast.error("Invalid datapoint type selected");
       return;
@@ -121,8 +121,8 @@ export function CreateChartDialog({ integration }: { integration: MalakWorkspace
           </div>
           <div className="space-y-2">
             <Label htmlFor="type">Chart Type</Label>
-            <Select 
-              value={form.watch("type")} 
+            <Select
+              value={form.watch("type")}
               onValueChange={(value: MalakIntegrationChartType) => form.setValue("type", value)}
             >
               <SelectTrigger>
@@ -139,8 +139,8 @@ export function CreateChartDialog({ integration }: { integration: MalakWorkspace
           </div>
           <div className="space-y-2">
             <Label htmlFor="datapoint">Datapoint Type</Label>
-            <Select 
-              value={form.watch("datapoint")} 
+            <Select
+              value={form.watch("datapoint")}
               onValueChange={(value: MalakIntegrationDataPointType) => form.setValue("datapoint", value)}
             >
               <SelectTrigger>
@@ -156,9 +156,9 @@ export function CreateChartDialog({ integration }: { integration: MalakWorkspace
             )}
           </div>
           <div className="flex gap-2 justify-end">
-            <Button 
-              type="button" 
-              variant="destructive" 
+            <Button
+              type="button"
+              variant="destructive"
               onClick={() => {
                 setOpen(false);
                 form.reset();

@@ -314,6 +314,10 @@ func buildRoutes(
 				r.Post("/{reference}/charts",
 					WrapMalakHTTPHandler(logger,
 						workspaceHandler.createChart, cfg, "workspaces.integrations.createChart"))
+
+				r.Post("/{reference}/charts/{chart_reference}/points",
+					WrapMalakHTTPHandler(logger,
+						workspaceHandler.addDataPoint, cfg, "workspaces.integrations.charts.addDataPoint"))
 			})
 
 			r.Route("/updates", func(r chi.Router) {
