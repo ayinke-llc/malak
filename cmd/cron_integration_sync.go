@@ -84,7 +84,8 @@ func syncDataPointForIntegration(_ *cobra.Command, cfg *config.Config) *cobra.Co
 					zap.Int("integration_count", len(integrations)))
 
 				for _, integration := range integrations {
-					if !integration.Integration.IsEnabled || !integration.IsEnabled || !integration.IsActive {
+					if !integration.Integration.IsEnabled || !integration.IsEnabled || !integration.IsActive ||
+						integration.Integration.IntegrationType == malak.IntegrationTypeSystem {
 						logger.Info("skipping integration",
 							zap.String("workspace_integration_id", integration.ID.String()),
 							zap.String("integration", integration.Integration.IntegrationName))

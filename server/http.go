@@ -167,6 +167,7 @@ func buildRoutes(
 		billingClient:           billingClient,
 		integrationManager:      integrationManager,
 		secretsClient:           secretsClient,
+		referenceGenerator:      referenceGenerator,
 	}
 
 	contactHandler := &contactHandler{
@@ -309,6 +310,10 @@ func buildRoutes(
 				r.Post("/{reference}/ping",
 					WrapMalakHTTPHandler(logger,
 						workspaceHandler.pingIntegration, cfg, "workspaces.integrations.ping"))
+
+				r.Post("/{reference}/charts",
+					WrapMalakHTTPHandler(logger,
+						workspaceHandler.createChart, cfg, "workspaces.integrations.createChart"))
 			})
 
 			r.Route("/updates", func(r chi.Router) {

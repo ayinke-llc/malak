@@ -35,6 +35,7 @@ type workspaceHandler struct {
 	queueClient             queue.QueueHandler
 	integrationManager      *integrations.IntegrationsManager
 	secretsClient           secret.SecretClient
+	referenceGenerator      malak.ReferenceGeneratorOperation
 }
 
 type createWorkspaceRequest struct {

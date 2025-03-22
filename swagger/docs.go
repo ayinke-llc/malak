@@ -2803,6 +2803,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/workspaces/integrations/{reference}/charts": {
+            "post": {
+                "description": "create chart",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "integrations"
+                ],
+                "parameters": [
+                    {
+                        "description": "request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createChartRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/workspaces/integrations/{reference}/ping": {
             "post": {
                 "description": "test an api key is valid and can reach the integration",
@@ -5146,6 +5203,21 @@ const docTemplate = `{
                 "title"
             ],
             "properties": {
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.createChartRequest": {
+            "type": "object",
+            "required": [
+                "chart_type",
+                "title"
+            ],
+            "properties": {
+                "chart_type": {
+                    "$ref": "#/definitions/malak.IntegrationChartType"
+                },
                 "title": {
                     "type": "string"
                 }

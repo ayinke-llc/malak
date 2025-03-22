@@ -592,6 +592,11 @@ export interface ServerCreateAPIKeyRequest {
   title: string;
 }
 
+export interface ServerCreateChartRequest {
+  chart_type: MalakIntegrationChartType;
+  title: string;
+}
+
 export interface ServerCreateContactListRequest {
   name: string;
 }
@@ -1871,6 +1876,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerAPIStatus, ServerAPIStatus>({
         path: `/workspaces/integrations/${reference}`,
         method: "PUT",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description create chart
+     *
+     * @tags integrations
+     * @name IntegrationsChartsCreate
+     * @request POST:/workspaces/integrations/{reference}/charts
+     */
+    integrationsChartsCreate: (reference: string, data: ServerCreateChartRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/workspaces/integrations/${reference}/charts`,
+        method: "POST",
         body: data,
         type: ContentType.Json,
         format: "json",

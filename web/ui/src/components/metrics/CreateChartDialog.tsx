@@ -4,6 +4,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { RiAddLine } from "@remixicon/react";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,34 +22,56 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { MalakWorkspaceIntegration } from "@/client/Api";
+import { MalakIntegrationChartType } from "@/client/Api";
+import type { MalakWorkspaceIntegration, ServerAPIStatus } from "@/client/Api";
+import { CREATE_CHART, LIST_CHARTS, FETCH_CHART_DATA_POINTS } from "@/lib/query-constants";
+import client from "@/lib/client";
+import { AxiosError } from "axios";
 
 interface CreateChartFormData {
   title: string;
-  type: "bar" | "pie";
+  type: MalakIntegrationChartType;
 }
 
 const createChartSchema = yup.object({
   title: yup.string().required("Chart title is required"),
-  type: yup.string().oneOf(["bar", "pie"], "Invalid chart type").required("Chart type is required"),
+  type: yup.string().oneOf([MalakIntegrationChartType.IntegrationChartTypeBar, MalakIntegrationChartType.IntegrationChartTypePie], "Invalid chart type").required("Chart type is required"),
 });
 
 export function CreateChartDialog({ integration }: { integration: MalakWorkspaceIntegration }) {
   const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
   
   const form = useForm<CreateChartFormData>({
     resolver: yupResolver(createChartSchema),
     defaultValues: {
       title: "",
-      type: "bar"
+      type: MalakIntegrationChartType.IntegrationChartTypeBar
+    }
+  });
+
+  const { mutate: createChart, isPending } = useMutation({
+    mutationKey: [CREATE_CHART],
+    mutationFn: async (data: CreateChartFormData) => {
+      return client.workspaces.integrationsChartsCreate(integration.reference!, {
+        title: data.title,
+        chart_type: data.type
+      });
+    },
+    onSuccess: ({ data }) => {
+      toast.success("Chart created successfully");
+      queryClient.invalidateQueries({ queryKey: [LIST_CHARTS] });
+      queryClient.invalidateQueries({ queryKey: [FETCH_CHART_DATA_POINTS] });
+      setOpen(false);
+      form.reset();
+    },
+    onError: (error: AxiosError<ServerAPIStatus>) => {
+      toast.error(error.response?.data?.message || "Failed to create chart. Please try again.");
     }
   });
 
   const handleCreateChart = (data: CreateChartFormData) => {
-    // This will be implemented later
-    toast.success("Chart creation will be implemented soon");
-    setOpen(false);
-    form.reset();
+    createChart(data);
   };
 
   return (
@@ -84,14 +107,14 @@ export function CreateChartDialog({ integration }: { integration: MalakWorkspace
             <Label htmlFor="type">Chart Type</Label>
             <Select 
               value={form.watch("type")} 
-              onValueChange={(value: "bar" | "pie") => form.setValue("type", value)}
+              onValueChange={(value: MalakIntegrationChartType) => form.setValue("type", value)}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="bar">Bar Chart</SelectItem>
-                <SelectItem value="pie">Pie Chart</SelectItem>
+                <SelectItem value={MalakIntegrationChartType.IntegrationChartTypeBar}>Bar Chart</SelectItem>
+                <SelectItem value={MalakIntegrationChartType.IntegrationChartTypePie}>Pie Chart</SelectItem>
               </SelectContent>
             </Select>
             {form.formState.errors.type && (
@@ -109,8 +132,8 @@ export function CreateChartDialog({ integration }: { integration: MalakWorkspace
             >
               Cancel
             </Button>
-            <Button type="submit">
-              Create Chart
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Creating..." : "Create Chart"}
             </Button>
           </div>
         </form>
