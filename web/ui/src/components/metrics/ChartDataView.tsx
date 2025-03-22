@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { RiLoader4Line, RiBarChartBoxLine, RiAddLine } from "@remixicon/react";
 import { Card } from "@/components/ui/card";
@@ -41,25 +41,31 @@ export function ChartDataView({ chart, isSystemIntegration, workspaceIntegration
     queryKey: [FETCH_CHART_DATA_POINTS, chart?.reference],
     queryFn: async () => {
       if (!chart?.reference) return null;
-      const response = await client.dashboards.chartsDetail(chart.reference);
+      const response = await client.dashboards.chartsDetail(chart.reference as string);
       return response.data;
     },
     enabled: !!chart?.reference,
   });
 
-  const formattedData = formatChartData(chartData?.data_points, chart.data_point_type);
-  
-  // Sort data points by created_at in descending order
-  const sortedData = [...(formattedData || [])].sort((a, b) => {
-    const aDate = chartData?.data_points?.find(dp => dp.point_name === a.name)?.created_at;
-    const bDate = chartData?.data_points?.find(dp => dp.point_name === b.name)?.created_at;
-    if (!aDate || !bDate) return 0;
-    return new Date(bDate).getTime() - new Date(aDate).getTime();
-  }).map(point => ({
-    name: point.name,
-    value: formatTooltipValue(point.value, chart.data_point_type)[0],
-  }));
+  // Memoize the data transformation
+  const sortedData = useMemo(() => {
+    const formattedData = formatChartData(chartData?.data_points, chart.data_point_type);
+    if (!formattedData) return [];
+    
+    return [...formattedData]
+      .sort((a, b) => {
+        const aDate = chartData?.data_points?.find(dp => dp.point_name === a.name)?.created_at;
+        const bDate = chartData?.data_points?.find(dp => dp.point_name === b.name)?.created_at;
+        if (!aDate || !bDate) return 0;
+        return new Date(bDate).getTime() - new Date(aDate).getTime();
+      })
+      .map(point => ({
+        name: point.name,
+        value: formatTooltipValue(point.value, chart.data_point_type)[0],
+      }));
+  }, [chartData?.data_points, chart.data_point_type]);
 
+  // Memoize the table instance
   const table = useReactTable({
     data: sortedData,
     columns,
@@ -101,7 +107,7 @@ export function ChartDataView({ chart, isSystemIntegration, workspaceIntegration
             <div className="flex items-center justify-center py-8">
               <RiLoader4Line className="h-6 w-6 animate-spin" />
             </div>
-          ) : sortedData && sortedData.length > 0 ? (
+          ) : sortedData.length > 0 ? (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>

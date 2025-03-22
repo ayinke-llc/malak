@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,6 +18,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import client from "@/lib/client";
 import { MalakIntegrationChart, MalakWorkspaceIntegration } from "@/client/Api";
 import { FETCH_CHART_DATA_POINTS } from "@/lib/query-constants";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface AddDataPointDialogProps {
   open: boolean;
@@ -23,31 +34,43 @@ interface AddDataPointDialogProps {
   workspaceIntegration: MalakWorkspaceIntegration;
 }
 
+const schema = yup.object({
+  value: yup
+    .number()
+    .typeError("Please enter a valid number")
+    .min(0, "Value must be a non-negative number")
+    .required("Value is required"),
+});
+
+type FormData = yup.InferType<typeof schema>;
+
 export function AddDataPointDialog({
   open,
   onOpenChange,
   chart,
   workspaceIntegration,
 }: AddDataPointDialogProps) {
-  const [value, setValue] = useState("");
   const queryClient = useQueryClient();
 
+  const form = useForm<FormData>({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      value: undefined,
+    },
+  });
+
   const { mutate: addDataPoint, isPending } = useMutation({
-    mutationFn: async () => {
-      const numericValue = parseInt(value, 10);
-      if (isNaN(numericValue) || numericValue < 0) {
-        throw new Error("Please enter a valid non-negative number");
-      }
+    mutationFn: async (data: FormData) => {
       return client.workspaces.integrationsChartsPointsCreate(
         workspaceIntegration.reference as string,
         chart.reference as string,
-        { value: numericValue }
+        { value: data.value }
       );
     },
     onSuccess: () => {
       toast.success("Data point added successfully");
       onOpenChange(false);
-      setValue("");
+      form.reset();
       // Invalidate queries to refresh the data
       queryClient.invalidateQueries({ queryKey: [FETCH_CHART_DATA_POINTS, chart.reference] });
     },
@@ -65,30 +88,33 @@ export function AddDataPointDialog({
             Add a new data point to {chart.user_facing_name}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="value" className="text-right">
-              Value
-            </Label>
-            <Input
-              id="value"
-              type="number"
-              min="0"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              className="col-span-3"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit((data) => addDataPoint(data))} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="value"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Value</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="0"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button
-            type="submit"
-            onClick={() => addDataPoint()}
-            disabled={isPending || !value}
-          >
-            {isPending ? "Adding..." : "Add Data Point"}
-          </Button>
-        </DialogFooter>
+            <DialogFooter>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Adding..." : "Add Data Point"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
