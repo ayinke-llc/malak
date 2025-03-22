@@ -98,6 +98,14 @@ func TestDashboard_AddChart(t *testing.T) {
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 			ProviderID:     "account_123",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
+		},
+		{
+			UserFacingName: "Transaction History",
+			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccountTransaction,
+			ProviderID:     "account_123",
+			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeOthers,
 		},
 	}
 	err = integrationRepo.CreateCharts(t.Context(), &workspaceIntegration, chartValues)
@@ -105,7 +113,7 @@ func TestDashboard_AddChart(t *testing.T) {
 
 	charts, err := integrationRepo.ListCharts(t.Context(), workspace.ID)
 	require.NoError(t, err)
-	require.Len(t, charts, 1)
+	require.Len(t, charts, 2)
 	createdChart := charts[0]
 
 	dashboard := &malak.Dashboard{
@@ -289,12 +297,14 @@ func TestDashboard_GetCharts(t *testing.T) {
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 			ProviderID:     "account_123",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 		},
 		{
 			UserFacingName: "Transaction History",
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccountTransaction,
 			ProviderID:     "account_123",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeOthers,
 		},
 	}
 	err = integrationRepo.CreateCharts(t.Context(), &workspaceIntegration, chartValues)
@@ -594,12 +604,14 @@ func TestDashboard_UpdatePositions(t *testing.T) {
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 			ProviderID:     "account_123",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 		},
 		{
 			UserFacingName: "Transaction History",
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccountTransaction,
 			ProviderID:     "account_123",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeOthers,
 		},
 	}
 	err = integrationRepo.CreateCharts(t.Context(), &workspaceIntegration, chartValues)
@@ -762,6 +774,7 @@ func TestDashboard_RemoveChart(t *testing.T) {
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 			ProviderID:     "account_123",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 		},
 	}
 	err = integrationRepo.CreateCharts(t.Context(), &workspaceIntegration, chartValues)

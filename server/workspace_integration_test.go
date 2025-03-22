@@ -243,6 +243,8 @@ func generateWorkspacePingIntegrationTestTable() []struct {
 							InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 							UserFacingName: "Test Account",
 							ProviderID:     "test-id",
+							ChartType:      malak.IntegrationChartTypeBar,
+							DataPointType:  malak.IntegrationDataPointTypeCurrency,
 						},
 					}, nil)
 			},

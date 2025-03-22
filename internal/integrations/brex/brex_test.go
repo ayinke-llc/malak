@@ -205,10 +205,10 @@ func TestBrexClient_Data(t *testing.T) {
 				switch dp.InternalName {
 				case malak.IntegrationChartInternalNameTypeBrexAccount:
 					hasAccountData = true
-					require.Equal(t, malak.IntegrationDataPointTypeCurrency, dp.Data.DataPointType)
+					require.Equal(t, malak.IntegrationDataPointTypeCurrency, dp.DataPointType)
 				case malak.IntegrationChartInternalNameTypeBrexAccountTransaction:
 					hasTransactionData = true
-					require.Equal(t, malak.IntegrationDataPointTypeOthers, dp.Data.DataPointType)
+					require.Equal(t, malak.IntegrationDataPointTypeOthers, dp.DataPointType)
 				}
 
 				require.Equal(t, tt.opts.WorkspaceID, dp.Data.WorkspaceID)

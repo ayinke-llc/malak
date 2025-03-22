@@ -275,12 +275,14 @@ func TestIntegration_CreateCharts(t *testing.T) {
 			InternalName:   "revenue_chart",
 			ProviderID:     "stripe_revenue",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 		},
 		{
 			UserFacingName: "Customer Growth",
 			InternalName:   "customer_growth",
 			ProviderID:     "stripe_customers",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeOthers,
 		},
 	}
 
@@ -330,6 +332,7 @@ func TestIntegration_AddDataPoint(t *testing.T) {
 			InternalName:   "revenue_chart",
 			ProviderID:     "stripe_revenue",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 		},
 	}
 
@@ -341,11 +344,11 @@ func TestIntegration_AddDataPoint(t *testing.T) {
 			UserFacingName: "Revenue Chart",
 			InternalName:   "revenue_chart",
 			ProviderID:     "stripe_revenue",
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 			Data: malak.IntegrationDataPoint{
-				PointName:     malak.GetTodayFormatted(),
-				PointValue:    10050, // 100.50 * 100 to store as integer cents
-				DataPointType: malak.IntegrationDataPointTypeCurrency,
-				Metadata:      malak.IntegrationDataPointMetadata{},
+				PointName:  malak.GetTodayFormatted(),
+				PointValue: 10050, // 100.50 * 100 to store as integer cents
+				Metadata:   malak.IntegrationDataPointMetadata{},
 			},
 		},
 	}
@@ -358,11 +361,11 @@ func TestIntegration_AddDataPoint(t *testing.T) {
 			UserFacingName: "Non Existent Chart",
 			InternalName:   "non_existent_chart",
 			ProviderID:     "stripe_revenue",
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 			Data: malak.IntegrationDataPoint{
-				PointName:     malak.GetTodayFormatted(),
-				PointValue:    20000, // 200.00 * 100 to store as integer cents
-				DataPointType: malak.IntegrationDataPointTypeCurrency,
-				Metadata:      malak.IntegrationDataPointMetadata{},
+				PointName:  malak.GetTodayFormatted(),
+				PointValue: 20000, // 200.00 * 100 to store as integer cents
+				Metadata:   malak.IntegrationDataPointMetadata{},
 			},
 		},
 	}
@@ -410,12 +413,14 @@ func TestIntegration_ListCharts(t *testing.T) {
 			InternalName:   "monthly_revenue",
 			ProviderID:     "stripe_monthly_revenue",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 		},
 		{
 			UserFacingName: "Customer Count",
 			InternalName:   "customer_count",
 			ProviderID:     "stripe_customer_count",
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeOthers,
 		},
 	}
 
@@ -601,10 +606,11 @@ func TestIntegration_AddDataPointErrors(t *testing.T) {
 			UserFacingName: "Balance",
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 			ProviderID:     "account_123",
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 			Data: malak.IntegrationDataPoint{
-				PointName:     "Balance",
-				PointValue:    1000,
-				DataPointType: malak.IntegrationDataPointTypeCurrency,
+				PointName:  "Balance",
+				PointValue: 1000,
+				Metadata:   malak.IntegrationDataPointMetadata{},
 			},
 		},
 	}
@@ -709,11 +715,11 @@ func TestIntegration_GetDataPoints(t *testing.T) {
 			UserFacingName: "Account Balance",
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 			ProviderID:     "account_123",
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 			Data: malak.IntegrationDataPoint{
-				PointName:     "Day 1",
-				PointValue:    10000, // $100.00
-				DataPointType: malak.IntegrationDataPointTypeCurrency,
-				Metadata:      malak.IntegrationDataPointMetadata{},
+				PointName:  "Day 1",
+				PointValue: 10000, // $100.00
+				Metadata:   malak.IntegrationDataPointMetadata{},
 			},
 		},
 	}
@@ -726,11 +732,11 @@ func TestIntegration_GetDataPoints(t *testing.T) {
 			UserFacingName: "Account Balance",
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccount,
 			ProviderID:     "account_123",
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 			Data: malak.IntegrationDataPoint{
-				PointName:     "Day 2",
-				PointValue:    20000, // $200.00
-				DataPointType: malak.IntegrationDataPointTypeCurrency,
-				Metadata:      malak.IntegrationDataPointMetadata{},
+				PointName:  "Day 2",
+				PointValue: 20000, // $200.00
+				Metadata:   malak.IntegrationDataPointMetadata{},
 			},
 		},
 	}
@@ -755,7 +761,6 @@ func TestIntegration_GetDataPoints(t *testing.T) {
 		require.Equal(t, workspace.ID, dp.WorkspaceID)
 		require.Equal(t, chart.ID, dp.IntegrationChartID)
 		require.NotEmpty(t, dp.Reference)
-		require.Equal(t, malak.IntegrationDataPointTypeCurrency, dp.DataPointType)
 		require.NotZero(t, dp.CreatedAt)
 		require.NotZero(t, dp.UpdatedAt)
 	}

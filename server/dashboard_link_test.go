@@ -454,7 +454,6 @@ func generatePublicChartingDataRequest() []struct {
 							Reference:              "datapoint_123",
 							PointName:              "Test Point",
 							PointValue:             100,
-							DataPointType:          malak.IntegrationDataPointTypeCurrency,
 							Metadata:               malak.IntegrationDataPointMetadata{},
 						},
 					}, nil)
