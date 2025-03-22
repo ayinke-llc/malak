@@ -1944,6 +1944,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
+     * @description fetch overview
+     *
+     * @tags integrations
+     * @name OverviewList
+     * @request GET:/workspaces/overview
+     */
+    overviewList: (data: ServerCreateChartRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/workspaces/overview`,
+        method: "GET",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description fetch workspace preferences
      *
      * @tags workspace
