@@ -1456,12 +1456,16 @@
 					"chart_type": {
 						"$ref": "#/components/schemas/malak.IntegrationChartType"
 					},
+					"datapoint": {
+						"$ref": "#/components/schemas/malak.IntegrationDataPointType"
+					},
 					"title": {
 						"type": "string"
 					}
 				},
 				"required": [
 					"chart_type",
+					"datapoint",
 					"title"
 				],
 				"type": "object"

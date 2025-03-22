@@ -594,6 +594,7 @@ export interface ServerCreateAPIKeyRequest {
 
 export interface ServerCreateChartRequest {
   chart_type: MalakIntegrationChartType;
+  datapoint: MalakIntegrationDataPointType;
   title: string;
 }
 

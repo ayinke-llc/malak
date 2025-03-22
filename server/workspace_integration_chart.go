@@ -15,9 +15,11 @@ import (
 )
 
 type createChartRequest struct {
+	Title     string                         `json:"title,omitempty" validate:"required"`
+	ChartType malak.IntegrationChartType     `json:"chart_type,omitempty" validate:"required"`
+	Datapoint malak.IntegrationDataPointType `json:"datapoint,omitempty" validate:"required"`
+
 	GenericRequest
-	Title     string                     `json:"title,omitempty" validate:"required"`
-	ChartType malak.IntegrationChartType `json:"chart_type,omitempty" validate:"required"`
 }
 
 func (t *createChartRequest) Validate() error {
@@ -36,6 +38,10 @@ func (t *createChartRequest) Validate() error {
 
 	if !t.ChartType.IsValid() {
 		return errors.New("unsupported chart type")
+	}
+
+	if !t.Datapoint.IsValid() {
+		return errors.New("datapoint type not supported")
 	}
 
 	return nil
@@ -117,6 +123,7 @@ func (wo *workspaceHandler) createChart(
 		InternalName:   malak.IntegrationChartInternalNameType(wo.referenceGenerator.ShortLink()),
 		UserFacingName: req.Title,
 		ChartType:      req.ChartType,
+		DataPointType:  req.Datapoint,
 	}
 
 	if err := wo.integrationRepo.CreateCharts(ctx, integration, []malak.IntegrationChartValues{chart}); err != nil {

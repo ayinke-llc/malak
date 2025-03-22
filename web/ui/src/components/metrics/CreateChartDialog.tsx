@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MalakIntegrationChartType } from "@/client/Api";
+import { MalakIntegrationChartType, MalakIntegrationDataPointType } from "@/client/Api";
 import type { MalakWorkspaceIntegration, ServerAPIStatus } from "@/client/Api";
 import { CREATE_CHART, LIST_CHARTS, FETCH_CHART_DATA_POINTS } from "@/lib/query-constants";
 import client from "@/lib/client";
@@ -31,11 +31,13 @@ import { AxiosError } from "axios";
 interface CreateChartFormData {
   title: string;
   type: MalakIntegrationChartType;
+  datapoint: MalakIntegrationDataPointType;
 }
 
 const createChartSchema = yup.object({
   title: yup.string().required("Chart title is required"),
   type: yup.string().oneOf([MalakIntegrationChartType.IntegrationChartTypeBar, MalakIntegrationChartType.IntegrationChartTypePie], "Invalid chart type").required("Chart type is required"),
+  datapoint: yup.string().oneOf([MalakIntegrationDataPointType.IntegrationDataPointTypeCurrency, MalakIntegrationDataPointType.IntegrationDataPointTypeOthers], "Invalid datapoint type").required("Datapoint type is required"),
 });
 
 export function CreateChartDialog({ integration }: { integration: MalakWorkspaceIntegration }) {
@@ -46,7 +48,8 @@ export function CreateChartDialog({ integration }: { integration: MalakWorkspace
     resolver: yupResolver(createChartSchema),
     defaultValues: {
       title: "",
-      type: MalakIntegrationChartType.IntegrationChartTypeBar
+      type: MalakIntegrationChartType.IntegrationChartTypeBar,
+      datapoint: "" as MalakIntegrationDataPointType
     }
   });
 
@@ -55,7 +58,8 @@ export function CreateChartDialog({ integration }: { integration: MalakWorkspace
     mutationFn: async (data: CreateChartFormData) => {
       return client.workspaces.integrationsChartsCreate(integration.reference!, {
         title: data.title,
-        chart_type: data.type
+        chart_type: data.type,
+        datapoint: data.datapoint
       });
     },
     onSuccess: ({ data }) => {
@@ -71,6 +75,18 @@ export function CreateChartDialog({ integration }: { integration: MalakWorkspace
   });
 
   const handleCreateChart = (data: CreateChartFormData) => {
+  
+    if (!Object.values(MalakIntegrationChartType).includes(data.type)) {
+      toast.error("Invalid chart type selected");
+      return;
+    }
+
+   
+    if (!Object.values(MalakIntegrationDataPointType).includes(data.datapoint)) {
+      toast.error("Invalid datapoint type selected");
+      return;
+    }
+
     createChart(data);
   };
 
@@ -119,6 +135,24 @@ export function CreateChartDialog({ integration }: { integration: MalakWorkspace
             </Select>
             {form.formState.errors.type && (
               <p className="text-sm text-destructive mt-1">{form.formState.errors.type.message}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="datapoint">Datapoint Type</Label>
+            <Select 
+              value={form.watch("datapoint")} 
+              onValueChange={(value: MalakIntegrationDataPointType) => form.setValue("datapoint", value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={MalakIntegrationDataPointType.IntegrationDataPointTypeCurrency}>Currency</SelectItem>
+                <SelectItem value={MalakIntegrationDataPointType.IntegrationDataPointTypeOthers}>Others</SelectItem>
+              </SelectContent>
+            </Select>
+            {form.formState.errors.datapoint && (
+              <p className="text-sm text-destructive mt-1">{form.formState.errors.datapoint.message}</p>
             )}
           </div>
           <div className="flex gap-2 justify-end">

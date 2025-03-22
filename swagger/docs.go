@@ -5212,11 +5212,15 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "chart_type",
+                "datapoint",
                 "title"
             ],
             "properties": {
                 "chart_type": {
                     "$ref": "#/definitions/malak.IntegrationChartType"
+                },
+                "datapoint": {
+                    "$ref": "#/definitions/malak.IntegrationDataPointType"
                 },
                 "title": {
                     "type": "string"
