@@ -10,7 +10,7 @@ import (
 )
 
 // ENUM(billing_trial_ending,billing_create_customer,
-// invite_team_member, share_dashboard)
+// invite_team_member, share_dashboard,subscription_expired)
 type QueueTopic string
 
 type Message struct {
@@ -41,5 +41,16 @@ type BillingCreateCustomerOptions struct {
 type SendEmailOptions struct {
 	Workspace *malak.Workspace
 	Token     string
+	Recipient malak.Email
+}
+
+type SendBillingTrialEmailOptions struct {
+	Workspace  *malak.Workspace
+	Expiration string
+	Recipient  malak.Email
+}
+
+type SubscriptionExpiredOptions struct {
+	Workspace *malak.Workspace
 	Recipient malak.Email
 }
