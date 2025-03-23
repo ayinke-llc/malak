@@ -43,3 +43,9 @@ type SendEmailOptions struct {
 	Token     string
 	Recipient malak.Email
 }
+
+type SendBillingTrialEmailOptions struct {
+	Workspace  *malak.Workspace
+	Expiration string
+	Recipient  malak.Email
+}

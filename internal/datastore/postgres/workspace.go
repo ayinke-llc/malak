@@ -98,8 +98,12 @@ func (o *workspaceRepo) Create(ctx context.Context,
 			return err
 		}
 
+		prefs := malak.NewPreference(opts.Workspace)
+
+		prefs.Billing.FinanceEmail = opts.User.Email
+
 		_, err = tx.NewInsert().
-			Model(malak.NewPreference(opts.Workspace)).
+			Model(prefs).
 			Exec(ctx)
 		if err != nil {
 			return err

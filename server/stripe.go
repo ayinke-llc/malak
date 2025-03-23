@@ -6,11 +6,13 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/billing"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
+	"github.com/dustin/go-humanize"
 	"github.com/go-chi/render"
 	"github.com/stripe/stripe-go/v81/webhook"
 	"go.opentelemetry.io/otel/codes"
@@ -73,18 +75,15 @@ func (s *stripeHandler) handleWebhook(w http.ResponseWriter, r *http.Request) {
 	// 	s.downgradeToFreePlan(ctx, span, w, r, req, logger)
 
 	case "customer.subscription.trial_will_end":
-	// this can be used to send renewal emails to the finance manager
-	// of the workspace
-	//
-	// req := new(TrialWillEnd)
-	//
-	// if err := json.Unmarshal(ev.Data.Raw, req); err != nil {
-	// 	_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, err.Error()))
-	// 	return
-	// }
-	//
-	// s.sendTrialExpiringEmail(ctx, span, w, r, req, logger)
-	//
+		req := new(TrialWillEnd)
+
+		if err := json.Unmarshal(ev.Data.Raw, req); err != nil {
+			_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, err.Error()))
+			return
+		}
+
+		s.sendTrialExpiringEmail(ctx, span, w, r, req, logger)
+
 	case "invoice.paid":
 		// if invoice paid, activate the subscription
 		req := new(Invoice)
@@ -109,6 +108,55 @@ func (s *stripeHandler) handleWebhook(w http.ResponseWriter, r *http.Request) {
 	default:
 		_ = render.Render(w, r, newAPIStatus(http.StatusOK, "skipping this webhook"))
 	}
+}
+
+func (s *stripeHandler) sendTrialExpiringEmail(ctx context.Context,
+	_ trace.Span, w http.ResponseWriter,
+	r *http.Request, req *TrialWillEnd,
+	logger *zap.Logger,
+) {
+
+	ctx, span := tracer.Start(ctx, "sendTrialExpiringEmail")
+	defer span.End()
+
+	logger = logger.With(zap.String("method", "sendTrialExpiringEmail"))
+
+	logger.Debug("sending trial expiration email")
+
+	workspace, err := s.workRepo.Get(ctx, &malak.FindWorkspaceOptions{
+		StripeCustomerID: req.Customer,
+	})
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+
+		logger.Error("could not find workspace by stripe customer ID",
+			zap.Error(err),
+			zap.String("stripe_customer_id", req.Customer))
+
+		_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not find workspace"))
+		return
+	}
+
+	prefs, err := s.preferencesRepo.Get(ctx, workspace)
+	if err != nil {
+		logger.Error("could not fetch preferences", zap.Error(err))
+		_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not fetch preferences"))
+		return
+	}
+
+	err = s.taskQueue.Add(ctx, queue.QueueTopicBillingTrialEnding, &queue.SendBillingTrialEmailOptions{
+		Workspace:  workspace,
+		Expiration: humanize.Time(time.Unix(req.TrialEnd, 0)),
+		Recipient:  prefs.Billing.FinanceEmail,
+	})
+	if err != nil {
+		logger.Error("could not encode queue data", zap.Error(err))
+		_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not encode queue data"))
+		return
+	}
+
+	_ = render.Render(w, r, newAPIStatus(http.StatusOK, ""))
 }
 
 func (s *stripeHandler) createFreeTrialSubscription(ctx context.Context,

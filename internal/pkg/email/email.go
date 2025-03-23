@@ -16,6 +16,9 @@ var (
 
 	//go:embed templates/sharing/dashboard_share.html
 	DashboardSharingTemplate string
+
+	//go:embed templates/billing/trial.html
+	BillingTrialTemplate string
 )
 
 type SendOptionsBatch []SendOptions
