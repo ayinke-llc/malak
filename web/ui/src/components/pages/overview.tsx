@@ -35,8 +35,7 @@ interface RecentUpdate {
   id: string;
   title: string;
   date: string;
-  views: number;
-  recipients: number;
+  reference: string;
 }
 
 function MetricsCard({
@@ -52,18 +51,26 @@ function MetricsCard({
   icon: React.ElementType;
   href: string;
 }) {
+  const content = (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </CardContent>
+    </Card>
+  );
+
+  if (!href) {
+    return content;
+  }
+
   return (
     <Link href={href} className="block transition-transform hover:scale-[1.02]">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{title}</CardTitle>
-          <Icon className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{value}</div>
-          <p className="text-xs text-muted-foreground">{description}</p>
-        </CardContent>
-      </Card>
+      {content}
     </Link>
   );
 }
@@ -158,7 +165,7 @@ function ActivityLogSkeleton() {
 function RecentUpdateItem({ update }: { update: RecentUpdate }) {
   return (
     <Link
-      href={`/updates/${update.id}`}
+      href={`/updates/${update.reference}`}
       className="flex items-center gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50"
     >
       <div className="p-2 rounded-full bg-blue-100 text-blue-600">
@@ -167,12 +174,9 @@ function RecentUpdateItem({ update }: { update: RecentUpdate }) {
       <div className="flex-1">
         <div className="flex justify-between items-center">
           <p className="text-sm font-medium">{update.title}</p>
-          <span className="text-xs text-muted-foreground">{update.date}</span>
-        </div>
-        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-          <span>{update.views} views</span>
-          <span>•</span>
-          <span>{update.recipients} recipients</span>
+          <span className="text-xs text-muted-foreground">
+            {formatDistanceToNow(new Date(update.date), { addSuffix: true })}
+          </span>
         </div>
       </div>
     </Link>
@@ -250,9 +254,9 @@ export default function Overview() {
             <MetricsCard
               title="Total Views"
               value={metrics.totalViews}
-              description="Across all content"
+              description="Across your decks"
               icon={RiEyeLine}
-              href="/analytics"
+              href=""
             />
             <MetricsCard
               title="Total Contacts"
@@ -338,8 +342,7 @@ export default function Overview() {
                       id: update.id ?? "",
                       title: update.title ?? "",
                       date: update.sent_at ?? update.created_at ?? "",
-                      views: 0, // This data is not available in the API response
-                      recipients: 0, // This data is not available in the API response
+                      reference: update.reference ?? "",
                     }}
                   />
                 ))}

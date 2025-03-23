@@ -39,6 +39,13 @@ func (wo *workspaceHandler) overview(
 		shares   *malak.ShareOverview
 	)
 
+	// TODO: clean this up. Maybe cache all these data and rebuild everytime it changes
+	// so we have one query.
+	// I expect this dashboard to get complex over time but 4/5 queries not bad at the moment
+	// But the data/otel will tell anyways
+	// But it si fine for now
+	//
+
 	g.Go(func() error {
 		var err error
 		updates, err = wo.updateRepo.Overview(gctx, workspace.ID)
