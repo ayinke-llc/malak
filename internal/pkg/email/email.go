@@ -19,6 +19,9 @@ var (
 
 	//go:embed templates/billing/trial.html
 	BillingTrialTemplate string
+
+	//go:embed templates/billing/expired.html
+	BillingEndedTemplate string
 )
 
 type SendOptionsBatch []SendOptions

@@ -12,6 +12,65 @@ import (
 	"go.uber.org/zap"
 )
 
+func (t *WatermillClient) sendSubExpiredEmail(msg *message.Message) error {
+
+	ctx, span := tracer.Start(context.Background(),
+		"sendSubExpiredEmail")
+
+	defer span.End()
+
+	var opts queue.SubscriptionExpiredOptions
+
+	if err := json.NewDecoder(bytes.NewBuffer(msg.Payload)).
+		Decode(&opts); err != nil {
+		return err
+	}
+
+	logger := t.logger.With(zap.String("method", "sendSubExpiredEmail"),
+		zap.String("workspace_id", opts.Workspace.ID.String()))
+
+	logger.Debug("sending sub expired email")
+
+	tmpl, err := template.New("template").Parse(email.BillingEndedTemplate)
+	if err != nil {
+		logger.Error("could not parse email template", zap.Error(err))
+		return err
+	}
+
+	var link = t.cfg.Frontend.AppURL + "/settings?tab=billing"
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, map[string]string{
+		"WorkspaceName": opts.Workspace.WorkspaceName,
+		"Link":          link,
+	}); err != nil {
+		logger.Error("could not embed content in template", zap.Error(err))
+		return err
+	}
+
+	emailOpts := email.SendOptions{
+		HTML:      buf.String(),
+		Sender:    t.cfg.Email.Sender,
+		Recipient: opts.Recipient,
+		Subject:   "Your Malak subscription has come to an end. Please resubscribe",
+		DKIM: struct {
+			Sign       bool
+			PrivateKey []byte
+		}{
+			Sign:       false,
+			PrivateKey: []byte(""),
+		},
+	}
+
+	_, err = t.emailClient.Send(ctx, emailOpts)
+	if err != nil {
+		logger.Error("could not send email", zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
 func (t *WatermillClient) sendBillingTrialEmail(msg *message.Message) error {
 
 	ctx, span := tracer.Start(context.Background(),

@@ -63,16 +63,14 @@ func (s *stripeHandler) handleWebhook(w http.ResponseWriter, r *http.Request) {
 
 	switch ev.Type {
 	case "customer.subscription.deleted":
-	// oh, we hate to see you leave
-	//
-	// 	req := new(SubscriptionDeletedRequest)
-	//
-	// 	if err := json.Unmarshal(ev.Data.Raw, req); err != nil {
-	// 		_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, err.Error()))
-	// 		return
-	// 	}
-	//
-	// 	s.downgradeToFreePlan(ctx, span, w, r, req, logger)
+		req := new(SubscriptionDeletedRequest)
+
+		if err := json.Unmarshal(ev.Data.Raw, req); err != nil {
+			_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, err.Error()))
+			return
+		}
+
+		s.handleExpiredSubscription(ctx, span, w, r, req, logger)
 
 	case "customer.subscription.trial_will_end":
 		req := new(TrialWillEnd)
@@ -108,6 +106,65 @@ func (s *stripeHandler) handleWebhook(w http.ResponseWriter, r *http.Request) {
 	default:
 		_ = render.Render(w, r, newAPIStatus(http.StatusOK, "skipping this webhook"))
 	}
+}
+
+func (s *stripeHandler) handleExpiredSubscription(ctx context.Context,
+	_ trace.Span, w http.ResponseWriter,
+	r *http.Request, req *SubscriptionDeletedRequest,
+	logger *zap.Logger,
+) {
+
+	ctx, span := tracer.Start(ctx, "handleExpiredSubscription")
+	defer span.End()
+
+	logger = logger.With(zap.String("method", "handleExpiredSubscription"))
+
+	logger.Debug("handling expired subscription")
+
+	workspace, err := s.workRepo.Get(ctx, &malak.FindWorkspaceOptions{
+		StripeCustomerID: req.Customer,
+	})
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+
+		logger.Error("could not find workspace by stripe customer ID",
+			zap.Error(err),
+			zap.String("stripe_customer_id", req.Customer))
+
+		_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not find workspace"))
+		return
+	}
+
+	prefs, err := s.preferencesRepo.Get(ctx, workspace)
+	if err != nil {
+		logger.Error("could not fetch preferences", zap.Error(err))
+		_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not fetch preferences"))
+		return
+	}
+
+	workspace.IsSubscriptionActive = false
+	workspace.SubscriptionID = ""
+
+	// keep the old plan, when you resubscribe, the value updates
+
+	if err := s.workRepo.Update(ctx, workspace); err != nil {
+		logger.Error("could not update workspace to remove subscription", zap.Error(err))
+		_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not update workspace susbcription"))
+		return
+	}
+
+	err = s.taskQueue.Add(ctx, queue.QueueTopicSubscriptionExpired, &queue.SubscriptionExpiredOptions{
+		Workspace: workspace,
+		Recipient: prefs.Billing.FinanceEmail,
+	})
+	if err != nil {
+		logger.Error("could not encode queue data", zap.Error(err))
+		_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not encode queue data"))
+		return
+	}
+
+	_ = render.Render(w, r, newAPIStatus(http.StatusOK, ""))
 }
 
 func (s *stripeHandler) sendTrialExpiringEmail(ctx context.Context,
@@ -268,6 +325,7 @@ func (s *stripeHandler) addInvoice(
 
 	workspace.PlanID = plan.ID
 	workspace.IsSubscriptionActive = true
+	workspace.SubscriptionID = req.Subscription
 
 	if err := s.workRepo.Update(ctx, workspace); err != nil {
 		span.RecordError(err)

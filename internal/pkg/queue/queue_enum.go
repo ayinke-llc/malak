@@ -20,6 +20,8 @@ const (
 	QueueTopicInviteTeamMember QueueTopic = "invite_team_member"
 	// QueueTopicShareDashboard is a QueueTopic of type share_dashboard.
 	QueueTopicShareDashboard QueueTopic = "share_dashboard"
+	// QueueTopicSubscriptionExpired is a QueueTopic of type subscription_expired.
+	QueueTopicSubscriptionExpired QueueTopic = "subscription_expired"
 )
 
 var ErrInvalidQueueTopic = errors.New("not a valid QueueTopic")
@@ -41,6 +43,7 @@ var _QueueTopicValue = map[string]QueueTopic{
 	"billing_create_customer": QueueTopicBillingCreateCustomer,
 	"invite_team_member":      QueueTopicInviteTeamMember,
 	"share_dashboard":         QueueTopicShareDashboard,
+	"subscription_expired":    QueueTopicSubscriptionExpired,
 }
 
 // ParseQueueTopic attempts to convert a string to a QueueTopic.
