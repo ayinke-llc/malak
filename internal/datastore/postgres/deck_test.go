@@ -549,6 +549,7 @@ func TestDeck_UpdateDeckSession(t *testing.T) {
 	session := &malak.DeckViewerSession{
 		DeckID:     testDeck.ID,
 		SessionID:  malak.NewReferenceGenerator().Generate(malak.EntityTypeSession),
+		Reference:  malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckViewerSession),
 		DeviceInfo: "Test Device",
 		OS:         "macOS",
 		Browser:    "Chrome",
