@@ -23,13 +23,11 @@ import (
 	"github.com/rs/cors"
 	"github.com/sethvargo/go-limiter/httplimit"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
-	"github.com/uptrace/bun"
 	"go.uber.org/zap"
 )
 
 func New(logger *zap.Logger,
 	cfg config.Config,
-	db *bun.DB,
 	jwtTokenManager jwttoken.JWTokenManager,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	dashboardRepo malak.DashboardRepository,
@@ -52,7 +50,6 @@ func New(logger *zap.Logger,
 	billingClient billing.Client,
 	integrationManager *integrations.IntegrationsManager,
 	secretsClient secret.SecretClient,
-	apiSecretsClient secret.SecretClient,
 	geolocationService geolocation.GeolocationService,
 	imageUploadGulterHandler *gulter.Gulter,
 	deckUploadGulterHandler *gulter.Gulter) (*http.Server, func()) {
@@ -63,15 +60,15 @@ func New(logger *zap.Logger,
 	}
 
 	srv := &http.Server{
-		Handler: buildRoutes(logger, db, cfg, jwtTokenManager,
+		Handler: buildRoutes(logger, cfg, jwtTokenManager,
 			dashboardRepo,
 			userRepo, workspaceRepo, planRepo,
 			contactRepo, updateRepo, contactListRepo,
 			deckRepo, shareRepo, preferenceRepo, integrationRepo, templatesRepo,
 			dashboardLinkRepo, apiRepo,
-			googleAuthProvider, mid,
-			queueHandler, redisCache, billingClient, integrationManager, secretsClient, apiSecretsClient,
-			geolocationService, imageUploadGulterHandler, deckUploadGulterHandler),
+			googleAuthProvider, mid, queueHandler, redisCache, billingClient,
+			integrationManager, secretsClient, geolocationService, imageUploadGulterHandler,
+			deckUploadGulterHandler),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -101,7 +98,6 @@ func (rw *responseWriter) WriteHeader(code int) {
 
 func buildRoutes(
 	logger *zap.Logger,
-	_ *bun.DB,
 	cfg config.Config,
 	jwtTokenManager jwttoken.JWTokenManager,
 	dashboardRepo malak.DashboardRepository,
@@ -125,7 +121,6 @@ func buildRoutes(
 	billingClient billing.Client,
 	integrationManager *integrations.IntegrationsManager,
 	secretsClient secret.SecretClient,
-	apiSecretsClient secret.SecretClient,
 	geolocationService geolocation.GeolocationService,
 	imageUploadGulterHandler *gulter.Gulter,
 	deckUploadGulterHandler *gulter.Gulter) http.Handler {
@@ -235,9 +230,9 @@ func buildRoutes(
 	}
 
 	apiHandler := &apiKeyHandler{
-		secretsClient: apiSecretsClient,
-		generator:     referenceGenerator,
-		apiRepo:       apiRepo,
+		generator: referenceGenerator,
+		apiRepo:   apiRepo,
+		cfg:       cfg,
 	}
 
 	router.Use(middleware.RequestID)
@@ -260,7 +255,18 @@ func buildRoutes(
 	})
 
 	router.Route("/v1", func(r chi.Router) {
+
+		r.Route("/ingest", func(r chi.Router) {
+			r.Use(requireAPIKeyOnly(logger, cfg, apiRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
+
+			r.Post("/{reference}/charts/{chart_reference}/points",
+				WrapMalakHTTPHandler(logger, workspaceHandler.addDataPoint, cfg, "api.charts.points"))
+		})
+
 		r.Route("/auth", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
 			r.Post("/connect/{provider}",
 				WrapMalakHTTPHandler(logger, auth.Login, cfg, "Auth.Login"))
 		})

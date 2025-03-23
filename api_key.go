@@ -2,6 +2,9 @@ package malak
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"time"
 
@@ -51,4 +54,11 @@ type APIKeyRepository interface {
 	Revoke(context.Context, RevokeAPIKeyOptions) error
 	List(context.Context, uuid.UUID) ([]APIKey, error)
 	Fetch(context.Context, FetchAPIKeyOptions) (*APIKey, error)
+	FetchByValue(context.Context, string) (*APIKey, error)
+}
+
+func HashKey(secret, val string) string {
+	h := hmac.New(sha256.New, []byte(secret))
+	_, _ = h.Write([]byte(val))
+	return hex.EncodeToString(h.Sum(nil))
 }

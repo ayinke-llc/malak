@@ -6,7 +6,6 @@ import (
 
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/ayinke-llc/malak/internal/secret"
 )
 
@@ -91,10 +90,6 @@ type Config struct {
 		DefaultPlanReference string `yaml:"default_plan_reference" mapstructure:"default_plan_reference"`
 	} `yaml:"billing" mapstructure:"billing"`
 
-	API struct {
-		Provider secret.SecretProvider `yaml:"provider" mapstructure:"provider"`
-	} `yaml:"api" mapstructure:"api"`
-
 	Secrets struct {
 		ClientTimeout time.Duration `yaml:"client_timeout" mapstructure:"client_timeout"`
 
@@ -126,6 +121,10 @@ type Config struct {
 			Endpoint     string `yaml:"endpoint" mapstructure:"endpoint"`
 		} `yaml:"secrets_manager" mapstructure:"secrets_manager"`
 	} `yaml:"secrets" mapstructure:"secrets"`
+
+	APIKey struct {
+		HashSecret string `mapstructure:"hash_secret" yaml:"hash_secret"`
+	} `mapstructure:"api_key" yaml:"api_key"`
 
 	Uploader struct {
 		Driver        UploadDriver `yaml:"driver" mapstructure:"driver"`
@@ -215,15 +214,19 @@ func (c *Config) Validate() error {
 		c.HTTP.Port = 5300
 	}
 
-	if util.IsStringEmpty(c.Uploader.S3.AccessKey) {
+	if hermes.IsStringEmpty(c.APIKey.HashSecret) {
+		return errors.New("you must provide a hash secret for your api keys")
+	}
+
+	if hermes.IsStringEmpty(c.Uploader.S3.AccessKey) {
 		return errors.New("please provide your s3 access key")
 	}
 
-	if util.IsStringEmpty(c.Uploader.S3.AccessSecret) {
+	if hermes.IsStringEmpty(c.Uploader.S3.AccessSecret) {
 		return errors.New("please provide your s3 access secret key")
 	}
 
-	if util.IsStringEmpty(c.Uploader.S3.Bucket) {
+	if hermes.IsStringEmpty(c.Uploader.S3.Bucket) {
 		c.Uploader.S3.Bucket = "malak"
 	}
 
@@ -237,16 +240,16 @@ func (c *Config) Validate() error {
 
 	if c.Auth.Google.IsEnabled {
 
-		if util.IsStringEmpty(c.Auth.Google.ClientID) {
+		if hermes.IsStringEmpty(c.Auth.Google.ClientID) {
 			return errors.New("please provide Google oauth key")
 		}
 
-		if util.IsStringEmpty(c.Auth.Google.ClientSecret) {
+		if hermes.IsStringEmpty(c.Auth.Google.ClientSecret) {
 			return errors.New("please provide Google oauth secret")
 		}
 	}
 
-	if util.IsStringEmpty(c.Auth.JWT.Key) {
+	if hermes.IsStringEmpty(c.Auth.JWT.Key) {
 		return errors.New("please provide your JWT key")
 	}
 

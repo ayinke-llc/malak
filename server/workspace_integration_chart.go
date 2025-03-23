@@ -263,6 +263,6 @@ func (wo *workspaceHandler) addDataPoint(
 		return newAPIStatus(http.StatusInternalServerError, "could not create data points"), StatusFailed
 	}
 
-	return newAPIStatus(http.StatusCreated, "created chart for integration"),
+	return newAPIStatus(http.StatusCreated, "added datapoints"),
 		StatusSuccess
 }

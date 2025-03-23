@@ -108,6 +108,63 @@ func requireWorkspaceValidSubscription(
 	}
 }
 
+func requireAPIKeyOnly(
+	logger *zap.Logger,
+	cfg config.Config,
+	apiRepo malak.APIKeyRepository,
+	workspaceRepo malak.WorkspaceRepository,
+) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			ctx, span, rid := getTracer(r.Context(), r, "middleware.requireAPIKeyOnly", cfg.Otel.IsEnabled)
+			defer span.End()
+
+			logger = logger.With(
+				zap.String("request_id", rid),
+				zap.String("path", r.URL.Path),
+				zap.Bool("is_api", true),
+			)
+
+			token, err := tokenFromRequest(r)
+			if err != nil {
+				_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "please provide api key"))
+				return
+			}
+
+			token = malak.HashKey(cfg.APIKey.HashSecret, token)
+
+			// TODO: do we need to cache this instead of hitting the db?
+			// Maybe not, Maybe. but otel will tell us that
+			// for now, it is fine to leave as-is
+			key, err := apiRepo.FetchByValue(ctx, token)
+			if err != nil {
+				if errors.Is(err, malak.ErrAPIKeyNotFound) {
+					_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "token not found"))
+					return
+				}
+
+				logger.Error("error while fetching api key", zap.Error(err))
+				_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "error occurred while fetching api key"))
+				return
+			}
+
+			workspace, err := workspaceRepo.Get(ctx, &malak.FindWorkspaceOptions{
+				ID: key.WorkspaceID,
+			})
+			if err != nil {
+				logger.Error("could not fetch workspace from database", zap.Error(err))
+				_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while fetching workspace from database"))
+				return
+			}
+
+			r = r.WithContext(writeWorkspaceToCtx(r.Context(), workspace))
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func requireAuthentication(
 	logger *zap.Logger,
 	jwtManager jwttoken.JWTokenManager,

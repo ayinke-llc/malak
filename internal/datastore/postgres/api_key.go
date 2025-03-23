@@ -21,6 +21,22 @@ func NewAPIKeyRepository(db *bun.DB) malak.APIKeyRepository {
 	}
 }
 
+func (a *apiKeyImpl) FetchByValue(ctx context.Context, val string) (
+	*malak.APIKey, error) {
+
+	var apiKey = new(malak.APIKey)
+
+	err := a.inner.NewSelect().
+		Model(apiKey).
+		Where("value = ?", val).
+		Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = malak.ErrAPIKeyNotFound
+	}
+
+	return apiKey, err
+}
+
 func (a *apiKeyImpl) Fetch(ctx context.Context, opts malak.FetchAPIKeyOptions) (
 	*malak.APIKey, error) {
 

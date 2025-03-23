@@ -7,7 +7,7 @@ import (
 
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/internal/secret"
+	"github.com/ayinke-llc/malak/config"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/microcosm-cc/bluemonday"
@@ -16,9 +16,9 @@ import (
 )
 
 type apiKeyHandler struct {
-	apiRepo       malak.APIKeyRepository
-	secretsClient secret.SecretClient
-	generator     malak.ReferenceGeneratorOperation
+	apiRepo   malak.APIKeyRepository
+	generator malak.ReferenceGeneratorOperation
+	cfg       config.Config
 }
 
 type createAPIKeyRequest struct {
@@ -83,15 +83,7 @@ func (d *apiKeyHandler) create(
 
 	value := d.generator.Token()
 
-	encrypted, err := d.secretsClient.Create(ctx, &secret.CreateSecretOptions{
-		Value:       value,
-		WorkspaceID: workspace.ID,
-	})
-	if err != nil {
-		logger.Error("could not encrypt value", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError, "could not encrypt value"),
-			StatusFailed
-	}
+	encrypted := malak.HashKey(d.cfg.APIKey.HashSecret, value)
 
 	key := &malak.APIKey{
 		WorkspaceID: workspace.ID,

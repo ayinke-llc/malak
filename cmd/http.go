@@ -347,20 +347,15 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				logger.Fatal("could not build secrets provider", zap.Error(err))
 			}
 
-			apiSecretProvider, err := buildSecretsProvider(cfg.API.Provider, hermes.DeRef(cfg))
-			if err != nil {
-				logger.Fatal("could not build api secrets provider", zap.Error(err))
-			}
-
 			srv, cleanupSrv := server.New(logger,
-				util.DeRef(cfg), db,
+				util.DeRef(cfg),
 				tokenManager, googleAuthProvider,
 				dashRepo, userRepo, workspaceRepo, planRepo, contactRepo,
 				updateRepo, contactlistRepo, deckRepo, shareRepo,
 				preferenceRepo, integrationRepo,
 				templatesRepo, dashboardLinkRepo, apiRepo,
 				mid, queueHandler, redisCache, billingClient,
-				integrationManager, secretsProvider, apiSecretProvider,
+				integrationManager, secretsProvider,
 				geoService, imageUploadGulterHandler, deckUploadGulterHandler)
 
 			go func() {
