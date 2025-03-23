@@ -4,6 +4,7 @@ import {
   RiContactsLine,
   RiDashboardHorizontalLine,
   RiHome2Line,
+  RiLineChartLine,
   RiMoneyDollarCircleLine,
   RiPieChartLine,
   RiPlug2Line,
@@ -44,7 +45,7 @@ export const links = [
   {
     title: "Metrics",
     url: "/metrics",
-    icon: RiDashboardHorizontalLine
+    icon: RiLineChartLine
   },
   {
     title: "Fundraising",

@@ -18,7 +18,7 @@ import type {
   AxiosResponse
 } from "axios"
 import Skeleton from "../../custom/loader/skeleton"
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { LIST_PINNED_UPDATES, TOGGLE_PINNED_STATE } from "@/lib/query-constants"
 import client from "@/lib/client"
 import { toast } from "sonner"
@@ -74,6 +74,7 @@ const PinnedList = () => {
 
 const Item = (update: MalakUpdate) => {
 
+  const queryClient = useQueryClient()
   const posthog = usePostHog()
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -100,6 +101,7 @@ const Item = (update: MalakUpdate) => {
     onSuccess: (resp: AxiosResponse<ServerCreatedUpdateResponse>) => {
       toast.success(`Update has been Unpinned`);
       setDeleted(resp.data?.update?.is_pinned as boolean)
+      queryClient.invalidateQueries({ queryKey: [LIST_PINNED_UPDATES] })
     },
   });
 
