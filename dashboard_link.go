@@ -17,7 +17,7 @@ type DashboardLink struct {
 	ID          uuid.UUID         `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 	Reference   Reference         `json:"reference,omitempty"`
 	DashboardID uuid.UUID         `json:"dashboard_id,omitempty"`
-	Dashboard   *Dashboard        `json:"dashboard,omitempty" bun:"rel:has-one,join:dashboard_id=id"`
+	Dashboard   *Dashboard        `json:"-" bun:"rel:has-one,join:dashboard_id=id"`
 	LinkType    DashboardLinkType `json:"link_type,omitempty"`
 	Token       string            `json:"token,omitempty"`
 	ContactID   uuid.UUID         `json:"contact_id,omitempty" bun:",nullzero"`

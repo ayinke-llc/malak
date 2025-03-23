@@ -50,3 +50,4 @@ export const CREATE_API_KEY = "CREATE_API_KEY" as const
 export const LIST_API_KEYS = "LIST_API_KEYS" as const
 export const REVOKE_API_KEY = "REVOKE_API_KEY" as const
 export const CREATE_CHART = "CREATE_CHART" as const
+export const FETCH_OVERVIEW_DATA = "FETCH_OVERVIEW_DATA" as const

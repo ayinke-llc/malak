@@ -5,284 +5,321 @@ import {
   RiMailLine,
   RiFileTextLine,
   RiPresentationLine,
-  RiTimeLine,
-  RiEditLine,
-  RiSendPlaneLine,
-  RiArrowRightSLine,
   RiEyeLine,
+  RiArrowRightSLine,
   RiTeamLine,
-  RiBarChartLine,
-  RiAddLine,
+  RiTimeLine,
+  RiDashboardLine,
 } from "@remixicon/react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { useQuery } from "@tanstack/react-query";
+import { FETCH_OVERVIEW_DATA } from "@/lib/query-constants";
+import client from "@/lib/client";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ServerWorkspaceOverviewResponse } from "@/client/Api";
+import { formatDistanceToNow } from "date-fns";
 
-export default function Overview() {
-  // Mock data - replace with real API calls
-  const metrics = {
-    totalContacts: 156,
-    activeDecks: 8,
-    totalViews: 1243,
-    engagementRate: 68,
-    monthlyGrowth: 12.5
-  };
+interface ActivityLog {
+  id: string;
+  reference: string;
+  title: string;
+  type: "deck" | "update" | "dashboard";
+  action: string;
+  date: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+}
 
-  const activityLog = [
-    {
-      type: "deck",
-      title: "Seed Pitch Deck",
-      action: "opened",
-      user: "Emma Thompson",
-      time: "May 20, 2024",
-      details: "Viewed 8 slides • 5 min duration"
-    },
-    {
-      type: "deck",
-      title: "Seed Pitch Deck",
-      action: "opened",
-      user: "Emma Thompson and 1 other",
-      time: "Apr 9, 2024",
-      details: "Viewed all slides • 12 min duration"
-    },
-    {
-      type: "deck",
-      title: "Example Deck",
-      action: "opened",
-      user: "James Wilson",
-      time: "Jan 10, 2024",
-      details: "Downloaded deck"
-    },
-    {
-      type: "update",
-      title: "Q1 Investor Update",
-      action: "opened via email",
-      user: "Oliver Parker",
-      time: "Jun 20, 2023",
-      details: "Read time: 3 min"
-    },
-    {
-      type: "update",
-      title: "Investor Update",
-      action: "opened via email",
-      user: "Sophie Anderson",
-      time: "Jun 15, 2023",
-      details: "Read time: 5 min"
-    }
-  ];
+interface RecentUpdate {
+  id: string;
+  title: string;
+  date: string;
+  reference: string;
+}
 
-  const recentDrafts = [
-    {
-      title: "The Malak Starter Plan Investor Update",
-      lastEdit: "11 days ago",
-      progress: 80,
-      type: "update"
-    },
-    {
-      title: "Series A Pitch Deck",
-      lastEdit: "2 months ago",
-      progress: 45,
-      type: "deck"
-    },
-    {
-      title: "Q2 2024 Investor Update",
-      lastEdit: "2 months ago",
-      progress: 25,
-      type: "update"
-    },
-    {
-      title: "Product Roadmap Presentation",
-      lastEdit: "2 months ago",
-      progress: 90,
-      type: "deck"
-    }
-  ];
+function MetricsCard({
+  title,
+  value,
+  description,
+  icon: Icon,
+  href
+}: {
+  title: string;
+  value: number;
+  description: string;
+  icon: React.ElementType;
+  href: string;
+}) {
+  const content = (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </CardContent>
+    </Card>
+  );
 
-  const recentlySent = [
-    {
-      title: "Harrison's Co Monthly Update",
-      recipients: 12,
-      sentTime: "10 months ago",
-      openRate: 85,
-      engagement: "High"
-    },
-    {
-      title: "Parker's Co Monthly Update",
-      recipients: 8,
-      sentTime: "10 months ago",
-      openRate: 75,
-      engagement: "Medium"
-    },
-    {
-      title: "MSP Monthly Update",
-      recipients: 15,
-      sentTime: "10 months ago",
-      openRate: 92,
-      engagement: "High"
-    },
-    {
-      title: "Q1 Investor Update",
-      recipients: 20,
-      group: "Investors",
-      sentTime: "2 years ago",
-      openRate: 88,
-      engagement: "High"
-    }
-  ];
+  if (!href) {
+    return content;
+  }
 
   return (
-    <div className="space-y-8">
-      {/* Header Section */}
-      <div className="flex flex-col gap-1">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
-            <p className="text-muted-foreground">
-              Recent activity and updates
-            </p>
+    <Link href={href} className="block transition-transform hover:scale-[1.02]">
+      {content}
+    </Link>
+  );
+}
+
+function MetricsCardSkeleton() {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-4" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-8 w-16 mb-1" />
+        <Skeleton className="h-3 w-32" />
+      </CardContent>
+    </Card>
+  );
+}
+
+function ActivityLogItem({ item }: { item: ActivityLog }) {
+  const getIconAndColor = (type: string) => {
+    switch (type) {
+      case "update":
+        return {
+          Icon: RiFileTextLine,
+          bgColor: "bg-blue-100",
+          textColor: "text-blue-600",
+          href: `/updates/${item.reference}`
+        };
+      case "deck":
+        return {
+          Icon: RiPresentationLine,
+          bgColor: "bg-purple-100",
+          textColor: "text-purple-600",
+          href: `/decks/${item.reference}`
+        };
+      case "dashboard":
+        return {
+          Icon: RiDashboardLine,
+          bgColor: "bg-green-100",
+          textColor: "text-green-600",
+          href: `/dashboards/${item.reference}`
+        };
+      default:
+        return {
+          Icon: RiFileTextLine,
+          bgColor: "bg-gray-100",
+          textColor: "text-gray-600",
+          href: "#"
+        };
+    }
+  };
+
+  const { Icon, bgColor, textColor, href } = getIconAndColor(item.type);
+
+  const displayName = !item.first_name || item.first_name.toLowerCase() === 'investor' ? item.email : `${item.first_name} ${item.last_name}`;
+
+  return (
+    <Link href={href} className="block">
+      <div className="flex items-center gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50">
+        <div className={`p-2 rounded-full ${bgColor} ${textColor}`}>
+          <Icon className="h-4 w-4" />
+        </div>
+        <div className="flex-1">
+          <div className="flex justify-between items-center">
+            <p className="text-sm font-medium">{item.title}</p>
+            <span className="text-xs text-muted-foreground">
+              {formatDistanceToNow(new Date(item.date), { addSuffix: true })}
+            </span>
           </div>
+          <p className="text-sm text-muted-foreground">
+            Shared with {displayName}
+          </p>
         </div>
       </div>
+    </Link>
+  );
+}
 
-      {/* Metrics Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Contacts</CardTitle>
-            <RiTeamLine className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalContacts}</div>
-            <p className="text-xs text-muted-foreground">
-              +{metrics.monthlyGrowth}% from last month
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Decks</CardTitle>
-            <RiPresentationLine className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.activeDecks}</div>
-            <p className="text-xs text-muted-foreground">
-              {metrics.activeDecks} decks shared this month
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-            <RiEyeLine className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalViews}</div>
-            <p className="text-xs text-muted-foreground">
-              Across all decks and updates
-            </p>
-          </CardContent>
-        </Card>
+function ActivityLogSkeleton() {
+  return (
+    <div className="flex items-center gap-4 p-2">
+      <Skeleton className="h-8 w-8 rounded-full" />
+      <div className="flex-1">
+        <Skeleton className="h-4 w-48 mb-2" />
+        <Skeleton className="h-3 w-32" />
+      </div>
+    </div>
+  );
+}
+
+function RecentUpdateItem({ update }: { update: RecentUpdate }) {
+  return (
+    <Link
+      href={`/updates/${update.reference}`}
+      className="flex items-center gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50"
+    >
+      <div className="p-2 rounded-full bg-blue-100 text-blue-600">
+        <RiFileTextLine className="h-4 w-4" />
+      </div>
+      <div className="flex-1">
+        <div className="flex justify-between items-center">
+          <p className="text-sm font-medium">{update.title}</p>
+          <span className="text-xs text-muted-foreground">
+            {formatDistanceToNow(new Date(update.date), { addSuffix: true })}
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-8 text-center">
+      <RiFileTextLine className="h-12 w-12 text-muted-foreground mb-4" />
+      <p className="text-muted-foreground">{message}</p>
+    </div>
+  );
+}
+
+export default function Overview() {
+  const { data, isLoading, error } = useQuery<ServerWorkspaceOverviewResponse>({
+    queryKey: [FETCH_OVERVIEW_DATA],
+    queryFn: async () => {
+      const response = await client.workspaces.overviewList();
+      return response.data;
+    },
+  });
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <p className="text-destructive">Failed to load overview data. Please try again later.</p>
+      </div>
+    );
+  }
+
+  const metrics = {
+    totalViews: data?.decks.total_viewer_sessions ?? 0,
+    activeDecks: data?.decks.total_decks ?? 0,
+    totalUpdates: data?.updates.total ?? 0,
+    totalContacts: data?.contacts.total_contacts ?? 0,
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Your activity logs, investor updates and pitch decks at a glance
+        </p>
       </div>
 
+      {/* Key Metrics */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {isLoading ? (
+          <>
+            <MetricsCardSkeleton />
+            <MetricsCardSkeleton />
+            <MetricsCardSkeleton />
+            <MetricsCardSkeleton />
+          </>
+        ) : (
+          <>
+            <MetricsCard
+              title="Active Decks"
+              value={metrics.activeDecks}
+              description="Currently shared decks"
+              icon={RiPresentationLine}
+              href="/decks"
+            />
+            <MetricsCard
+              title="Total Updates"
+              value={metrics.totalUpdates}
+              description="Investor updates sent"
+              icon={RiFileTextLine}
+              href="/updates"
+            />
+            <MetricsCard
+              title="Total Views"
+              value={metrics.totalViews}
+              description="Across your decks"
+              icon={RiEyeLine}
+              href=""
+            />
+            <MetricsCard
+              title="Total Contacts"
+              value={metrics.totalContacts}
+              description="Active recipients"
+              icon={RiTeamLine}
+              href="/contacts"
+            />
+          </>
+        )}
+      </div>
+
+      {/* Activity Cards */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Activity Log */}
-        <Card className="lg:col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between">
+        <Card>
+          <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <RiTimeLine className="h-5 w-5 text-muted-foreground" />
-              Activity Log
+              Recent Activity
             </CardTitle>
-            <Link
-              href="/activity"
-              className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
-            >
-              View all
-              <RiArrowRightSLine className="h-4 w-4" />
-            </Link>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              {activityLog.map((activity, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50"
-                >
-                  <div className={`p-2 rounded-full 
-                    ${activity.type === "update" ? "bg-blue-100 text-blue-600" : ""}
-                    ${activity.type === "deck" ? "bg-purple-100 text-purple-600" : ""}
-                  `}>
-                    {activity.type === "update" && <RiMailLine className="h-4 w-4" />}
-                    {activity.type === "deck" && <RiPresentationLine className="h-4 w-4" />}
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {activity.user} {activity.action} {activity.title}
-                    </p>
-                    <div className="flex items-center text-sm text-muted-foreground gap-2">
-                      <span>{activity.time}</span>
-                      <span>•</span>
-                      <span>{activity.details}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Drafts */}
-        <Card className="lg:col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <RiEditLine className="h-5 w-5 text-muted-foreground" />
-              Recent Drafts
-            </CardTitle>
-            <Link
-              href="/updates/drafts"
-              className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
-            >
-              View all
-              <RiArrowRightSLine className="h-4 w-4" />
-            </Link>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentDrafts.map((draft, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50"
-                >
-                  <div className={`p-2 rounded-full ${
-                    draft.type === "update" ? "bg-orange-100 text-orange-600" : "bg-purple-100 text-purple-600"
-                  }`}>
-                    {draft.type === "update" ? (
-                      <RiFileTextLine className="h-4 w-4" />
-                    ) : (
-                      <RiPresentationLine className="h-4 w-4" />
-                    )}
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <p className="text-sm font-medium leading-none">{draft.title}</p>
-                      <span className="text-xs text-muted-foreground">{draft.lastEdit}</span>
-                    </div>
-                    <Progress value={draft.progress} className="h-1.5" />
-                  </div>
-                </div>
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="space-y-4">
+                {Array(5).fill(0).map((_, i) => (
+                  <ActivityLogSkeleton key={i} />
+                ))}
+              </div>
+            ) : data?.shares.recent_shares && data.shares.recent_shares.length > 0 ? (
+              <div className="space-y-4">
+                {data.shares.recent_shares.map((item) => (
+                  <ActivityLogItem
+                    key={item.id}
+                    item={{
+                      id: item.id ?? "",
+                      reference: item.item_reference ?? "",
+                      title: item.title ?? "",
+                      type: item.item_type ?? "update",
+                      action: "shared",
+                      date: item.shared_at ?? "",
+                      email: item.email ?? "",
+                      first_name: item.first_name ?? "",
+                      last_name: item.last_name ?? "",
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <EmptyState message="No recent activity to show" />
+            )}
           </CardContent>
         </Card>
 
         {/* Recently Sent Updates */}
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <RiSendPlaneLine className="h-5 w-5 text-muted-foreground" />
+              <RiMailLine className="h-5 w-5 text-muted-foreground" />
               Recently Sent Updates
             </CardTitle>
             <Link
-              href="/updates/sent"
+              href="/updates"
               className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
             >
               View all
@@ -290,43 +327,29 @@ export default function Overview() {
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentlySent.map((update, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-4 p-2 rounded-lg transition-colors hover:bg-muted/50"
-                >
-                  <div className="p-2 rounded-full bg-green-100 text-green-600">
-                    <RiMailLine className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <div className="flex justify-between items-center">
-                      <p className="text-sm font-medium leading-none">{update.title}</p>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        update.engagement === "High" 
-                          ? "bg-green-100 text-green-700"
-                          : update.engagement === "Medium"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-red-100 text-red-700"
-                      }`}>
-                        {update.openRate}% Open Rate
-                      </span>
-                    </div>
-                    <div className="flex items-center text-sm text-muted-foreground gap-2">
-                      <span>Sent to {update.recipients} {update.recipients === 1 ? 'person' : 'people'}</span>
-                      {update.group && (
-                        <>
-                          <span>•</span>
-                          <span>{update.group}</span>
-                        </>
-                      )}
-                      <span>•</span>
-                      <span>Sent {update.sentTime}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="space-y-4">
+                {Array(3).fill(0).map((_, i) => (
+                  <ActivityLogSkeleton key={i} />
+                ))}
+              </div>
+            ) : data?.updates.last_updates && data.updates.last_updates.length > 0 ? (
+              <div className="space-y-4">
+                {data.updates.last_updates.map((update) => (
+                  <RecentUpdateItem
+                    key={update.id}
+                    update={{
+                      id: update.id ?? "",
+                      title: update.title ?? "",
+                      date: update.sent_at ?? update.created_at ?? "",
+                      reference: update.reference ?? "",
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <EmptyState message="No updates sent yet" />
+            )}
           </CardContent>
         </Card>
       </div>

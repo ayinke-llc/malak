@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Skeleton from "@/components/ui/custom/loader/skeleton";
 import Analytics from "@/components/ui/updates/analytics/analytics";
+import { RiErrorWarningLine } from "@remixicon/react";
 
 export default function UpdateDetailsPage({ reference }: { reference: string }) {
   const router = useRouter();
@@ -20,32 +21,51 @@ export default function UpdateDetailsPage({ reference }: { reference: string }) 
     retry: false,
   });
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col space-y-4 p-4">
+        <Skeleton count={1} />
+        <div className="space-y-2">
+          <Skeleton count={15} />
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
-    toast.error("an error occurred while fetching this update");
-    router.push("/updates");
-    return null;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] p-4">
+        <div className="text-center space-y-4">
+          <RiErrorWarningLine className="h-12 w-12 text-red-500 mx-auto" />
+          <h3 className="text-lg font-semibold text-gray-900">Failed to load update</h3>
+          <p className="text-gray-500 max-w-md">
+            We couldn't load this update. This might be because it was deleted or you don't have permission to view it.
+          </p>
+          <button
+            onClick={() => router.push("/updates")}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Return to Updates
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div>
       <section>
         <div className="mt-2">
-          {isLoading ? (
-            <Skeleton count={20} />
-          ) : (
-            <>
-              <Analytics reference={reference} />
-              <div className="flex flex-col sm:flex-row justify-end gap-2 mt-8">
-                {data?.data?.update?.status === "draft" && <SendTestButton reference={reference} />}
-                <SendUpdateButton reference={reference} isSent={data?.data?.update?.status === "sent"} />
-              </div>
-              <BlockNoteJSEditor
-                reference={reference}
-                loading={isLoading}
-                update={data?.data.update}
-              />
-            </>
-          )}
+          <Analytics reference={reference} />
+          <div className="flex flex-col sm:flex-row justify-end gap-2 mt-8">
+            {data?.data?.update?.status === "draft" && <SendTestButton reference={reference} />}
+            <SendUpdateButton reference={reference} isSent={data?.data?.update?.status === "sent"} />
+          </div>
+          <BlockNoteJSEditor
+            reference={reference}
+            loading={isLoading}
+            update={data?.data.update}
+          />
         </div>
       </section>
     </div>

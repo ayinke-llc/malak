@@ -64,10 +64,15 @@ type ListContactOptions struct {
 	Status      ListUpdateFilterStatus
 }
 
+type ContactOverview struct {
+	TotalContacts int64 `json:"total_contacts,omitempty"`
+}
+
 type ContactRepository interface {
 	Create(context.Context, *Contact) error
 	Get(context.Context, FetchContactOptions) (*Contact, error)
 	List(context.Context, ListContactOptions) ([]Contact, int64, error)
 	Delete(context.Context, *Contact) error
 	Update(context.Context, *Contact) error
+	Overview(context.Context, uuid.UUID) (*ContactOverview, error)
 }

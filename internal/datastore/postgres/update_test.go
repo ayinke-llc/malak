@@ -572,3 +572,47 @@ func TestUpdates_GetStatByEmailID(t *testing.T) {
 		"random", malak.UpdateRecipientLogProviderResend)
 	require.Error(t, err)
 }
+
+func TestUpdate_Overview(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	updateRepo := NewUpdatesRepository(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+	userRepo := NewUserRepository(client)
+
+	// Get test user from fixtures
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+
+	// Get test workspace from fixtures
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	// initially there should be no updates
+	overview, err := updateRepo.Overview(t.Context(), workspace.ID)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), overview.Total)
+	require.Empty(t, overview.LastUpdates)
+
+	update := &malak.Update{
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeUpdate),
+		WorkspaceID: workspace.ID,
+		CreatedBy:   user.ID,
+		Title:       "Test Update",
+		Status:      malak.UpdateStatusSent,
+	}
+	err = updateRepo.Create(t.Context(), update, &malak.TemplateCreateUpdateOptions{})
+	require.NoError(t, err)
+
+	// check overview after creating update
+	overview, err = updateRepo.Overview(t.Context(), workspace.ID)
+	require.NoError(t, err)
+	require.Equal(t, int64(1), overview.Total)
+	require.Len(t, overview.LastUpdates, 1)
+	require.Equal(t, "Test Update", overview.LastUpdates[0].Title)
+}

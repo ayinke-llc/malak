@@ -1,16 +1,19 @@
 "use client"
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import client from "@/lib/client";
 import { LIST_INTEGRATIONS } from "@/lib/query-constants";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { IntegrationsList } from "@/components/ui/integrations/list";
 import { Card } from "@/components/ui/card";
-import { RiErrorWarningLine } from "@remixicon/react";
+import { RiErrorWarningLine, RiInformationLine } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { RiCloseLine } from "@remixicon/react";
 
 export default function Integrations() {
+  const [showBanner, setShowBanner] = useState(true);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [LIST_INTEGRATIONS],
     queryFn: () => client.workspaces.integrationsList(),
@@ -22,9 +25,44 @@ export default function Integrations() {
     }
   }, [error]);
 
+  const InfoBanner = () => (
+    <Alert variant="default" className="mb-6 border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-900/20">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-3">
+          <RiInformationLine className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <div>
+            <AlertTitle className="text-blue-800 dark:text-blue-300">Security Information</AlertTitle>
+            <AlertDescription className="text-sm text-blue-700 dark:text-blue-400">
+              Learn about our secure secrets storage in our{" "}
+              <a
+                href="https://docs.malak.vc/self-hosting/secrets"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium underline underline-offset-4 hover:text-blue-800 dark:hover:text-blue-300"
+              >
+                documentation
+              </a>
+              .
+            </AlertDescription>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 text-blue-700 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+          onClick={() => setShowBanner(false)}
+        >
+          <RiCloseLine className="h-4 w-4" />
+          <span className="sr-only">Dismiss</span>
+        </Button>
+      </div>
+    </Alert>
+  );
+
   if (error) {
     return (
       <div className="pt-6 bg-background">
+        {showBanner && <InfoBanner />}
         <section>
           <div className="sm:flex sm:items-center sm:justify-between">
             <div>
@@ -64,6 +102,7 @@ export default function Integrations() {
 
   return (
     <div className="pt-6 bg-background">
+      {showBanner && <InfoBanner />}
       <section>
         <div className="sm:flex sm:items-center sm:justify-between">
           <div>

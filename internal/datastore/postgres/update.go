@@ -465,3 +465,35 @@ func (u *updatesRepo) RecipientStat(ctx context.Context,
 		Relation("Contact").
 		Scan(ctx)
 }
+
+func (u *updatesRepo) Overview(ctx context.Context, workspaceID uuid.UUID) (*malak.UpdateOverview, error) {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	// Get total count of updates for the workspace
+	total, err := u.inner.NewSelect().
+		Model((*malak.Update)(nil)).
+		Where("workspace_id = ?", workspaceID).
+		Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get last 10 sent updates
+	lastUpdates := make([]malak.Update, 0, 10)
+	err = u.inner.NewSelect().
+		Model(&lastUpdates).
+		Where("workspace_id = ?", workspaceID).
+		Where("status = ?", malak.UpdateStatusSent).
+		Order("created_at DESC").
+		Limit(10).
+		Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &malak.UpdateOverview{
+		Total:       int64(total),
+		LastUpdates: lastUpdates,
+	}, nil
+}

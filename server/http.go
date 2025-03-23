@@ -168,6 +168,10 @@ func buildRoutes(
 		integrationManager:      integrationManager,
 		secretsClient:           secretsClient,
 		referenceGenerator:      referenceGenerator,
+		shareRepo:               shareRepo,
+		deckRepo:                deckRepo,
+		updateRepo:              updateRepo,
+		contactRepo:             contactRepo,
 	}
 
 	contactHandler := &contactHandler{
@@ -277,6 +281,9 @@ func buildRoutes(
 
 			r.Patch("/",
 				WrapMalakHTTPHandler(logger, workspaceHandler.updateWorkspace, cfg, "workspaces.update"))
+
+			r.Get("/overview",
+				WrapMalakHTTPHandler(logger, workspaceHandler.overview, cfg, "workspaces.overview"))
 
 			r.Get("/preferences",
 				WrapMalakHTTPHandler(logger, workspaceHandler.getPreferences, cfg, "workspaces.preferences.get"))

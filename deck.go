@@ -173,6 +173,11 @@ type DeckGeographicStat struct {
 	bun.BaseModel `bun:"table:deck_geographic_stats" json:"-"`
 }
 
+type DeckOverview struct {
+	TotalDecks          int64 `json:"total_decks,omitempty"`
+	TotalViewerSessions int64 `json:"total_viewer_sessions,omitempty"`
+}
+
 type DeckRepository interface {
 	Create(context.Context, *Deck, *CreateDeckOptions) error
 	List(context.Context, *Workspace) ([]Deck, error)
@@ -189,6 +194,7 @@ type DeckRepository interface {
 
 	SessionAnalytics(context.Context, *ListSessionAnalyticsOptions) ([]*DeckViewerSession, int64, error)
 	DeckEngagements(context.Context, *ListDeckEngagementsOptions) (*DeckEngagementResponse, error)
+	Overview(context.Context, uuid.UUID) (*DeckOverview, error)
 }
 
 type ListDeckEngagementsOptions struct {

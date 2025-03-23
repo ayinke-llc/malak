@@ -173,3 +173,21 @@ func (o *contactRepo) Delete(ctx context.Context,
 	})
 
 }
+
+func (o *contactRepo) Overview(ctx context.Context, workspaceID uuid.UUID) (*malak.ContactOverview, error) {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	total, err := o.inner.NewSelect().
+		Model((*malak.Contact)(nil)).
+		Where("workspace_id = ?", workspaceID).
+		Where("deleted_at IS NULL").
+		Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &malak.ContactOverview{
+		TotalContacts: int64(total),
+	}, nil
+}

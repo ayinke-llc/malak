@@ -93,7 +93,7 @@ func (d *dashboardLinkRepo) Create(ctx context.Context,
 				ContactID:     link.ContactID,
 				ItemType:      malak.ContactShareItemTypeDashboard,
 				ItemID:        link.DashboardID,
-				ItemReference: link.Reference,
+				ItemReference: link.Dashboard.Reference,
 			}
 
 			_, err = tx.NewInsert().Model(&sharedItem).

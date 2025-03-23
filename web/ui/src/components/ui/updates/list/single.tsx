@@ -16,16 +16,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  EVENT_TOGGLE_PINNED_STATE,
-  EVENT_UPDATE_DELETE,
-  EVENT_UPDATE_DUPLICATE,
-} from "@/lib/analytics-constansts";
 import client from "@/lib/client";
 import {
   DELETE_UPDATE,
   DUPLICATE_UPDATE,
   LIST_UPDATES,
+  LIST_PINNED_UPDATES,
   TOGGLE_PINNED_STATE,
 } from "@/lib/query-constants";
 import {
@@ -134,7 +130,9 @@ const SingleUpdate = (update: MalakUpdate) => {
       toast.error(msg);
     },
     onSuccess: (resp: AxiosResponse<ServerCreatedUpdateResponse>) => {
-      toast.success(`${resp.data.message}. refresh page to view pinned items`);
+      queryClient.invalidateQueries({ queryKey: [LIST_UPDATES] });
+      queryClient.invalidateQueries({ queryKey: [LIST_PINNED_UPDATES] });
+      toast.success(resp.data.message);
     },
   });
 

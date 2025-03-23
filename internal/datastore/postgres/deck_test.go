@@ -499,15 +499,9 @@ func TestDeck_CreateDeckSession(t *testing.T) {
 
 	// Create a deck session
 	session := &malak.DeckViewerSession{
-		DeckID:     testDeck.ID,
-		Reference:  malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckViewerSession),
-		SessionID:  malak.NewReferenceGenerator().Generate(malak.EntityTypeSession),
-		DeviceInfo: "Test Device",
-		OS:         "macOS",
-		Browser:    "Chrome",
-		IPAddress:  "127.0.0.1",
-		Country:    "NG",
-		City:       "Lagos",
+		DeckID:    testDeck.ID,
+		SessionID: malak.NewReferenceGenerator().Generate(malak.EntityTypeSession),
+		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckViewerSession),
 	}
 
 	err = deck.CreateDeckSession(t.Context(), session)
@@ -554,8 +548,8 @@ func TestDeck_UpdateDeckSession(t *testing.T) {
 	// Create initial session
 	session := &malak.DeckViewerSession{
 		DeckID:     testDeck.ID,
-		Reference:  malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckViewerSession),
 		SessionID:  malak.NewReferenceGenerator().Generate(malak.EntityTypeSession),
+		Reference:  malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckViewerSession),
 		DeviceInfo: "Test Device",
 		OS:         "macOS",
 		Browser:    "Chrome",
@@ -876,4 +870,56 @@ func TestDeck_DeckEngagements(t *testing.T) {
 	require.NotNil(t, engagements)
 	require.NotEmpty(t, engagements.GeographicStats)
 	require.NotEmpty(t, engagements.DailyEngagements)
+}
+
+func TestDeck_Overview(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	deckRepo := NewDeckRepository(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+	userRepo := NewUserRepository(client)
+
+	// Get test user from fixtures
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+
+	// Get test workspace from fixtures
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	overview, err := deckRepo.Overview(t.Context(), workspace.ID)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), overview.TotalDecks)
+	require.Equal(t, int64(0), overview.TotalViewerSessions)
+
+	deck := &malak.Deck{
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeDeck),
+		WorkspaceID: workspace.ID,
+		CreatedBy:   user.ID,
+		Title:       "Test Deck",
+		ShortLink:   malak.NewReferenceGenerator().ShortLink(),
+		ObjectKey:   uuid.NewString(),
+	}
+	err = deckRepo.Create(t.Context(), deck, &malak.CreateDeckOptions{
+		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckPreference),
+	})
+	require.NoError(t, err)
+
+	session := &malak.DeckViewerSession{
+		DeckID:    deck.ID,
+		SessionID: malak.NewReferenceGenerator().Generate(malak.EntityTypeSession),
+		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeDeckViewerSession),
+	}
+	err = deckRepo.CreateDeckSession(t.Context(), session)
+	require.NoError(t, err)
+
+	overview, err = deckRepo.Overview(t.Context(), workspace.ID)
+	require.NoError(t, err)
+	require.Equal(t, int64(1), overview.TotalDecks)
+	require.Equal(t, int64(1), overview.TotalViewerSessions)
 }
