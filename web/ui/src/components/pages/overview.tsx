@@ -222,7 +222,7 @@ export default function Overview() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
-          Your investor updates and pitch decks at a glance
+          Your activity logs, investor updates and pitch decks at a glance
         </p>
       </div>
 

@@ -60,7 +60,7 @@ func (o *shareRepo) Overview(ctx context.Context, workspaceID uuid.UUID) (*malak
 		Join("JOIN contacts ON contact_shares.contact_id = contacts.id").
 		Where("contacts.workspace_id = ?", workspaceID).
 		Order("contact_shares.shared_at DESC").
-		Limit(20).
+		Limit(15).
 		Scan(ctx, &sharedItems)
 
 	if err != nil {
