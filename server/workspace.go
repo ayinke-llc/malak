@@ -36,6 +36,11 @@ type workspaceHandler struct {
 	integrationManager      *integrations.IntegrationsManager
 	secretsClient           secret.SecretClient
 	referenceGenerator      malak.ReferenceGeneratorOperation
+
+	shareRepo   malak.ContactShareRepository
+	deckRepo    malak.DeckRepository
+	updateRepo  malak.UpdateRepository
+	contactRepo malak.ContactRepository
 }
 
 type createWorkspaceRequest struct {

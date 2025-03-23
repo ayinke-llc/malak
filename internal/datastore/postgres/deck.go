@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ayinke-llc/malak"
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 	"golang.org/x/sync/errgroup"
 )
@@ -352,5 +353,43 @@ func (d *decksRepo) DeckEngagements(ctx context.Context,
 	return &malak.DeckEngagementResponse{
 		DailyEngagements: dailyEngagements,
 		GeographicStats:  geographicStats,
+	}, nil
+}
+
+func (d *decksRepo) Overview(ctx context.Context, workspaceID uuid.UUID) (*malak.DeckOverview, error) {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	// Use errgroup to run both counts concurrently
+	g, ctx := errgroup.WithContext(ctx)
+
+	var totalDecks, totalSessions int
+
+	g.Go(func() error {
+		var err error
+		totalDecks, err = d.inner.NewSelect().
+			Model((*malak.Deck)(nil)).
+			Where("workspace_id = ?", workspaceID).
+			Count(ctx)
+		return err
+	})
+
+	g.Go(func() error {
+		var err error
+		totalSessions, err = d.inner.NewSelect().
+			Model((*malak.DeckViewerSession)(nil)).
+			Join("JOIN decks ON decks.id = deck_viewer_session.deck_id").
+			Where("decks.workspace_id = ?", workspaceID).
+			Count(ctx)
+		return err
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	return &malak.DeckOverview{
+		TotalDecks:          int64(totalDecks),
+		TotalViewerSessions: int64(totalSessions),
 	}, nil
 }

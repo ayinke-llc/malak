@@ -14,6 +14,7 @@ import (
 	reflect "reflect"
 
 	malak "github.com/ayinke-llc/malak"
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -98,6 +99,21 @@ func (m *MockContactRepository) List(arg0 context.Context, arg1 malak.ListContac
 func (mr *MockContactRepositoryMockRecorder) List(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockContactRepository)(nil).List), arg0, arg1)
+}
+
+// Overview mocks base method.
+func (m *MockContactRepository) Overview(arg0 context.Context, arg1 uuid.UUID) (*malak.ContactOverview, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Overview", arg0, arg1)
+	ret0, _ := ret[0].(*malak.ContactOverview)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Overview indicates an expected call of Overview.
+func (mr *MockContactRepositoryMockRecorder) Overview(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Overview", reflect.TypeOf((*MockContactRepository)(nil).Overview), arg0, arg1)
 }
 
 // Update mocks base method.

@@ -139,11 +139,20 @@ components:
         reference:
           type: string
       type: object
+    malak.ContactOverview:
+      properties:
+        total_contacts:
+          type: integer
+      type: object
     malak.ContactShareItem:
       properties:
         contact_id:
           type: string
         created_at:
+          type: string
+        email:
+          type: string
+        first_name:
           type: string
         id:
           type: string
@@ -153,6 +162,8 @@ components:
           type: string
         item_type:
           $ref: '#/components/schemas/malak.ContactShareItemType'
+        last_name:
+          type: string
         reference:
           type: string
         shared_at:
@@ -341,6 +352,13 @@ components:
         updated_at:
           type: string
         view_count:
+          type: integer
+      type: object
+    malak.DeckOverview:
+      properties:
+        total_decks:
+          type: integer
+        total_viewer_sessions:
           type: integer
       type: object
     malak.DeckPreference:
@@ -693,6 +711,13 @@ components:
       - RoleBilling
       - RoleInvestor
       - RoleGuest
+    malak.ShareOverview:
+      properties:
+        recent_shares:
+          items:
+            $ref: '#/components/schemas/malak.ContactShareItem'
+          type: array
+      type: object
     malak.SystemTemplate:
       properties:
         content:
@@ -747,6 +772,15 @@ components:
           type: string
       type: object
     malak.UpdateMetadata:
+      type: object
+    malak.UpdateOverview:
+      properties:
+        last_updates:
+          items:
+            $ref: '#/components/schemas/malak.Update'
+          type: array
+        total:
+          type: integer
       type: object
     malak.UpdateRecipient:
       properties:
@@ -1594,6 +1628,25 @@ components:
       required:
       - message
       - url
+      type: object
+    server.workspaceOverviewResponse:
+      properties:
+        contacts:
+          $ref: '#/components/schemas/malak.ContactOverview'
+        decks:
+          $ref: '#/components/schemas/malak.DeckOverview'
+        message:
+          type: string
+        shares:
+          $ref: '#/components/schemas/malak.ShareOverview'
+        updates:
+          $ref: '#/components/schemas/malak.UpdateOverview'
+      required:
+      - contacts
+      - decks
+      - message
+      - shares
+      - updates
       type: object
   securitySchemes:
     ApiKeyAuth:
@@ -3950,21 +4003,13 @@ paths:
       - integrations
   /workspaces/overview:
     get:
-      description: fetch overview
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/server.createChartRequest'
-        description: request body
-        required: true
-        x-originalParamName: message
+      description: fetch workspace overview
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/server.APIStatus'
+                $ref: '#/components/schemas/server.workspaceOverviewResponse'
           description: OK
         "400":
           content:
@@ -3991,7 +4036,7 @@ paths:
                 $ref: '#/components/schemas/server.APIStatus'
           description: Internal Server Error
       tags:
-      - integrations
+      - workspaces
   /workspaces/preferences:
     get:
       description: fetch workspace preferences

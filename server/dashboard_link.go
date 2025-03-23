@@ -98,6 +98,7 @@ func (d *dashboardHandler) generateLink(
 		Reference:   d.generator.Generate(malak.EntityTypeDashboardLink),
 		Token:       s,
 		DashboardID: dashboard.ID,
+		Dashboard:   &dashboard,
 	}
 
 	if !hermes.IsStringEmpty(req.Email.String()) {

@@ -30,9 +30,17 @@ type ContactShare struct {
 
 type ContactShareItem struct {
 	ContactShare
-	Title string `json:"title,omitempty"`
+	Title     string `json:"title,omitempty"`
+	Email     string `json:"email,omitempty"`
+	FirstName string `json:"first_name,omitempty"`
+	LastName  string `json:"last_name,omitempty"`
+}
+
+type ShareOverview struct {
+	RecentShares []ContactShareItem `json:"recent_shares,omitempty"`
 }
 
 type ContactShareRepository interface {
 	All(context.Context, *Contact) ([]ContactShareItem, error)
+	Overview(context.Context, uuid.UUID) (*ShareOverview, error)
 }

@@ -93,13 +93,20 @@ export interface MalakContactListMappingWithContact {
   reference?: string;
 }
 
+export interface MalakContactOverview {
+  total_contacts?: number;
+}
+
 export interface MalakContactShareItem {
   contact_id?: string;
   created_at?: string;
+  email?: string;
+  first_name?: string;
   id?: string;
   item_id?: string;
   item_reference?: string;
   item_type?: MalakContactShareItemType;
+  last_name?: string;
   reference?: string;
   shared_at?: string;
   shared_by?: string;
@@ -205,6 +212,11 @@ export interface MalakDeckGeographicStat {
   stat_date?: string;
   updated_at?: string;
   view_count?: number;
+}
+
+export interface MalakDeckOverview {
+  total_decks?: number;
+  total_viewer_sessions?: number;
 }
 
 export interface MalakDeckPreference {
@@ -420,6 +432,10 @@ export enum MalakRole {
   RoleGuest = "guest",
 }
 
+export interface MalakShareOverview {
+  recent_shares?: MalakContactShareItem[];
+}
+
 export interface MalakSystemTemplate {
   content?: MalakBlock[];
   created_at?: string;
@@ -449,6 +465,11 @@ export interface MalakUpdate {
 }
 
 export type MalakUpdateMetadata = object;
+
+export interface MalakUpdateOverview {
+  last_updates?: MalakUpdate[];
+  total?: number;
+}
 
 export interface MalakUpdateRecipient {
   contact?: MalakContact;
@@ -877,6 +898,14 @@ export interface ServerUpdateWorkspaceRequest {
 export interface ServerUploadImageResponse {
   message: string;
   url: string;
+}
+
+export interface ServerWorkspaceOverviewResponse {
+  contacts: MalakContactOverview;
+  decks: MalakDeckOverview;
+  message: string;
+  shares: MalakShareOverview;
+  updates: MalakUpdateOverview;
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
@@ -1944,18 +1973,16 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description fetch overview
+     * @description fetch workspace overview
      *
-     * @tags integrations
+     * @tags workspaces
      * @name OverviewList
      * @request GET:/workspaces/overview
      */
-    overviewList: (data: ServerCreateChartRequest, params: RequestParams = {}) =>
-      this.request<ServerAPIStatus, ServerAPIStatus>({
+    overviewList: (params: RequestParams = {}) =>
+      this.request<ServerWorkspaceOverviewResponse, ServerAPIStatus>({
         path: `/workspaces/overview`,
         method: "GET",
-        body: data,
-        type: ContentType.Json,
         format: "json",
         ...params,
       }),

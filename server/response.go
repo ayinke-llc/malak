@@ -205,3 +205,11 @@ type createdAPIKeyResponse struct {
 	APIStatus
 	Value string `json:"value,omitempty" validate:"required"`
 }
+
+type workspaceOverviewResponse struct {
+	Updates  *malak.UpdateOverview  `json:"updates,omitempty" validate:"required"`
+	Decks    *malak.DeckOverview    `json:"decks,omitempty" validate:"required"`
+	Contacts *malak.ContactOverview `json:"contacts,omitempty" validate:"required"`
+	Shares   *malak.ShareOverview   `json:"shares,omitempty" validate:"required"`
+	APIStatus
+}

@@ -208,6 +208,11 @@ type TemplateCreateUpdateOptions struct {
 	Reference        Reference
 }
 
+type UpdateOverview struct {
+	Total       int64    `json:"total,omitempty"`
+	LastUpdates []Update `json:"last_updates,omitempty"`
+}
+
 type UpdateRepository interface {
 	Create(context.Context, *Update, *TemplateCreateUpdateOptions) error
 	Update(context.Context, *Update) error
@@ -224,4 +229,6 @@ type UpdateRepository interface {
 	Stat(context.Context, *Update) (*UpdateStat, error)
 	UpdateStat(context.Context, *UpdateStat, *UpdateRecipientStat) error
 	RecipientStat(context.Context, *Update) ([]UpdateRecipient, error)
+
+	Overview(context.Context, uuid.UUID) (*UpdateOverview, error)
 }

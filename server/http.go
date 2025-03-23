@@ -168,6 +168,10 @@ func buildRoutes(
 		integrationManager:      integrationManager,
 		secretsClient:           secretsClient,
 		referenceGenerator:      referenceGenerator,
+		shareRepo:               shareRepo,
+		deckRepo:                deckRepo,
+		updateRepo:              updateRepo,
+		contactRepo:             contactRepo,
 	}
 
 	contactHandler := &contactHandler{
@@ -268,14 +272,6 @@ func buildRoutes(
 				WrapMalakHTTPHandler(logger, auth.fetchCurrentUser, cfg, "Auth.fetchCurrentUser"))
 		})
 
-		r.Route("/overview", func(r chi.Router) {
-			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
-			r.Use(requireWorkspaceValidSubscription(cfg))
-
-			r.Get("/",
-				WrapMalakHTTPHandler(logger, workspaceHandler.overview, cfg, "workspaces.overview"))
-		})
-
 		r.Route("/workspaces", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 			r.Use(requireWorkspaceValidSubscription(cfg))
@@ -285,6 +281,9 @@ func buildRoutes(
 
 			r.Patch("/",
 				WrapMalakHTTPHandler(logger, workspaceHandler.updateWorkspace, cfg, "workspaces.update"))
+
+			r.Get("/overview",
+				WrapMalakHTTPHandler(logger, workspaceHandler.overview, cfg, "workspaces.overview"))
 
 			r.Get("/preferences",
 				WrapMalakHTTPHandler(logger, workspaceHandler.getPreferences, cfg, "workspaces.preferences.get"))

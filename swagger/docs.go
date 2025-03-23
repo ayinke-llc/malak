@@ -2976,7 +2976,7 @@ const docTemplate = `{
         },
         "/workspaces/overview": {
             "get": {
-                "description": "fetch overview",
+                "description": "fetch workspace overview",
                 "consumes": [
                     "application/json"
                 ],
@@ -2984,24 +2984,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "integrations"
-                ],
-                "parameters": [
-                    {
-                        "description": "request body",
-                        "name": "message",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/server.createChartRequest"
-                        }
-                    }
+                    "workspaces"
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.APIStatus"
+                            "$ref": "#/definitions/server.workspaceOverviewResponse"
                         }
                     },
                     "400": {
@@ -4077,6 +4066,14 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.ContactOverview": {
+            "type": "object",
+            "properties": {
+                "total_contacts": {
+                    "type": "integer"
+                }
+            }
+        },
         "malak.ContactShareItem": {
             "type": "object",
             "properties": {
@@ -4084,6 +4081,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
                     "type": "string"
                 },
                 "id": {
@@ -4097,6 +4100,9 @@ const docTemplate = `{
                 },
                 "item_type": {
                     "$ref": "#/definitions/malak.ContactShareItemType"
+                },
+                "last_name": {
+                    "type": "string"
                 },
                 "reference": {
                     "type": "string"
@@ -4380,6 +4386,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "view_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "malak.DeckOverview": {
+            "type": "object",
+            "properties": {
+                "total_decks": {
+                    "type": "integer"
+                },
+                "total_viewer_sessions": {
                     "type": "integer"
                 }
             }
@@ -4893,6 +4910,17 @@ const docTemplate = `{
                 "RoleGuest"
             ]
         },
+        "malak.ShareOverview": {
+            "type": "object",
+            "properties": {
+                "recent_shares": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.ContactShareItem"
+                    }
+                }
+            }
+        },
         "malak.SystemTemplate": {
             "type": "object",
             "properties": {
@@ -4975,6 +5003,20 @@ const docTemplate = `{
         },
         "malak.UpdateMetadata": {
             "type": "object"
+        },
+        "malak.UpdateOverview": {
+            "type": "object",
+            "properties": {
+                "last_updates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.Update"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
         },
         "malak.UpdateRecipient": {
             "type": "object",
@@ -6236,6 +6278,33 @@ const docTemplate = `{
                 },
                 "url": {
                     "type": "string"
+                }
+            }
+        },
+        "server.workspaceOverviewResponse": {
+            "type": "object",
+            "required": [
+                "contacts",
+                "decks",
+                "message",
+                "shares",
+                "updates"
+            ],
+            "properties": {
+                "contacts": {
+                    "$ref": "#/definitions/malak.ContactOverview"
+                },
+                "decks": {
+                    "$ref": "#/definitions/malak.DeckOverview"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "shares": {
+                    "$ref": "#/definitions/malak.ShareOverview"
+                },
+                "updates": {
+                    "$ref": "#/definitions/malak.UpdateOverview"
                 }
             }
         }
