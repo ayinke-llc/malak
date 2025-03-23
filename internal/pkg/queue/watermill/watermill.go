@@ -142,6 +142,12 @@ func (t *WatermillClient) setUpRoutes(router *message.Router,
 		t.sendBillingTrialEmail)
 
 	router.AddNoPublisherHandler(
+		queue.QueueTopicSubscriptionExpired.String(),
+		queue.QueueTopicSubscriptionExpired.String(),
+		subscriber,
+		t.sendSubExpiredEmail)
+
+	router.AddNoPublisherHandler(
 		queue.QueueTopicShareDashboard.String(),
 		queue.QueueTopicShareDashboard.String(),
 		subscriber,
