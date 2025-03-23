@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { RiLoader4Line, RiBarChartBoxLine, RiAddLine } from "@remixicon/react";
+import { RiLoader4Line, RiBarChartBoxLine, RiAddLine, RiCodeLine } from "@remixicon/react";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,6 +12,8 @@ import { formatChartData, formatTooltipValue } from "@/lib/chart-utils";
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { AddDataPointDialog } from "./AddDataPointDialog";
 import { Button } from "@/components/ui/button";
+import { ApiExamples } from "@/components/ApiExamples";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface DataPoint {
   name: string;
@@ -37,6 +39,7 @@ interface ChartDataViewProps {
 
 export function ChartDataView({ chart, isSystemIntegration, workspaceIntegration }: ChartDataViewProps) {
   const [open, setOpen] = useState(false);
+  const [showApiExamples, setShowApiExamples] = useState(false);
   const { data: chartData, isLoading } = useQuery({
     queryKey: [FETCH_CHART_DATA_POINTS, chart?.reference],
     queryFn: async () => {
@@ -85,24 +88,35 @@ export function ChartDataView({ chart, isSystemIntegration, workspaceIntegration
               <p className="text-sm text-muted-foreground">{chart.internal_name || "No description available"}</p>
             </div>
           </div>
-          {isSystemIntegration && (
-            <>
-              <Button variant="outline" size="sm" onClick={() => setOpen(true)} className="gap-2">
-                <RiAddLine className="h-4 w-4" />
-                Add Data Point
-              </Button>
-              <AddDataPointDialog
-                chart={chart}
-                open={open}
-                onOpenChange={setOpen}
-                workspaceIntegration={workspaceIntegration}
-              />
-            </>
-          )}
+          <div className="flex items-center gap-2">
+            {isSystemIntegration && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => setOpen(true)} className="gap-2">
+                  <RiAddLine className="h-4 w-4" />
+                  Add Data Point
+                </Button>
+                <AddDataPointDialog
+                  chart={chart}
+                  open={open}
+                  onOpenChange={setOpen}
+                  workspaceIntegration={workspaceIntegration}
+                />
+              </>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowApiExamples(!showApiExamples)}
+              className="gap-2"
+            >
+              <RiCodeLine className="h-4 w-4" />
+              API Examples
+            </Button>
+          </div>
         </div>
       </div>
       <ScrollArea className="h-[calc(100vh-280px)]">
-        <div className="p-4">
+        <div className="p-4 space-y-6">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <RiLoader4Line className="h-6 w-6 animate-spin" />
@@ -156,6 +170,17 @@ export function ChartDataView({ chart, isSystemIntegration, workspaceIntegration
               <p className="text-sm text-muted-foreground">No data available</p>
             </div>
           )}
+
+          <Collapsible open={showApiExamples} onOpenChange={setShowApiExamples}>
+            <CollapsibleContent>
+              <div className="pt-6 border-t">
+                <ApiExamples 
+                  chartReference={chart.reference || ''} 
+                  integrationReference={workspaceIntegration.reference || ''}
+                />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </ScrollArea>
     </Card>
