@@ -10,7 +10,6 @@ import (
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/stretchr/testify/require"
-	"github.com/uptrace/bun"
 	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 )
@@ -28,7 +27,7 @@ func TestServer_New(t *testing.T) {
 		cfg := getConfig()
 		geoService := malak_mocks.NewMockGeolocationService(controller)
 
-		srv, closeFn := New(getLogger(t), cfg, &bun.DB{},
+		srv, closeFn := New(getLogger(t), cfg,
 			jwttoken.New(cfg), socialauth.NewGoogle(cfg),
 			malak_mocks.NewMockDashboardRepository(controller),
 			malak_mocks.NewMockUserRepository(controller),
@@ -49,7 +48,6 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockCache(controller),
 			malak_mocks.NewMockClient(controller),
 			integrations.NewManager(),
-			malak_mocks.NewMockSecretClient(controller),
 			malak_mocks.NewMockSecretClient(controller),
 			geoService,
 			&gulter.Gulter{},
@@ -69,7 +67,7 @@ func TestServer_New(t *testing.T) {
 
 		geoService := malak_mocks.NewMockGeolocationService(controller)
 
-		srv, closeFn := New(getLogger(t), cfg, &bun.DB{},
+		srv, closeFn := New(getLogger(t), cfg,
 			jwttoken.New(cfg), socialauth.NewGoogle(cfg),
 			malak_mocks.NewMockDashboardRepository(controller),
 			malak_mocks.NewMockUserRepository(controller),
@@ -90,7 +88,6 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockCache(controller),
 			malak_mocks.NewMockClient(controller),
 			integrations.NewManager(),
-			malak_mocks.NewMockSecretClient(controller),
 			malak_mocks.NewMockSecretClient(controller),
 			geoService,
 			&gulter.Gulter{},
@@ -125,9 +122,8 @@ func TestNew(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := getConfig()
-	db := &bun.DB{}
 
-	srv, closeFn := New(logger, cfg, db, jwttoken.New(cfg), socialauth.NewGoogle(cfg),
+	srv, closeFn := New(logger, cfg, jwttoken.New(cfg), socialauth.NewGoogle(cfg),
 		malak_mocks.NewMockDashboardRepository(controller),
 		userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
 		contactListRepo, deckRepo, contactShareRepo, preferenceRepo,
@@ -137,7 +133,7 @@ func TestNew(t *testing.T) {
 		malak_mocks.NewMockAPIKeyRepository(controller),
 		&httplimit.Middleware{},
 		queueRepo, cacheRepo, billingClient,
-		integrations.NewManager(), secretsClient, secretsClient, geoService,
+		integrations.NewManager(), secretsClient, geoService,
 		&gulter.Gulter{}, &gulter.Gulter{})
 
 	require.NotNil(t, srv)
@@ -170,9 +166,7 @@ func TestNewWithInvalidConfig(t *testing.T) {
 	cfg := getConfig()
 	cfg.HTTP.Port = 0 // Invalid port
 
-	db := &bun.DB{}
-
-	srv, closeFn := New(logger, cfg, db, jwttoken.New(cfg), socialauth.NewGoogle(cfg),
+	srv, closeFn := New(logger, cfg, jwttoken.New(cfg), socialauth.NewGoogle(cfg),
 		malak_mocks.NewMockDashboardRepository(controller),
 		userRepo, workspaceRepo, planRepo, contactRepo, updateRepo,
 		contactListRepo, deckRepo, contactShareRepo, preferenceRepo,
@@ -182,7 +176,7 @@ func TestNewWithInvalidConfig(t *testing.T) {
 		malak_mocks.NewMockAPIKeyRepository(controller),
 		&httplimit.Middleware{},
 		queueRepo, cacheRepo, billingClient,
-		integrations.NewManager(), secretsClient, secretsClient, geoService,
+		integrations.NewManager(), secretsClient, geoService,
 		&gulter.Gulter{}, &gulter.Gulter{})
 
 	require.NotNil(t, srv)

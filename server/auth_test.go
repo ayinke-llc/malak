@@ -51,6 +51,11 @@ func getConfig() config.Config {
 		}{
 			Mode: config.LogModeDev,
 		},
+		APIKey: struct {
+			HashSecret string "mapstructure:\"hash_secret\" yaml:\"hash_secret\""
+		}{
+			HashSecret: "1234597u8tysdhfjhfk",
+		},
 		Database: struct {
 			DatabaseType config.DatabaseType "yaml:\"database_type\" mapstructure:\"database_type\""
 			Postgres     struct {

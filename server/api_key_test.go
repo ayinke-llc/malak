@@ -56,25 +56,8 @@ func generateCreateAPIKeyTestTable() []struct {
 			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
-			name: "encryption error",
-			mockFn: func(apiRepo *malak_mocks.MockAPIKeyRepository, secretsClient *malak_mocks.MockSecretClient) {
-				secretsClient.EXPECT().
-					Create(gomock.Any(), gomock.Any()).
-					Times(1).
-					Return("", errors.New("encryption error"))
-			},
-			req: createAPIKeyRequest{
-				Title: "Valid Title",
-			},
-			expectedStatusCode: http.StatusInternalServerError,
-		},
-		{
 			name: "api key creation error",
 			mockFn: func(apiRepo *malak_mocks.MockAPIKeyRepository, secretsClient *malak_mocks.MockSecretClient) {
-				secretsClient.EXPECT().
-					Create(gomock.Any(), gomock.Any()).
-					Times(1).
-					Return("encrypted_value", nil)
 
 				apiRepo.EXPECT().
 					Create(gomock.Any(), gomock.Any()).
@@ -89,10 +72,6 @@ func generateCreateAPIKeyTestTable() []struct {
 		{
 			name: "max limit reached",
 			mockFn: func(apiRepo *malak_mocks.MockAPIKeyRepository, secretsClient *malak_mocks.MockSecretClient) {
-				secretsClient.EXPECT().
-					Create(gomock.Any(), gomock.Any()).
-					Times(1).
-					Return("encrypted_value", nil)
 
 				apiRepo.EXPECT().
 					Create(gomock.Any(), gomock.Any()).
@@ -107,10 +86,6 @@ func generateCreateAPIKeyTestTable() []struct {
 		{
 			name: "successful creation",
 			mockFn: func(apiRepo *malak_mocks.MockAPIKeyRepository, secretsClient *malak_mocks.MockSecretClient) {
-				secretsClient.EXPECT().
-					Create(gomock.Any(), gomock.Any()).
-					Times(1).
-					Return("encrypted_value", nil)
 
 				apiRepo.EXPECT().
 					Create(gomock.Any(), gomock.Any()).
@@ -137,9 +112,9 @@ func TestAPIKeyHandler_Create(t *testing.T) {
 			v.mockFn(apiRepo, secretsClient)
 
 			h := &apiKeyHandler{
-				apiRepo:       apiRepo,
-				secretsClient: secretsClient,
-				generator:     &mockReferenceGenerator{},
+				apiRepo:   apiRepo,
+				generator: &mockReferenceGenerator{},
+				cfg:       getConfig(),
 			}
 
 			var b = bytes.NewBuffer(nil)
@@ -212,9 +187,9 @@ func TestAPIKeyHandler_List(t *testing.T) {
 			v.mockFn(apiRepo)
 
 			h := &apiKeyHandler{
-				apiRepo:       apiRepo,
-				secretsClient: malak_mocks.NewMockSecretClient(controller),
-				generator:     &mockReferenceGenerator{},
+				apiRepo:   apiRepo,
+				generator: &mockReferenceGenerator{},
+				cfg:       getConfig(),
 			}
 
 			rr := httptest.NewRecorder()
@@ -354,9 +329,9 @@ func TestAPIKeyHandler_Revoke(t *testing.T) {
 			v.mockFn(apiRepo)
 
 			h := &apiKeyHandler{
-				apiRepo:       apiRepo,
-				secretsClient: malak_mocks.NewMockSecretClient(controller),
-				generator:     &mockReferenceGenerator{},
+				apiRepo:   apiRepo,
+				generator: &mockReferenceGenerator{},
+				cfg:       getConfig(),
 			}
 
 			var b = bytes.NewBuffer(nil)
