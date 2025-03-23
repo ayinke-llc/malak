@@ -81,6 +81,8 @@ const RevokeDialog = ({ apiKey, onRevoke }: RevokeDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedExpiration, setSelectedExpiration] = useState("immediately");
 
+  const isRevocationScheduled = Boolean(apiKey.expires_at);
+
   const handleRevoke = () => {
     if (!apiKey.reference) {
       toast.error("Invalid API key");
@@ -112,7 +114,12 @@ const RevokeDialog = ({ apiKey, onRevoke }: RevokeDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          disabled={isRevocationScheduled}
+          title={isRevocationScheduled ? "This key is already scheduled for revocation" : "Revoke API key"}
+        >
           <RiDeleteBinLine className="w-4 h-4" />
         </Button>
       </DialogTrigger>
