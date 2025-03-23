@@ -256,3 +256,45 @@ func TestContact_Update(t *testing.T) {
 	})
 	require.NoError(t, err)
 }
+
+func TestContact_Overview(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	contactRepo := NewContactRepository(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+	userRepo := NewUserRepository(client)
+
+	// Get test user from fixtures
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+
+	// Get test workspace from fixtures
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	overview, err := contactRepo.Overview(t.Context(), workspace.ID)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), overview.TotalContacts)
+
+	contact := &malak.Contact{
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeContact),
+		WorkspaceID: workspace.ID,
+		Email:       "test@example.com",
+		FirstName:   "Test",
+		LastName:    "User",
+		CreatedBy:   user.ID,
+		OwnerID:     user.ID,
+		Metadata:    make(malak.CustomContactMetadata),
+	}
+	err = contactRepo.Create(t.Context(), contact)
+	require.NoError(t, err)
+
+	overview, err = contactRepo.Overview(t.Context(), workspace.ID)
+	require.NoError(t, err)
+	require.Equal(t, int64(1), overview.TotalContacts)
+}

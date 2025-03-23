@@ -156,7 +156,6 @@ export interface MalakDashboardLink {
   contact?: MalakContact;
   contact_id?: string;
   created_at?: string;
-  dashboard?: MalakDashboard;
   dashboard_id?: string;
   expires_at?: string;
   id?: string;

@@ -369,9 +369,6 @@
 					"created_at": {
 						"type": "string"
 					},
-					"dashboard": {
-						"$ref": "#/components/schemas/malak.Dashboard"
-					},
 					"dashboard_id": {
 						"type": "string"
 					},

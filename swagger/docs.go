@@ -4230,9 +4230,6 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
-                "dashboard": {
-                    "$ref": "#/definitions/malak.Dashboard"
-                },
                 "dashboard_id": {
                     "type": "string"
                 },
