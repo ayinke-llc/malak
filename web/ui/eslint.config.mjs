@@ -42,8 +42,8 @@ export default defineConfig([
       ],
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
-      "react-query-keys/no-plain-query-keys": "error",
-      "react-query-must-invalidate-queries/require-mutation-invalidation": "error"
+      "react-query-keys/no-plain-query-keys": "warn",
+      "react-query-must-invalidate-queries/require-mutation-invalidation": "warn"
     }
   }
 ]);

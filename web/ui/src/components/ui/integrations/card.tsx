@@ -1,20 +1,9 @@
-/* eslint-disable @next/next/no-img-element */
 "use client"
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
-import { RiSettings4Line } from "@remixicon/react";
 import { MalakIntegrationType, MalakWorkspaceIntegration, ServerAPIStatus } from "@/client/Api";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { toast } from "sonner";
-import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -25,14 +14,23 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RiEyeLine, RiEyeOffLine } from "@remixicon/react";
-import { useForm, Controller } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { DISABLE_INTEGRATION, ENABLE_INTEGRATION, LIST_INTEGRATIONS, PING_INTEGRATION, UPDATE_INTEGRATION_SETTINGS } from "@/lib/query-constants";
+import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import client from "@/lib/client";
+import { DISABLE_INTEGRATION, ENABLE_INTEGRATION, LIST_INTEGRATIONS, PING_INTEGRATION, UPDATE_INTEGRATION_SETTINGS } from "@/lib/query-constants";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { RiEyeLine, RiEyeOffLine, RiSettings4Line } from "@remixicon/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as yup from "yup";
 
 interface IntegrationCardProps {
   integration: MalakWorkspaceIntegration;

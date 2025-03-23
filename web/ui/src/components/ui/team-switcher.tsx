@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import { ChevronsUpDown } from "lucide-react"
@@ -24,7 +23,6 @@ import useWorkspacesStore from "@/store/workspace"
 import { useMutation } from "@tanstack/react-query"
 import { AxiosResponse } from "axios"
 import { toast } from "sonner"
-import { Avatar } from "./custom/avatar/avatar"
 import { ModalAddWorkspace } from "./navigation/ModalAddWorkspace"
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
