@@ -163,7 +163,10 @@ const config: Config = {
   				DEFAULT: "#2c4975",
   				dark: "#0a3171",
   				light: "#f0f5fc"
-  			}
+  			},
+        hover: {
+          DEFAULT: "rgba(230, 237, 247, 0.5)", // This is the muted color with 50% opacity
+        }
   		}
   	}
   },
