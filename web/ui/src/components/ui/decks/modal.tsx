@@ -183,7 +183,7 @@ export default function UploadDeckModal() {
             <div className="flex items-center justify-center w-full">
               <label
                 htmlFor="deck"
-                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer border-input bg-background/50 hover:bg-accent"
+                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer border-input bg-background/50 hover:bg-hover"
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
               >
