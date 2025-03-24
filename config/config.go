@@ -26,6 +26,9 @@ type UploadDriver string
 // ENUM(smtp,resend,sendgrid)
 type EmailProvider string
 
+// ENUM(loops)
+type MarketingEmailProvider string
+
 type Config struct {
 	Logging struct {
 		Mode LogMode `yaml:"mode" mapstructure:"mode"`
@@ -190,6 +193,16 @@ type Config struct {
 		MaxMindCountryDB string `json:"max_mind_country_db,omitempty" yaml:"max_mind_country_db" mapstructure:"max_mind_country_db"`
 		MaxMindCityDB    string `json:"max_mind_city_db,omitempty" yaml:"max_mind_city_db" mapstructure:"max_mind_city_db"`
 	} `json:"analytics,omitempty" yaml:"analytics" mapstructure:"analytics"`
+
+	Marketing struct {
+		IsEnabled bool `mapstructure:"is_enabled" yaml:"is_enabled"`
+
+		Provider MarketingEmailProvider `mapstructure:"provider" yaml:"provider"`
+
+		Loops struct {
+			APIKey string `mapstructure:"api_key" yaml:"api_key"`
+		} `mapstructure:"loops" yaml:"loops"`
+	} `mapstructure:"marketing" yaml:"marketing"`
 }
 
 func (c *Config) Validate() error {
