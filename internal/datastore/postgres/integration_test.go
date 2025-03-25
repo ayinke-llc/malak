@@ -93,16 +93,17 @@ func TestIntegration_Get(t *testing.T) {
 	integrationRepo := NewIntegrationRepo(client)
 	repo := NewWorkspaceRepository(client)
 
-	_, err := integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeWorkspaceIntegration),
-	})
-	require.Error(t, err)
-	require.Equal(t, malak.ErrWorkspaceIntegrationNotFound, err)
-
 	workspace, err := repo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
+
+	_, err = integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeWorkspaceIntegration),
+		WorkspaceID: workspace.ID,
+	})
+	require.Error(t, err)
+	require.Equal(t, malak.ErrWorkspaceIntegrationNotFound, err)
 
 	integrations, err := integrationRepo.List(t.Context(), workspace)
 	require.NoError(t, err)
@@ -123,13 +124,15 @@ func TestIntegration_Get(t *testing.T) {
 	require.Len(t, integrations, 1)
 
 	_, err = integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: integrations[0].Reference,
+		Reference:   integrations[0].Reference,
+		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
 
 	_, err = integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: integrations[0].Reference,
-		ID:        integrations[0].ID,
+		Reference:   integrations[0].Reference,
+		ID:          integrations[0].ID,
+		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
 }

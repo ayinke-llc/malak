@@ -131,7 +131,8 @@ func (i *integrationRepo) Get(ctx context.Context,
 	integration := &malak.WorkspaceIntegration{}
 
 	sel := i.inner.NewSelect().Model(integration).
-		Where("workspace_integration.reference = ?", opts.Reference)
+		Where("workspace_integration.reference = ?", opts.Reference).
+		Where("workspace_id = ?", opts.WorkspaceID)
 
 	if opts.ID != uuid.Nil {
 		sel = sel.Where("workspace_integration.id = ?", opts.ID)

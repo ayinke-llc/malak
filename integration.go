@@ -169,8 +169,9 @@ type AccessToken string
 func (a AccessToken) String() string { return string(a) }
 
 type FindWorkspaceIntegrationOptions struct {
-	Reference Reference
-	ID        uuid.UUID
+	Reference   Reference
+	ID          uuid.UUID
+	WorkspaceID uuid.UUID
 }
 
 type FetchChartOptions struct {
