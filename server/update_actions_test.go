@@ -158,7 +158,9 @@ func generateUpdateDuplicationContent() []struct {
 					EXPECT().
 					Get(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(&malak.Update{}, nil)
+					Return(&malak.Update{
+						Title: "Here is my title",
+					}, nil)
 
 				update.EXPECT().Create(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
