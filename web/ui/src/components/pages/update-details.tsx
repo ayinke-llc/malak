@@ -55,6 +55,17 @@ export default function UpdateDetailsPage({ reference }: { reference: string }) 
   return (
     <div>
       <section>
+        <div className="mb-6">
+          <button
+            onClick={() => router.push("/updates")}
+            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 gap-1"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+            </svg>
+            Back to Updates
+          </button>
+        </div>
         <div className="mt-2">
           <Analytics reference={reference} />
           <div className="flex flex-col sm:flex-row justify-end gap-2 mt-8">
