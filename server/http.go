@@ -265,8 +265,6 @@ func buildRoutes(
 		})
 
 		r.Route("/auth", func(r chi.Router) {
-			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
-			r.Use(requireWorkspaceValidSubscription(cfg))
 			r.Post("/connect/{provider}",
 				WrapMalakHTTPHandler(logger, auth.Login, cfg, "Auth.Login"))
 		})
@@ -379,9 +377,6 @@ func buildRoutes(
 
 			r.Get("/",
 				WrapMalakHTTPHandler(logger, contactHandler.list, cfg, "contacts.list"))
-
-			r.Post("/batch",
-				WrapMalakHTTPHandler(logger, contactHandler.batchCreate, cfg, "contacts.batch.create"))
 
 			r.Get("/{reference}",
 				WrapMalakHTTPHandler(logger, contactHandler.fetchContact, cfg, "contacts.fetch"))

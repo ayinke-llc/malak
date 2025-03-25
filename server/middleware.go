@@ -185,7 +185,7 @@ func requireAuthentication(
 
 			token, err := tokenFromRequest(r)
 			if err != nil {
-				logger.Error("token not found in cookie", zap.Error(err))
+				logger.Error("token not found in request", zap.Error(err))
 				_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "session expired"))
 				return
 			}

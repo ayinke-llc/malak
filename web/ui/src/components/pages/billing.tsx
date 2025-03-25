@@ -27,7 +27,7 @@ export default function Billing() {
     mutationKey: [FETCH_BILLING_PORTAL_URL],
     mutationFn: () => client.workspaces.billingCreate(),
     onSuccess: ({ data }) => {
-      router.push(data.link)
+      window.open(data.link, '_self');
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       toast.error(err.response?.data.message ?? "An error occurred while creating Stripe billing link");
