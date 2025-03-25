@@ -377,7 +377,7 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
           </div>
         </CardHeader>
         <CardContent className="flex-grow flex flex-col justify-between">
-          <CardDescription className="mt-2 h-12 overflow-hidden text-ellipsis">
+          <CardDescription className="mt-2 line-clamp-3">
             {integration?.integration?.description}
           </CardDescription>
           <div className="flex justify-between items-center mt-4">
