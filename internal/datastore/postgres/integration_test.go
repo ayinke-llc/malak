@@ -93,16 +93,17 @@ func TestIntegration_Get(t *testing.T) {
 	integrationRepo := NewIntegrationRepo(client)
 	repo := NewWorkspaceRepository(client)
 
-	_, err := integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: malak.NewReferenceGenerator().Generate(malak.EntityTypeWorkspaceIntegration),
-	})
-	require.Error(t, err)
-	require.Equal(t, malak.ErrWorkspaceIntegrationNotFound, err)
-
 	workspace, err := repo.Get(t.Context(), &malak.FindWorkspaceOptions{
 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
 	})
 	require.NoError(t, err)
+
+	_, err = integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeWorkspaceIntegration),
+		WorkspaceID: workspace.ID,
+	})
+	require.Error(t, err)
+	require.Equal(t, malak.ErrWorkspaceIntegrationNotFound, err)
 
 	integrations, err := integrationRepo.List(t.Context(), workspace)
 	require.NoError(t, err)
@@ -123,13 +124,15 @@ func TestIntegration_Get(t *testing.T) {
 	require.Len(t, integrations, 1)
 
 	_, err = integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: integrations[0].Reference,
+		Reference:   integrations[0].Reference,
+		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
 
 	_, err = integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: integrations[0].Reference,
-		ID:        integrations[0].ID,
+		Reference:   integrations[0].Reference,
+		ID:          integrations[0].ID,
+		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
 }
@@ -166,7 +169,8 @@ func TestIntegration_Disable(t *testing.T) {
 	require.NoError(t, integrationRepo.Update(t.Context(), &workspaceIntegration))
 
 	updatedIntegration, err := integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: workspaceIntegration.Reference,
+		Reference:   workspaceIntegration.Reference,
+		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
 	require.True(t, updatedIntegration.IsEnabled)
@@ -175,7 +179,8 @@ func TestIntegration_Disable(t *testing.T) {
 	require.NoError(t, err)
 
 	updatedIntegration, err = integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: workspaceIntegration.Reference,
+		Reference:   workspaceIntegration.Reference,
+		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
 	require.False(t, updatedIntegration.IsEnabled)
@@ -221,8 +226,9 @@ func TestIntegration_Update(t *testing.T) {
 
 	// Fetch updated integration
 	updatedIntegration, err := integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: workspaceIntegration.Reference,
-		ID:        workspaceIntegration.ID,
+		Reference:   workspaceIntegration.Reference,
+		ID:          workspaceIntegration.ID,
+		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
 	require.True(t, updatedIntegration.IsEnabled)
@@ -234,8 +240,9 @@ func TestIntegration_Update(t *testing.T) {
 
 	// Verify the second update
 	finalIntegration, err := integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: workspaceIntegration.Reference,
-		ID:        workspaceIntegration.ID,
+		Reference:   workspaceIntegration.Reference,
+		ID:          workspaceIntegration.ID,
+		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
 	require.False(t, finalIntegration.IsEnabled)
@@ -290,7 +297,8 @@ func TestIntegration_CreateCharts(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: workspaceIntegration.Reference,
+		Reference:   workspaceIntegration.Reference,
+		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
 

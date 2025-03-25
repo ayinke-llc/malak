@@ -86,7 +86,8 @@ func (wo *workspaceHandler) createChart(
 	logger = logger.With(zap.String("integration_reference", ref))
 
 	integration, err := wo.integrationRepo.Get(ctx, malak.FindWorkspaceIntegrationOptions{
-		Reference: malak.Reference(ref),
+		Reference:   malak.Reference(ref),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if err != nil {
 		var msg string = "could not fetch integration"
@@ -192,7 +193,8 @@ func (wo *workspaceHandler) addDataPoint(
 	logger = logger.With(zap.String("integration_reference", ref))
 
 	integration, err := wo.integrationRepo.Get(ctx, malak.FindWorkspaceIntegrationOptions{
-		Reference: malak.Reference(ref),
+		Reference:   malak.Reference(ref),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if err != nil {
 		var msg string = "could not fetch integration"

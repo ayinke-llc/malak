@@ -105,7 +105,8 @@ func (wo *workspaceHandler) pingIntegration(
 	logger = logger.With(zap.String("integration_reference", ref))
 
 	integration, err := wo.integrationRepo.Get(ctx, malak.FindWorkspaceIntegrationOptions{
-		Reference: malak.Reference(ref),
+		Reference:   malak.Reference(ref),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if err != nil {
 		var msg string = "could not fetch integration"
@@ -197,7 +198,8 @@ func (wo *workspaceHandler) enableIntegration(
 	logger = logger.With(zap.String("integration_reference", ref))
 
 	integration, err := wo.integrationRepo.Get(ctx, malak.FindWorkspaceIntegrationOptions{
-		Reference: malak.Reference(ref),
+		Reference:   malak.Reference(ref),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if err != nil {
 		var msg string = "could not fetch integration"
@@ -321,7 +323,8 @@ func (wo *workspaceHandler) updateAPIKeyForIntegration(
 	logger = logger.With(zap.String("integration_reference", ref))
 
 	integration, err := wo.integrationRepo.Get(ctx, malak.FindWorkspaceIntegrationOptions{
-		Reference: malak.Reference(ref),
+		Reference:   malak.Reference(ref),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if err != nil {
 		var msg string = "could not fetch integration"
@@ -426,7 +429,8 @@ func (wo *workspaceHandler) disableIntegration(
 	logger = logger.With(zap.String("integration_reference", ref))
 
 	integration, err := wo.integrationRepo.Get(ctx, malak.FindWorkspaceIntegrationOptions{
-		Reference: malak.Reference(ref),
+		Reference:   malak.Reference(ref),
+		WorkspaceID: getWorkspaceFromContext(ctx).ID,
 	})
 	if err != nil {
 		var msg string = "could not fetch integration"
