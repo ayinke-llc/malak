@@ -33,8 +33,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import CopyToClipboard from 'react-copy-to-clipboard';
-import { useMutation } from '@tanstack/react-query';
-import { IMPORT_CONTACTS_MUTATION } from '@/lib/query-constants';
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { LIST_CONTACTS, IMPORT_CONTACTS_MUTATION } from '@/lib/query-constants';
 import client from '@/lib/client';
 
 const MAX_FILE_SIZE = 500 * 1024; // 500KB in bytes
@@ -82,6 +82,8 @@ export default function CSVUploadModal() {
   const [tableContainerRef, setTableContainerRef] = useState<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
+  const queryClient = useQueryClient();
+
   const { mutate: importContacts, isPending } = useMutation({
     mutationKey: [IMPORT_CONTACTS_MUTATION],
     mutationFn: async (contacts: Contact[]) => {
@@ -90,6 +92,7 @@ export default function CSVUploadModal() {
     },
     onSuccess: () => {
       toast.success('Contacts imported successfully');
+      queryClient.invalidateQueries({ queryKey: [LIST_CONTACTS] })
       setIsOpen(false);
       setContacts([]);
       setSelectedFile(null);
@@ -102,7 +105,7 @@ export default function CSVUploadModal() {
 
   const columnHelper = createColumnHelper<Contact>();
 
-  const columns = headers.map(header => 
+  const columns = headers.map(header =>
     columnHelper.accessor(header as keyof Contact, {
       header: () => header.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
       cell: info => {
@@ -118,7 +121,7 @@ export default function CSVUploadModal() {
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-sm p-4">
                   <p className="whitespace-pre-wrap break-words">{value || '-'}</p>
-                  <CopyToClipboard 
+                  <CopyToClipboard
                     text={value || ''}
                     onCopy={() => toast.success('Copied to clipboard')}
                   >
@@ -170,7 +173,7 @@ export default function CSVUploadModal() {
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const rows = text.split('\n').filter(row => row.trim());
-      
+
       if (rows.length < 2) {
         toast.error('CSV file must contain headers and at least one contact');
         return;
@@ -183,10 +186,10 @@ export default function CSVUploadModal() {
 
       const csvHeaders = rows[0].split(',').map(header => header.trim().toLowerCase());
       setHeaders(csvHeaders);
-      
+
       const requiredHeaders = ['email', 'first_name', 'last_name', 'company', 'notes'];
       const missingHeaders = requiredHeaders.filter(header => !csvHeaders.includes(header));
-      
+
       if (missingHeaders.length > 0) {
         toast.error(`Missing required headers: ${missingHeaders.join(', ')}`);
         return;
@@ -197,7 +200,7 @@ export default function CSVUploadModal() {
         .map((row, index) => {
           const values = row.split(',').map(value => value.trim());
           const contact: Record<string, string> = {};
-          
+
           csvHeaders.forEach((header, colIndex) => {
             contact[header] = values[colIndex] || '';
           });
@@ -234,7 +237,7 @@ export default function CSVUploadModal() {
       setUploadSuccess(false);
       setContacts([]);
       setHeaders([]);
-      
+
       try {
         await schema.validateAt('file', { file });
         processCSV(file);
@@ -256,7 +259,7 @@ export default function CSVUploadModal() {
       setUploadSuccess(false);
       setContacts([]);
       setHeaders([]);
-      
+
       try {
         await schema.validateAt('file', { file });
         processCSV(file);
@@ -355,9 +358,9 @@ export default function CSVUploadModal() {
           {contacts.length > 0 && (
             <div className="mt-6">
               <h4 className="text-sm font-medium mb-2">Preview ({contacts.length} contacts)</h4>
-              <div 
+              <div
                 ref={setTableContainerRef}
-                className="virtual-table-container border rounded-md" 
+                className="virtual-table-container border rounded-md"
                 style={{ height: '400px', overflow: 'auto' }}
               >
                 <Table>
@@ -365,7 +368,7 @@ export default function CSVUploadModal() {
                     {table.getHeaderGroups().map(headerGroup => (
                       <TableRow key={headerGroup.id}>
                         {headerGroup.headers.map(header => (
-                          <TableHead 
+                          <TableHead
                             key={header.id}
                             style={{ width: header.getSize() }}
                             className="whitespace-nowrap px-4 py-2"
@@ -393,7 +396,7 @@ export default function CSVUploadModal() {
                           className="hover:bg-hover"
                         >
                           {row.getVisibleCells().map(cell => (
-                            <TableCell 
+                            <TableCell
                               key={cell.id}
                               style={{ width: cell.column.getSize() }}
                               className="px-4 py-2"
