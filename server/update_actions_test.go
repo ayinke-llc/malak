@@ -258,6 +258,23 @@ func generateUpdateDeletionTable() []struct {
 			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
+			name: "you cannot delete an update that is sent already",
+			mockFn: func(update *malak_mocks.MockUpdateRepository) {
+				update.
+					EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.Update{
+						Status: malak.UpdateStatusSent,
+					}, nil)
+
+				update.EXPECT().Delete(gomock.Any(), gomock.Any()).
+					Times(0).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
 			name: "deleting content succeeds",
 			mockFn: func(update *malak_mocks.MockUpdateRepository) {
 				update.

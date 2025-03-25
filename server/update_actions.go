@@ -125,6 +125,11 @@ func (u *updatesHandler) delete(
 			"an error occurred while fetching update"), StatusFailed
 	}
 
+	if update.Status == malak.UpdateStatusSent {
+		return newAPIStatus(http.StatusBadRequest, "you cannot delete an update that has been sent"),
+			StatusFailed
+	}
+
 	if err := u.updateRepo.Delete(ctx, update); err != nil {
 		logger.Error("could not create updates", zap.Error(err))
 
