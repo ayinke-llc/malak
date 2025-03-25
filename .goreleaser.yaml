@@ -37,7 +37,7 @@ archives:
         format: zip
 
 changelog:
-  use: git
+  use: github-native
   sort: asc
 
 checksum:
