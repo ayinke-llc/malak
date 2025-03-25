@@ -26,8 +26,9 @@ type createContactRequestBatch struct {
 
 func (v *createContactRequestBatch) Validate() error {
 	if len(v.Contacts) == 0 {
-		return errors.New("")
+		return errors.New("please provide at least one contact")
 	}
+
 	for _, c := range v.Contacts {
 
 		if hermes.IsStringEmpty(c.Email.String()) {
