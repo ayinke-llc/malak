@@ -22,6 +22,7 @@ import (
 	"github.com/riandyrn/otelchi"
 	"github.com/rs/cors"
 	"github.com/sethvargo/go-limiter/httplimit"
+	svix "github.com/svix/svix-webhooks/go"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
 )
@@ -196,6 +197,15 @@ func buildRoutes(
 		referenceGenerator: referenceGenerator,
 		updateRepo:         updateRepo,
 		contactRepo:        contactRepo,
+	}
+
+	if cfg.Email.Provider == config.EmailProviderResend {
+		wh, err := svix.NewWebhook(cfg.Email.Resend.WebhookSecret)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		webhookHandler.svixClient = wh
 	}
 
 	stripeHan := &stripeHandler{
