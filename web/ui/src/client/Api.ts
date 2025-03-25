@@ -632,6 +632,14 @@ export interface ServerCreateContactRequest {
   last_name?: string;
 }
 
+export interface ServerCreateContactRequestBatch {
+  contacts?: {
+    email?: string;
+    first_name?: string;
+    last_name?: string;
+  }[];
+}
+
 export interface ServerCreateDashboardRequest {
   description: string;
   title: string;
@@ -1148,6 +1156,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerFetchContactResponse, ServerAPIStatus>({
         path: `/contacts/${reference}`,
         method: "PUT",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description batch create a new contact
+     *
+     * @tags contacts
+     * @name BatchCreate
+     * @request POST:/contacts/batch
+     */
+    batchCreate: (data: ServerCreateContactRequestBatch, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/contacts/batch`,
+        method: "POST",
         body: data,
         type: ContentType.Json,
         format: "json",

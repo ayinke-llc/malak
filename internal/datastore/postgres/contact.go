@@ -47,7 +47,7 @@ func (o *contactRepo) Create(ctx context.Context,
 	return o.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 
 		_, err := tx.NewInsert().
-			Model(contacts).
+			Model(&contacts).
 			Exec(ctx)
 
 		if err != nil {

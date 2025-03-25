@@ -94,7 +94,7 @@ func (c *contactHandler) batchCreate(
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	var contacts = make([]*malak.Contact, len(req.Contacts))
+	var contacts = make([]*malak.Contact, 0, len(req.Contacts))
 
 	for _, v := range req.Contacts {
 		contact := &malak.Contact{

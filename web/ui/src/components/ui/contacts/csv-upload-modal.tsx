@@ -33,6 +33,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import CopyToClipboard from 'react-copy-to-clipboard';
+import { useMutation } from '@tanstack/react-query';
+import { IMPORT_CONTACTS_MUTATION } from '@/lib/query-constants';
+import client from '@/lib/client';
 
 const MAX_FILE_SIZE = 500 * 1024; // 500KB in bytes
 
@@ -77,6 +80,25 @@ export default function CSVUploadModal() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
   const [tableContainerRef, setTableContainerRef] = useState<HTMLDivElement | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { mutate: importContacts, isPending } = useMutation({
+    mutationKey: [IMPORT_CONTACTS_MUTATION],
+    mutationFn: async (contacts: Contact[]) => {
+      const response = await client.contacts.batchCreate({ contacts });
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success('Contacts imported successfully');
+      setIsOpen(false);
+      setContacts([]);
+      setSelectedFile(null);
+      setUploadSuccess(false);
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to import contacts: ${error.message}`);
+    },
+  });
 
   const columnHelper = createColumnHelper<Contact>();
 
@@ -201,8 +223,7 @@ export default function CSVUploadModal() {
       toast.error('No contacts to import');
       return;
     }
-    console.log('Processed contacts:', contacts);
-    toast.success('Contacts ready for import');
+    importContacts(contacts);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -259,7 +280,7 @@ export default function CSVUploadModal() {
       : 0;
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
           type="button"
@@ -396,8 +417,9 @@ export default function CSVUploadModal() {
                   type="button"
                   onClick={handleImportSubmit}
                   className="gap-2"
+                  disabled={isPending}
                 >
-                  Import {contacts.length} Contacts
+                  {isPending ? 'Importing...' : `Import ${contacts.length} Contacts`}
                 </Button>
               </div>
             </div>
