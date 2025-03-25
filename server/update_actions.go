@@ -64,6 +64,7 @@ func (u *updatesHandler) duplicate(
 		CreatedBy:   user.ID,
 		Status:      malak.UpdateStatusDraft,
 		WorkspaceID: update.WorkspaceID,
+		Title:       update.Title,
 	}
 
 	opts := &malak.TemplateCreateUpdateOptions{
