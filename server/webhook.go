@@ -83,7 +83,7 @@ func (we *webhookHandler) handleResend(
 			return
 		}
 
-		_, recipientStat, err := we.updateRepo.GetStatByEmailID(ctx, req.Data.EmailID, malak.UpdateRecipientLogProviderResend)
+		log, recipientStat, err := we.updateRepo.GetStatByEmailID(ctx, req.Data.EmailID, malak.UpdateRecipientLogProviderResend)
 		if err != nil {
 			logger.Error("could not fetch recipient by id", zap.Error(err),
 				zap.String("email_reference", req.Data.EmailID))
@@ -99,7 +99,7 @@ func (we *webhookHandler) handleResend(
 		}
 
 		update := &malak.Update{
-			ID: recipientStat.Recipient.UpdateID,
+			ID: log.Recipient.UpdateID,
 		}
 
 		updateStat, err := we.updateRepo.Stat(ctx, update)
