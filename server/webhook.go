@@ -1,7 +1,9 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"time"
 
@@ -9,6 +11,8 @@ import (
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/go-chi/render"
+	svix "github.com/svix/svix-webhooks/go"
+	"go.opentelemetry.io/otel/codes"
 	"go.uber.org/zap"
 )
 
@@ -20,6 +24,7 @@ type webhookHandler struct {
 	updateRepo         malak.UpdateRepository
 	contactRepo        malak.ContactRepository
 	referenceGenerator malak.ReferenceGeneratorOperation
+	svixClient         *svix.Webhook
 }
 
 type resendWebhookRequest struct {
@@ -44,7 +49,32 @@ func (we *webhookHandler) handleResend(
 
 		logger = logger.With(zap.String("request_id", rid))
 
-		logger.Debug("Process resend webhook")
+		logger.Debug("Processing resend webhook")
+
+		if we.svixClient == nil {
+			_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, "resend not active"))
+			return
+		}
+
+		rawBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+
+			_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, "could not read bytes data"))
+			return
+		}
+
+		err = we.svixClient.Verify(rawBytes, r.Header)
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+
+			_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest, err.Error()))
+			return
+		}
+
+		r.Body = io.NopCloser(bytes.NewBuffer(rawBytes))
 
 		var req = new(resendWebhookRequest)
 
@@ -58,6 +88,13 @@ func (we *webhookHandler) handleResend(
 			logger.Error("could not fetch recipient by id", zap.Error(err),
 				zap.String("email_reference", req.Data.EmailID))
 			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not find recipient"))
+			return
+		}
+
+		if recipientStat == nil {
+			logger.Error("could not fetch recipient stat",
+				zap.String("provider", "Resend"), zap.String("email_id", req.Data.EmailID))
+			_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "could not find recipient for weird reasons"))
 			return
 		}
 

@@ -2,8 +2,10 @@ package resend
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/email"
@@ -17,6 +19,14 @@ type client struct {
 }
 
 func New(cfg config.Config) (email.Client, error) {
+	if hermes.IsStringEmpty(cfg.Email.Resend.APIKey) {
+		return nil, errors.New("please provide your resend api key")
+	}
+
+	if hermes.IsStringEmpty(cfg.Email.Resend.WebhookSecret) {
+		return nil, errors.New("please provide your resend webhook secret")
+	}
+
 	c := resendclient.NewClient(cfg.Email.Resend.APIKey)
 
 	return &client{
