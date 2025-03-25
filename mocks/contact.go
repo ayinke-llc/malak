@@ -43,17 +43,22 @@ func (m *MockContactRepository) EXPECT() *MockContactRepositoryMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockContactRepository) Create(arg0 context.Context, arg1 *malak.Contact) error {
+func (m *MockContactRepository) Create(arg0 context.Context, arg1 ...*malak.Contact) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	varargs := []any{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Create", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockContactRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.Call {
+func (mr *MockContactRepositoryMockRecorder) Create(arg0 any, arg1 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockContactRepository)(nil).Create), arg0, arg1)
+	varargs := append([]any{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockContactRepository)(nil).Create), varargs...)
 }
 
 // Delete mocks base method.

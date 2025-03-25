@@ -69,7 +69,7 @@ type ContactOverview struct {
 }
 
 type ContactRepository interface {
-	Create(context.Context, *Contact) error
+	Create(context.Context, ...*Contact) error
 	Get(context.Context, FetchContactOptions) (*Contact, error)
 	List(context.Context, ListContactOptions) ([]Contact, int64, error)
 	Delete(context.Context, *Contact) error

@@ -39,7 +39,7 @@ func (o *contactRepo) Update(ctx context.Context,
 }
 
 func (o *contactRepo) Create(ctx context.Context,
-	contact *malak.Contact) error {
+	contacts ...*malak.Contact) error {
 
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
@@ -47,7 +47,7 @@ func (o *contactRepo) Create(ctx context.Context,
 	return o.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 
 		_, err := tx.NewInsert().
-			Model(contact).
+			Model(contacts).
 			Exec(ctx)
 
 		if err != nil {
@@ -61,7 +61,6 @@ func (o *contactRepo) Create(ctx context.Context,
 
 		return nil
 	})
-
 }
 
 func (o *contactRepo) Get(ctx context.Context,
