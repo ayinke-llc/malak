@@ -132,7 +132,8 @@ func getConfig() config.Config {
 				UseTLS   bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
 			} "mapstructure:\"smtp\" yaml:\"smtp\""
 			Resend struct {
-				APIKey string "mapstructure:\"api_key\" yaml:\"api_key\""
+				APIKey        string "mapstructure:\"api_key\" yaml:\"api_key\""
+				WebhookSecret string "mapstructure:\"webhook_secret\" yaml:\"webhook_secret\""
 			} "mapstructure:\"resend\" yaml:\"resend\""
 		}{
 			Provider:   config.EmailProviderSmtp,
