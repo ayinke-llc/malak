@@ -1556,6 +1556,28 @@
 				},
 				"type": "object"
 			},
+			"server.createContactRequestBatch": {
+				"properties": {
+					"contacts": {
+						"items": {
+							"properties": {
+								"email": {
+									"type": "string"
+								},
+								"first_name": {
+									"type": "string"
+								},
+								"last_name": {
+									"type": "string"
+								}
+							},
+							"type": "object"
+						},
+						"type": "array"
+					}
+				},
+				"type": "object"
+			},
 			"server.createDashboardRequest": {
 				"properties": {
 					"description": {
@@ -2644,6 +2666,78 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/server.fetchContactResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"contacts"
+				]
+			}
+		},
+		"/contacts/batch": {
+			"post": {
+				"description": "batch create a new contact",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.createContactRequestBatch"
+							}
+						}
+					},
+					"description": "contact request body",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
 								}
 							}
 						},

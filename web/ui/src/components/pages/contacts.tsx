@@ -3,6 +3,7 @@
 import ListContacts from "@/components/ui/contacts/list/list";
 import CreateContactModal from "@/components/ui/contacts/modal";
 import ManageListModal from "@/components/ui/contacts/new-list-modal";
+import CSVUploadModal from "@/components/ui/contacts/csv-upload-modal";
 
 export default function Contacts() {
   return (
@@ -23,6 +24,7 @@ export default function Contacts() {
 
           <div className="flex gap-2">
             <ManageListModal />
+            <CSVUploadModal />
             <CreateContactModal />
           </div>
         </div>

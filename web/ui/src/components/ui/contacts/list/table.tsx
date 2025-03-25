@@ -45,6 +45,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { MalakContact, MalakContactListMapping } from "@/client/Api";
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { toast } from "sonner";
+import { LIST_CONTACTS } from "@/lib/query-constants";
 
 export const columns: ColumnDef<MalakContact>[] = [
   {
@@ -197,8 +198,8 @@ export const columns: ColumnDef<MalakContact>[] = [
             className="w-48 bg-background border-border"
           >
             <DropdownMenuLabel className="text-muted-foreground text-xs">Actions</DropdownMenuLabel>
-            <CopyToClipboard 
-              text={contact.email || ''} 
+            <CopyToClipboard
+              text={contact.email || ''}
               onCopy={(text, result) => {
                 if (result) {
                   toast.success('Email copied to clipboard');
@@ -248,7 +249,7 @@ export default function ContactsTable() {
   }, []);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['contacts', pageIndex + 1, pageSize],
+    queryKey: [LIST_CONTACTS, pageIndex + 1, pageSize],
     queryFn: async () => {
       const response = await client.contacts.contactsList({
         page: pageIndex + 1,
