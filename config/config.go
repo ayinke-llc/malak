@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"net/mail"
 	"time"
 
 	"github.com/ayinke-llc/hermes"
@@ -193,6 +194,18 @@ type Config struct {
 }
 
 func (c *Config) Validate() error {
+
+	if hermes.IsStringEmpty(c.Email.SenderName) {
+		return errors.New("please provide updates sender name")
+	}
+
+	if hermes.IsStringEmpty(c.Email.Sender.String()) {
+		return errors.New("please provide updates sender email")
+	}
+
+	if _, err := mail.ParseAddress(c.Email.Sender.String()); err != nil {
+		return errors.New("email sender is invalid")
+	}
 
 	if !c.Logging.Mode.IsValid() {
 		return errors.New("please provide a valid logging mode")
