@@ -113,7 +113,7 @@ export function TeamSwitcher() {
                 className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                 <img
                   className="size-4 shrink-0"
-                  src={current?.logo_url || "http://res.cloudinary.com/dwkjke5ea/image/upload/v1742121952/malak/logos/mtnjuwfl0gb9r11pz5qg.svg"}
+                  src={current?.logo_url || "https://res.cloudinary.com/dwkjke5ea/image/upload/v1742121952/malak/logos/mtnjuwfl0gb9r11pz5qg.svg"}
                   alt={`${current?.workspace_name}'s logo`} />
               </div>
 
@@ -147,7 +147,7 @@ export function TeamSwitcher() {
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <img
                     className="size-4 shrink-0"
-                    src={workspace?.logo_url || "http://res.cloudinary.com/dwkjke5ea/image/upload/v1742121952/malak/logos/mtnjuwfl0gb9r11pz5qg.svg"}
+                    src={workspace?.logo_url || "https://res.cloudinary.com/dwkjke5ea/image/upload/v1742121952/malak/logos/mtnjuwfl0gb9r11pz5qg.svg"}
                     alt={`${workspace?.workspace_name}'s logo`} />
                 </div>
                 <span className={cn(

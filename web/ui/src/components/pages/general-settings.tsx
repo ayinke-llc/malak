@@ -116,7 +116,7 @@ const CompanyUpdateCard = () => {
       companyName: current?.workspace_name || "",
       website: current?.website || "",
       timezone: current?.timezone || "UTC",
-      image: current?.logo_url || "http://res.cloudinary.com/dwkjke5ea/image/upload/v1742121952/malak/logos/mtnjuwfl0gb9r11pz5qg.svg"
+      image: current?.logo_url || "https://res.cloudinary.com/dwkjke5ea/image/upload/v1742121952/malak/logos/mtnjuwfl0gb9r11pz5qg.svg"
     },
   });
 
