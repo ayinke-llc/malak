@@ -136,7 +136,6 @@ const SingleUpdate = (update: MalakUpdate) => {
     },
   });
 
-
   return (
     <>
       <div
@@ -230,6 +229,7 @@ const SingleUpdate = (update: MalakUpdate) => {
                   onClick={() => {
                     setDeleteDialogOpen(true);
                   }}
+                  disabled={update.status === "sent"}
                 >
                   <RiDeleteBin2Line className="mr-2 h-4 w-4" />
                   Delete
