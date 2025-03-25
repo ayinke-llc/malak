@@ -134,12 +134,14 @@ func (m *mercuryClient) Ping(
 			UserFacingName: account.Name,
 			ProviderID:     account.ID,
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeCurrency,
 		})
 
 		charts = append(charts, malak.IntegrationChartValues{
 			InternalName:   malak.IntegrationChartInternalNameTypeMercuryAccountTransaction,
 			UserFacingName: "Transactions count for " + account.Name,
 			ChartType:      malak.IntegrationChartTypeBar,
+			DataPointType:  malak.IntegrationDataPointTypeOthers,
 		})
 	}
 
