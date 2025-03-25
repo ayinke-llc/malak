@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/go-chi/chi/v5"
@@ -318,6 +319,33 @@ func TestContactHandler_Edit(t *testing.T) {
 			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
 			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
 			WrapMalakHTTPHandler(getLogger(t), a.editContact, getConfig(), "contacts.edit").
+				ServeHTTP(rr, req)
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func TestContactHandler_BatchCreate(t *testing.T) {
+	for _, v := range generateBatchCreateTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+			contactRepo := malak_mocks.NewMockContactRepository(controller)
+			v.mockFn(contactRepo)
+			a := &contactHandler{
+				cfg:                getConfig(),
+				contactRepo:        contactRepo,
+				referenceGenerator: &mockReferenceGenerator{},
+			}
+			var b = bytes.NewBuffer(nil)
+			require.NoError(t, json.NewEncoder(b).Encode(&v.req))
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodPost, "/contacts/batch", b)
+			req.Header.Add("Content-Type", "application/json")
+			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+			WrapMalakHTTPHandler(getLogger(t), a.batchCreate, getConfig(), "contacts.batch").
 				ServeHTTP(rr, req)
 			require.Equal(t, v.expectedStatusCode, rr.Code)
 			verifyMatch(t, rr)
@@ -1191,6 +1219,193 @@ func generateListContactsTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusCreated,
 			withPagination:     true,
+		},
+	}
+}
+
+func generateBatchCreateTestTable() []struct {
+	name               string
+	mockFn             func(contactRepo *malak_mocks.MockContactRepository)
+	expectedStatusCode int
+	req                createContactRequestBatch
+} {
+	return []struct {
+		name               string
+		mockFn             func(contactRepo *malak_mocks.MockContactRepository)
+		expectedStatusCode int
+		req                createContactRequestBatch
+	}{
+		{
+			name: "empty contacts array",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req:                createContactRequestBatch{},
+		},
+		{
+			name: "missing email",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: createContactRequestBatch{
+				Contacts: []struct {
+					Email     malak.Email `json:"email,omitempty" validate:"'required'"`
+					FirstName *string     `json:"first_name,omitempty" validate:"'required'"`
+					LastName  *string     `json:"last_name,omitempty" validate:"'required'"`
+				}{
+					{
+						FirstName: hermes.Ref("John"),
+						LastName:  hermes.Ref("Doe"),
+					},
+				},
+			},
+		},
+		{
+			name: "first name too long",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: createContactRequestBatch{
+				Contacts: []struct {
+					Email     malak.Email `json:"email,omitempty" validate:"'required'"`
+					FirstName *string     `json:"first_name,omitempty" validate:"'required'"`
+					LastName  *string     `json:"last_name,omitempty" validate:"'required'"`
+				}{
+					{
+						Email:     "test@example.com",
+						FirstName: hermes.Ref(strings.Repeat("a", 101)),
+						LastName:  hermes.Ref("Doe"),
+					},
+				},
+			},
+		},
+		{
+			name: "last name too long",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: createContactRequestBatch{
+				Contacts: []struct {
+					Email     malak.Email `json:"email,omitempty" validate:"'required'"`
+					FirstName *string     `json:"first_name,omitempty" validate:"'required'"`
+					LastName  *string     `json:"last_name,omitempty" validate:"'required'"`
+				}{
+					{
+						Email:     "test@example.com",
+						FirstName: hermes.Ref("John"),
+						LastName:  hermes.Ref(strings.Repeat("a", 101)),
+					},
+				},
+			},
+		},
+		{
+			name: "duplicate contact",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Create(gomock.Any(), gomock.Any()).
+					Return(malak.ErrContactExists)
+			},
+			expectedStatusCode: http.StatusConflict,
+			req: createContactRequestBatch{
+				Contacts: []struct {
+					Email     malak.Email `json:"email,omitempty" validate:"'required'"`
+					FirstName *string     `json:"first_name,omitempty" validate:"'required'"`
+					LastName  *string     `json:"last_name,omitempty" validate:"'required'"`
+				}{
+					{
+						Email:     "test@example.com",
+						FirstName: hermes.Ref("John"),
+						LastName:  hermes.Ref("Doe"),
+					},
+				},
+			},
+		},
+		{
+			name: "unknown error",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Create(gomock.Any(), gomock.Any()).
+					Return(errors.New("unknown error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: createContactRequestBatch{
+				Contacts: []struct {
+					Email     malak.Email `json:"email,omitempty" validate:"'required'"`
+					FirstName *string     `json:"first_name,omitempty" validate:"'required'"`
+					LastName  *string     `json:"last_name,omitempty" validate:"'required'"`
+				}{
+					{
+						Email:     "test@example.com",
+						FirstName: hermes.Ref("John"),
+						LastName:  hermes.Ref("Doe"),
+					},
+				},
+			},
+		},
+		{
+			name: "success with single contact",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Create(gomock.Any(), gomock.Any()).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusCreated,
+			req: createContactRequestBatch{
+				Contacts: []struct {
+					Email     malak.Email `json:"email,omitempty" validate:"'required'"`
+					FirstName *string     `json:"first_name,omitempty" validate:"'required'"`
+					LastName  *string     `json:"last_name,omitempty" validate:"'required'"`
+				}{
+					{
+						Email:     "test@example.com",
+						FirstName: hermes.Ref("John"),
+						LastName:  hermes.Ref("Doe"),
+					},
+				},
+			},
+		},
+		{
+			name: "success with multiple contacts",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Create(gomock.Any(), gomock.Any()).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusCreated,
+			req: createContactRequestBatch{
+				Contacts: []struct {
+					Email     malak.Email `json:"email,omitempty" validate:"'required'"`
+					FirstName *string     `json:"first_name,omitempty" validate:"'required'"`
+					LastName  *string     `json:"last_name,omitempty" validate:"'required'"`
+				}{
+					{
+						Email:     "test1@example.com",
+						FirstName: hermes.Ref("John"),
+						LastName:  hermes.Ref("Doe"),
+					},
+					{
+						Email:     "test2@example.com",
+						FirstName: hermes.Ref("Jane"),
+						LastName:  hermes.Ref("Smith"),
+					},
+				},
+			},
+		},
+		{
+			name: "success with email as first name",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Create(gomock.Any(), gomock.Any()).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusCreated,
+			req: createContactRequestBatch{
+				Contacts: []struct {
+					Email     malak.Email `json:"email,omitempty" validate:"'required'"`
+					FirstName *string     `json:"first_name,omitempty" validate:"'required'"`
+					LastName  *string     `json:"last_name,omitempty" validate:"'required'"`
+				}{
+					{
+						Email:    "test@example.com",
+						LastName: hermes.Ref("Doe"),
+					},
+				},
+			},
 		},
 	}
 }

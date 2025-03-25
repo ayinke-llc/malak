@@ -45,7 +45,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { MalakContact, MalakContactListMapping } from "@/client/Api";
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { toast } from "sonner";
-import { LIST_CONTACTS } from "@lib/query-constants"
+import { LIST_CONTACTS } from "@/lib/query-constants";
 
 export const columns: ColumnDef<MalakContact>[] = [
   {
