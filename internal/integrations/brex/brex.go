@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"time"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
@@ -204,7 +203,7 @@ func (m *brexClient) Ping(
 		})
 
 		charts = append(charts, malak.IntegrationChartValues{
-			InternalName:   malak.IntegrationChartInternalNameTypeBrexAccount,
+			InternalName:   malak.IntegrationChartInternalNameTypeBrexAccountTransaction,
 			UserFacingName: "Transactions count for " + account.Name,
 			ChartType:      malak.IntegrationChartTypeBar,
 			DataPointType:  malak.IntegrationDataPointTypeOthers,
@@ -322,7 +321,7 @@ func (m *brexClient) Data(ctx context.Context,
 		})
 
 		g.Go(func() error {
-			startTimeFormatted := opts.LastFetchedAt.Format(time.RFC3339)
+			startTimeFormatted := opts.LastFetchedAt.Format("2006-01-02T15:04:05.999")
 
 			transactions, err := m.fetchTransactions(ctx, token, account.ID, startTimeFormatted, "")
 			if err != nil {
