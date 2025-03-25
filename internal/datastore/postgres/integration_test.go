@@ -169,7 +169,8 @@ func TestIntegration_Disable(t *testing.T) {
 	require.NoError(t, integrationRepo.Update(t.Context(), &workspaceIntegration))
 
 	updatedIntegration, err := integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: workspaceIntegration.Reference,
+		Reference:   workspaceIntegration.Reference,
+		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
 	require.True(t, updatedIntegration.IsEnabled)
@@ -178,7 +179,8 @@ func TestIntegration_Disable(t *testing.T) {
 	require.NoError(t, err)
 
 	updatedIntegration, err = integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: workspaceIntegration.Reference,
+		Reference:   workspaceIntegration.Reference,
+		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
 	require.False(t, updatedIntegration.IsEnabled)
@@ -224,8 +226,9 @@ func TestIntegration_Update(t *testing.T) {
 
 	// Fetch updated integration
 	updatedIntegration, err := integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: workspaceIntegration.Reference,
-		ID:        workspaceIntegration.ID,
+		Reference:   workspaceIntegration.Reference,
+		ID:          workspaceIntegration.ID,
+		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
 	require.True(t, updatedIntegration.IsEnabled)
@@ -237,8 +240,9 @@ func TestIntegration_Update(t *testing.T) {
 
 	// Verify the second update
 	finalIntegration, err := integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: workspaceIntegration.Reference,
-		ID:        workspaceIntegration.ID,
+		Reference:   workspaceIntegration.Reference,
+		ID:          workspaceIntegration.ID,
+		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
 	require.False(t, finalIntegration.IsEnabled)
@@ -293,7 +297,8 @@ func TestIntegration_CreateCharts(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = integrationRepo.Get(t.Context(), malak.FindWorkspaceIntegrationOptions{
-		Reference: workspaceIntegration.Reference,
+		Reference:   workspaceIntegration.Reference,
+		WorkspaceID: workspace.ID,
 	})
 	require.NoError(t, err)
 
