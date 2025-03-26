@@ -20,8 +20,8 @@ Own full control of your data and company state if you decide to selfhost.
 
 ## Features
 
-> [!NOTE]
-> Hosted version available by mid March :)
+> [!IMPORTANT]
+> Hosted version available at <https://app.malak.vc>
 
 - 100% Opensource. Own your own data, metrics, and story
 - Send investors' updates to anyone via email
