@@ -315,10 +315,6 @@ func generateUpdateDeckViewerSessionTestTable() []struct {
 						WorkspaceID: uuid.MustParse("00000000-0000-0000-0000-000000000002"),
 					}, nil)
 
-				contact.EXPECT().Get(gomock.Any(), gomock.Any()).
-					Times(1).
-					Return(nil, malak.ErrContactNotFound)
-
 				deck.EXPECT().FindDeckSession(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil, errors.New("session not found"))

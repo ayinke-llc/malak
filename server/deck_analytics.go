@@ -264,6 +264,14 @@ func (d *deckHandler) updateDeckViewerSession(
 			StatusFailed
 	}
 
+	session, err := d.deckRepo.FindDeckSession(ctx, req.SessionID)
+	if err != nil {
+		logger.Error("could not find deck session")
+		return newAPIStatus(http.StatusInternalServerError, "deck session not found"), StatusFailed
+	}
+
+	session.TimeSpentSeconds = req.TimeSpent
+
 	opts := &malak.UpdateDeckSessionOptions{}
 
 	if !hermes.IsStringEmpty(req.Email.String()) {
@@ -271,6 +279,10 @@ func (d *deckHandler) updateDeckViewerSession(
 			Email:       req.Email,
 			WorkspaceID: deck.WorkspaceID,
 		})
+
+		if err == nil {
+			opts.Contact = contact
+		}
 
 		if err != nil {
 			if errors.Is(err, malak.ErrContactNotFound) {
@@ -288,8 +300,6 @@ func (d *deckHandler) updateDeckViewerSession(
 				return newAPIStatus(http.StatusInternalServerError, "an error occurred while finding contact by email"),
 					StatusFailed
 			}
-		} else {
-			opts.Contact = contact
 		}
 	}
 
@@ -298,14 +308,6 @@ func (d *deckHandler) updateDeckViewerSession(
 			return newAPIStatus(http.StatusBadRequest, "deck password not correct"), StatusFailed
 		}
 	}
-
-	session, err := d.deckRepo.FindDeckSession(ctx, req.SessionID)
-	if err != nil {
-		logger.Error("could not find deck session")
-		return newAPIStatus(http.StatusInternalServerError, "deck session not found"), StatusFailed
-	}
-
-	session.TimeSpentSeconds = req.TimeSpent
 
 	opts.Session = session
 
