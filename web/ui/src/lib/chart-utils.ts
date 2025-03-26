@@ -26,7 +26,7 @@ export const formatChartData = (
 
 export const formatTooltipValue = (value: number, dataPointType?: string): [string | number, string] => {
   if (dataPointType === 'currency') {
-    return [`$${value.toFixed(2)}`, 'Value'];
+    return [`$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 'Value'];
   }
   return [value, 'Value'];
 };
