@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+"use client"
 
 export function BetaBanner() {
   return (
@@ -14,12 +14,12 @@ export function BetaBanner() {
       </div>
       <div className="flex flex-1 justify-end">
         <a
-          href="https://github.com/ayinke-llc/malak"
+          href="mailto:support@ayinke.ventures"
           target="_blank"
           rel="noopener noreferrer"
           className="text-sm font-semibold leading-6 text-gray-900 dark:text-gray-100 hover:text-gray-700 dark:hover:text-gray-300"
         >
-          Learn more <span aria-hidden="true">&rarr;</span>
+          Email us <span aria-hidden="true">&rarr;</span>
         </a>
       </div>
     </div>
