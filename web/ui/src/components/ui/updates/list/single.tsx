@@ -140,26 +140,35 @@ const SingleUpdate = (update: MalakUpdate) => {
     <>
       <div
         key={update.id}
-        className="flex items-center justify-between p-2"
+        className="group relative flex items-start justify-between p-4 hover:bg-muted/50 transition-all duration-200 rounded-lg"
       >
-        <div className="flex flex-col space-y-1">
-          <div className="flex items-center space-x-2">
-            <Link href={`/updates/${update.reference}`}>
-              <h3 className="font-semibold text-foreground">
+        <div className="flex flex-col space-y-2 flex-1">
+          <div className="flex items-center gap-3">
+            <Link 
+              href={`/updates/${update.reference}`}
+              className="flex-1 min-w-0"
+            >
+              <h3 className="font-medium text-foreground truncate hover:text-primary transition-colors">
                 {update.title ? decodeHtmlEntities(update.title as string) : ''}
               </h3>
             </Link>
             <UpdateBadge status={update.status as string} />
           </div>
-          <p className="text-sm text-muted-foreground">
-            {formatInTimeZone(
-              new Date(update?.created_at as string),
-              current?.timezone || 'UTC',
-              "EEEE, MMMM do, yyyy"
-            )}
-          </p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path fillRule="evenodd" d="M5 1.5a1.5 1.5 0 00-1.5 1.5v11.5A1.5 1.5 0 005 16h10a1.5 1.5 0 001.5-1.5V3A1.5 1.5 0 0015 1.5H5zM2.5 3a3 3 0 013-3h10a3 3 0 013 3v11.5a3 3 0 01-3 3H5a3 3 0 01-3-3V3z" clipRule="evenodd" />
+              <path fillRule="evenodd" d="M12 6.5a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5zm-6 0a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5zm6 3a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5zm-6 0a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5zm6 3a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5zm-6 0a.5.5 0 01.5-.5h2a.5.5 0 010 1h-2a.5.5 0 01-.5-.5z" clipRule="evenodd" />
+            </svg>
+            <span>
+              {formatInTimeZone(
+                new Date(update?.created_at as string),
+                current?.timezone || 'UTC',
+                "EEEE, MMMM do, yyyy"
+              )}
+            </span>
+          </div>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex items-center gap-1 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
           <Button
             variant="ghost"
             size="icon"
@@ -168,6 +177,7 @@ const SingleUpdate = (update: MalakUpdate) => {
             onClick={() => {
               togglePinnedStatus.mutate(update.reference as string);
             }}
+            className="h-8 w-8 hover:bg-muted"
           >
             <RiPushpinLine
               className="h-4 w-4"
@@ -175,101 +185,108 @@ const SingleUpdate = (update: MalakUpdate) => {
           </Button>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="More options">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                aria-label="More options"
+                className="h-8 w-8 hover:bg-muted"
+              >
                 <RiMoreLine className="h-4 w-4 text-muted-foreground" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-40 p-0">
-              <Dialog open={duplicateDialogOpen}>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start rounded-none px-2 py-1.5 text-sm text-foreground"
-                  onClick={() => {
-                    setDuplicateDialogOpen(true);
-                  }}
-                >
-                  <RiFileCopyLine className="mr-2 h-4 w-4 text-muted-foreground" />
-                  Duplicate
-                </Button>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Duplicate update</DialogTitle>
-                    <DialogDescription className="mt-2 text-muted-foreground">
-                      Are you sure you want to duplicate this investor update? A
-                      new update containing the exact content of this update
-                      will created.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter className="mt-4">
-                    <Button
-                      variant="secondary"
-                      loading={loading}
-                      onClick={() => {
-                        setDuplicateDialogOpen(false);
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      loading={loading}
-                      onClick={() => {
-                        setLoading(true);
-                        duplicateMutation.mutate(update.reference as string);
-                      }}
-                    >
-                      Duplicate
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-              <Dialog open={deleteDialogOpen}>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start rounded-none px-2 py-1.5 text-sm text-red-600"
-                  onClick={() => {
-                    setDeleteDialogOpen(true);
-                  }}
-                  disabled={update.status === "sent"}
-                >
-                  <RiDeleteBin2Line className="mr-2 h-4 w-4" />
-                  Delete
-                </Button>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Confirm Deletion</DialogTitle>
-                    <DialogDescription className="mt-2 text-muted-foreground">
-                      Are you sure you want to delete this investor update? This
-                      action cannot be undone.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter className="mt-4">
-                    <Button
-                      variant="secondary"
-                      loading={loading}
-                      onClick={() => {
-                        setDeleteDialogOpen(false);
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      loading={loading}
-                      onClick={() => {
-                        setLoading(true);
-                        deletionMutation.mutate(update.reference as string);
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+            <PopoverContent className="w-48 p-0" align="end">
+              <div className="py-1">
+                <Dialog open={duplicateDialogOpen}>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start px-3 py-2 text-sm text-foreground hover:bg-muted"
+                    onClick={() => {
+                      setDuplicateDialogOpen(true);
+                    }}
+                  >
+                    <RiFileCopyLine className="mr-2 h-4 w-4 text-muted-foreground" />
+                    Duplicate update
+                  </Button>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Duplicate update</DialogTitle>
+                      <DialogDescription className="mt-2 text-muted-foreground">
+                        Are you sure you want to duplicate this investor update? A
+                        new update containing the exact content of this update
+                        will created.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="mt-4">
+                      <Button
+                        variant="secondary"
+                        loading={loading}
+                        onClick={() => {
+                          setDuplicateDialogOpen(false);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        loading={loading}
+                        onClick={() => {
+                          setLoading(true);
+                          duplicateMutation.mutate(update.reference as string);
+                        }}
+                      >
+                        Duplicate
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+                <Dialog open={deleteDialogOpen}>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start px-3 py-2 text-sm text-red-600 hover:bg-muted"
+                    onClick={() => {
+                      setDeleteDialogOpen(true);
+                    }}
+                    disabled={update.status === "sent"}
+                  >
+                    <RiDeleteBin2Line className="mr-2 h-4 w-4" />
+                    Delete update
+                  </Button>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Confirm Deletion</DialogTitle>
+                      <DialogDescription className="mt-2 text-muted-foreground">
+                        Are you sure you want to delete this investor update? This
+                        action cannot be undone.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="mt-4">
+                      <Button
+                        variant="secondary"
+                        loading={loading}
+                        onClick={() => {
+                          setDeleteDialogOpen(false);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        loading={loading}
+                        onClick={() => {
+                          setLoading(true);
+                          deletionMutation.mutate(update.reference as string);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </PopoverContent>
           </Popover>
         </div>
       </div>
-      <Separator />
+      <Separator className="opacity-50" />
     </>
   );
 };
