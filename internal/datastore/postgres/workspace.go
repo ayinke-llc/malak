@@ -129,7 +129,9 @@ func (o *workspaceRepo) Create(ctx context.Context,
 					WorkspaceID:   opts.Workspace.ID,
 					Reference:     gen.Generate(malak.EntityTypeWorkspaceIntegration),
 					IntegrationID: integration.ID,
-					IsEnabled:     false,
+					// enable by default if system level
+					IsEnabled: integration.IntegrationType == malak.IntegrationTypeSystem,
+					IsActive:  integration.IntegrationType == malak.IntegrationTypeSystem,
 				})
 			}
 
