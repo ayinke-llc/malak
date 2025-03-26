@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store"
 
-
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import "./globals.css";
@@ -11,9 +10,10 @@ import { ThemeProvider } from "@/components/providers/theme";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { Suspense } from "react";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { BetaBanner } from "@/components/ui/beta-banner";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://malak.vc"),
+  metadataBase: new URL("https://app.malak.vc"),
   title: siteConfig.name,
   description: siteConfig.description,
   keywords: [],
@@ -62,6 +62,7 @@ export default function RootLayout({
           <Suspense>
             <ErrorBoundary>
               <TooltipProvider>
+                <BetaBanner />
                 <Providers>{children}</Providers>
               </TooltipProvider>
             </ErrorBoundary>

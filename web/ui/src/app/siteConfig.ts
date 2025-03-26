@@ -1,7 +1,7 @@
 export const siteConfig = {
   name: "Malak",
-  url: "https://dashboard.malak.vc",
-  description: "OSS Investors' hub for founders",
+  url: "https://app.malak.vc",
+  description: "Investors' relationship/communication hub for founders",
   baseLinks: {
     home: "/",
     overview: "/overview",
