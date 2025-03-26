@@ -44,8 +44,8 @@ export function NavMain({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Products</SidebarGroupLabel>
-      <SidebarMenu>
+      <SidebarGroupLabel className="hidden sm:flex">Products</SidebarGroupLabel>
+      <SidebarMenu className="touch-manipulation">
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
             {item.items && item.items.length > 0 ? (
@@ -56,25 +56,25 @@ export function NavMain({
               >
                 <div>
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={item.title}>
-                      {item.icon && <item.icon />}
-                      <span>{item.title}</span>
+                    <SidebarMenuButton tooltip={item.title} className="w-full">
+                      {item.icon && <item.icon className="shrink-0" />}
+                      <span className="truncate">{item.title}</span>
                       {item.comingSoon && (
                         <span className="ml-2 inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 animate-pulse">
                           Coming Soon
                         </span>
                       )}
                       <ChevronRight
-                        className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                        className="ml-auto shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       {item.items.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild isActive={isActive(subItem.url)}>
+                          <SidebarMenuSubButton asChild isActive={isActive(subItem.url)} className="w-full">
                             <Link href={subItem.url}>
-                              <span>{subItem.title}</span>
+                              <span className="truncate">{subItem.title}</span>
                             </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
@@ -84,10 +84,10 @@ export function NavMain({
                 </div>
               </Collapsible>
             ) : (
-              <SidebarMenuButton asChild tooltip={item.title} isActive={isActive(item.url)}>
+              <SidebarMenuButton asChild tooltip={item.title} isActive={isActive(item.url)} className="w-full">
                 <Link href={item.url}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
+                  {item.icon && <item.icon className="shrink-0" />}
+                  <span className="truncate">{item.title}</span>
                   {item.comingSoon && (
                     <span className="ml-2 inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 animate-pulse">
                       Coming Soon

@@ -39,12 +39,12 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
+        <header className="sticky top-0 z-10 flex h-14 sm:h-16 shrink-0 items-center gap-2 bg-background">
+          <div className="flex items-center gap-2 px-2 sm:px-4">
+            <SidebarTrigger className="sm:-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4 hidden sm:block" />
             <Breadcrumb>
-              <BreadcrumbList>
+              <BreadcrumbList className="overflow-hidden">
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
                     <Link href="/">Home</Link>
@@ -55,10 +55,10 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
                   <BreadcrumbItem key={index}>
                     {item.href ? (
                       <BreadcrumbLink asChild>
-                        <Link href={item.href}>{item.label}</Link>
+                        <Link href={item.href} className="truncate">{item.label}</Link>
                       </BreadcrumbLink>
                     ) : (
-                      <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                      <BreadcrumbPage className="truncate">{item.label}</BreadcrumbPage>
                     )}
                     {index !== breadcrumbs.length - 1 && <BreadcrumbSeparator />}
                   </BreadcrumbItem>

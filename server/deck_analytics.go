@@ -99,6 +99,11 @@ func (d *deckHandler) publicDeckDetails(
 		return newAPIStatus(status, msg), StatusFailed
 	}
 
+	if deck.IsArchived {
+		return newAPIStatus(http.StatusBadRequest, "deck not available as it is archived"),
+			StatusFailed
+	}
+
 	var objectLink string
 	var country, city string
 	var contactID uuid.UUID
@@ -252,6 +257,11 @@ func (d *deckHandler) updateDeckViewerSession(
 		}
 
 		return newAPIStatus(status, msg), StatusFailed
+	}
+
+	if deck.IsArchived {
+		return newAPIStatus(http.StatusBadRequest, "deck not available as it is archived"),
+			StatusFailed
 	}
 
 	opts := &malak.UpdateDeckSessionOptions{}
