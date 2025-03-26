@@ -2,8 +2,8 @@ name: Send update emails Job
 
 on:
   schedule:
-    ## run every 5 minutes
-    - cron: "*/5 * * * *"
+    ## run every 10 minutes
+    - cron: "*/10 * * * *"
 
 jobs:
   send-email-updates:
