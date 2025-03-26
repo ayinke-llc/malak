@@ -260,7 +260,9 @@ func (d *decksRepo) UpdateDeckSession(ctx context.Context,
 				if err != nil {
 					return err
 				}
+			}
 
+			if opts.Contact != nil {
 				opts.Session.ContactID = opts.Contact.ID
 			}
 
