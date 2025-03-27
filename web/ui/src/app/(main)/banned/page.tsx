@@ -1,6 +1,19 @@
+"use client"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import useWorkspacesStore from "@/store/workspace"
+import { useRouter } from "next/navigation";
 
 export default function BannedPage() {
+
+  const router = useRouter();
+  const workspace = useWorkspacesStore(state => state.current)
+
+  if (!workspace?.is_banned) {
+    router.push("/overview")
+    return
+  }
+
   return (
     <div className="fixed inset-0 bg-background flex items-center justify-center">
       <div className="absolute inset-0 bg-red-50/50" />
