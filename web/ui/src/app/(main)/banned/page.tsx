@@ -18,7 +18,7 @@ export default function BannedPage() {
             Your account has been banned from accessing the dashboard.
           </p>
           <p className="text-lg text-center text-gray-600">
-            If you believe this is a mistake, please contact support.
+            If you believe this is a mistake, please contact support@ayinke.ventures
           </p>
         </CardContent>
       </Card>
