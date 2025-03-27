@@ -5258,6 +5258,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "is_banned": {
+                    "type": "boolean"
+                },
                 "is_subscription_active": {
                     "type": "boolean"
                 },

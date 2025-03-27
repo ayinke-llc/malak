@@ -106,12 +106,19 @@ export default function UserProvider({
       .then((res) => {
         setUser(res.data.user);
 
+        setWorkspaces(res.data.workspaces);
+
         if (res.data.current_workspace !== undefined) {
           setCurrent(res.data.current_workspace);
+          if (res.data.current_workspace?.is_banned) {
+            setLoading(false);
+            router.push("/banned")
+            return
+          }
         }
 
-        setWorkspaces(res.data.workspaces);
         setLoading(false);
+
       })
       .catch((err: AxiosError<ServerAPIStatus>) => {
         if (err?.response?.status === 402) {

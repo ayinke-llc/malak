@@ -547,6 +547,7 @@ export interface MalakUserRole {
 export interface MalakWorkspace {
   created_at?: string;
   id?: string;
+  is_banned?: boolean;
   is_subscription_active?: boolean;
   logo_url?: string;
   metadata?: MalakWorkspaceMetadata;
