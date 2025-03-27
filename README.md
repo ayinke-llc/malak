@@ -31,6 +31,9 @@ Own full control of your data and company state if you decide to selfhost.
 - Manage your fundraising pipeline
 - Own your captable
 
+> [!NOTE]
+> We have a video walkthrough here <https://www.youtube.com/watch?v=BdFBOPWKRO4>
+
 ### Built With
 
 - Golang
