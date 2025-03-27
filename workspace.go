@@ -31,6 +31,8 @@ type Workspace struct {
 	SubscriptionID       string `json:"subscription_id,omitempty"`
 	IsSubscriptionActive bool   `json:"is_subscription_active,omitempty"`
 
+	IsBanned bool `json:"is_banned,omitempty"`
+
 	PlanID uuid.UUID `json:"plan_id,omitempty"`
 	Plan   *Plan     `json:"plan,omitempty" bun:"rel:belongs-to,join:plan_id=id"`
 

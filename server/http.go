@@ -504,6 +504,7 @@ func buildRoutes(
 
 		r.Route("/uploads", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
 
 			r.Route("/decks", func(r chi.Router) {
 				r.Use(deckUploadGulterHandler.Upload(images...))
@@ -513,7 +514,6 @@ func buildRoutes(
 			})
 
 			r.Route("/images", func(r chi.Router) {
-				r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 				r.Use(imageUploadGulterHandler.Upload(images...))
 
 				r.Post("/",
