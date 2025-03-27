@@ -78,6 +78,27 @@ func getIP(r *http.Request) string {
 	return r.RemoteAddr
 }
 
+func requireWorkspaceNotBanned(
+	cfg config.Config,
+) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			ctx, span, _ := getTracer(r.Context(), r, "middleware.requireWorkspaceNotBanned", cfg.Otel.IsEnabled)
+			defer span.End()
+
+			workspace := getWorkspaceFromContext(ctx)
+			if workspace.IsBanned {
+				_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized,
+					"Workspace is not available and has been banned. Please reach out to support@ayinke.ventures"))
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func requireWorkspaceValidSubscription(
 	cfg config.Config,
 ) func(next http.Handler) http.Handler {
