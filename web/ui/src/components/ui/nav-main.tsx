@@ -72,7 +72,7 @@ export function NavMain({
                     <SidebarMenuSub>
                       {item.items.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild isActive={isActive(subItem.url)} className="w-full">
+                          <SidebarMenuSubButton asChild isActive={isActive(subItem.url)} className="w-full data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:border-l-2 data-[active=true]:border-primary">
                             <Link href={subItem.url}>
                               <span className="truncate">{subItem.title}</span>
                             </Link>
@@ -84,7 +84,7 @@ export function NavMain({
                 </div>
               </Collapsible>
             ) : (
-              <SidebarMenuButton asChild tooltip={item.title} isActive={isActive(item.url)} className="w-full">
+              <SidebarMenuButton asChild tooltip={item.title} isActive={isActive(item.url)} className="w-full data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:border-l-2 data-[active=true]:border-primary">
                 <Link href={item.url}>
                   {item.icon && <item.icon className="shrink-0" />}
                   <span className="truncate">{item.title}</span>

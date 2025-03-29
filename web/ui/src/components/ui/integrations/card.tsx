@@ -365,23 +365,23 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
         </DialogContent>
       </Dialog>
 
-      <Card className="drop-shadow-lg shadow-lg flex flex-col h-[280px]">
+      <Card className="flex flex-col min-h-[200px] h-full">
         <CardHeader className="flex-shrink-0">
           <div className="flex items-center gap-4">
             <img
-              className="w-8 h-8 rounded-md"
+              className="w-8 h-8 rounded-md object-contain"
               src={integration?.integration?.logo_url}
               alt={`${integration?.integration?.integration_name} logo`}
             />
-            <CardTitle>{integration?.integration?.integration_name}</CardTitle>
+            <CardTitle className="line-clamp-1">{integration?.integration?.integration_name}</CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="flex-grow flex flex-col justify-between">
-          <CardDescription className="mt-2 line-clamp-3">
+        <CardContent className="flex-grow flex flex-col justify-between gap-4">
+          <CardDescription className="line-clamp-3">
             {integration?.integration?.description}
           </CardDescription>
-          <div className="flex justify-between items-center mt-4">
-            <div className="flex gap-2">
+          <div className="flex justify-between items-center">
+            <div className="flex flex-wrap gap-2">
               {getConnectionTypeBadge(integration?.integration?.integration_type as MalakIntegrationType)}
               {getStatusBadge(integration)}
             </div>
@@ -425,8 +425,6 @@ export function IntegrationCard({ integration }: IntegrationCardProps) {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex-shrink-0 flex justify-end">
-        </CardFooter>
       </Card>
     </>
   );

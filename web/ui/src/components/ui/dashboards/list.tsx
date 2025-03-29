@@ -82,25 +82,25 @@ export default function ListDashboards() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
         {data.dashboards.map((dashboard: MalakDashboard) => (
           <Link
             key={dashboard.id}
             href={`/dashboards/${dashboard.reference}`}
             className="block transition-transform hover:scale-[1.02]"
           >
-            <Card className="flex flex-col p-6 space-y-4 cursor-pointer hover:shadow-md transition-shadow">
-              <div>
-                <h4 className="text-lg font-medium">{dashboard.title}</h4>
-                <p className="text-sm text-muted-foreground">{dashboard.description}</p>
+            <Card className="h-full flex flex-col p-4 md:p-6 space-y-3 md:space-y-4 cursor-pointer hover:shadow-md transition-shadow">
+              <div className="flex-1">
+                <h4 className="text-base md:text-lg font-medium line-clamp-1">{dashboard.title}</h4>
+                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{dashboard.description}</p>
               </div>
 
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <div className="flex items-center justify-between text-xs md:text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <RiDashboardLine className="h-4 w-4" />
+                  <RiDashboardLine className="h-3 w-3 md:h-4 md:w-4" />
                   <span>{dashboard.chart_count || 0} charts</span>
                 </div>
-                <span>Created {format(new Date(dashboard.created_at!), "MMM d, yyyy")}</span>
+                <span className="truncate ml-2">Created {format(new Date(dashboard.created_at!), "MMM d, yyyy")}</span>
               </div>
             </Card>
           </Link>
