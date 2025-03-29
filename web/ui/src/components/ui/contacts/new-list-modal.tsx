@@ -67,6 +67,8 @@ const EditList = ({ list, onEdited }: EditListProps) => {
     },
   });
 
+  const queryClient = useQueryClient();
+
   const mutation = useMutation({
     mutationKey: [UPDATE_CONTACT_LIST],
     mutationFn: async (data: CreateContactListInput) => {
@@ -76,6 +78,7 @@ const EditList = ({ list, onEdited }: EditListProps) => {
     },
     onSuccess: () => {
       onEdited();
+      queryClient.invalidateQueries({ queryKey: [LIST_CONTACT_LISTS] });
       toast.success("List updated successfully");
     },
     onError(err: AxiosError<ServerAPIStatus>) {
@@ -95,7 +98,7 @@ const EditList = ({ list, onEdited }: EditListProps) => {
     <form onSubmit={handleSubmit(onSubmit)} className="w-full">
       <div className="flex items-center gap-2">
         <Input
-          className="flex-grow bg-transparent border-gray-800/50 text-gray-300 focus-visible:ring-0 focus-visible:border-gray-700"
+          className="flex-grow bg-transparent border-gray-200 text-gray-900 focus-visible:ring-0 focus-visible:border-gray-300"
           {...register("name")}
         />
         <Button
@@ -122,6 +125,7 @@ interface CreateNewContactListProps {
 
 const CreateNewContactList = ({ onCreate }: CreateNewContactListProps) => {
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -140,6 +144,7 @@ const CreateNewContactList = ({ onCreate }: CreateNewContactListProps) => {
     },
     onSuccess: () => {
       onCreate();
+      queryClient.invalidateQueries({ queryKey: [LIST_CONTACT_LISTS] });
       reset();
       toast.success("List created successfully");
     },
@@ -161,7 +166,7 @@ const CreateNewContactList = ({ onCreate }: CreateNewContactListProps) => {
       <div className="flex items-center gap-2">
         <Input
           placeholder="List name"
-          className="flex-grow bg-transparent focus-visible:ring-0 focus-visible:border-gray-700"
+          className="flex-grow bg-transparent border-gray-200 text-gray-900 focus-visible:ring-0 focus-visible:border-gray-300"
           {...register("name")}
         />
         <Button

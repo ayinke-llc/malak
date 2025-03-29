@@ -270,7 +270,7 @@ export default function CreateContactModal({
             <DialogClose asChild>
               <Button
                 className="mt-2 w-full sm:mt-0 sm:w-fit"
-                variant="secondary"
+                variant="destructive"
               >
                 Cancel
               </Button>
