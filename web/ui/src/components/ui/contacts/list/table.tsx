@@ -339,7 +339,7 @@ export default function ContactsTable() {
                         column.toggleVisibility(!!value)
                       }
                     >
-                      {column.id}
+                      {column.id === 'created_at' ? 'Created at' : column.id}
                     </DropdownMenuCheckboxItem>
                   );
                 })}
