@@ -244,10 +244,7 @@ const CompanyUpdateCard = () => {
           </div>
 
           <CardFooter className="mt-6 p-0">
-            <div className="space-x-3">
-              <Button type="submit">Save Preferences</Button>
-              <Button variant={"destructive"}>Delete Workspace</Button>
-            </div>
+            <Button type="submit">Save Preferences</Button>
           </CardFooter>
         </form>
       </CardContent>
@@ -330,6 +327,18 @@ const NewsletterCard = () => {
         <CardContent className="space-y-4">
           {isLoading ? <Skeleton count={5} /> : (
             <>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="billing-emails">Billing Emails</Label>
+                  <p className="text-sm text-muted-foreground">You will always receive billing and invoice related emails.</p>
+                </div>
+                <Switch
+                  id="billing-emails"
+                  checked={true}
+                  disabled={true}
+                />
+              </div>
+
               <div className="flex items-center justify-between">
                 <Label htmlFor="marketing-emails">Receive Marketing Emails?</Label>
                 <Controller
