@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RiAddLine, RiTeamLine, RiDeleteBinLine, RiArrowUpSLine, RiArrowDownSLine } from '@remixicon/react';
-import { useMutation } from "@tanstack/react-query";
-import { REMOVE_CONTACT_FROM_LIST } from "@/lib/query-constants";
-import client from "@/lib/client";
+import { RiAddLine, RiTeamLine, RiArrowUpSLine, RiArrowDownSLine } from '@remixicon/react';
 import { toast } from "sonner";
 import { AddToListDialog } from "./add-to-list-dialog";
 import { MalakContact, MalakContactListMapping } from "@/client/Api";
@@ -17,22 +14,6 @@ export function ContactListsView({ contact }: ContactListsViewProps) {
   const [showAllLists, setShowAllLists] = useState(false);
 
   const currentLists = contact.lists || [];
-
-  const removeFromListMutation = useMutation({
-    mutationKey: [REMOVE_CONTACT_FROM_LIST],
-    mutationFn: async (listId: string) => {
-      if (!contact.reference) {
-        throw new Error("Contact reference is required");
-      }
-      return client.contacts.removeFromList(contact.reference, listId);
-    },
-    onSuccess: () => {
-      toast.success("Contact removed from list");
-    },
-    onError: (error) => {
-      toast.error("Failed to remove contact from list");
-    },
-  });
 
   return (
     <div className="mt-6">
@@ -97,18 +78,9 @@ export function ContactListsView({ contact }: ContactListsViewProps) {
                             <RiTeamLine className="h-4 w-4" />
                           </div>
                           <div className="space-y-1">
-                            <h4 className="font-medium text-foreground line-clamp-1">{list.list_name}</h4>
+                            <h4 className="font-medium text-foreground line-clamp-1">{list.list?.title}</h4>
                           </div>
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          className="h-8 w-8 shrink-0"
-                          onClick={() => list.list_id && removeFromListMutation.mutate(list.list_id)}
-                          disabled={removeFromListMutation.isPending || !list.list_id}
-                        >
-                          <RiDeleteBinLine className="h-4 w-4" />
-                        </Button>
                       </div>
                     </div>
                   ))}

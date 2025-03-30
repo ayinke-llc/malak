@@ -15,8 +15,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ADD_CONTACT_TO_LIST, FETCH_CONTACT_LISTS, FETCH_CONTACT } from "@/lib/query-constants";
 import client from "@/lib/client";
 import { toast } from "sonner";
-import { AxiosError } from "axios";
-import { MalakContactList } from "@/client/Api";
+import { AxiosError, AxiosResponse } from "axios";
+import { MalakContactList, ServerFetchContactListsResponse } from "@/client/Api";
 
 interface AddToListDialogProps {
   open: boolean;
@@ -30,21 +30,18 @@ export function AddToListDialog({ open, onOpenChange, contactReference, currentL
   const [selectedListReference, setSelectedListReference] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  // Fetch all available lists
-  const { data: response } = useQuery({
+  const { data: response, error } = useQuery<AxiosResponse<ServerFetchContactListsResponse>>({
     queryKey: [FETCH_CONTACT_LISTS],
     queryFn: () => client.contacts.fetchContactLists(),
   });
 
-  const allLists = response?.data.lists.map(item => item.list) ?? [];
+  const allLists = response?.data.lists.map((item: { list: MalakContactList }) => item.list) ?? [];
 
-  // Filter out lists the contact is already in and ensure they have references
   const availableLists = allLists.filter((list: MalakContactList): list is MalakContactList & { reference: string } => {
     return list.reference !== undefined && !currentListIds.includes(Number(list.id));
   });
 
-  // Filter lists based on search
-  const filteredLists = availableLists.filter((list) =>
+  const filteredLists = availableLists.filter((list: MalakContactList) =>
     list.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -70,6 +67,27 @@ export function AddToListDialog({ open, onOpenChange, contactReference, currentL
       addToListMutation.mutate(selectedListReference);
     }
   };
+
+  if (error) {
+    toast.error("Failed to fetch contact lists");
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add to List</DialogTitle>
+          </DialogHeader>
+          <div className="py-6 text-center text-muted-foreground">
+            Failed to load contact lists. Please try again later.
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
