@@ -35,10 +35,13 @@ import { ServerAPIStatus, ServerSendUpdateRequest } from "@/client/Api";
 import { AxiosError } from "axios";
 import { usePostHog } from "posthog-js/react";
 import { AnalyticsEvent } from "@/lib/events";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Search } from "lucide-react";
 
-interface Option {
-  readonly label: string;
-  readonly value: string;
+interface ContactListOption extends OptionType {
+  emails: Array<{ email: string; reference: string }>;
 }
 
 const schema = yup
@@ -46,13 +49,19 @@ const schema = yup
   .required();
 
 const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean }) => {
-
   const posthog = usePostHog()
-
   const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState<boolean>(false);
   const [showAllRecipients, setShowAllRecipients] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedTab, setSelectedTab] = useState<"lists" | "emails">("lists");
+  const [values, setValues] = useState<OptionType[]>([]);
+  const [emailOptions, setEmailOptions] = useState<OptionType[]>([
+    { value: "john.doe@example.com", label: "john.doe@example.com", emails: [] },
+    { value: "jane.smith@example.com", label: "jane.smith@example.com", emails: [] },
+    { value: "dev.team@company.com", label: "dev.team@company.com", emails: [] },
+  ]);
 
   const { data } = useQuery({
     queryKey: [LIST_CONTACT_LISTS],
@@ -63,7 +72,7 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
     },
   });
 
-  const options: OptionType[] = data?.data?.lists?.map(({ list, mappings }) => {
+  const options: ContactListOption[] = data?.data?.lists?.map(({ list, mappings }) => {
     return {
       emails: mappings?.map((mapping) => {
         return {
@@ -74,9 +83,19 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
       label: list?.title as string,
       value: list?.reference as string
     }
-  }) ?? []
+  }) ?? [];
 
-  const [values, setValues] = useState<Option[]>([]);
+  // Filter both contact lists and individual emails based on search term
+  const filteredOptions = options.filter(option => 
+    option.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    option.emails.some(email => 
+      email.email.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  );
+
+  const filteredEmailOptions = emailOptions.filter(option =>
+    option.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const addNewContacts = (...inputValues: string[]) => {
     // Normalize all inputs to lowercase
@@ -86,8 +105,7 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
 
     // Track invalid emails for error reporting
     const invalidEmails: string[] = [];
-
-    const newOptions: Option[] = [];
+    const newOptions: OptionType[] = [];
 
     normalizedInputs.forEach((inputValue) => {
       if (!EmailValidator.validate(inputValue)) {
@@ -97,10 +115,16 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
 
       if (!values.some((item) => item.value === inputValue)) {
         // Only add if it's not already present
-        newOptions.push({
+        const newOption: OptionType = {
           value: inputValue,
           label: inputValue,
-        });
+          emails: []
+        };
+        newOptions.push(newOption);
+        // Also add to email options for future use
+        if (!emailOptions.some(opt => opt.value === inputValue)) {
+          setEmailOptions(prev => [...prev, newOption]);
+        }
       }
     });
 
@@ -112,7 +136,7 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
 
     if (newOptions.length > 0) {
       setValues((prev) => [...prev, ...newOptions]);
-      toast.success("added email")
+      toast.success("Email added successfully");
     }
 
     setLoading(false);
@@ -124,11 +148,15 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
 
   const toggleShowAllRecipientState = () => setShowAllRecipients(!showAllRecipients);
 
-  const handleOnChange = (opts: OptionType[]) => {
+  const handleOnChange = (opts: ContactListOption[]) => {
     opts.map((opt) => {
       addNewContacts(...opt.emails.map((value) => value.email))
     })
   }
+
+  const handleEmailSelection = (selectedOptions: OptionType[]) => {
+    setValues(selectedOptions);
+  };
 
   const mutation = useMutation({
     mutationKey: [SEND_UPDATE],
@@ -158,7 +186,7 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   const onSubmit: SubmitHandler<{}> = () => {
     mutation.mutate({
-      emails: values.map((value) => value.value)
+      emails: values.map((value) => String(value.value))
     })
   };
 
@@ -180,76 +208,109 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
               {isSent ? "Add recipient" : "Send"}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
-            <form onSubmit={handleSubmit(onSubmit)}>
+          <DialogContent className="sm:max-w-[600px]">
+            <form onSubmit={handleSubmit(onSubmit)} autoComplete="off">
               <DialogHeader>
                 <DialogTitle>Send this update</DialogTitle>
                 <DialogDescription className="mt-1 text-sm leading-6">
-                  An email will be sent to all selected contacts immediately.
-                  Please re-verify your content is ready and good to go
+                  Select recipients from your contact lists or enter email addresses directly.
                 </DialogDescription>
+              </DialogHeader>
 
-                <div className="mt-4">
-                  <CreatableSelect placeholder="Select a list or add an email"
-                    isMulti
-                    options={options}
-                    allowCustomInput={true}
-                    onCustomInputEnter={addNewContacts}
-                    onChange={handleOnChange}
-                  />
-                </div>
-
-                {values.length > 0 && (
-                  <div className="flex-1 pt-5">
-                    <div
-                      className={cn(
-                        "w-full rounded-md border bg-background p-2",
-                        showAllRecipients ? "h-[100px]" : "h-full",
-                        "overflow-y-auto"
-                      )}
-                    >
-                      <div className="flex flex-wrap gap-2">
-                        {values
-                          .slice(0, showAllRecipients ? values.length : 5)
-                          .map((recipient, index) => (
-                            <Badge
-                              key={index}
-                              variant="secondary"
-                              className="flex items-center gap-1 pr-1"
-                            >
-                              <span className="text-sm">{recipient.label}</span>
-                              <button
-                                onClick={() => removeContact(index)}
-                                className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                              >
-                                <RiCloseLargeLine className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                                <span className="sr-only">Remove recipient</span>
-                              </button>
-                            </Badge>
-                          ))}
-                        {values.length > 5 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={toggleShowAllRecipientState}
-                            className="h-8"
-                          >
-                            {showAllRecipients
-                              ? "Show less"
-                              : `+${values.length - 5} more`}
-                          </Button>
-                        )}
-                      </div>
+              <div className="mt-4">
+                <Tabs defaultValue="lists" value={selectedTab} onValueChange={(v) => setSelectedTab(v as "lists" | "emails")}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="lists">Contact Lists</TabsTrigger>
+                    <TabsTrigger value="emails">Individual Emails</TabsTrigger>
+                  </TabsList>
+                  
+                  <div className="mt-4 mb-4">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder={selectedTab === "lists" ? "Search contact lists..." : "Search or enter email addresses..."}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-8"
+                      />
                     </div>
                   </div>
-                )}
-              </DialogHeader>
+
+                  <TabsContent value="lists" className="mt-0">
+                    <ScrollArea className="h-[200px] rounded-md border p-4">
+                      <div className="space-y-2">
+                        {filteredOptions.map((option) => (
+                          <div
+                            key={option.value}
+                            className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted cursor-pointer"
+                            onClick={() => handleOnChange([option])}
+                          >
+                            <div>
+                              <h4 className="font-medium">{option.label}</h4>
+                              <p className="text-sm text-muted-foreground">
+                                {option.emails.length} recipients
+                              </p>
+                            </div>
+                            <Badge variant="secondary">
+                              {values.some(v => option.emails.some(email => email.email === v.value)) ? 'Selected' : 'Select'}
+                            </Badge>
+                          </div>
+                        ))}
+                        {filteredOptions.length === 0 && (
+                          <p className="text-center text-sm text-muted-foreground">No contact lists found</p>
+                        )}
+                      </div>
+                    </ScrollArea>
+                  </TabsContent>
+
+                  <TabsContent value="emails" className="mt-0">
+                    <div className="space-y-4">
+                      <CreatableSelect
+                        placeholder="Enter email addresses..."
+                        isMulti
+                        options={filteredEmailOptions}
+                        value={values}
+                        allowCustomInput={true}
+                        onCustomInputEnter={addNewContacts}
+                        onChange={handleEmailSelection}
+                        className="min-h-[200px]"
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+
+              {values.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="text-sm font-medium mb-2">Selected Recipients ({values.length})</h4>
+                  <ScrollArea className="h-[100px] rounded-md border p-2">
+                    <div className="flex flex-wrap gap-2">
+                      {values.map((recipient, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="flex items-center gap-1 pr-1"
+                        >
+                          <span className="text-sm">{recipient.label}</span>
+                          <button
+                            onClick={() => removeContact(index)}
+                            className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                          >
+                            <RiCloseLargeLine className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                            <span className="sr-only">Remove recipient</span>
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
+
               <DialogFooter className="mt-6">
                 <DialogClose asChild>
                   <Button
-                    type={"button"}
-                    className="mt-2 w-full sm:mt-0 sm:w-fit"
-                    variant="secondary"
+                    type="button"
+                    variant="outline"
                     loading={loading}
                   >
                     Cancel
@@ -257,10 +318,11 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
                 </DialogClose>
                 <Button
                   type="submit"
-                  className="w-full sm:w-fit"
+                  variant="default"
                   loading={loading}
+                  disabled={values.length === 0}
                 >
-                  Send
+                  Send to {values.length} {values.length === 1 ? 'recipient' : 'recipients'}
                 </Button>
               </DialogFooter>
             </form>

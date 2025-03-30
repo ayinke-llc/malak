@@ -2,8 +2,10 @@
 
 import ListContacts from "@/components/ui/contacts/list/list";
 import CreateContactModal from "@/components/ui/contacts/modal";
-import ManageListModal from "@/components/ui/contacts/new-list-modal";
 import CSVUploadModal from "@/components/ui/contacts/csv-upload-modal";
+import { Button } from "@/components/ui/button";
+import { RiSettings4Line } from "@remixicon/react";
+import Link from "next/link";
 
 export default function Contacts() {
   return (
@@ -23,7 +25,12 @@ export default function Contacts() {
           </div>
 
           <div className="flex gap-2">
-            <ManageListModal />
+            <Link href="/contacts/lists">
+              <Button variant="default" className="whitespace-nowrap gap-1">
+                <RiSettings4Line />
+                Manage lists
+              </Button>
+            </Link>
             <CSVUploadModal />
             <CreateContactModal />
           </div>
