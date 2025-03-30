@@ -193,12 +193,12 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
                 <div className="flex items-center gap-3">
                   <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
                     <span className="text-xl font-semibold text-primary">
-                      {`${contact.first_name?.[0] || ''}${contact.last_name?.[0] || ''}`}
+                      {contact.email ? (contact.email[0].toUpperCase()) : '?'}
                     </span>
                   </div>
                   <div>
                     <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
-                      {fullName(contact)}
+                      {contact.first_name || contact.last_name ? fullName(contact) : contact.email}
                     </CardTitle>
                     <CardDescription className="text-base text-muted-foreground">
                       {contact.company && (

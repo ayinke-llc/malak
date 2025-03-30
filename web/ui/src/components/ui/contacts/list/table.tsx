@@ -106,105 +106,109 @@ export default function ContactsTable() {
           const initials = `${(contact.first_name?.[0] || '')}${(contact.last_name?.[0] || '')}`.toUpperCase();
 
           return (
-            <Card key={contact.reference} className="group">
-              <div className="p-6">
-                <div className="flex items-start gap-4">
-                  <Avatar className="h-10 w-10 border">
-                    <AvatarFallback className={initials ? "bg-primary/10 text-primary" : "bg-muted"}>
-                      {initials || "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-medium text-base truncate group-hover:text-primary transition-colors">
-                          <Link href={`/contacts/${contact.reference}`}>
+            <Card key={contact.reference} className="group relative">
+              <Link href={`/contacts/${contact.reference}`} className="block">
+                <div className="p-6">
+                  <div className="flex items-start gap-4">
+                    <Avatar className="h-10 w-10 border">
+                      <AvatarFallback className={initials ? "bg-primary/10 text-primary" : "bg-muted"}>
+                        {initials || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h3 className="font-medium text-base truncate group-hover:text-primary transition-colors">
                             {fullName || contact.email}
-                          </Link>
-                        </h3>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
-                          <Mail className="h-3.5 w-3.5" />
-                          <span className="truncate">{contact.email}</span>
+                          </h3>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
+                            <Mail className="h-3.5 w-3.5" />
+                            <span className="truncate">{contact.email}</span>
+                          </div>
+                        </div>
+                        <div className="relative z-10">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  navigator.clipboard.writeText(contact.email || "");
+                                  toast.success("Email copied to clipboard");
+                                }}
+                              >
+                                Copy email
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/contacts/${contact.reference}`}>
+                                  View details
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (contact.reference) {
+                                    deleteContactMutation.mutate(contact.reference);
+                                  }
+                                }}
+                              >
+                                Delete contact
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              navigator.clipboard.writeText(contact.email || "");
-                              toast.success("Email copied to clipboard");
-                            }}
-                          >
-                            Copy email
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/contacts/${contact.reference}`}>
-                              View details
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => {
-                              if (contact.reference) {
-                                deleteContactMutation.mutate(contact.reference);
-                              }
-                            }}
-                          >
-                            Delete contact
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      {(contact.company || contact.city) && (
+                        <div className="flex flex-wrap gap-3 mt-3">
+                          {contact.company && (
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Building2 className="h-3.5 w-3.5" />
+                              <span>{contact.company}</span>
+                            </div>
+                          )}
+                          {contact.city && (
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <MapPin className="h-3.5 w-3.5" />
+                              <span>{contact.city}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {contact.lists && contact.lists.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-3">
+                          {contact.lists.slice(0, 2).map((list) => (
+                            <Badge
+                              key={list.id}
+                              variant="secondary"
+                              className="bg-muted/50 text-xs font-normal"
+                            >
+                              {list.list?.title}
+                            </Badge>
+                          ))}
+                          {contact.lists.length > 2 && (
+                            <Badge
+                              variant="secondary"
+                              className="bg-muted/30 text-xs font-normal"
+                            >
+                              +{contact.lists.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    {(contact.company || contact.city) && (
-                      <div className="flex flex-wrap gap-3 mt-3">
-                        {contact.company && (
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Building2 className="h-3.5 w-3.5" />
-                            <span>{contact.company}</span>
-                          </div>
-                        )}
-                        {contact.city && (
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <MapPin className="h-3.5 w-3.5" />
-                            <span>{contact.city}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    {contact.lists && contact.lists.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-3">
-                        {contact.lists.slice(0, 2).map((list) => (
-                          <Badge
-                            key={list.id}
-                            variant="secondary"
-                            className="bg-muted/50 text-xs font-normal"
-                          >
-                            {list.list?.title}
-                          </Badge>
-                        ))}
-                        {contact.lists.length > 2 && (
-                          <Badge
-                            variant="secondary"
-                            className="bg-muted/30 text-xs font-normal"
-                          >
-                            +{contact.lists.length - 2}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
                   </div>
                 </div>
-              </div>
+              </Link>
             </Card>
           );
         })}

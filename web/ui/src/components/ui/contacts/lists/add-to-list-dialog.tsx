@@ -37,8 +37,18 @@ export function AddToListDialog({ open, onOpenChange, contactReference, currentL
 
   const allLists = response?.data.lists.map((item: { list: MalakContactList }) => item.list) ?? [];
 
+
+  const seenReferences = new Set<string>();
   const availableLists = allLists.filter((list: MalakContactList): list is MalakContactList & { reference: string } => {
-    return list.reference !== undefined && !currentListIds.includes(list.id || "");
+    if (!list.reference || currentListIds.includes(list.id || "")) {
+      return false;
+    }
+ 
+    if (seenReferences.has(list.reference)) {
+      return false;
+    }
+    seenReferences.add(list.reference);
+    return true;
   });
 
   const filteredLists = availableLists.filter((list: MalakContactList) =>
