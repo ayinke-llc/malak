@@ -114,7 +114,9 @@ export function ContactListsView({ contact }: ContactListsViewProps) {
         open={showAddToListDialog}
         onOpenChange={setShowAddToListDialog}
         contactReference={contact.reference || ""}
-        currentListIds={currentLists.map(list => list.list_id).filter((id): id is string => id !== undefined)}
+        currentListIds={currentLists
+          .map(list => list.list_id ? Number(list.list_id) : undefined)
+          .filter((id): id is number => id !== undefined)}
       />
     </div>
   );
