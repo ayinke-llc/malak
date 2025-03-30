@@ -656,6 +656,13 @@ func (d *deckHandler) fetchDeckSessions(
 		}
 	}
 
+	workspace := getWorkspaceFromContext(ctx)
+
+	if !workspace.Plan.Metadata.Deck.Analytics.CanViewHistoricalSessions && days > 7 {
+		return newAPIStatus(http.StatusBadRequest, "you need to be on a plan that supports historical deck sessions"),
+			StatusFailed
+	}
+
 	opts := &malak.ListSessionAnalyticsOptions{
 		Paginator: paginator,
 		DeckID:    deck.ID,

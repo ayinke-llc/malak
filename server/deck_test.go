@@ -1183,7 +1183,25 @@ func TestDeckHandler_FetchDeckSessions(t *testing.T) {
 			req.Header.Add("Content-Type", "application/json")
 
 			req = req.WithContext(writeUserToCtx(req.Context(), &malak.User{}))
-			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{
+				Plan: &malak.Plan{
+					Metadata: malak.PlanMetadata{
+						Deck: struct {
+							AutoTerminateLink bool "json:\"auto_terminate_link,omitempty\""
+							CustomDomain      bool "json:\"custom_domain,omitempty\""
+							Analytics         struct {
+								CanViewHistoricalSessions bool "json:\"can_view_historical_sessions,omitempty\""
+							} "json:\"analytics,omitempty\""
+						}{
+							Analytics: struct {
+								CanViewHistoricalSessions bool "json:\"can_view_historical_sessions,omitempty\""
+							}{
+								CanViewHistoricalSessions: true,
+							},
+						},
+					},
+				},
+			}))
 
 			ctx := chi.NewRouteContext()
 			if v.name != "no reference provided" {
