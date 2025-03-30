@@ -7,7 +7,6 @@ import client from "@/lib/client";
 import { FETCH_SINGLE_UPDATE } from "@/lib/query-constants";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import Skeleton from "@/components/ui/custom/loader/skeleton";
 import Analytics from "@/components/ui/updates/analytics/analytics";
 import { RiErrorWarningLine } from "@remixicon/react";
