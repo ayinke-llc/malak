@@ -44,10 +44,22 @@ func (c *contactListRepo) Get(ctx context.Context,
 func (c *contactListRepo) Delete(ctx context.Context,
 	list *malak.ContactList) error {
 
-	_, err := c.inner.NewDelete().Model(list).
-		Where("id = ?", list.ID).
-		Exec(ctx)
-	return err
+	return c.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		_, err := tx.NewDelete().Model(new(malak.ContactListMapping)).
+			Where("list_id = ?", list.ID).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.NewDelete().Model(list).
+			Where("id = ?", list.ID).
+			Exec(ctx)
+		return err
+
+	})
+
 }
 
 func (c *contactListRepo) Update(ctx context.Context,

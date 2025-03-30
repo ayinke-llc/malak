@@ -35,7 +35,7 @@ export function AddToListDialog({ open, onOpenChange, contactReference, currentL
     queryFn: () => client.contacts.fetchContactLists(),
   });
 
-  const allLists = response?.data.lists.map((item: { list: MalakContactList }) => item.list) ?? [];
+  const allLists = response?.data?.lists?.map((item: { list: MalakContactList }) => item.list) ?? [];
 
 
   const seenReferences = new Set<string>();
