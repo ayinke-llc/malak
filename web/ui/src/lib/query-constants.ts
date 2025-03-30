@@ -53,3 +53,6 @@ export const LIST_API_KEYS = "LIST_API_KEYS" as const
 export const REVOKE_API_KEY = "REVOKE_API_KEY" as const
 export const CREATE_CHART = "CREATE_CHART" as const
 export const FETCH_OVERVIEW_DATA = "FETCH_OVERVIEW_DATA" as const
+export const ADD_CONTACT_TO_LIST = 'ADD_CONTACT_TO_LIST' as const;
+export const REMOVE_CONTACT_FROM_LIST = 'REMOVE_CONTACT_FROM_LIST' as const;
+export const FETCH_CONTACT_LISTS = 'FETCH_CONTACT_LISTS' as const;
