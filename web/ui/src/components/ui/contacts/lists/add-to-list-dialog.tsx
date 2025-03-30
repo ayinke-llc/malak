@@ -22,7 +22,7 @@ interface AddToListDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contactReference: string;
-  currentListIds: number[];
+  currentListIds: string[];
 }
 
 export function AddToListDialog({ open, onOpenChange, contactReference, currentListIds }: AddToListDialogProps) {
@@ -38,7 +38,7 @@ export function AddToListDialog({ open, onOpenChange, contactReference, currentL
   const allLists = response?.data.lists.map((item: { list: MalakContactList }) => item.list) ?? [];
 
   const availableLists = allLists.filter((list: MalakContactList): list is MalakContactList & { reference: string } => {
-    return list.reference !== undefined && !currentListIds.includes(Number(list.id));
+    return list.reference !== undefined && !currentListIds.includes(list.id || "");
   });
 
   const filteredLists = availableLists.filter((list: MalakContactList) =>
