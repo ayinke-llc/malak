@@ -15,7 +15,6 @@ White-label by design. Ready to be deployed on your own domain.
 Own full control of your data and company state if you decide to selfhost.
 
 - [Features](#features)
-- [License](#license)
 - [Self hosting](#self-hosting)
 
 ## Features
@@ -46,19 +45,3 @@ Own full control of your data and company state if you decide to selfhost.
 ## Self-hosting
 
 Detailed guide at <https://docs.malak.vc/self-hosting/installation>
-
-## LICENSE
-
-Malak is a commercial open source product, which means some parts of this
-open source repository require a commercial license. The concept is
-called "Open Core" where the core software (99%) is fully open source,
-licensed under AGPLv3 and the last 1% is covered under a
-commercial license.
-([/internal/integrations Enterprise/Commercial Edition](https://github.com/ayinke-llc/malak/tree/main/internal/integrations)) which we
-believe is entirely relevant for larger
-organisations that require those features.
-
-Our philosophy is simple, all features are open-source under AGPLv3.
-But 3rd party integrations and auto-syncing are under a commercial/Enterprise license.
-
-[See details of commercial/Enterprise license here](https://github.com/ayinke-llc/malak/tree/main/internal/integrations#readme)
