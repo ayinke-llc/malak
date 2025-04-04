@@ -90,6 +90,7 @@ export function ModalAddWorkspace({
       toast.success(data.message);
       onOpenChange(false);
       setOpen(false);
+      window.location.reload();
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message;
