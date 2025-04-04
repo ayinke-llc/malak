@@ -8,6 +8,7 @@ import { AxiosError } from "axios";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ModalAddWorkspace } from "@/components/ui/navigation/ModalAddWorkspace";
 
 // Setup interceptors outside component to ensure they're always available
 client.instance.interceptors.request.use(
@@ -42,6 +43,11 @@ client.instance.interceptors.response.use(
 
         if (error.response.status === 402) {
           window.location.href = "/settings?tab=billing";
+        }
+
+        // For 428, we just reject the error and let TeamSwitcher handle showing the modal
+        if (error.response.status === 428) {
+          return Promise.reject(error);
         }
       }
     }
@@ -124,6 +130,12 @@ export default function UserProvider({
         if (err?.response?.status === 402) {
           setLoading(false);
           router.push("/settings?tab=billing");
+          return;
+        }
+
+        // For 428, we just set loading to false and let TeamSwitcher handle showing the modal
+        if (err?.response?.status === 428) {
+          setLoading(false);
           return;
         }
 

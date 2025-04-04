@@ -217,7 +217,7 @@ func requireAuthentication(
 			}
 
 			if user.Metadata.CurrentWorkspace == uuid.Nil {
-				next.ServeHTTP(w, r)
+				_ = render.Render(w, r, newAPIStatus(http.StatusPreconditionRequired, "you must be a member of a workspace"))
 				return
 			}
 
