@@ -10,7 +10,6 @@ import { ThemeProvider } from "@/components/providers/theme";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { Suspense } from "react";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { BetaBanner } from "@/components/ui/beta-banner";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://app.malak.vc"),
@@ -62,7 +61,6 @@ export default function RootLayout({
           <Suspense>
             <ErrorBoundary>
               <TooltipProvider>
-                <BetaBanner />
                 <Providers>{children}</Providers>
               </TooltipProvider>
             </ErrorBoundary>
