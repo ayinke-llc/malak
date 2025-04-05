@@ -53,7 +53,8 @@ func New(logger *zap.Logger,
 	secretsClient secret.SecretClient,
 	geolocationService geolocation.GeolocationService,
 	imageUploadGulterHandler *gulter.Gulter,
-	deckUploadGulterHandler *gulter.Gulter) (*http.Server, func()) {
+	deckUploadGulterHandler *gulter.Gulter,
+	fundingRepo malak.FundraisingPipelineRepository) (*http.Server, func()) {
 
 	if err := cfg.Validate(); err != nil {
 		logger.Error("invalid configuration", zap.Error(err))
@@ -69,7 +70,7 @@ func New(logger *zap.Logger,
 			dashboardLinkRepo, apiRepo,
 			googleAuthProvider, mid, queueHandler, redisCache, billingClient,
 			integrationManager, secretsClient, geolocationService, imageUploadGulterHandler,
-			deckUploadGulterHandler),
+			deckUploadGulterHandler, fundingRepo),
 		Addr: fmt.Sprintf(":%d", cfg.HTTP.Port),
 	}
 
@@ -124,7 +125,8 @@ func buildRoutes(
 	secretsClient secret.SecretClient,
 	geolocationService geolocation.GeolocationService,
 	imageUploadGulterHandler *gulter.Gulter,
-	deckUploadGulterHandler *gulter.Gulter) http.Handler {
+	deckUploadGulterHandler *gulter.Gulter,
+	fundingRepo malak.FundraisingPipelineRepository) http.Handler {
 
 	if cfg.HTTP.Swagger.UIEnabled {
 		go func() {
@@ -243,6 +245,12 @@ func buildRoutes(
 		generator: referenceGenerator,
 		apiRepo:   apiRepo,
 		cfg:       cfg,
+	}
+
+	pipelineHandler := &fundraisingHandler{
+		referenceGenerator: referenceGenerator,
+		cfg:                cfg,
+		fundingRepo:        fundingRepo,
 	}
 
 	router.Use(middleware.RequestID)
@@ -377,6 +385,24 @@ func buildRoutes(
 				r.Get("/{reference}/analytics",
 					WrapMalakHTTPHandler(logger, updateHandler.fetchUpdateAnalytics, cfg, "updates.analytics"))
 			})
+
+			r.Route("/fundraising", func(r chi.Router) {
+				r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+				r.Use(requireWorkspaceValidSubscription(cfg))
+				r.Post("/pipelines", WrapMalakHTTPHandler(logger, (&fundraisingHandler{
+					cfg:                cfg,
+					fundingRepo:        fundingRepo,
+					referenceGenerator: referenceGenerator,
+				}).newPipeline, cfg, "fundraising.pipeline.create"))
+			})
+		})
+
+		r.Route("/pipelines", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireWorkspaceValidSubscription(cfg))
+
+			r.Post("/",
+				WrapMalakHTTPHandler(logger, pipelineHandler.newPipeline, cfg, "pipeline.create"))
 		})
 
 		r.Route("/contacts", func(r chi.Router) {

@@ -132,6 +132,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			templatesRepo := postgres.NewTemplateRepository(db)
 			dashboardLinkRepo := postgres.NewDashboardLinkRepo(db)
 			apiRepo := postgres.NewAPIKeyRepository(db)
+			fundingRepo := postgres.NewFundingRepo(db)
 
 			googleAuthProvider := socialauth.NewGoogle(*cfg)
 
@@ -356,7 +357,8 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				templatesRepo, dashboardLinkRepo, apiRepo,
 				mid, queueHandler, redisCache, billingClient,
 				integrationManager, secretsProvider,
-				geoService, imageUploadGulterHandler, deckUploadGulterHandler)
+				geoService, imageUploadGulterHandler, deckUploadGulterHandler,
+				fundingRepo)
 
 			go func() {
 				if err := srv.ListenAndServe(); err != nil {

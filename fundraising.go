@@ -8,7 +8,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-var defaultFundraisingColumns = []struct {
+var DefaultFundraisingColumns = []struct {
 	Title       string
 	ColumnType  FundraisePipelineColumnType
 	Description string
@@ -99,5 +99,5 @@ type FundraisingPipelineColumn struct {
 }
 
 type FundraisingPipelineRepository interface {
-	Create(context.Context, *FundraisingPipeline) error
+	Create(context.Context, *FundraisingPipeline, ...FundraisingPipelineColumn) error
 }

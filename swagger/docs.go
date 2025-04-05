@@ -2036,7 +2036,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/fundraising/pipelines": {
+        "/pipelines": {
             "post": {
                 "description": "Creates a new fundraising pipeline entry",
                 "consumes": [

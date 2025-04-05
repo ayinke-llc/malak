@@ -84,7 +84,7 @@ func (c *createNewPipelineRequest) Validate() error {
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /fundraising/pipelines [post]
+// @Router /pipelines [post]
 func (d *fundraisingHandler) newPipeline(
 	ctx context.Context,
 	span trace.Span,
