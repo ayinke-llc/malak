@@ -48,10 +48,9 @@ export const links = [
     icon: RiLineChartLine
   },
   {
-    title: "Fundraising",
+    title: "Fundraising Pipelines",
     url: "/fundraising",
     icon: RiMoneyDollarCircleLine,
-    comingSoon: true,
   },
   {
     title: "Captable",

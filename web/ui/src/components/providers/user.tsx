@@ -8,7 +8,6 @@ import { AxiosError } from "axios";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ModalAddWorkspace } from "@/components/ui/navigation/ModalAddWorkspace";
 
 // Setup interceptors outside component to ensure they're always available
 client.instance.interceptors.request.use(
