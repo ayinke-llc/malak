@@ -44,7 +44,7 @@ var defaultFundraisingColumns = []struct {
 	},
 }
 
-// ENUM(family_and_friend,pre_seed,seed,series_a,series_b,series_c)
+// ENUM(family_and_friend,pre_seed,bridge_round,seed,series_a,series_b,series_c)
 type FundraisePipelineStage string
 
 // ENUM(normal,closed)
@@ -58,26 +58,26 @@ type FundraisePipelineColumnType uint8
 type FundraisingPipeline struct {
 	ID uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
 
-	Reference        Reference `json:"reference,omitempty"`
-	WorkspaceID      uuid.UUID `json:"workspace_id,omitempty"`
-	CreatedBy        uuid.UUID `json:"created_by,omitempty"`
-	Title            string    `json:"title,omitempty"`
-	Description      string    `json:"description,omitempty"`
-	ExpectedDeadline time.Time `json:"expected_deadline,omitempty"`
-
-	TargetAmount int64 `json:"target_amount,omitempty"`
-
+	Stage        FundraisePipelineStage `json:"stage,omitempty"`
+	Reference    Reference              `json:"reference,omitempty"`
+	WorkspaceID  uuid.UUID              `json:"workspace_id,omitempty"`
+	Title        string                 `json:"title,omitempty"`
+	Description  string                 `json:"description,omitempty"`
+	IsClosed     bool                   `json:"is_closed,omitempty"`
+	TargetAmount int64                  `json:"target_amount,omitempty"`
 	// this is being updated dynamically by postgres triggers
 	// We also use to calculate progress
 	ClosedAmount int64 `json:"closed_amount,omitempty"`
 
-	IsClosed bool `json:"is_closed,omitempty"`
+	// Can be in the future
+	StartDate         time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"start_date,omitempty"`
+	ExpectedCloseDate time.Time `json:"expected_close_date,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`
 	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" bson:"deleted_at"`
 
-	bun.BaseModel `bun:"table:decks" json:"-"`
+	bun.BaseModel `json:"-"`
 }
 
 type FundraisingPipelineColumn struct {
@@ -88,12 +88,13 @@ type FundraisingPipelineColumn struct {
 	Title                 string                      `json:"title,omitempty"`
 	ColumnType            FundraisePipelineColumnType `json:"column_type,omitempty"`
 	Description           string                      `json:"description,omitempty"`
+	InvestorsCount        int64                       `json:"investors_count,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`
 	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" bson:"deleted_at"`
 
-	bun.BaseModel `bun:"table:decks" json:"-"`
+	bun.BaseModel `json:"-"`
 }
 
 type FundraisingPipelineRepository interface{}

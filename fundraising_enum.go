@@ -60,6 +60,8 @@ const (
 	FundraisePipelineStageFamilyAndFriend FundraisePipelineStage = "family_and_friend"
 	// FundraisePipelineStagePreSeed is a FundraisePipelineStage of type pre_seed.
 	FundraisePipelineStagePreSeed FundraisePipelineStage = "pre_seed"
+	// FundraisePipelineStageBridgeRound is a FundraisePipelineStage of type bridge_round.
+	FundraisePipelineStageBridgeRound FundraisePipelineStage = "bridge_round"
 	// FundraisePipelineStageSeed is a FundraisePipelineStage of type seed.
 	FundraisePipelineStageSeed FundraisePipelineStage = "seed"
 	// FundraisePipelineStageSeriesA is a FundraisePipelineStage of type series_a.
@@ -87,6 +89,7 @@ func (x FundraisePipelineStage) IsValid() bool {
 var _FundraisePipelineStageValue = map[string]FundraisePipelineStage{
 	"family_and_friend": FundraisePipelineStageFamilyAndFriend,
 	"pre_seed":          FundraisePipelineStagePreSeed,
+	"bridge_round":      FundraisePipelineStageBridgeRound,
 	"seed":              FundraisePipelineStageSeed,
 	"series_a":          FundraisePipelineStageSeriesA,
 	"series_b":          FundraisePipelineStageSeriesB,
