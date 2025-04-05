@@ -385,16 +385,6 @@ func buildRoutes(
 				r.Get("/{reference}/analytics",
 					WrapMalakHTTPHandler(logger, updateHandler.fetchUpdateAnalytics, cfg, "updates.analytics"))
 			})
-
-			r.Route("/fundraising", func(r chi.Router) {
-				r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
-				r.Use(requireWorkspaceValidSubscription(cfg))
-				r.Post("/pipelines", WrapMalakHTTPHandler(logger, (&fundraisingHandler{
-					cfg:                cfg,
-					fundingRepo:        fundingRepo,
-					referenceGenerator: referenceGenerator,
-				}).newPipeline, cfg, "fundraising.pipeline.create"))
-			})
 		})
 
 		r.Route("/pipelines", func(r chi.Router) {
@@ -402,12 +392,16 @@ func buildRoutes(
 			r.Use(requireWorkspaceValidSubscription(cfg))
 
 			r.Post("/",
-				WrapMalakHTTPHandler(logger, pipelineHandler.newPipeline, cfg, "pipeline.create"))
+				WrapMalakHTTPHandler(logger, pipelineHandler.newPipeline, cfg, "pipelines.create"))
+
+			r.Get("/",
+				WrapMalakHTTPHandler(logger, pipelineHandler.list, cfg, "pipelines.list"))
 		})
 
 		r.Route("/contacts", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
 			r.Use(requireWorkspaceValidSubscription(cfg))
+
 			r.Post("/",
 				WrapMalakHTTPHandler(logger, contactHandler.Create, cfg, "contacts.create"))
 

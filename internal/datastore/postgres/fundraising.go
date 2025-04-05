@@ -44,3 +44,37 @@ func (d *fundingRepo) Create(ctx context.Context, pipeline *malak.FundraisingPip
 			return err
 		})
 }
+
+func (d *fundingRepo) List(ctx context.Context,
+	opts malak.ListPipelineOptions) ([]malak.FundraisingPipeline, int64, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	var pipelines []malak.FundraisingPipeline
+
+	q := d.inner.NewSelect().
+		Order("created_at DESC").
+		Where("workspace_id = ?", opts.WorkspaceID)
+
+	if opts.ActiveOnly {
+		q = q.Where("is_closed = ?", false)
+	}
+
+	total, err := q.
+		Model(&pipelines).
+		Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = q.Model(&pipelines).
+		Limit(int(opts.Paginator.PerPage)).
+		Offset(int(opts.Paginator.Offset())).
+		Scan(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return pipelines, int64(total), nil
+}

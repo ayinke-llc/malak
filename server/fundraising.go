@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/ayinke-llc/hermes"
@@ -139,4 +140,62 @@ func (d *fundraisingHandler) newPipeline(
 	}
 
 	return newAPIStatus(http.StatusOK, "pipeline created"), StatusSuccess
+}
+
+// @Description list all fundraising pipelines with pagination and filtering
+// @Tags fundraising
+// @Accept  json
+// @Produce  json
+// @Param page query int false "Page to query data from. Defaults to 1"
+// @Param per_page query int false "Number to items to return. Defaults to 10 items"
+// @Param active_only query bool false "Whether to return only active pipelines. Defaults to false"
+// @Success 200 {object} fetchPipelinesResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /pipelines [get]
+func (d *fundraisingHandler) list(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("listing fundraising pipelines")
+
+	workspace := getWorkspaceFromContext(r.Context())
+	paginator := malak.PaginatorFromRequest(r)
+
+	activeOnly := false
+	if activeOnlyStr := r.URL.Query().Get("active_only"); activeOnlyStr != "" {
+		if active, err := strconv.ParseBool(activeOnlyStr); err == nil {
+			activeOnly = active
+		}
+	}
+
+	opts := malak.ListPipelineOptions{
+		Paginator:   paginator,
+		ActiveOnly:  activeOnly,
+		WorkspaceID: workspace.ID,
+	}
+
+	pipelines, total, err := d.fundingRepo.List(ctx, opts)
+	if err != nil {
+		logger.Error("could not list fundraising pipelines", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not list fundraising pipelines"),
+			StatusFailed
+	}
+
+	return fetchPipelinesResponse{
+		APIStatus: newAPIStatus(http.StatusOK, "fetched fundraising pipelines"),
+		Pipelines: pipelines,
+		Meta: meta{
+			Paging: pagingInfo{
+				Total:   total,
+				PerPage: paginator.PerPage,
+				Page:    paginator.Page,
+			},
+		},
+	}, StatusSuccess
 }

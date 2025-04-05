@@ -213,3 +213,9 @@ type workspaceOverviewResponse struct {
 	Shares   *malak.ShareOverview   `json:"shares,omitempty" validate:"required"`
 	APIStatus
 }
+
+type fetchPipelinesResponse struct {
+	Pipelines []malak.FundraisingPipeline `json:"pipelines,omitempty" validate:"required"`
+	Meta      meta                        `json:"meta,omitempty" validate:"required"`
+	APIStatus
+}

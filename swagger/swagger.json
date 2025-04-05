@@ -650,6 +650,52 @@
 					"FundraisePipelineStageSeriesC"
 				]
 			},
+			"malak.FundraisingPipeline": {
+				"properties": {
+					"closed_amount": {
+						"description": "this is being updated dynamically by postgres triggers\nWe also use to calculate progress",
+						"type": "integer"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"expected_close_date": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"is_closed": {
+						"type": "boolean"
+					},
+					"reference": {
+						"type": "string"
+					},
+					"stage": {
+						"$ref": "#/components/schemas/malak.FundraisePipelineStage"
+					},
+					"start_date": {
+						"description": "Can be in the future",
+						"type": "string"
+					},
+					"target_amount": {
+						"type": "integer"
+					},
+					"title": {
+						"type": "string"
+					},
+					"updated_at": {
+						"type": "string"
+					},
+					"workspace_id": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
 			"malak.Integration": {
 				"properties": {
 					"created_at": {
@@ -1959,6 +2005,28 @@
 				"required": [
 					"engagements",
 					"message"
+				],
+				"type": "object"
+			},
+			"server.fetchPipelinesResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"meta": {
+						"$ref": "#/components/schemas/server.meta"
+					},
+					"pipelines": {
+						"items": {
+							"$ref": "#/components/schemas/malak.FundraisingPipeline"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"message",
+					"meta",
+					"pipelines"
 				],
 				"type": "object"
 			},
@@ -5146,6 +5214,90 @@
 			}
 		},
 		"/pipelines": {
+			"get": {
+				"description": "list all fundraising pipelines with pagination and filtering",
+				"parameters": [
+					{
+						"description": "Page to query data from. Defaults to 1",
+						"in": "query",
+						"name": "page",
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"description": "Number to items to return. Defaults to 10 items",
+						"in": "query",
+						"name": "per_page",
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"description": "Whether to return only active pipelines. Defaults to false",
+						"in": "query",
+						"name": "active_only",
+						"schema": {
+							"type": "boolean"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.fetchPipelinesResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"fundraising"
+				]
+			},
 			"post": {
 				"description": "Creates a new fundraising pipeline entry",
 				"requestBody": {

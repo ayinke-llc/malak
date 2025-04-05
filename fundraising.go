@@ -98,6 +98,14 @@ type FundraisingPipelineColumn struct {
 	bun.BaseModel `json:"-"`
 }
 
+type ListPipelineOptions struct {
+	Paginator   Paginator
+	WorkspaceID uuid.UUID
+	ActiveOnly  bool
+}
+
 type FundraisingPipelineRepository interface {
 	Create(context.Context, *FundraisingPipeline, ...FundraisingPipelineColumn) error
+
+	List(context.Context, ListPipelineOptions) ([]FundraisingPipeline, int64, error)
 }

@@ -239,3 +239,122 @@ func TestFundraisingHandler_NewPipeline(t *testing.T) {
 		})
 	}
 }
+
+type listPipelinesTestCase struct {
+	name               string
+	mockFn             func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository)
+	queryParams        map[string]string
+	expectedStatusCode int
+}
+
+func generateListPipelinesTestTable() []listPipelinesTestCase {
+	return []listPipelinesTestCase{
+		{
+			name: "successful listing - default params",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				repo.EXPECT().
+					List(gomock.Any(), gomock.Any()).
+					Times(1).
+					DoAndReturn(func(ctx context.Context, opts malak.ListPipelineOptions) ([]*malak.FundraisingPipeline, int64, error) {
+						require.Equal(t, int64(1), opts.Paginator.Page)
+						require.Equal(t, int64(8), opts.Paginator.PerPage)
+						require.False(t, opts.ActiveOnly)
+						return []*malak.FundraisingPipeline{}, int64(0), nil
+					})
+			},
+			queryParams:        map[string]string{},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "successful listing - with pagination",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				repo.EXPECT().
+					List(gomock.Any(), gomock.Any()).
+					Times(1).
+					DoAndReturn(func(ctx context.Context, opts malak.ListPipelineOptions) ([]*malak.FundraisingPipeline, int64, error) {
+						require.Equal(t, int64(2), opts.Paginator.Page)
+						require.Equal(t, int64(20), opts.Paginator.PerPage)
+						require.False(t, opts.ActiveOnly)
+						return []*malak.FundraisingPipeline{}, int64(0), nil
+					})
+			},
+			queryParams: map[string]string{
+				"page":     "2",
+				"per_page": "20",
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "successful listing - active only",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				repo.EXPECT().
+					List(gomock.Any(), gomock.Any()).
+					Times(1).
+					DoAndReturn(func(ctx context.Context, opts malak.ListPipelineOptions) ([]*malak.FundraisingPipeline, int64, error) {
+						require.True(t, opts.ActiveOnly)
+						return []*malak.FundraisingPipeline{}, int64(0), nil
+					})
+			},
+			queryParams: map[string]string{
+				"active_only": "true",
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "repository error",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				repo.EXPECT().
+					List(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, int64(0), errors.New("repository error"))
+			},
+			queryParams:        map[string]string{},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+	}
+}
+
+func TestFundraisingHandler_List(t *testing.T) {
+	for _, v := range generateListPipelinesTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			fundingRepo := malak_mocks.NewMockFundraisingPipelineRepository(controller)
+			v.mockFn(t, fundingRepo)
+
+			handler := &fundraisingHandler{
+				cfg:                getConfig(),
+				fundingRepo:        fundingRepo,
+				referenceGenerator: &mockReferenceGenerator{},
+			}
+
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, "/pipelines", nil)
+
+			q := req.URL.Query()
+			for key, value := range v.queryParams {
+				q.Add(key, value)
+			}
+			req.URL.RawQuery = q.Encode()
+
+			workspace := &malak.Workspace{}
+			user := &malak.User{}
+
+			ctx := req.Context()
+			ctx = writeUserToCtx(ctx, user)
+			ctx = writeWorkspaceToCtx(ctx, workspace)
+			ctx = context.WithValue(ctx, chi.RouteCtxKey, chi.NewRouteContext())
+			req = req.WithContext(ctx)
+
+			WrapMalakHTTPHandler(getLogger(t),
+				handler.list,
+				getConfig(),
+				"fundraising.list").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
