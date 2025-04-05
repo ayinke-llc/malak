@@ -61,19 +61,7 @@ func TestFundraising_Create(t *testing.T) {
 			Where("fundraising_pipeline_id = ?", pipeline.ID).
 			Scan(t.Context())
 		require.NoError(t, err)
-		require.Len(t, columns, len(malak.DefaultFundraisingColumns))
-
-		columnMap := make(map[string]malak.FundraisingPipelineColumn)
-		for _, col := range columns {
-			columnMap[col.Title] = col
-		}
-
-		for _, defaultCol := range malak.DefaultFundraisingColumns {
-			col, exists := columnMap[defaultCol.Title]
-			require.True(t, exists)
-			require.Equal(t, defaultCol.ColumnType, col.ColumnType)
-			require.Equal(t, defaultCol.Description, col.Description)
-		}
+		require.Len(t, columns, 0)
 	})
 
 	t.Run("create with additional columns", func(t *testing.T) {
@@ -93,11 +81,13 @@ func TestFundraising_Create(t *testing.T) {
 				Title:       "Custom Column 1",
 				ColumnType:  malak.FundraisePipelineColumnTypeNormal,
 				Description: "Custom column description 1",
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
 			},
 			{
 				Title:       "Custom Column 2",
 				ColumnType:  malak.FundraisePipelineColumnTypeNormal,
 				Description: "Custom column description 2",
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
 			},
 		}
 
@@ -111,7 +101,7 @@ func TestFundraising_Create(t *testing.T) {
 			Where("fundraising_pipeline_id = ?", pipeline.ID).
 			Scan(t.Context())
 		require.NoError(t, err)
-		require.Len(t, columns, len(malak.DefaultFundraisingColumns)+len(additionalColumns))
+		require.Len(t, columns, 2)
 
 		columnMap := make(map[string]malak.FundraisingPipelineColumn)
 		for _, col := range columns {

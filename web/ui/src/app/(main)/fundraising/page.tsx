@@ -410,18 +410,22 @@ export default function FundraisingBoards() {
               <Card key={pipeline.id} className="flex flex-col">
                 <CardHeader>
                   <div className="flex items-center justify-between mb-2">
-                    <div className="space-y-1.5">
-                      <CardTitle className="text-xl">{pipeline.title}</CardTitle>
+                    <div className="space-y-1.5 min-w-0 flex-1">
+                      <CardTitle className="text-xl truncate" title={pipeline.title}>
+                        {pipeline.title}
+                      </CardTitle>
                       <div className="text-sm font-medium text-muted-foreground">
                         {stage?.label}
                       </div>
                     </div>
-                    <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium ${statusConfig.textColor} ${statusConfig.bgColor}`}>
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium shrink-0 ml-4 ${statusConfig.textColor} ${statusConfig.bgColor}`}>
                       <statusConfig.icon className="w-3.5 h-3.5" />
                       {statusConfig.label}
                     </div>
                   </div>
-                  <CardDescription className="line-clamp-2">{pipeline.description}</CardDescription>
+                  <CardDescription className="line-clamp-2 min-h-[2.5rem]" title={pipeline.description}>
+                    {pipeline.description}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1">
                   <div className="space-y-4">
