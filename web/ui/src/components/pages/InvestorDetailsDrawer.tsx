@@ -77,6 +77,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { NumericFormat } from "react-number-format";
 
 interface Contact {
   name: string;
@@ -707,11 +708,38 @@ function EditInvestorDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
+            <Label>Amount</Label>
+            <NumericFormat
+              value={editedInvestor.amount.replace(/[^0-9.]/g, '')}
+              onValueChange={(values) => {
+                const { value } = values;
+                // Format the value with 'M' suffix
+                const formattedValue = `${value}M`;
+                setEditedInvestor({ ...editedInvestor, amount: formattedValue });
+              }}
+              thousandSeparator
+              prefix="$"
+              customInput={Input}
+              placeholder="Enter amount (e.g. 5M)"
+              className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label>Check Size</Label>
-            <Input
-              value={editedInvestor.checkSize}
-              onChange={(e) => setEditedInvestor({ ...editedInvestor, checkSize: e.target.value })}
+            <NumericFormat
+              value={editedInvestor.checkSize.replace(/[^0-9.]/g, '')}
+              onValueChange={(values) => {
+                const { value } = values;
+                // Format the value with 'M' suffix
+                const formattedValue = `${value}M`;
+                setEditedInvestor({ ...editedInvestor, checkSize: formattedValue });
+              }}
+              thousandSeparator
+              prefix="$"
+              customInput={Input}
               placeholder="Enter check size"
+              className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
           

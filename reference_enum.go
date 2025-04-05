@@ -84,6 +84,10 @@ const (
 	EntityTypeDashboardLinkAccessLog EntityType = "dashboard_link_access_log"
 	// EntityTypeApiKey is a EntityType of type api_key.
 	EntityTypeApiKey EntityType = "api_key"
+	// EntityTypePipeline is a EntityType of type pipeline.
+	EntityTypePipeline EntityType = "pipeline"
+	// EntityTypePipelineColumn is a EntityType of type pipeline_column.
+	EntityTypePipelineColumn EntityType = "pipeline_column"
 )
 
 var ErrInvalidEntityType = errors.New("not a valid EntityType")
@@ -137,6 +141,8 @@ var _EntityTypeValue = map[string]EntityType{
 	"dashboard_link":              EntityTypeDashboardLink,
 	"dashboard_link_access_log":   EntityTypeDashboardLinkAccessLog,
 	"api_key":                     EntityTypeApiKey,
+	"pipeline":                    EntityTypePipeline,
+	"pipeline_column":             EntityTypePipelineColumn,
 }
 
 // ParseEntityType attempts to convert a string to a EntityType.

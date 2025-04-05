@@ -4,6 +4,7 @@ export const initialColumns: Columns = {
   "backlog": {
     id: "backlog",
     title: "Backlog",
+    description: "Investors you would love to speak to",
     cards: [
       {
         id: "1",
@@ -90,6 +91,7 @@ export const initialColumns: Columns = {
   "research": {
     id: "research",
     title: "Research",
+    description: "Investors you contacted or submitted application via their website or those that reached out to you",
     cards: [
       {
         id: "3",
@@ -136,6 +138,7 @@ export const initialColumns: Columns = {
   "partner-call": {
     id: "partner-call",
     title: "Partner Call",
+    description: "Investors you are currently speaking to",
     cards: [
       {
         id: "7",
@@ -162,6 +165,7 @@ export const initialColumns: Columns = {
   "passed": {
     id: "passed",
     title: "Passed",
+    description: "Investors you spoke to but it didn't pane out",
     cards: [
       {
         id: "8",
@@ -188,6 +192,7 @@ export const initialColumns: Columns = {
   "termsheet": {
     id: "termsheet",
     title: "Termsheet",
+    description: "Investors that have given you a termsheet or SAFE",
     cards: [
       {
         id: "9",
@@ -214,6 +219,7 @@ export const initialColumns: Columns = {
   "closed": {
     id: "closed",
     title: "Closed",
+    description: "Investors that have signed the termsheet/safe and closed the deal. This might mean money wired or not",
     cards: [
       {
         id: "10",

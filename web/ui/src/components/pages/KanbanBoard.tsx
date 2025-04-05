@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   RiTimeLine, RiAddLine, RiSettings4Line, RiArchiveLine, RiArchiveFill,
-  RiInboxUnarchiveLine
+  RiInboxUnarchiveLine, RiInformationLine
 } from "@remixicon/react";
 import { InvestorDetailsDrawer } from "./InvestorDetailsDrawer";
 import { toast } from "sonner";
@@ -37,6 +37,24 @@ import { AddInvestorDialog as AddInvestorDialogComponent } from "@/components/in
 import type { SearchResult } from "@/components/investor-pipeline/AddInvestorDialog";
 import type { Card as InvestorCard, Columns, Board, ShareSettings } from "@/components/investor-pipeline/types";
 import { initialBoard } from "@/components/investor-pipeline/mock-data";
+import { Input } from "@/components/ui/input";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function KanbanBoard() {
   const [board, setBoard] = useState<Board>(initialBoard);
@@ -155,8 +173,8 @@ export default function KanbanBoard() {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center p-4 border-b">
+    <div className="flex flex-col h-screen max-h-screen overflow-hidden">
+      <div className="flex justify-between items-center p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <h1 className="text-2xl font-semibold">Fundraising Pipeline</h1>
         <div className="flex items-center gap-2">
           <Button
@@ -198,88 +216,128 @@ export default function KanbanBoard() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-x-auto p-4">
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="flex gap-4">
-            {Object.entries(board.columns).map(([columnId, column]) => (
-              <div key={columnId} className="w-80 shrink-0">
-                <div className="mb-3 flex items-center justify-between">
-                  <h2 className="font-medium">{column.title}</h2>
-                  <Badge variant="secondary">
-                    {column.cards.length}
-                  </Badge>
-                </div>
+      <div className="flex-1 min-h-0">
+        <div 
+          className="h-full overflow-x-auto"
+          style={{
+            msOverflowStyle: 'none',
+            scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          <style jsx global>{`
+            /* Hide scrollbar for Chrome, Safari and Opera */
+            .overflow-x-auto::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
+          
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <div className="flex gap-4 p-4 h-full">
+              {Object.entries(board.columns).map(([columnId, column]) => (
+                <div key={columnId} className="flex flex-col w-[280px] shrink-0 rounded-lg bg-muted/20">
+                  <div className="p-2 mb-1">
+                    <div className="flex items-center justify-between px-2 py-1">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-1 cursor-help">
+                              <h2 className="font-medium text-sm">{column.title}</h2>
+                              <RiInformationLine className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-xs">{column.description}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <Badge variant="secondary" className="text-xs">
+                        {column.cards.length}
+                      </Badge>
+                    </div>
+                  </div>
 
-                <Droppable droppableId={columnId} key={columnId}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className={`space-y-3 min-h-[200px] ${snapshot.isDraggingOver ? 'bg-muted/50' : ''}`}
-                    >
-                      {column.cards.map((card, index) => (
-                        <Draggable
-                          key={card.id}
-                          draggableId={card.id}
-                          index={index}
-                          isDragDisabled={board.isArchived}
-                        >
-                          {(provided, snapshot) => (
-                            <Card
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={`cursor-pointer ${snapshot.isDragging ? 'opacity-50' : ''}`}
-                              onClick={() => {
-                                setSelectedInvestor(card);
-                                setIsDetailsOpen(true);
-                              }}
-                            >
-                              <CardContent className="p-3">
-                                <div className="flex items-center gap-3">
-                                  <Avatar className="h-8 w-8">
-                                    <AvatarImage
-                                      src={card.contact.image}
-                                      alt={card.contact.name}
-                                    />
-                                    <AvatarFallback>
-                                      {card.contact.name
-                                        .split(" ")
-                                        .map((n) => n[0])
-                                        .join("")}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div className="min-w-0 flex-1">
-                                    <h4 className="truncate font-medium text-sm">
-                                      {card.title}
-                                    </h4>
-                                    <p className="truncate text-xs text-muted-foreground">
-                                      {card.contact.name}
-                                    </p>
-                                    <div className="mt-1 flex items-center gap-2">
-                                      <Badge variant="secondary" className="text-xs">
-                                        {card.amount}
-                                      </Badge>
-                                      <div className="flex items-center text-xs text-muted-foreground">
-                                        <RiTimeLine className="mr-1 h-3 w-3" />
-                                        {card.dueDate}
+                  <Droppable droppableId={columnId} key={columnId}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className={`flex-1 p-2 space-y-2 overflow-y-auto
+                          ${snapshot.isDraggingOver ? 'bg-muted/30' : ''}
+                          scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent
+                          hover:scrollbar-thumb-muted-foreground/30`}
+                        style={{
+                          height: 'calc(100vh - 8rem)',
+                          maxHeight: 'calc(100vh - 8rem)',
+                          overflowY: 'auto',
+                          overflowX: 'hidden'
+                        }}
+                      >
+                        {column.cards.map((card, index) => (
+                          <Draggable
+                            key={card.id}
+                            draggableId={card.id}
+                            index={index}
+                            isDragDisabled={board.isArchived}
+                          >
+                            {(provided, snapshot) => (
+                              <Card
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`cursor-pointer border-none shadow-sm hover:shadow-md transition-shadow
+                                  ${snapshot.isDragging ? 'opacity-50 shadow-lg ring-2 ring-primary' : ''}`}
+                                onClick={() => {
+                                  setSelectedInvestor(card);
+                                  setIsDetailsOpen(true);
+                                }}
+                              >
+                                <CardContent className="p-3">
+                                  <div className="flex items-center gap-3">
+                                    <Avatar className="h-8 w-8">
+                                      <AvatarImage
+                                        src={card.contact.image}
+                                        alt={card.contact.name}
+                                      />
+                                      <AvatarFallback>
+                                        {card.contact.name
+                                          .split(" ")
+                                          .map((n) => n[0])
+                                          .join("")}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div className="min-w-0 flex-1">
+                                      <h4 className="truncate font-medium text-sm">
+                                        {card.title}
+                                      </h4>
+                                      <p className="truncate text-xs text-muted-foreground">
+                                        {card.contact.name}
+                                      </p>
+                                      <div className="mt-1 flex items-center gap-2">
+                                        <Badge variant="secondary" className="text-xs">
+                                          {card.amount}
+                                        </Badge>
+                                        <div className="flex items-center text-xs text-muted-foreground">
+                                          <RiTimeLine className="mr-1 h-3 w-3" />
+                                          {card.dueDate}
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </div>
-            ))}
-          </div>
-        </DragDropContext>
+                                </CardContent>
+                              </Card>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </div>
+              ))}
+            </div>
+          </DragDropContext>
+        </div>
       </div>
 
       <InvestorDetailsDrawer
