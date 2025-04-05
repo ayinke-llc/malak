@@ -251,6 +251,16 @@ export interface MalakDeckViewerSession {
   viewed_at?: string;
 }
 
+export enum MalakFundraisePipelineStage {
+  FundraisePipelineStageFamilyAndFriend = "family_and_friend",
+  FundraisePipelineStagePreSeed = "pre_seed",
+  FundraisePipelineStageBridgeRound = "bridge_round",
+  FundraisePipelineStageSeed = "seed",
+  FundraisePipelineStageSeriesA = "series_a",
+  FundraisePipelineStageSeriesB = "series_b",
+  FundraisePipelineStageSeriesC = "series_c",
+}
+
 export interface MalakIntegration {
   created_at?: string;
   description?: string;
@@ -656,6 +666,15 @@ export interface ServerCreateDeckViewerSession {
   device_info: string;
   os: string;
   password: string;
+}
+
+export interface ServerCreateNewPipelineRequest {
+  amount: number;
+  description: string;
+  expected_close_date: number;
+  stage: MalakFundraisePipelineStage;
+  start_date: number;
+  title: string;
 }
 
 export interface ServerCreateUpdateContent {
@@ -1662,6 +1681,24 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerAPIStatus, ServerAPIStatus>({
         path: `/developers/keys/${reference}`,
         method: "DELETE",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  pipelines = {
+    /**
+     * @description Creates a new fundraising pipeline entry
+     *
+     * @tags fundraising
+     * @name PipelinesCreate
+     * @request POST:/pipelines
+     */
+    pipelinesCreate: (data: ServerCreateNewPipelineRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/pipelines`,
+        method: "POST",
         body: data,
         type: ContentType.Json,
         format: "json",

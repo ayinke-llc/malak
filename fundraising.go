@@ -54,7 +54,7 @@ type FundraisePipelineStage string
 // but closed columns are those that signify the investor in the pipeline is now "closed"
 // that might mean documents signed, money wired. It depends on you
 // But there can only be one closed column per fundraising pipeline
-type FundraisePipelineColumnType uint8
+type FundraisePipelineColumnType string
 
 type FundraisingPipeline struct {
 	ID uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`

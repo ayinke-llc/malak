@@ -12,39 +12,29 @@ import (
 )
 
 const (
-	// FundraisePipelineColumnTypeNormal is a FundraisePipelineColumnType of type Normal.
-	FundraisePipelineColumnTypeNormal FundraisePipelineColumnType = iota
-	// FundraisePipelineColumnTypeClosed is a FundraisePipelineColumnType of type Closed.
-	FundraisePipelineColumnTypeClosed
+	// FundraisePipelineColumnTypeNormal is a FundraisePipelineColumnType of type normal.
+	FundraisePipelineColumnTypeNormal FundraisePipelineColumnType = "normal"
+	// FundraisePipelineColumnTypeClosed is a FundraisePipelineColumnType of type closed.
+	FundraisePipelineColumnTypeClosed FundraisePipelineColumnType = "closed"
 )
 
 var ErrInvalidFundraisePipelineColumnType = errors.New("not a valid FundraisePipelineColumnType")
 
-const _FundraisePipelineColumnTypeName = "normalclosed"
-
-var _FundraisePipelineColumnTypeMap = map[FundraisePipelineColumnType]string{
-	FundraisePipelineColumnTypeNormal: _FundraisePipelineColumnTypeName[0:6],
-	FundraisePipelineColumnTypeClosed: _FundraisePipelineColumnTypeName[6:12],
-}
-
 // String implements the Stringer interface.
 func (x FundraisePipelineColumnType) String() string {
-	if str, ok := _FundraisePipelineColumnTypeMap[x]; ok {
-		return str
-	}
-	return fmt.Sprintf("FundraisePipelineColumnType(%d)", x)
+	return string(x)
 }
 
 // IsValid provides a quick way to determine if the typed value is
 // part of the allowed enumerated values
 func (x FundraisePipelineColumnType) IsValid() bool {
-	_, ok := _FundraisePipelineColumnTypeMap[x]
-	return ok
+	_, err := ParseFundraisePipelineColumnType(string(x))
+	return err == nil
 }
 
 var _FundraisePipelineColumnTypeValue = map[string]FundraisePipelineColumnType{
-	_FundraisePipelineColumnTypeName[0:6]:  FundraisePipelineColumnTypeNormal,
-	_FundraisePipelineColumnTypeName[6:12]: FundraisePipelineColumnTypeClosed,
+	"normal": FundraisePipelineColumnTypeNormal,
+	"closed": FundraisePipelineColumnTypeClosed,
 }
 
 // ParseFundraisePipelineColumnType attempts to convert a string to a FundraisePipelineColumnType.
@@ -52,7 +42,7 @@ func ParseFundraisePipelineColumnType(name string) (FundraisePipelineColumnType,
 	if x, ok := _FundraisePipelineColumnTypeValue[name]; ok {
 		return x, nil
 	}
-	return FundraisePipelineColumnType(0), fmt.Errorf("%s is %w", name, ErrInvalidFundraisePipelineColumnType)
+	return FundraisePipelineColumnType(""), fmt.Errorf("%s is %w", name, ErrInvalidFundraisePipelineColumnType)
 }
 
 const (

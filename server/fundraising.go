@@ -120,7 +120,18 @@ func (d *fundraisingHandler) newPipeline(
 		ClosedAmount:      0,
 	}
 
-	if err := d.fundingRepo.Create(ctx, pipeline); err != nil {
+	defaultColumns := make([]malak.FundraisingPipelineColumn, len(malak.DefaultFundraisingColumns))
+	for i, col := range malak.DefaultFundraisingColumns {
+		defaultColumns[i] = malak.FundraisingPipelineColumn{
+			Reference:      d.referenceGenerator.Generate(malak.EntityTypeFundraisingPipelineColumn),
+			Title:          col.Title,
+			ColumnType:     col.ColumnType,
+			Description:    col.Description,
+			InvestorsCount: 0,
+		}
+	}
+
+	if err := d.fundingRepo.Create(ctx, pipeline, defaultColumns...); err != nil {
 		logger.Error("could not create fundraising pipeline",
 			zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "could not create fundraising pipeline"),

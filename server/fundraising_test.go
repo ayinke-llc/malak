@@ -20,23 +20,30 @@ import (
 
 func generateNewPipelineTestTable() []struct {
 	name               string
-	mockFn             func(repo *malak_mocks.MockFundraisingPipelineRepository)
+	mockFn             func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository)
 	req                createNewPipelineRequest
 	expectedStatusCode int
 } {
 	return []struct {
 		name               string
-		mockFn             func(repo *malak_mocks.MockFundraisingPipelineRepository)
+		mockFn             func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository)
 		req                createNewPipelineRequest
 		expectedStatusCode int
 	}{
 		{
 			name: "valid request - seed stage",
-			mockFn: func(repo *malak_mocks.MockFundraisingPipelineRepository) {
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
 				repo.EXPECT().
-					Create(gomock.Any(), gomock.Any()).
-					Times(1).
-					Return(nil)
+					Create(gomock.Any(), gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, pipeline *malak.FundraisingPipeline, columns ...malak.FundraisingPipelineColumn) error {
+						require.Len(t, columns, len(malak.DefaultFundraisingColumns))
+						for i, col := range columns {
+							require.Equal(t, malak.DefaultFundraisingColumns[i].Title, col.Title)
+							require.Equal(t, malak.DefaultFundraisingColumns[i].ColumnType, col.ColumnType)
+							require.Equal(t, malak.DefaultFundraisingColumns[i].Description, col.Description)
+						}
+						return nil
+					})
 			},
 			req: createNewPipelineRequest{
 				Title:             "Valid Title",
@@ -50,11 +57,18 @@ func generateNewPipelineTestTable() []struct {
 		},
 		{
 			name: "valid request - series A stage",
-			mockFn: func(repo *malak_mocks.MockFundraisingPipelineRepository) {
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
 				repo.EXPECT().
-					Create(gomock.Any(), gomock.Any()).
-					Times(1).
-					Return(nil)
+					Create(gomock.Any(), gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, pipeline *malak.FundraisingPipeline, columns ...malak.FundraisingPipelineColumn) error {
+						require.Len(t, columns, len(malak.DefaultFundraisingColumns))
+						for i, col := range columns {
+							require.Equal(t, malak.DefaultFundraisingColumns[i].Title, col.Title)
+							require.Equal(t, malak.DefaultFundraisingColumns[i].ColumnType, col.ColumnType)
+							require.Equal(t, malak.DefaultFundraisingColumns[i].Description, col.Description)
+						}
+						return nil
+					})
 			},
 			req: createNewPipelineRequest{
 				Title:             "Series A Fundraising",
@@ -68,7 +82,7 @@ func generateNewPipelineTestTable() []struct {
 		},
 		{
 			name:   "invalid request - empty title",
-			mockFn: func(repo *malak_mocks.MockFundraisingPipelineRepository) {},
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {},
 			req: createNewPipelineRequest{
 				Title:             "",
 				Stage:             malak.FundraisePipelineStageSeed,
@@ -81,7 +95,7 @@ func generateNewPipelineTestTable() []struct {
 		},
 		{
 			name:   "invalid request - title too short",
-			mockFn: func(repo *malak_mocks.MockFundraisingPipelineRepository) {},
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {},
 			req: createNewPipelineRequest{
 				Title:             "abc",
 				Stage:             malak.FundraisePipelineStageSeed,
@@ -94,7 +108,7 @@ func generateNewPipelineTestTable() []struct {
 		},
 		{
 			name:   "invalid request - description too long",
-			mockFn: func(repo *malak_mocks.MockFundraisingPipelineRepository) {},
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {},
 			req: createNewPipelineRequest{
 				Title:             "Valid Title",
 				Stage:             malak.FundraisePipelineStageSeed,
@@ -107,7 +121,7 @@ func generateNewPipelineTestTable() []struct {
 		},
 		{
 			name:   "invalid request - start date in past",
-			mockFn: func(repo *malak_mocks.MockFundraisingPipelineRepository) {},
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {},
 			req: createNewPipelineRequest{
 				Title:             "Valid Title",
 				Stage:             malak.FundraisePipelineStageSeed,
@@ -120,7 +134,7 @@ func generateNewPipelineTestTable() []struct {
 		},
 		{
 			name:   "invalid request - expected close date today",
-			mockFn: func(repo *malak_mocks.MockFundraisingPipelineRepository) {},
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {},
 			req: createNewPipelineRequest{
 				Title:             "Valid Title",
 				Stage:             malak.FundraisePipelineStageSeed,
@@ -133,7 +147,7 @@ func generateNewPipelineTestTable() []struct {
 		},
 		{
 			name:   "invalid request - expected close date in past",
-			mockFn: func(repo *malak_mocks.MockFundraisingPipelineRepository) {},
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {},
 			req: createNewPipelineRequest{
 				Title:             "Valid Title",
 				Stage:             malak.FundraisePipelineStageSeed,
@@ -146,7 +160,7 @@ func generateNewPipelineTestTable() []struct {
 		},
 		{
 			name:   "invalid request - invalid stage",
-			mockFn: func(repo *malak_mocks.MockFundraisingPipelineRepository) {},
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {},
 			req: createNewPipelineRequest{
 				Title:             "Valid Title",
 				Stage:             "invalid_stage",
@@ -159,9 +173,9 @@ func generateNewPipelineTestTable() []struct {
 		},
 		{
 			name: "repository error",
-			mockFn: func(repo *malak_mocks.MockFundraisingPipelineRepository) {
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
 				repo.EXPECT().
-					Create(gomock.Any(), gomock.Any()).
+					Create(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(errors.New("repository error"))
 			},
@@ -185,7 +199,7 @@ func TestFundraisingHandler_NewPipeline(t *testing.T) {
 			defer controller.Finish()
 
 			fundingRepo := malak_mocks.NewMockFundraisingPipelineRepository(controller)
-			v.mockFn(fundingRepo)
+			v.mockFn(t, fundingRepo)
 
 			handler := &fundraisingHandler{
 				cfg:                getConfig(),
