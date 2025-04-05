@@ -419,6 +419,24 @@ components:
         viewed_at:
           type: string
       type: object
+    malak.FundraisePipelineStage:
+      enum:
+      - family_and_friend
+      - pre_seed
+      - bridge_round
+      - seed
+      - series_a
+      - series_b
+      - series_c
+      type: string
+      x-enum-varnames:
+      - FundraisePipelineStageFamilyAndFriend
+      - FundraisePipelineStagePreSeed
+      - FundraisePipelineStageBridgeRound
+      - FundraisePipelineStageSeed
+      - FundraisePipelineStageSeriesA
+      - FundraisePipelineStageSeriesB
+      - FundraisePipelineStageSeriesC
     malak.Integration:
       properties:
         created_at:
@@ -1100,6 +1118,28 @@ components:
       - device_info
       - os
       - password
+      type: object
+    server.createNewPipelineRequest:
+      properties:
+        amount:
+          type: integer
+        description:
+          type: string
+        expected_close_date:
+          type: integer
+        stage:
+          $ref: '#/components/schemas/malak.FundraisePipelineStage'
+        start_date:
+          type: integer
+        title:
+          type: string
+      required:
+      - amount
+      - description
+      - expected_close_date
+      - stage
+      - start_date
+      - title
       type: object
     server.createUpdateContent:
       properties:
@@ -3266,6 +3306,50 @@ paths:
           description: Internal Server Error
       tags:
       - developers
+  /fundraising/pipelines:
+    post:
+      description: Creates a new fundraising pipeline entry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.createNewPipelineRequest'
+        description: pipeline request body
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      tags:
+      - fundraising
   /public/dashboards/{reference}:
     get:
       description: fetch public dashboard and charting data points

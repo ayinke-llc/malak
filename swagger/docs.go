@@ -2036,6 +2036,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/fundraising/pipelines": {
+            "post": {
+                "description": "Creates a new fundraising pipeline entry",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fundraising"
+                ],
+                "parameters": [
+                    {
+                        "description": "pipeline request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createNewPipelineRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/public/dashboards/{reference}": {
             "get": {
                 "description": "fetch public dashboard and charting data points",
@@ -4546,6 +4603,27 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.FundraisePipelineStage": {
+            "type": "string",
+            "enum": [
+                "family_and_friend",
+                "pre_seed",
+                "bridge_round",
+                "seed",
+                "series_a",
+                "series_b",
+                "series_c"
+            ],
+            "x-enum-varnames": [
+                "FundraisePipelineStageFamilyAndFriend",
+                "FundraisePipelineStagePreSeed",
+                "FundraisePipelineStageBridgeRound",
+                "FundraisePipelineStageSeed",
+                "FundraisePipelineStageSeriesA",
+                "FundraisePipelineStageSeriesB",
+                "FundraisePipelineStageSeriesC"
+            ]
+        },
         "malak.Integration": {
             "type": "object",
             "properties": {
@@ -5543,6 +5621,37 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.createNewPipelineRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "description",
+                "expected_close_date",
+                "stage",
+                "start_date",
+                "title"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "expected_close_date": {
+                    "type": "integer"
+                },
+                "stage": {
+                    "$ref": "#/definitions/malak.FundraisePipelineStage"
+                },
+                "start_date": {
+                    "type": "integer"
+                },
+                "title": {
                     "type": "string"
                 }
             }

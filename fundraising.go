@@ -1,6 +1,7 @@
 package malak
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -97,4 +98,6 @@ type FundraisingPipelineColumn struct {
 	bun.BaseModel `json:"-"`
 }
 
-type FundraisingPipelineRepository interface{}
+type FundraisingPipelineRepository interface {
+	Create(context.Context, *FundraisingPipeline) error
+}
