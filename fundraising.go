@@ -98,6 +98,76 @@ type FundraisingPipelineColumn struct {
 	bun.BaseModel `json:"-"`
 }
 
+type FundraiseContactPosition struct {
+	ID                                 uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference                          Reference `json:"reference,omitempty"`
+	FundraisingPipelineColumnContactID uuid.UUID `json:"fundraising_pipeline_column_contact_id,omitempty"`
+	OrderIndex                         int64     `json:"order_index,omitempty"`
+
+	bun.BaseModel `json:"-" bun:"table:fundraising_pipeline_column_contact_positions"`
+}
+
+type FundraiseContact struct {
+	ID                          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference                   Reference `json:"reference,omitempty"`
+	ContactID                   uuid.UUID `json:"contact_id,omitempty"`
+	FundraisingPipelineID       uuid.UUID `json:"fundraising_pipeline_id,omitempty"`
+	FundraisingPipelineColumnID uuid.UUID `json:"fundraising_pipeline_column_id,omitempty"`
+
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" bson:"deleted_at"`
+
+	bun.BaseModel `json:"-" bun:"table:fundraising_pipeline_column_contacts"`
+}
+
+type FundraiseContactDealDetails struct {
+	ID                                 uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference                          Reference `json:"reference,omitempty"`
+	FundraisingPipelineColumnContactID uuid.UUID `json:"fundraising_pipeline_column_contact_id,omitempty"`
+	CheckSize                          int64     `json:"check_size,omitempty"`
+	CanLeadRound                       bool      `json:"can_lead_round,omitempty"`
+	Rating                             int64     `json:"rating,omitempty"`
+
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" bson:"deleted_at"`
+
+	bun.BaseModel `json:"-" bun:"table:fundraising_pipeline_column_contact_deals"`
+}
+
+// ENUM(meeting,note,email)
+type FundraisingColumnActivity string
+
+type FundraiseContactActivity struct {
+	ID                                 uuid.UUID                 `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference                          Reference                 `json:"reference,omitempty"`
+	FundraisingPipelineColumnContactID uuid.UUID                 `json:"fundraising_pipeline_column_contact_id,omitempty"`
+	ActivityType                       FundraisingColumnActivity `json:"activity_type,omitempty"`
+	Title                              string                    `json:"title,omitempty"`
+	Content                            string                    `json:"content,omitempty"`
+
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" bson:"deleted_at"`
+
+	bun.BaseModel `json:"-" bun:"table:fundraising_pipeline_column_contact_activities"`
+}
+
+type FundraiseContactDocument struct {
+	ID                                 uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id,omitempty"`
+	Reference                          Reference `json:"reference,omitempty"`
+	FundraisingPipelineColumnContactID uuid.UUID `json:"fundraising_pipeline_column_contact_id,omitempty"`
+	Title                              string    `json:"title,omitempty"`
+	FileSize                           int64     `json:"file_size,omitempty"`
+	ObjectKey                          string    `json:"object_key,omitempty"`
+
+	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
+	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`
+	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" bson:"deleted_at"`
+
+	bun.BaseModel `json:"-" bun:"table:fundraising_pipeline_column_contact_documents"`
+}
+
 type ListPipelineOptions struct {
 	Paginator   Paginator
 	WorkspaceID uuid.UUID

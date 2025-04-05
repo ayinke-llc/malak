@@ -93,3 +93,40 @@ func ParseFundraisePipelineStage(name string) (FundraisePipelineStage, error) {
 	}
 	return FundraisePipelineStage(""), fmt.Errorf("%s is %w", name, ErrInvalidFundraisePipelineStage)
 }
+
+const (
+	// FundraisingColumnActivityMeeting is a FundraisingColumnActivity of type meeting.
+	FundraisingColumnActivityMeeting FundraisingColumnActivity = "meeting"
+	// FundraisingColumnActivityNote is a FundraisingColumnActivity of type note.
+	FundraisingColumnActivityNote FundraisingColumnActivity = "note"
+	// FundraisingColumnActivityEmail is a FundraisingColumnActivity of type email.
+	FundraisingColumnActivityEmail FundraisingColumnActivity = "email"
+)
+
+var ErrInvalidFundraisingColumnActivity = errors.New("not a valid FundraisingColumnActivity")
+
+// String implements the Stringer interface.
+func (x FundraisingColumnActivity) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x FundraisingColumnActivity) IsValid() bool {
+	_, err := ParseFundraisingColumnActivity(string(x))
+	return err == nil
+}
+
+var _FundraisingColumnActivityValue = map[string]FundraisingColumnActivity{
+	"meeting": FundraisingColumnActivityMeeting,
+	"note":    FundraisingColumnActivityNote,
+	"email":   FundraisingColumnActivityEmail,
+}
+
+// ParseFundraisingColumnActivity attempts to convert a string to a FundraisingColumnActivity.
+func ParseFundraisingColumnActivity(name string) (FundraisingColumnActivity, error) {
+	if x, ok := _FundraisingColumnActivityValue[name]; ok {
+		return x, nil
+	}
+	return FundraisingColumnActivity(""), fmt.Errorf("%s is %w", name, ErrInvalidFundraisingColumnActivity)
+}

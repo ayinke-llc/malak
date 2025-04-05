@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   RiTimeLine, RiAddLine, RiSettings4Line, RiArchiveLine, RiArchiveFill,
-  RiInboxUnarchiveLine, RiInformationLine
+  RiInboxUnarchiveLine, RiInformationLine, RiCalendarLine
 } from "@remixicon/react";
 import { InvestorDetailsDrawer } from "./InvestorDetailsDrawer";
 import { toast } from "sonner";
@@ -55,6 +55,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 export default function KanbanBoard() {
   const [board, setBoard] = useState<Board>(initialBoard);
@@ -70,6 +75,7 @@ export default function KanbanBoard() {
     requireEmail: false,
     requirePassword: false,
   });
+  const [activeTab, setActiveTab] = useState("overview");
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination || board.isArchived) return;
@@ -395,6 +401,23 @@ export default function KanbanBoard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Tabs className="w-full">
+        <TabsList className="w-full">
+          <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
+          <TabsTrigger value="activity" className="flex-1">Activity</TabsTrigger>
+          <TabsTrigger value="documents" className="flex-1">Documents</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      <Button 
+        variant="outline" 
+        className="w-full justify-start"
+        onClick={() => setActiveTab("activity")}
+      >
+        <RiCalendarLine className="w-4 h-4 mr-2" />
+        Add Activity or Note
+      </Button>
     </div>
   );
 } 

@@ -1,0 +1,11 @@
+DROP TRIGGER IF EXISTS update_fundraising_pipeline_column_contacts_updated_at ON fundraising_pipeline_column_contacts;
+DROP TRIGGER IF EXISTS update_fundraising_pipeline_column_contact_deals_updated_at ON fundraising_pipeline_column_contact_deals;
+DROP TRIGGER IF EXISTS update_fundraising_pipeline_column_contact_documents_updated_at ON fundraising_pipeline_column_contact_documents;
+
+DROP TABLE IF EXISTS fundraising_pipeline_column_contact_documents;
+DROP TABLE IF EXISTS fundraising_pipeline_column_contact_activities;
+DROP TABLE IF EXISTS fundraising_pipeline_column_contact_deals;
+DROP TABLE IF EXISTS fundraising_pipeline_column_contact_positions;
+DROP TABLE IF EXISTS fundraising_pipeline_column_contacts;
+
+DROP TYPE IF EXISTS fundraising_column_activity;

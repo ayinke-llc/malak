@@ -1,0 +1,38 @@
+version: "3"
+
+tasks:
+  tidy:
+    desc: Tidy up Go module dependencies
+    cmds:
+      - go mod tidy
+
+  migrate:
+    desc: Run database migrations
+    cmds:
+      - go run cmd/*.go migrate
+
+  migrate-down:
+    desc: Rollback the last database migration
+    cmds:
+      - migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://malak:malak@localhost:9432/malak?sslmode=disable" down 1
+
+  run:
+    desc: Run the HTTP server
+    cmds:
+      - go run cmd/*.go http
+
+  env:
+    desc: Export environment variables from Infisical
+    cmds:
+      - infisical export --env=dev > .env
+
+  test:
+    desc: Run unit tests
+    cmds:
+      - go test -v ./...
+
+  test-all:
+    desc: Run all tests including integration tests
+    cmds:
+      - go test -v -tags integration ./...
+

@@ -107,15 +107,11 @@ interface Note {
 
 interface Activity {
   id: string;
-  type: 'email' | 'meeting' | 'document' | 'team' | 'stage_change';
+  type: 'email' | 'meeting' | 'note';
   title: string;
   description: string;
   timestamp: string;
   content?: string;
-  metadata?: {
-    fromStage?: string;
-    toStage?: string;
-  };
 }
 
 interface Document {
@@ -157,7 +153,7 @@ const fetchActivities = async (page: number, investorId: string): Promise<Activi
   // Generate activities
   return Array.from({ length: itemsToGenerate }, (_, i) => ({
     id: `${page}-${i}-${Math.random()}`,
-    type: ['email', 'meeting', 'document', 'team', 'stage_change'][Math.floor(Math.random() * 5)] as Activity['type'],
+    type: ['email', 'meeting', 'note'][Math.floor(Math.random() * 3)] as Activity['type'],
     title: `Activity ${startIndex + i + 1}`,
     description: `Description for activity ${startIndex + i + 1}`,
     timestamp: new Date(Date.now() - (startIndex + i) * 24 * 60 * 60 * 1000).toISOString(),
@@ -241,7 +237,7 @@ function AddActivityDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Add New Activity</DialogTitle>
         </DialogHeader>
@@ -258,8 +254,7 @@ function AddActivityDialog({
               <SelectContent>
                 <SelectItem value="email">Email</SelectItem>
                 <SelectItem value="meeting">Meeting</SelectItem>
-                <SelectItem value="document">Document</SelectItem>
-                <SelectItem value="team">Team</SelectItem>
+                <SelectItem value="note">Note</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -269,35 +264,47 @@ function AddActivityDialog({
             <Input
               value={activity.title}
               onChange={(e) => setActivity({ ...activity, title: e.target.value })}
-              placeholder="Activity title"
+              placeholder={activity.type === 'note' ? 'Note title' : 'Activity title'}
               required
             />
           </div>
           
           <div className="space-y-2">
-            <label className="text-sm font-medium">Description</label>
-            <Input
-              value={activity.description}
-              onChange={(e) => setActivity({ ...activity, description: e.target.value })}
-              placeholder="Brief description"
-              required
-            />
+            <label className="text-sm font-medium">{activity.type === 'note' ? 'Note Content' : 'Description'}</label>
+            {activity.type === 'note' ? (
+              <Textarea
+                value={activity.content}
+                onChange={(e) => setActivity({ ...activity, content: e.target.value, description: e.target.value.slice(0, 100) + '...' })}
+                placeholder="Write your note here"
+                className="min-h-[200px]"
+                required
+              />
+            ) : (
+              <Input
+                value={activity.description}
+                onChange={(e) => setActivity({ ...activity, description: e.target.value })}
+                placeholder="Brief description"
+                required
+              />
+            )}
           </div>
           
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Content (optional)</label>
-            <Textarea
-              value={activity.content}
-              onChange={(e) => setActivity({ ...activity, content: e.target.value })}
-              placeholder="Additional details or content"
-            />
-          </div>
+          {activity.type !== 'note' && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Content (optional)</label>
+              <Textarea
+                value={activity.content}
+                onChange={(e) => setActivity({ ...activity, content: e.target.value })}
+                placeholder="Additional details or content"
+              />
+            </div>
+          )}
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">Add Activity</Button>
+            <Button type="submit">Add {activity.type === 'note' ? 'Note' : 'Activity'}</Button>
           </div>
         </form>
       </DialogContent>
@@ -813,9 +820,6 @@ export function InvestorDetailsDrawer({
   const [activeTab, setActiveTab] = useState("overview");
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isAddingActivity, setIsAddingActivity] = useState(false);
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [isAddingNote, setIsAddingNote] = useState(false);
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [isEditingInvestor, setIsEditingInvestor] = useState(false);
   
   // Infinite scroll states
@@ -882,48 +886,14 @@ export function InvestorDetailsDrawer({
     setActivities(prev => [activity, ...prev]);
   };
 
-  const handleAddNote = (newNote: Partial<Note>) => {
-    const note: Note = {
-      ...newNote,
-      id: Math.random().toString(36).substr(2, 9),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      title: newNote.title || '',
-      content: newNote.content || ''
-    };
-    
-    setNotes([note, ...notes]);
-  };
-
-  const handleEditNote = (updatedNote: Partial<Note>) => {
-    if (!editingNote) return;
-    
-    const note: Note = {
-      ...editingNote,
-      ...updatedNote,
-      updatedAt: new Date().toISOString()
-    };
-    
-    setNotes(notes.map(n => n.id === editingNote.id ? note : n));
-    setEditingNote(null);
-  };
-
-  const handleDeleteNote = (noteId: string) => {
-    setNotes(notes.filter(n => n.id !== noteId));
-  };
-
   const getActivityIcon = (type: Activity['type']) => {
     switch (type) {
       case 'email':
         return <RiMailLine className="w-4 h-4 text-primary" />;
       case 'meeting':
         return <RiCalendarLine className="w-4 h-4 text-primary" />;
-      case 'document':
+      case 'note':
         return <RiFileTextLine className="w-4 h-4 text-primary" />;
-      case 'team':
-        return <RiTeamLine className="w-4 h-4 text-primary" />;
-      case 'stage_change':
-        return <RiArrowRightLine className="w-4 h-4 text-primary" />;
       default:
         return <RiMailLine className="w-4 h-4 text-primary" />;
     }
@@ -947,8 +917,8 @@ export function InvestorDetailsDrawer({
               <SheetTitle className="text-xl">{investor.title}</SheetTitle>
               <div className="flex items-center gap-2">
                 {!isArchived && (
-                  <Button variant="ghost" size="icon" onClick={() => setIsEditingInvestor(true)}>
-                    <RiEditLine className="w-4 h-4" />
+                  <Button variant="ghost" size="icon" onClick={() => setIsAddingActivity(true)}>
+                    <RiAddLine className="w-4 h-4" />
                   </Button>
                 )}
                 <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
@@ -977,7 +947,6 @@ export function InvestorDetailsDrawer({
               <TabsList className="w-full">
                 <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
                 <TabsTrigger value="activity" className="flex-1">Activity</TabsTrigger>
-                <TabsTrigger value="notes" className="flex-1">Notes</TabsTrigger>
                 <TabsTrigger value="documents" className="flex-1">Documents</TabsTrigger>
               </TabsList>
 
@@ -1069,7 +1038,7 @@ export function InvestorDetailsDrawer({
                         onClick={() => setActiveTab("activity")}
                       >
                         <RiCalendarLine className="w-4 h-4 mr-2" />
-                        Add Activity
+                        Add Activity or Note
                       </Button>
                       <Button 
                         variant="outline" 
@@ -1078,14 +1047,6 @@ export function InvestorDetailsDrawer({
                       >
                         <RiFileTextLine className="w-4 h-4 mr-2" />
                         Upload Documents
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start"
-                        onClick={() => setActiveTab("notes")}
-                      >
-                        <RiFileTextLine className="w-4 h-4 mr-2" />
-                        Add Notes
                       </Button>
                     </div>
                   </div>
@@ -1105,7 +1066,7 @@ export function InvestorDetailsDrawer({
                         className="gap-2"
                       >
                         <RiAddLine className="w-4 h-4" />
-                        Add Activity
+                        Add Activity or Note
                       </Button>
                     )}
                   </div>
@@ -1128,16 +1089,7 @@ export function InvestorDetailsDrawer({
                           </p>
                           {activity.content && (
                             <div className="bg-muted/50 rounded-md p-3 text-sm">
-                              <p>{activity.content}</p>
-                            </div>
-                          )}
-                          {activity.type === 'stage_change' && activity.metadata && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-                              <Badge variant="outline">{activity.metadata.fromStage}</Badge>
-                              <RiArrowRightLine className="w-4 h-4" />
-                              <Badge variant="outline" className="bg-primary/10 text-primary">
-                                {activity.metadata.toStage}
-                              </Badge>
+                              <p className="whitespace-pre-wrap">{activity.content}</p>
                             </div>
                           )}
                         </div>
@@ -1168,66 +1120,6 @@ export function InvestorDetailsDrawer({
                 </div>
               </TabsContent>
 
-              <TabsContent value="notes">
-                <div className="space-y-6">
-                  {!isArchived && (
-                    <div className="flex justify-end">
-                      <Button 
-                        onClick={() => setIsAddingNote(true)}
-                        size="sm"
-                        className="gap-2"
-                      >
-                        <RiAddLine className="w-4 h-4" />
-                        Add Note
-                      </Button>
-                    </div>
-                  )}
-
-                  {notes.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      No notes yet. {!isArchived && "Click the button above to add one."}
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {notes.map((note) => (
-                        <div key={note.id} className="bg-card rounded-lg p-4 border">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium">{note.title}</h4>
-                            {!isArchived && (
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => setEditingNote(note)}
-                                >
-                                  <RiEditLine className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleDeleteNote(note.id)}
-                                >
-                                  <RiDeleteBinLine className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                          <div className="prose prose-sm max-w-none">
-                            <p className="text-sm whitespace-pre-wrap">{note.content}</p>
-                          </div>
-                          <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-                            <span>Created {new Date(note.createdAt).toLocaleString()}</span>
-                            {note.updatedAt !== note.createdAt && (
-                              <span>Updated {new Date(note.updatedAt).toLocaleString()}</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-
               <TabsContent value="documents">
                 <DocumentsTab isReadOnly={isArchived} />
               </TabsContent>
@@ -1247,19 +1139,6 @@ export function InvestorDetailsDrawer({
                 open={isAddingActivity}
                 onOpenChange={setIsAddingActivity}
                 onSubmit={handleAddActivity}
-              />
-
-              <NoteDialog
-                open={isAddingNote}
-                onOpenChange={setIsAddingNote}
-                onSubmit={handleAddNote}
-              />
-
-              <NoteDialog
-                open={!!editingNote}
-                onOpenChange={(open) => !open && setEditingNote(null)}
-                onSubmit={handleEditNote}
-                initialNote={editingNote || undefined}
               />
             </>
           )}
