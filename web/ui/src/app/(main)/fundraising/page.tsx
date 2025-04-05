@@ -6,23 +6,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { CheckCircle2, Clock, Plus, XCircle } from "lucide-react"
+import { RiAddLine, RiCheckboxCircleLine, RiTimeLine, RiCloseCircleLine, RiErrorWarningLine, RiRefreshLine } from '@remixicon/react'
 import Link from "next/link"
 import * as yup from "yup"
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { CREATE_FUNDRAISING_PIPELINE } from "@/lib/query-constants"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { CREATE_FUNDRAISING_PIPELINE, LIST_FUNDRAISING_PIPELINES } from "@/lib/query-constants"
 import client from "@/lib/client"
-import { MalakFundraisePipelineStage, ServerAPIStatus } from "@/client/Api"
+import { MalakFundraisePipelineStage, ServerAPIStatus, ServerFetchPipelinesResponse, MalakFundraisingPipeline } from "@/client/Api"
 import type { ServerCreateNewPipelineRequest } from "@/client/Api"
 import { toast } from "sonner"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import React from "react"
 import { NumericFormat } from "react-number-format"
 import { AxiosError } from "axios"
-
-type FundingStage = MalakFundraisePipelineStage;
+import { format, addDays, addMonths, parseISO, isValid } from "date-fns"
 
 const FUNDING_STAGES: { value: MalakFundraisePipelineStage; label: string; description: string }[] = [
   {
@@ -62,78 +61,6 @@ const FUNDING_STAGES: { value: MalakFundraisePipelineStage; label: string; descr
   }
 ];
 
-// Example data - replace with actual data from your API
-const exampleRounds = [
-  {
-    id: 1,
-    name: "2024 Growth Round",
-    stage: MalakFundraisePipelineStage.FundraisePipelineStageSeriesA,
-    target: 5000000,
-    raised: 2500000,
-    status: "active",
-    description: "Growth and expansion funding round",
-    deadline: "2024-12-31",
-    closedReason: null
-  },
-  {
-    id: 2,
-    name: "Initial Funding",
-    stage: MalakFundraisePipelineStage.FundraisePipelineStageSeed,
-    target: 1000000,
-    raised: 1000000,
-    status: "successful",
-    description: "Initial seed funding for product development",
-    deadline: "2024-06-30",
-    closedReason: "Fully funded"
-  },
-  {
-    id: 3,
-    name: "Q3 Bridge",
-    stage: MalakFundraisePipelineStage.FundraisePipelineStageBridgeRound,
-    target: 2000000,
-    raised: 100000,
-    status: "cancelled",
-    description: "Bridge funding for market expansion",
-    deadline: "2024-09-30",
-    closedReason: "Market conditions unfavorable"
-  },
-  {
-    id: 4,
-    name: "Scale-up 2025",
-    stage: MalakFundraisePipelineStage.FundraisePipelineStageSeriesB,
-    target: 10000000,
-    raised: 0,
-    status: "upcoming",
-    description: "Scale operations and enter new markets",
-    deadline: "2025-03-31",
-    closedReason: null
-  },
-  {
-    id: 5,
-    name: "Strategic Round",
-    stage: MalakFundraisePipelineStage.FundraisePipelineStageSeriesC,
-    target: 3000000,
-    raised: 3000000,
-    status: "successful",
-    description: "Partnership and technology development",
-    deadline: "2024-11-30",
-    closedReason: "Target reached"
-  },
-  {
-    id: 6,
-    name: "Early Stage",
-    stage: MalakFundraisePipelineStage.FundraisePipelineStagePreSeed,
-    target: 500000,
-    raised: 200000,
-    status: "cancelled",
-    description: "Initial angel investment round",
-    deadline: "2024-08-15",
-    closedReason: "Pivoting business model"
-  }
-]
-
-type RoundStatus = "active" | "successful" | "cancelled" | "upcoming"
-
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -143,48 +70,22 @@ function formatCurrency(amount: number) {
   }).format(amount)
 }
 
-function getStatusConfig(status: RoundStatus) {
-  switch (status) {
-    case 'successful':
-      return {
-        color: 'bg-green-500',
-        textColor: 'text-green-700',
-        bgColor: 'bg-green-50',
-        icon: CheckCircle2,
-        label: 'Successful'
-      }
-    case 'active':
-      return {
-        color: 'bg-blue-500',
-        textColor: 'text-blue-700',
-        bgColor: 'bg-blue-50',
-        icon: Clock,
-        label: 'Active'
-      }
-    case 'upcoming':
-      return {
-        color: 'bg-yellow-500',
-        textColor: 'text-yellow-700',
-        bgColor: 'bg-yellow-50',
-        icon: Clock,
-        label: 'Upcoming'
-      }
-    case 'cancelled':
-      return {
-        color: 'bg-gray-500',
-        textColor: 'text-gray-700',
-        bgColor: 'bg-gray-50',
-        icon: XCircle,
-        label: 'Cancelled'
-      }
-    default:
-      return {
-        color: 'bg-gray-500',
-        textColor: 'text-gray-700',
-        bgColor: 'bg-gray-50',
-        icon: Clock,
-        label: status
-      }
+function getStatusConfig(isClosed: boolean) {
+  if (isClosed) {
+    return {
+      color: 'bg-green-500',
+      textColor: 'text-green-700',
+      bgColor: 'bg-green-50',
+      icon: RiCheckboxCircleLine,
+      label: 'Successful'
+    }
+  }
+  return {
+    color: 'bg-blue-500',
+    textColor: 'text-blue-700',
+    bgColor: 'bg-blue-50',
+    icon: RiTimeLine,
+    label: 'Active'
   }
 }
 
@@ -235,23 +136,26 @@ const NumericInput = React.forwardRef<HTMLInputElement, any>((props, ref) => {
 });
 NumericInput.displayName = "NumericInput";
 
-// Add this helper function before the FundraisingBoards component
 const getTomorrowDate = () => {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return tomorrow.toISOString().split('T')[0];
+  return format(addDays(new Date(), 1), 'yyyy-MM-dd');
 };
 
 const getThreeMonthsFromNow = () => {
-  const threeMonths = new Date();
-  threeMonths.setMonth(threeMonths.getMonth() + 3);
-  return threeMonths.toISOString().split('T')[0];
+  return format(addMonths(new Date(), 3), 'yyyy-MM-dd');
 };
 
 export default function FundraisingBoards() {
   const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
   
+  const { data: pipelinesData, isLoading, error, refetch } = useQuery<ServerFetchPipelinesResponse>({
+    queryKey: [LIST_FUNDRAISING_PIPELINES],
+    queryFn: async () => {
+      const response = await client.pipelines.pipelinesList();
+      return response.data;
+    }
+  });
+
   const form = useForm<FormData>({
     resolver: yupResolver(createPipelineSchema),
     defaultValues: {
@@ -286,7 +190,7 @@ export default function FundraisingBoards() {
         expected_close_date: getThreeMonthsFromNow(),
         start_date: getTomorrowDate()
       });
-      queryClient.invalidateQueries({ queryKey: ["fundraisingPipelines"] });
+      queryClient.invalidateQueries({ queryKey: [LIST_FUNDRAISING_PIPELINES] });
     },
     onError: (err: AxiosError<ServerAPIStatus>) => {
       toast.error(err.response?.data.message ?? "An error occurred while creating funding round");
@@ -308,7 +212,7 @@ export default function FundraisingBoards() {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
-              <Plus className="w-4 h-4 mr-2" />
+              <RiAddLine className="w-4 h-4 mr-2" />
               New Funding Round
             </Button>
           </DialogTrigger>
@@ -453,70 +357,112 @@ export default function FundraisingBoards() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-        {exampleRounds.map((round) => {
-          const statusConfig = getStatusConfig(round.status as RoundStatus)
-          const StatusIcon = statusConfig.icon
-          const stage = FUNDING_STAGES.find(s => s.value === round.stage)
-
-          return (
-            <Card key={round.id} className="flex flex-col">
-              <CardHeader>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="space-y-1.5">
-                    <CardTitle className="text-xl">{round.name}</CardTitle>
-                    <div className="text-sm font-medium text-muted-foreground">
-                      {stage?.label}
-                    </div>
-                  </div>
-                  <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium ${statusConfig.textColor} ${statusConfig.bgColor}`}>
-                    <StatusIcon className="w-3.5 h-3.5" />
-                    {statusConfig.label}
-                  </div>
+      {error ? (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card className="w-full max-w-lg border-destructive/30">
+            <CardHeader className="space-y-1.5 pb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-full bg-destructive/10">
+                  <RiErrorWarningLine className="w-6 h-6 text-destructive" />
                 </div>
-                <CardDescription className="line-clamp-2">{round.description}</CardDescription>
+                <CardTitle className="text-xl">Unable to Load Funding Rounds</CardTitle>
+              </div>
+              <CardDescription className="text-base">
+                {error instanceof Error ? error.message : 'An unexpected error occurred while fetching your funding rounds.'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                variant="outline" 
+                className="w-full group hover:border-destructive/30"
+                onClick={() => refetch()}
+              >
+                <RiRefreshLine className="w-4 h-4 mr-2 transition-transform group-hover:rotate-180" />
+                Try Again
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      ) : isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="flex flex-col animate-pulse">
+              <CardHeader>
+                <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-muted rounded w-1/2"></div>
               </CardHeader>
-              <CardContent className="flex-1">
+              <CardContent>
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Progress</span>
-                      <span className="font-medium">
-                        {formatCurrency(round.raised)} / {formatCurrency(round.target)}
-                      </span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className={`h-2 rounded-full ${statusConfig.color}`}
-                        style={{ width: `${(round.raised / round.target) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Deadline</span>
-                      <span>{new Date(round.deadline).toLocaleDateString()}</span>
-                    </div>
-                    {round.closedReason && (
-                      <div className="text-sm text-muted-foreground">
-                        <span className="font-medium">Closed: </span>
-                        {round.closedReason}
-                      </div>
-                    )}
-                  </div>
-
-                  <Link href={`/fundraising/${round.id}`} className="block mt-4">
-                    <Button variant="outline" className="w-full">
-                      View Details
-                    </Button>
-                  </Link>
+                  <div className="h-4 bg-muted rounded"></div>
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
                 </div>
               </CardContent>
             </Card>
-          )
-        })}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+          {pipelinesData?.pipelines?.map((pipeline: MalakFundraisingPipeline) => {
+            const statusConfig = getStatusConfig(pipeline.is_closed ?? false);
+            const stage = FUNDING_STAGES.find(s => s.value === pipeline.stage);
+
+            return (
+              <Card key={pipeline.id} className="flex flex-col">
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="space-y-1.5">
+                      <CardTitle className="text-xl">{pipeline.title}</CardTitle>
+                      <div className="text-sm font-medium text-muted-foreground">
+                        {stage?.label}
+                      </div>
+                    </div>
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium ${statusConfig.textColor} ${statusConfig.bgColor}`}>
+                      <statusConfig.icon className="w-3.5 h-3.5" />
+                      {statusConfig.label}
+                    </div>
+                  </div>
+                  <CardDescription className="line-clamp-2">{pipeline.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Progress</span>
+                        <span className="font-medium">
+                          {formatCurrency((pipeline.closed_amount ?? 0) / 100)} / {formatCurrency((pipeline.target_amount ?? 0) / 100)}
+                        </span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full ${statusConfig.color}`}
+                          style={{ width: `${((pipeline.closed_amount ?? 0) / (pipeline.target_amount ?? 1)) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Deadline</span>
+                        <span>
+                          {pipeline.expected_close_date && isValid(parseISO(pipeline.expected_close_date))
+                            ? format(parseISO(pipeline.expected_close_date), 'MMM d, yyyy')
+                            : 'No deadline set'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <Link href={`/fundraising/${pipeline.reference}`} className="block mt-4">
+                      <Button variant="outline" className="w-full">
+                        View Details
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   )
 }

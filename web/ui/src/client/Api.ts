@@ -261,6 +261,27 @@ export enum MalakFundraisePipelineStage {
   FundraisePipelineStageSeriesC = "series_c",
 }
 
+export interface MalakFundraisingPipeline {
+  /**
+   * this is being updated dynamically by postgres triggers
+   * We also use to calculate progress
+   */
+  closed_amount?: number;
+  created_at?: string;
+  description?: string;
+  expected_close_date?: string;
+  id?: string;
+  is_closed?: boolean;
+  reference?: string;
+  stage?: MalakFundraisePipelineStage;
+  /** Can be in the future */
+  start_date?: string;
+  target_amount?: number;
+  title?: string;
+  updated_at?: string;
+  workspace_id?: string;
+}
+
 export interface MalakIntegration {
   created_at?: string;
   description?: string;
@@ -762,6 +783,12 @@ export interface ServerFetchDetailedContactResponse {
 export interface ServerFetchEngagementsResponse {
   engagements: MalakDeckEngagementResponse;
   message: string;
+}
+
+export interface ServerFetchPipelinesResponse {
+  message: string;
+  meta: ServerMeta;
+  pipelines: MalakFundraisingPipeline[];
 }
 
 export interface ServerFetchPublicDeckResponse {
@@ -1688,6 +1715,32 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
   };
   pipelines = {
+    /**
+     * @description list all fundraising pipelines with pagination and filtering
+     *
+     * @tags fundraising
+     * @name PipelinesList
+     * @request GET:/pipelines
+     */
+    pipelinesList: (
+      query?: {
+        /** Page to query data from. Defaults to 1 */
+        page?: number;
+        /** Number to items to return. Defaults to 10 items */
+        per_page?: number;
+        /** Whether to return only active pipelines. Defaults to false */
+        active_only?: boolean;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerFetchPipelinesResponse, ServerAPIStatus>({
+        path: `/pipelines`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * @description Creates a new fundraising pipeline entry
      *
