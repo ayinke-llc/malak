@@ -11,7 +11,14 @@ tasks:
     cmds:
       - go run cmd/*.go migrate
 
-  migrate-down:
+  migrate:create:
+    desc: Create a new migration file
+    vars:
+      NAME: '{{.CLI_ARGS}}'
+    cmds:
+      - migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://malak:malak@localhost:9432/malak?sslmode=disable" create --ext sql {{.NAME}}
+
+  migrate:down:one:
     desc: Rollback the last database migration
     cmds:
       - migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://malak:malak@localhost:9432/malak?sslmode=disable" down 1
