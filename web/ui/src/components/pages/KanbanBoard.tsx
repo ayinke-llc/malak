@@ -472,6 +472,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
         open={isAddInvestorOpen}
         onOpenChange={setIsAddInvestorOpen}
         onAddInvestor={handleAddInvestor}
+        isLoading={addInvestorMutation.isPending}
       />
 
       <ShareSettingsDialog

@@ -54,12 +54,14 @@ interface AddInvestorDialogProps {
     isLeadInvestor: boolean;
     rating: number;
   }) => void;
+  isLoading?: boolean;
 }
 
 export function AddInvestorDialog({
   open,
   onOpenChange,
-  onAddInvestor
+  onAddInvestor,
+  isLoading = false
 }: AddInvestorDialogProps) {
   const [step, setStep] = useState<'search' | 'details'>('search');
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,7 +92,7 @@ export function AddInvestorDialog({
     }
   }, [searchQuery, debouncedSetQuery]);
 
-  const { data: results = [], isLoading, error } = useQuery({
+  const { data: results = [], isLoading: queryLoading, error } = useQuery({
     queryKey: [SEARCH_CONTACTS, debouncedQuery],
     queryFn: async () => {
       if (!debouncedQuery || debouncedQuery.length < 4) return [];
@@ -116,22 +118,12 @@ export function AddInvestorDialog({
       ...investorDetails
     });
 
-    // Reset state
-    setStep('search');
-    setSearchQuery("");
-    setDebouncedQuery("");
-    setSelectedInvestor(null);
-    setInvestorDetails({
-      checkSize: "",
-      initialContactDate: new Date().toISOString().split('T')[0],
-      isLeadInvestor: false,
-      rating: 0
-    });
-    setHoveredRating(null);
-    onOpenChange(false);
+    // Don't reset state or close dialog here - let the parent component handle it after successful API call
   };
 
   const handleClose = () => {
+    if (isLoading) return; // Prevent closing while loading
+    
     // Reset state
     setStep('search');
     setSearchQuery("");
@@ -182,7 +174,7 @@ export function AddInvestorDialog({
               </div>
 
               <div className="space-y-2">
-                {isLoading && (
+                {queryLoading && (
                   <div className="text-center py-4 text-sm text-muted-foreground">
                     Searching...
                   </div>
@@ -197,7 +189,7 @@ export function AddInvestorDialog({
                   </div>
                 )}
 
-                {!isLoading && !error && searchQuery.length >= 4 && results.length === 0 && (
+                {!queryLoading && !error && searchQuery.length >= 4 && results.length === 0 && (
                   <Card className="py-8">
                     <div className="flex flex-col items-center justify-center text-center px-4">
                       <RiContactsLine className="h-8 w-8 text-muted-foreground/50 mb-4" />
@@ -216,7 +208,7 @@ export function AddInvestorDialog({
                   </Card>
                 )}
 
-                {!isLoading && results.map((result: SearchResult) => (
+                {!queryLoading && results.map((result: SearchResult) => (
                   <Card
                     key={result.reference}
                     className="cursor-pointer transition-colors hover:bg-muted/50"
@@ -321,10 +313,20 @@ export function AddInvestorDialog({
                   type="button"
                   variant="outline"
                   onClick={() => setStep('search')}
+                  disabled={isLoading}
                 >
                   Back to Search
                 </Button>
-                <Button type="submit">Add to Pipeline</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-background mr-2" />
+                      Adding...
+                    </>
+                  ) : (
+                    "Add to Pipeline"
+                  )}
+                </Button>
               </div>
             </form>
           </>
