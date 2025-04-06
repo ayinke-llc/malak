@@ -114,6 +114,37 @@ func ParseLogMode(name string) (LogMode, error) {
 }
 
 const (
+	// MarketingEmailProviderLoops is a MarketingEmailProvider of type loops.
+	MarketingEmailProviderLoops MarketingEmailProvider = "loops"
+)
+
+var ErrInvalidMarketingEmailProvider = errors.New("not a valid MarketingEmailProvider")
+
+// String implements the Stringer interface.
+func (x MarketingEmailProvider) String() string {
+	return string(x)
+}
+
+// IsValid provides a quick way to determine if the typed value is
+// part of the allowed enumerated values
+func (x MarketingEmailProvider) IsValid() bool {
+	_, err := ParseMarketingEmailProvider(string(x))
+	return err == nil
+}
+
+var _MarketingEmailProviderValue = map[string]MarketingEmailProvider{
+	"loops": MarketingEmailProviderLoops,
+}
+
+// ParseMarketingEmailProvider attempts to convert a string to a MarketingEmailProvider.
+func ParseMarketingEmailProvider(name string) (MarketingEmailProvider, error) {
+	if x, ok := _MarketingEmailProviderValue[name]; ok {
+		return x, nil
+	}
+	return MarketingEmailProvider(""), fmt.Errorf("%s is %w", name, ErrInvalidMarketingEmailProvider)
+}
+
+const (
 	// RateLimiterTypeMemory is a RateLimiterType of type memory.
 	RateLimiterTypeMemory RateLimiterType = "memory"
 )
