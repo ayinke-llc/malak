@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Link from "next/link";
 import {
   Dialog,
   DialogContent,
@@ -12,11 +13,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { 
+import {
   RiSearchLine,
   RiStarFill,
   RiStarLine,
   RiArrowRightLine,
+  RiUserAddLine,
+  RiContactsLine,
 } from "@remixicon/react";
 
 export interface SearchResult {
@@ -67,19 +70,19 @@ const mockSearchResults: SearchResult[] = [
 const searchInvestors = async (query: string): Promise<SearchResult[]> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 500));
-  
+
   // Filter mock results based on query
-  return mockSearchResults.filter(result => 
+  return mockSearchResults.filter(result =>
     result.name.toLowerCase().includes(query.toLowerCase()) ||
     result.company.toLowerCase().includes(query.toLowerCase()) ||
     result.email.toLowerCase().includes(query.toLowerCase())
   );
 };
 
-export function AddInvestorDialog({ 
-  open, 
+export function AddInvestorDialog({
+  open,
   onOpenChange,
-  onAddInvestor 
+  onAddInvestor
 }: AddInvestorDialogProps) {
   const [step, setStep] = useState<'search' | 'details'>('search');
   const [searchQuery, setSearchQuery] = useState("");
@@ -126,7 +129,7 @@ export function AddInvestorDialog({
       ...selectedInvestor,
       ...investorDetails
     });
-    
+
     // Reset state
     setStep('search');
     setSearchQuery("");
@@ -193,10 +196,27 @@ export function AddInvestorDialog({
                     Searching...
                   </div>
                 )}
-                
+
                 {!loading && results.length === 0 && searchQuery.length >= 2 && (
-                  <div className="text-center py-4 text-sm text-muted-foreground">
-                    No results found
+                  <div className="text-center py-6 space-y-4">
+                    <div className="flex justify-center">
+                      <div className="bg-muted p-4 rounded-full">
+                        <RiUserAddLine className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="font-medium">Contact Not Found</h3>
+                      <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                        The contact you're looking for doesn't exist yet. You'll need to create it first in your contacts.
+                      </p>
+                    </div>
+                    <Link
+                      href="/contacts"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                    >
+                      <RiContactsLine className="h-4 w-4" />
+                      Create New Contact
+                    </Link>
                   </div>
                 )}
 
@@ -245,7 +265,7 @@ export function AddInvestorDialog({
                   placeholder="Enter check size"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Initial Contact Date</Label>
                 <Input
@@ -254,7 +274,7 @@ export function AddInvestorDialog({
                   onChange={(e) => setInvestorDetails({ ...investorDetails, initialContactDate: e.target.value })}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Lead Investor</Label>
                 <div className="flex items-center space-x-2">
@@ -267,7 +287,7 @@ export function AddInvestorDialog({
                   </span>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Rating</Label>
                 <div className="flex items-center gap-1">
@@ -296,9 +316,9 @@ export function AddInvestorDialog({
               </div>
 
               <div className="flex justify-end gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setStep('search')}
                 >
                   Back to Search
