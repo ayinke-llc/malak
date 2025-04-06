@@ -39,7 +39,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FETCH_FUNDRAISING_PIPELINE, CLOSE_FUNDRAISING_PIPELINE, ADD_INVESTOR_TO_PIPELINE } from "@/lib/query-constants";
+import { FETCH_FUNDRAISING_PIPELINE, CLOSE_FUNDRAISING_PIPELINE, ADD_INVESTOR_TO_PIPELINE, SEARCH_CONTACTS } from "@/lib/query-constants";
 import client from "@/lib/client";
 import type { ServerFetchBoardResponse } from "@/client/Api";
 import {
@@ -168,6 +168,11 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
   }
 
   const { pipeline = {}, columns = [], contacts = [], positions = [] } = boardData;
+
+  // Get all contact IDs from all contacts in the board
+  const existingContactIds = contacts.map(contact => contact.contact_id || "").filter(Boolean);
+  console.log('All board contacts:', contacts);
+  console.log('Extracted contact IDs:', existingContactIds);
 
   // Transform the data into the format expected by the board
   const board: Board = {
@@ -473,6 +478,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
         onOpenChange={setIsAddInvestorOpen}
         onAddInvestor={handleAddInvestor}
         isLoading={addInvestorMutation.isPending}
+        existingContacts={existingContactIds}
       />
 
       <ShareSettingsDialog
