@@ -5879,11 +5879,28 @@ const docTemplate = `{
         "server.addContactRequest": {
             "type": "object",
             "required": [
-                "contact_reference"
+                "check_size",
+                "contact_reference",
+                "initial_contact",
+                "rating"
             ],
             "properties": {
+                "can_lead_round": {
+                    "type": "boolean"
+                },
+                "check_size": {
+                    "type": "integer"
+                },
                 "contact_reference": {
                     "type": "string"
+                },
+                "initial_contact": {
+                    "type": "integer"
+                },
+                "rating": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 0
                 }
             }
         },

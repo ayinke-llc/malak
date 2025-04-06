@@ -1611,12 +1611,29 @@
 			},
 			"server.addContactRequest": {
 				"properties": {
+					"can_lead_round": {
+						"type": "boolean"
+					},
+					"check_size": {
+						"type": "integer"
+					},
 					"contact_reference": {
 						"type": "string"
+					},
+					"initial_contact": {
+						"type": "integer"
+					},
+					"rating": {
+						"maximum": 5,
+						"minimum": 0,
+						"type": "integer"
 					}
 				},
 				"required": [
-					"contact_reference"
+					"check_size",
+					"contact_reference",
+					"initial_contact",
+					"rating"
 				],
 				"type": "object"
 			},

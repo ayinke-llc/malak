@@ -662,7 +662,15 @@ export interface ServerAddChartToDashboardRequest {
 }
 
 export interface ServerAddContactRequest {
+  can_lead_round?: boolean;
+  check_size: number;
   contact_reference: string;
+  initial_contact: number;
+  /**
+   * @min 0
+   * @max 5
+   */
+  rating: number;
 }
 
 export interface ServerAddContactToListRequest {

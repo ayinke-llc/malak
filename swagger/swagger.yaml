@@ -1097,10 +1097,23 @@ components:
       type: object
     server.addContactRequest:
       properties:
+        can_lead_round:
+          type: boolean
+        check_size:
+          type: integer
         contact_reference:
           type: string
+        initial_contact:
+          type: integer
+        rating:
+          maximum: 5
+          minimum: 0
+          type: integer
       required:
+      - check_size
       - contact_reference
+      - initial_contact
+      - rating
       type: object
     server.addContactToListRequest:
       properties:

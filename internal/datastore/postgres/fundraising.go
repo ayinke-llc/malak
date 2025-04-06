@@ -173,7 +173,6 @@ func (d *fundingRepo) AddContactToBoard(ctx context.Context, opts *malak.AddCont
 	defer cancelFn()
 
 	return d.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
-
 		fundraiseContact := &malak.FundraiseContact{
 			Reference:                   opts.ReferenceGenerator.Generate(malak.EntityTypeFundraisingPipelineColumnContact),
 			ContactID:                   opts.Contact.ID,
@@ -199,6 +198,22 @@ func (d *fundingRepo) AddContactToBoard(ctx context.Context, opts *malak.AddCont
 
 		_, err = tx.NewInsert().
 			Model(position).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		dealDetails := &malak.FundraiseContactDealDetails{
+			Reference:                          opts.ReferenceGenerator.Generate(malak.EntityTypeFundraisingPipelineColumnContactDeal),
+			FundraisingPipelineColumnContactID: fundraiseContact.ID,
+			Rating:                             int64(opts.Rating),
+			CanLeadRound:                       opts.CanLeadRound,
+			InitialContact:                     opts.InitialContact,
+			CheckSize:                          opts.CheckSize,
+		}
+
+		_, err = tx.NewInsert().
+			Model(dealDetails).
 			Exec(ctx)
 		return err
 	})

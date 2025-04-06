@@ -136,6 +136,7 @@ type FundraiseContactDealDetails struct {
 	CheckSize                          int64     `json:"check_size,omitempty"`
 	CanLeadRound                       bool      `json:"can_lead_round,omitempty"`
 	Rating                             int64     `json:"rating,omitempty"`
+	InitialContact                     time.Time `json:"initial_contact,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`
@@ -191,6 +192,10 @@ type AddContactToBoardOptions struct {
 	Column             *FundraisingPipelineColumn
 	Contact            *Contact
 	ReferenceGenerator ReferenceGeneratorOperation
+	Rating             int
+	CanLeadRound       bool
+	InitialContact     time.Time
+	CheckSize          int64
 }
 
 type FundraisingPipelineRepository interface {

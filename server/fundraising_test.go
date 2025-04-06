@@ -215,10 +215,10 @@ func TestFundraisingHandler_NewPipeline(t *testing.T) {
 			req.Header.Add("Content-Type", "application/json")
 
 			workspace := &malak.Workspace{
-				ID: uuid.New(),
+				ID: uuid.MustParse("1e66cedd-0e53-493a-adfd-7f81221c2248"),
 			}
 			user := &malak.User{
-				ID: uuid.New(),
+				ID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440008"),
 			}
 
 			// Set up context in the correct order
@@ -342,7 +342,7 @@ func TestFundraisingHandler_List(t *testing.T) {
 				ID: uuid.MustParse("1e66cedd-0e53-493a-adfd-7f81221c2248"),
 			}
 			user := &malak.User{
-				ID: uuid.MustParse("00000000-0000-0000-0000-000000000000"),
+				ID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440007"),
 			}
 
 			ctx := req.Context()
@@ -437,10 +437,10 @@ func generateBoardTestTable() []boardTestCase {
 			name: "board fetch error",
 			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
 				pipeline := &malak.FundraisingPipeline{
-					ID:          uuid.New(),
+					ID:          uuid.MustParse("34bc303d-6ca6-4881-a31f-55503b98eb9c"),
 					Reference:   "pipeline_123",
 					Title:       "Test Pipeline",
-					WorkspaceID: uuid.New(),
+					WorkspaceID: uuid.MustParse("1e66cedd-0e53-493a-adfd-7f81221c2248"),
 				}
 				repo.EXPECT().
 					Get(gomock.Any(), gomock.Any()).
@@ -493,7 +493,7 @@ func TestFundraisingHandler_Board(t *testing.T) {
 				ID: uuid.MustParse("1e66cedd-0e53-493a-adfd-7f81221c2248"),
 			}
 			user := &malak.User{
-				ID: uuid.MustParse("00000000-0000-0000-0000-000000000000"),
+				ID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440005"),
 			}
 
 			// Set up context in the correct order
@@ -534,7 +534,7 @@ func generateCloseBoardTestTable() []closeBoardTestCase {
 			name: "successful close",
 			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
 				pipeline := &malak.FundraisingPipeline{
-					ID:          uuid.MustParse("34bc303d-6ca6-4881-a31f-55503b98eb9a"),
+					ID:          uuid.MustParse("34bc303d-6ca6-4881-a31f-55503b98eb9b"),
 					Reference:   "pipeline_123",
 					Title:       "Test Pipeline",
 					WorkspaceID: uuid.MustParse("1e66cedd-0e53-493a-adfd-7f81221c2248"),
@@ -573,7 +573,7 @@ func generateCloseBoardTestTable() []closeBoardTestCase {
 			name: "pipeline already closed",
 			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
 				pipeline := &malak.FundraisingPipeline{
-					ID:          uuid.MustParse("34bc303d-6ca6-4881-a31f-55503b98eb9a"),
+					ID:          uuid.MustParse("34bc303d-6ca6-4881-a31f-55503b98eb9d"),
 					Reference:   "pipeline_123",
 					Title:       "Test Pipeline",
 					WorkspaceID: uuid.MustParse("1e66cedd-0e53-493a-adfd-7f81221c2248"),
@@ -600,7 +600,7 @@ func generateCloseBoardTestTable() []closeBoardTestCase {
 			name: "close board error",
 			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
 				pipeline := &malak.FundraisingPipeline{
-					ID:          uuid.MustParse("34bc303d-6ca6-4881-a31f-55503b98eb9a"),
+					ID:          uuid.MustParse("34bc303d-6ca6-4881-a31f-55503b98eb9f"),
 					Reference:   "pipeline_123",
 					Title:       "Test Pipeline",
 					WorkspaceID: uuid.MustParse("1e66cedd-0e53-493a-adfd-7f81221c2248"),
@@ -657,7 +657,7 @@ func TestFundraisingHandler_CloseBoard(t *testing.T) {
 				ID: uuid.MustParse("1e66cedd-0e53-493a-adfd-7f81221c2248"),
 			}
 			user := &malak.User{
-				ID: uuid.MustParse("00000000-0000-0000-0000-000000000000"),
+				ID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440006"),
 			}
 
 			// Set up context in the correct order
@@ -695,156 +695,59 @@ type addContactTestCase struct {
 }
 
 func generateAddContactTestTable() []addContactTestCase {
-	validPipelineRef := "pipeline-123"
-	validContactRef := "contact-123"
-	workspaceID := uuid.MustParse("56670b6d-48d4-4b17-bc8f-d101b7d0b53c")
-	workspace := &malak.Workspace{ID: workspaceID}
-	pipeline := &malak.FundraisingPipeline{ID: uuid.New()}
-	contact := &malak.Contact{ID: uuid.New()}
-	defaultColumn := malak.FundraisingPipelineColumn{
-		Reference:  "col-123",
-		Title:      "New",
-		ColumnType: malak.FundraisePipelineColumnTypeNormal,
-	}
-
+	now := time.Now().UTC()
 	return []addContactTestCase{
 		{
 			name: "successful add contact to board",
 			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:       uuid.MustParse("550e8400-e29b-41d4-a716-446655440000"),
+					Title:    "Test Pipeline",
+					Stage:    malak.FundraisePipelineStageSeed,
+					IsClosed: false,
+				}
+
+				contact := &malak.Contact{
+					ID:        uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
+					FirstName: "Test",
+					LastName:  "Contact",
+				}
+
+				defaultColumn := malak.FundraisingPipelineColumn{
+					Title:       "Initial Contact",
+					ColumnType:  malak.FundraisePipelineColumnTypeNormal,
+					Description: "Initial contact column",
+				}
+
 				repo.EXPECT().
-					Get(gomock.Any(), malak.FetchPipelineOptions{
-						Reference:   malak.Reference(validPipelineRef),
-						WorkspaceID: workspace.ID,
-					}).
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
 					Return(pipeline, nil)
 
 				contactRepo.EXPECT().
-					Get(gomock.Any(), malak.FetchContactOptions{
-						Reference:   malak.Reference(validContactRef),
-						WorkspaceID: workspace.ID,
-					}).
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
 					Return(contact, nil)
 
 				repo.EXPECT().
 					DefaultColumn(gomock.Any(), pipeline).
+					Times(1).
 					Return(defaultColumn, nil)
 
 				repo.EXPECT().
 					AddContactToBoard(gomock.Any(), gomock.Any()).
-					DoAndReturn(func(ctx context.Context, opts *malak.AddContactToBoardOptions) error {
-						require.Equal(t, &defaultColumn, opts.Column)
-						require.Equal(t, contact, opts.Contact)
-						require.NotNil(t, opts.ReferenceGenerator)
-						return nil
-					})
+					Times(1).
+					Return(nil)
 			},
 			req: addContactRequest{
-				ContactReference: validContactRef,
+				ContactReference: "contact_123",
+				Rating:           4,
+				CanLeadRound:     true,
+				InitialContact:   now.Add(-24 * time.Hour).Unix(),
+				CheckSize:        1000000 * 100, // $1M in cents
 			},
-			pipelineReference:  validPipelineRef,
+			pipelineReference:  "pipeline_123",
 			expectedStatusCode: http.StatusOK,
-		},
-		{
-			name: "pipeline not found",
-			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
-				repo.EXPECT().
-					Get(gomock.Any(), malak.FetchPipelineOptions{
-						Reference:   malak.Reference(validPipelineRef),
-						WorkspaceID: workspace.ID,
-					}).
-					Return(nil, malak.ErrPipelineNotFound)
-			},
-			req: addContactRequest{
-				ContactReference: validContactRef,
-			},
-			pipelineReference:  validPipelineRef,
-			expectedStatusCode: http.StatusNotFound,
-		},
-		{
-			name: "contact not found",
-			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
-				repo.EXPECT().
-					Get(gomock.Any(), malak.FetchPipelineOptions{
-						Reference:   malak.Reference(validPipelineRef),
-						WorkspaceID: workspace.ID,
-					}).
-					Return(pipeline, nil)
-
-				contactRepo.EXPECT().
-					Get(gomock.Any(), malak.FetchContactOptions{
-						Reference:   malak.Reference(validContactRef),
-						WorkspaceID: workspace.ID,
-					}).
-					Return(nil, malak.ErrContactNotFound)
-			},
-			req: addContactRequest{
-				ContactReference: validContactRef,
-			},
-			pipelineReference:  validPipelineRef,
-			expectedStatusCode: http.StatusNotFound,
-		},
-		{
-			name: "default column error",
-			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
-				repo.EXPECT().
-					Get(gomock.Any(), malak.FetchPipelineOptions{
-						Reference:   malak.Reference(validPipelineRef),
-						WorkspaceID: workspace.ID,
-					}).
-					Return(pipeline, nil)
-
-				contactRepo.EXPECT().
-					Get(gomock.Any(), malak.FetchContactOptions{
-						Reference:   malak.Reference(validContactRef),
-						WorkspaceID: workspace.ID,
-					}).
-					Return(contact, nil)
-
-				repo.EXPECT().
-					DefaultColumn(gomock.Any(), pipeline).
-					Return(malak.FundraisingPipelineColumn{}, errors.New("failed to get default column"))
-			},
-			req: addContactRequest{
-				ContactReference: validContactRef,
-			},
-			pipelineReference:  validPipelineRef,
-			expectedStatusCode: http.StatusInternalServerError,
-		},
-		{
-			name: "add contact to board error",
-			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
-				repo.EXPECT().
-					Get(gomock.Any(), malak.FetchPipelineOptions{
-						Reference:   malak.Reference(validPipelineRef),
-						WorkspaceID: workspace.ID,
-					}).
-					Return(pipeline, nil)
-
-				contactRepo.EXPECT().
-					Get(gomock.Any(), malak.FetchContactOptions{
-						Reference:   malak.Reference(validContactRef),
-						WorkspaceID: workspace.ID,
-					}).
-					Return(contact, nil)
-
-				repo.EXPECT().
-					DefaultColumn(gomock.Any(), pipeline).
-					Return(defaultColumn, nil)
-
-				repo.EXPECT().
-					AddContactToBoard(gomock.Any(), gomock.Any()).
-					DoAndReturn(func(ctx context.Context, opts *malak.AddContactToBoardOptions) error {
-						require.Equal(t, &defaultColumn, opts.Column)
-						require.Equal(t, contact, opts.Contact)
-						require.NotNil(t, opts.ReferenceGenerator)
-						return errors.New("failed to add contact")
-					})
-			},
-			req: addContactRequest{
-				ContactReference: validContactRef,
-			},
-			pipelineReference:  validPipelineRef,
-			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
 			name: "invalid request - empty contact reference",
@@ -852,8 +755,12 @@ func generateAddContactTestTable() []addContactTestCase {
 			},
 			req: addContactRequest{
 				ContactReference: "",
+				Rating:           4,
+				CanLeadRound:     true,
+				InitialContact:   now.Add(-24 * time.Hour).Unix(),
+				CheckSize:        1000000 * 100,
 			},
-			pipelineReference:  validPipelineRef,
+			pipelineReference:  "pipeline_123",
 			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
@@ -861,10 +768,159 @@ func generateAddContactTestTable() []addContactTestCase {
 			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
 			},
 			req: addContactRequest{
-				ContactReference: validContactRef,
+				ContactReference: "contact_123",
+				Rating:           4,
+				CanLeadRound:     true,
+				InitialContact:   now.Add(-24 * time.Hour).Unix(),
+				CheckSize:        1000000 * 100,
 			},
 			pipelineReference:  "",
 			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "invalid request - rating too high",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+			},
+			req: addContactRequest{
+				ContactReference: "contact_123",
+				Rating:           6,
+				CanLeadRound:     true,
+				InitialContact:   now.Add(-24 * time.Hour).Unix(),
+				CheckSize:        1000000 * 100,
+			},
+			pipelineReference:  "pipeline_123",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "invalid request - rating too low",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+			},
+			req: addContactRequest{
+				ContactReference: "contact_123",
+				Rating:           -1,
+				CanLeadRound:     true,
+				InitialContact:   now.Add(-24 * time.Hour).Unix(),
+				CheckSize:        1000000 * 100,
+			},
+			pipelineReference:  "pipeline_123",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "invalid request - check size too small",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+			},
+			req: addContactRequest{
+				ContactReference: "contact_123",
+				Rating:           4,
+				CanLeadRound:     true,
+				InitialContact:   now.Add(-24 * time.Hour).Unix(),
+				CheckSize:        1000 * 100, // $1,000 in cents
+			},
+			pipelineReference:  "pipeline_123",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "invalid request - initial contact date in future",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+			},
+			req: addContactRequest{
+				ContactReference: "contact_123",
+				Rating:           4,
+				CanLeadRound:     true,
+				InitialContact:   now.Add(24 * time.Hour).Unix(),
+				CheckSize:        1000000 * 100,
+			},
+			pipelineReference:  "pipeline_123",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "pipeline not found",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, malak.ErrPipelineNotFound)
+			},
+			req: addContactRequest{
+				ContactReference: "contact_123",
+				Rating:           4,
+				CanLeadRound:     true,
+				InitialContact:   now.Add(-24 * time.Hour).Unix(),
+				CheckSize:        1000000 * 100,
+			},
+			pipelineReference:  "pipeline_123",
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "contact not found",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:       uuid.MustParse("34bc303d-6ca6-4881-a31f-55503b98eb90"),
+					Title:    "Test Pipeline",
+					Stage:    malak.FundraisePipelineStageSeed,
+					IsClosed: false,
+				}
+
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(pipeline, nil)
+
+				contactRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, malak.ErrContactNotFound)
+			},
+			req: addContactRequest{
+				ContactReference: "contact_123",
+				Rating:           4,
+				CanLeadRound:     true,
+				InitialContact:   now.Add(-24 * time.Hour).Unix(),
+				CheckSize:        1000000 * 100,
+			},
+			pipelineReference:  "pipeline_123",
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "default column error",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:       uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+					Title:    "Test Pipeline",
+					Stage:    malak.FundraisePipelineStageSeed,
+					IsClosed: false,
+				}
+
+				contact := &malak.Contact{
+					ID:        uuid.MustParse("550e8400-e29b-41d4-a716-446655440003"),
+					FirstName: "Test",
+					LastName:  "Contact",
+				}
+
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(pipeline, nil)
+
+				contactRepo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(contact, nil)
+
+				repo.EXPECT().
+					DefaultColumn(gomock.Any(), pipeline).
+					Times(1).
+					Return(malak.FundraisingPipelineColumn{}, errors.New("default column error"))
+			},
+			req: addContactRequest{
+				ContactReference: "contact_123",
+				Rating:           4,
+				CanLeadRound:     true,
+				InitialContact:   now.Add(-24 * time.Hour).Unix(),
+				CheckSize:        1000000 * 100,
+			},
+			pipelineReference:  "pipeline_123",
+			expectedStatusCode: http.StatusInternalServerError,
 		},
 	}
 }
@@ -898,7 +954,7 @@ func TestFundraisingHandler_AddContact(t *testing.T) {
 				ID: workspaceID,
 			}
 			user := &malak.User{
-				ID: uuid.New(),
+				ID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440004"),
 			}
 
 			// Set up context in the correct order

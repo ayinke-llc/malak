@@ -315,12 +315,30 @@ func (d *fundraisingHandler) closeBoard(
 type addContactRequest struct {
 	GenericRequest
 	ContactReference string `json:"contact_reference" validate:"required"`
+	Rating           int    `json:"rating" validate:"required,min=0,max=5"`
+	CanLeadRound     bool   `json:"can_lead_round"`
+	InitialContact   int64  `json:"initial_contact" validate:"required"`
+	CheckSize        int64  `json:"check_size" validate:"required"`
 }
 
 func (c *addContactRequest) Validate() error {
 	if hermes.IsStringEmpty(c.ContactReference) {
 		return errors.New("please provide the contact reference")
 	}
+
+	if c.Rating < 0 || c.Rating > 5 {
+		return errors.New("rating must be between 0 and 5")
+	}
+
+	if c.CheckSize < (5000 * 100) {
+		return errors.New("check size must be at least 5000 USD ($5,000)")
+	}
+
+	initialContactDate := time.Unix(c.InitialContact, 0).UTC()
+	if initialContactDate.After(time.Now().UTC()) {
+		return errors.New("initial contact date cannot be in the future")
+	}
+
 	return nil
 }
 
@@ -400,6 +418,10 @@ func (d *fundraisingHandler) addContact(
 		Column:             &defaultColumn,
 		Contact:            contact,
 		ReferenceGenerator: d.referenceGenerator,
+		Rating:             req.Rating,
+		CanLeadRound:       req.CanLeadRound,
+		InitialContact:     time.Unix(req.InitialContact, 0).UTC(),
+		CheckSize:          req.CheckSize,
 	})
 	if err != nil {
 		logger.Error("could not add contact to board", zap.Error(err))
