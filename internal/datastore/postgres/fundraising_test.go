@@ -622,7 +622,7 @@ func TestFundraising_DefaultColumn(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	t.Run("get default column from pipeline with multiple columns", func(t *testing.T) {
+	t.Run("get default column when Backlog column exists", func(t *testing.T) {
 		pipeline := &malak.FundraisingPipeline{
 			Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
 			WorkspaceID:       workspace.ID,
@@ -642,9 +642,9 @@ func TestFundraising_DefaultColumn(t *testing.T) {
 				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
 			},
 			{
-				Title:       "Second Column",
+				Title:       "Backlog",
 				ColumnType:  malak.FundraisePipelineColumnTypeNormal,
-				Description: "Second normal column",
+				Description: "Default backlog column",
 				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
 			},
 			{
@@ -660,8 +660,43 @@ func TestFundraising_DefaultColumn(t *testing.T) {
 
 		defaultColumn, err := fundingRepo.DefaultColumn(t.Context(), pipeline)
 		require.NoError(t, err)
-		require.Equal(t, columns[0].Title, defaultColumn.Title)
+		require.Equal(t, "Backlog", defaultColumn.Title)
 		require.Equal(t, malak.FundraisePipelineColumnTypeNormal, defaultColumn.ColumnType)
+	})
+
+	t.Run("get default column when no Backlog column exists", func(t *testing.T) {
+		pipeline := &malak.FundraisingPipeline{
+			Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
+			WorkspaceID:       workspace.ID,
+			Title:             "Pipeline Without Backlog",
+			Stage:             malak.FundraisePipelineStageSeed,
+			Description:       "Pipeline without backlog column",
+			TargetAmount:      1000000,
+			StartDate:         time.Now().UTC(),
+			ExpectedCloseDate: time.Now().UTC().Add(90 * 24 * time.Hour),
+		}
+
+		columns := []malak.FundraisingPipelineColumn{
+			{
+				Title:       "First Column",
+				ColumnType:  malak.FundraisePipelineColumnTypeNormal,
+				Description: "First normal column",
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+			},
+			{
+				Title:       "Second Column",
+				ColumnType:  malak.FundraisePipelineColumnTypeNormal,
+				Description: "Second normal column",
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+			},
+		}
+
+		err = fundingRepo.Create(t.Context(), pipeline, columns...)
+		require.NoError(t, err)
+
+		_, err := fundingRepo.DefaultColumn(t.Context(), pipeline)
+		require.Error(t, err)
+		require.ErrorIs(t, err, sql.ErrNoRows)
 	})
 
 	t.Run("get default column from pipeline with no columns", func(t *testing.T) {
@@ -680,41 +715,6 @@ func TestFundraising_DefaultColumn(t *testing.T) {
 		require.NoError(t, err)
 
 		_, err := fundingRepo.DefaultColumn(t.Context(), emptyPipeline)
-		require.Error(t, err)
-		require.ErrorIs(t, err, sql.ErrNoRows)
-	})
-
-	t.Run("get default column from pipeline with only closed columns", func(t *testing.T) {
-		pipeline := &malak.FundraisingPipeline{
-			Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
-			WorkspaceID:       workspace.ID,
-			Title:             "Closed Pipeline",
-			Stage:             malak.FundraisePipelineStageSeed,
-			Description:       "Pipeline with only closed columns",
-			TargetAmount:      1000000,
-			StartDate:         time.Now().UTC(),
-			ExpectedCloseDate: time.Now().UTC().Add(90 * 24 * time.Hour),
-		}
-
-		columns := []malak.FundraisingPipelineColumn{
-			{
-				Title:       "Closed Column 1",
-				ColumnType:  malak.FundraisePipelineColumnTypeClosed,
-				Description: "First closed column",
-				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
-			},
-			{
-				Title:       "Closed Column 2",
-				ColumnType:  malak.FundraisePipelineColumnTypeClosed,
-				Description: "Second closed column",
-				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
-			},
-		}
-
-		err = fundingRepo.Create(t.Context(), pipeline, columns...)
-		require.NoError(t, err)
-
-		_, err := fundingRepo.DefaultColumn(t.Context(), pipeline)
 		require.Error(t, err)
 		require.ErrorIs(t, err, sql.ErrNoRows)
 	})

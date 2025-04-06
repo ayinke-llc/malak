@@ -1,2 +1,0 @@
-ALTER TABLE fundraising_pipeline_column_contact_deals
-DROP COLUMN initial_contact;

@@ -814,7 +814,7 @@ func generateAddContactTestTable() []addContactTestCase {
 				Rating:           4,
 				CanLeadRound:     true,
 				InitialContact:   now.Add(-24 * time.Hour).Unix(),
-				CheckSize:        1000 * 100, // $1,000 in cents
+				CheckSize:        500 * 100, // $500 in cents
 			},
 			pipelineReference:  "pipeline_123",
 			expectedStatusCode: http.StatusBadRequest,

@@ -225,20 +225,20 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                 return {
                   id: contact.reference || "",
                   title: fullName(contact as unknown as MalakContact),
-                  amount: deal?.check_size ? `$${(deal.check_size / 100).toLocaleString()}` : "TBD",
-                  stage: "Initial Contact",
-                  dueDate: new Date().toISOString().split('T')[0],
+                  amount: deal?.check_size ? `$${(deal.check_size / 100).toLocaleString()}` : "",
+                  stage: column?.title || "",
+                  dueDate: pipeline.expected_close_date || "",
                   contact: {
                     name: fullName(contact as unknown as MalakContact),
-                    company: (contact as unknown as MalakContact)?.company || undefined
+                    company: (contact as unknown as MalakContact)?.company
                   },
                   roundDetails: {
-                    raising: "TBD",
-                    type: "TBD",
-                    ownership: "TBD"
+                    raising: pipeline.target_amount ? `$${(pipeline.target_amount / 100).toLocaleString()}` : "",
+                    type: pipeline.stage || "",
+                    ownership: "" // This data isn't available in the current API
                   },
-                  checkSize: deal?.check_size ? `$${(deal.check_size / 100).toLocaleString()}` : "TBD",
-                  initialContactDate: deal?.initial_contact || contact.created_at || new Date().toISOString(),
+                  checkSize: deal?.check_size ? `$${(deal.check_size / 100).toLocaleString()}` : "",
+                  initialContactDate: deal?.initial_contact || contact.created_at || "",
                   isLeadInvestor: deal?.can_lead_round || false,
                   rating: deal?.rating || 0,
                   originalContact: contact as unknown as MalakContact,
@@ -468,33 +468,44 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                                             {card?.title?.split(' ').map(n => n[0]).join('').toUpperCase()}
                                           </AvatarFallback>
                                         </Avatar>
-                                        <h4 className="font-medium text-sm truncate">
-                                          {card?.title}
-                                        </h4>
+                                        <div className="space-y-1 min-w-0">
+                                          <div className="flex items-center gap-2">
+                                            <h4 className="font-medium text-sm truncate">
+                                              {card?.title}
+                                            </h4>
+                                            {card?.amount && (
+                                              <Badge variant="secondary" className="text-[10px] h-5 px-2 shrink-0">
+                                                {card.amount}
+                                              </Badge>
+                                            )}
+                                          </div>
+                                          {card?.originalContact?.email && (
+                                            <p className="text-xs text-muted-foreground truncate">
+                                              {card.originalContact.email}
+                                            </p>
+                                          )}
+                                          {card?.originalContact?.company && (
+                                            <p className="text-xs text-muted-foreground truncate">
+                                              {card.originalContact.company}
+                                            </p>
+                                          )}
+                                        </div>
                                       </div>
-                                      {card?.contact?.company ? (
-                                        <p className="text-xs text-muted-foreground truncate ml-8">
-                                          {card?.contact?.company}
-                                        </p>
-                                      ) : (
-                                        <p className="text-xs text-muted-foreground truncate italic ml-8">
-                                          No company
-                                        </p>
-                                      )}
                                     </div>
-                                    <Badge variant="secondary" className="text-[10px] h-5 px-2 shrink-0">
-                                      {card?.amount || "TBD"}
-                                    </Badge>
                                   </div>
                                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                    <div className="flex items-center gap-1">
-                                      <RiCalendarLine className="h-3.5 w-3.5" />
-                                      {new Date(card?.initialContactDate || '').toLocaleDateString()}
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                      <RiTimeLine className="h-3.5 w-3.5" />
-                                      {card?.dueDate || "No date"}
-                                    </div>
+                                    {card?.initialContactDate && (
+                                      <div className="flex items-center gap-1">
+                                        <RiCalendarLine className="h-3.5 w-3.5" />
+                                        {new Date(card.initialContactDate).toLocaleDateString()}
+                                      </div>
+                                    )}
+                                    {card?.dueDate && (
+                                      <div className="flex items-center gap-1">
+                                        <RiTimeLine className="h-3.5 w-3.5" />
+                                        {new Date(card.dueDate).toLocaleDateString()}
+                                      </div>
+                                    )}
                                   </div>
                                 </CardContent>
                               </Card>
