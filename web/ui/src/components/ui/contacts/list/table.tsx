@@ -106,27 +106,27 @@ export default function ContactsTable() {
           const initials = `${(contact.first_name?.[0] || '')}${(contact.last_name?.[0] || '')}`.toUpperCase();
 
           return (
-            <Card key={contact.reference} className="group relative">
+            <Card key={contact.reference} className="group relative overflow-hidden">
               <Link href={`/contacts/${contact.reference}`} className="block">
                 <div className="p-6">
                   <div className="flex items-start gap-4">
-                    <Avatar className="h-10 w-10 border">
+                    <Avatar className="h-10 w-10 border shrink-0">
                       <AvatarFallback className={initials ? "bg-primary/10 text-primary" : "bg-muted"}>
                         {initials || "?"}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 overflow-hidden">
                       <div className="flex items-start justify-between gap-2">
-                        <div>
+                        <div className="min-w-0 flex-1">
                           <h3 className="font-medium text-base truncate group-hover:text-primary transition-colors">
                             {fullName || contact.email}
                           </h3>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
-                            <Mail className="h-3.5 w-3.5" />
+                            <Mail className="h-3.5 w-3.5 shrink-0" />
                             <span className="truncate">{contact.email}</span>
                           </div>
                         </div>
-                        <div className="relative z-10">
+                        <div className="relative z-10 shrink-0">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
                               <Button
@@ -171,15 +171,15 @@ export default function ContactsTable() {
                       {(contact.company || contact.city) && (
                         <div className="flex flex-wrap gap-3 mt-3">
                           {contact.company && (
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <Building2 className="h-3.5 w-3.5" />
-                              <span>{contact.company}</span>
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-0">
+                              <Building2 className="h-3.5 w-3.5 shrink-0" />
+                              <span className="truncate">{contact.company}</span>
                             </div>
                           )}
                           {contact.city && (
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <MapPin className="h-3.5 w-3.5" />
-                              <span>{contact.city}</span>
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-0">
+                              <MapPin className="h-3.5 w-3.5 shrink-0" />
+                              <span className="truncate">{contact.city}</span>
                             </div>
                           )}
                         </div>
