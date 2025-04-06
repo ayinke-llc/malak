@@ -31,44 +31,12 @@ import {
   RiMailLine,
   RiPhoneLine,
   RiCalendarLine,
-  RiFileTextLine,
-  RiMoneyDollarCircleLine,
-  RiTeamLine,
-  RiCloseLine,
-  RiTimeLine,
-  RiAddLine,
-  RiArrowRightLine,
-  RiEditLine,
-  RiDeleteBinLine,
-  RiDownloadLine,
-  RiUploadLine,
-  RiFile3Line,
-  RiFileExcelLine,
-  RiImageLine,
-  RiMoreLine,
-  RiUploadCloud2Line,
+  RiFileTextLine, RiCloseLine, RiAddLine, RiUploadLine, RiUploadCloud2Line,
   RiStarFill,
   RiStarLine,
-  RiArchiveFill,
+  RiArchiveFill
 } from "@remixicon/react";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
 import {
   Tooltip,
   TooltipContent,
@@ -128,19 +96,19 @@ const ACTIVITIES_PER_PAGE = 25;
 const fetchActivities = async (page: number, investorId: string): Promise<Activity[]> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 1000));
-  
+
   const startIndex = page * ACTIVITIES_PER_PAGE;
   // If we've reached the limit, return empty array
   if (startIndex >= TOTAL_ACTIVITIES_LIMIT) {
     return [];
   }
-  
+
   // Calculate how many items to generate (handle last page)
   const itemsToGenerate = Math.min(
     ACTIVITIES_PER_PAGE,
     TOTAL_ACTIVITIES_LIMIT - startIndex
   );
-  
+
   // Generate activities
   return Array.from({ length: itemsToGenerate }, (_, i) => ({
     id: `${page}-${i}-${Math.random()}`,
@@ -170,12 +138,12 @@ function ActivitySkeleton() {
   );
 }
 
-function AddActivityDialog({ 
-  open, 
+function AddActivityDialog({
+  open,
   onOpenChange,
-  onSubmit 
-}: { 
-  open: boolean; 
+  onSubmit
+}: {
+  open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (activity: Partial<Activity>) => void;
 }) {
@@ -221,7 +189,7 @@ function AddActivityDialog({
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="space-y-2">
             <label className="text-sm font-medium">Title</label>
             <Input
@@ -231,7 +199,7 @@ function AddActivityDialog({
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <label className="text-sm font-medium">{activity.type === 'note' ? 'Note Content' : 'Description'}</label>
             {activity.type === 'note' ? (
@@ -251,7 +219,7 @@ function AddActivityDialog({
               />
             )}
           </div>
-          
+
           {activity.type !== 'note' && (
             <div className="space-y-2">
               <label className="text-sm font-medium">Content (optional)</label>
@@ -275,13 +243,13 @@ function AddActivityDialog({
   );
 }
 
-function NoteDialog({ 
-  open, 
+function NoteDialog({
+  open,
   onOpenChange,
   onSubmit,
   initialNote
-}: { 
-  open: boolean; 
+}: {
+  open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (note: Partial<Note>) => void;
   initialNote?: Note;
@@ -319,7 +287,7 @@ function NoteDialog({
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <label className="text-sm font-medium">Content</label>
             <Textarea
@@ -347,12 +315,12 @@ function formatFileSize(bytes: number): string {
   const units = ['B', 'KB', 'MB', 'GB'];
   let size = bytes;
   let unitIndex = 0;
-  
+
   while (size >= 1024 && unitIndex < units.length - 1) {
     size /= 1024;
     unitIndex++;
   }
-  
+
   return `${size.toFixed(1)} ${units[unitIndex]}`;
 }
 
@@ -361,9 +329,9 @@ function truncateText(text: string, maxLength: number) {
   return text.slice(0, maxLength - 3) + '...';
 }
 
-function UploadDocumentModal({ 
-  onUpload 
-}: { 
+function UploadDocumentModal({
+  onUpload
+}: {
   onUpload: (document: Document) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -402,10 +370,10 @@ function UploadDocumentModal({
     const newDocument: Document = {
       id: Math.random().toString(36).substring(7),
       name: title || selectedFile.name,
-      type: selectedFile.type.includes('pdf') ? 'pdf' 
+      type: selectedFile.type.includes('pdf') ? 'pdf'
         : selectedFile.type.includes('excel') || selectedFile.type.includes('spreadsheet') ? 'excel'
-        : selectedFile.type.includes('image') ? 'image'
-        : 'other',
+          : selectedFile.type.includes('image') ? 'image'
+            : 'other',
       size: selectedFile.size,
       uploadedAt: new Date(),
       uploadedBy: 'Current User'
@@ -538,13 +506,13 @@ function DocumentsTab({ isReadOnly }: { isReadOnly: boolean }) {
   );
 }
 
-function EditInvestorDialog({ 
-  open, 
+function EditInvestorDialog({
+  open,
   onOpenChange,
   investor,
   onSave
-}: { 
-  open: boolean; 
+}: {
+  open: boolean;
   onOpenChange: (open: boolean) => void;
   investor: Card | null;
   onSave: (updatedInvestor: Card) => void;
@@ -612,7 +580,7 @@ function EditInvestorDialog({
               className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label>Initial Contact Date</Label>
             <Input
@@ -621,7 +589,7 @@ function EditInvestorDialog({
               onChange={(e) => setEditedInvestor({ ...editedInvestor, initialContactDate: e.target.value })}
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label>Lead Investor</Label>
             <div className="flex items-center space-x-2">
@@ -634,7 +602,7 @@ function EditInvestorDialog({
               </span>
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label>Rating</Label>
             <div className="flex items-center gap-1">
@@ -684,7 +652,7 @@ export function InvestorDetailsDrawer({
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isAddingActivity, setIsAddingActivity] = useState(false);
   const [isEditingInvestor, setIsEditingInvestor] = useState(false);
-  
+
   // Infinite scroll states
   const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -693,7 +661,7 @@ export function InvestorDetailsDrawer({
 
   const loadMoreActivities = async () => {
     if (!investor || isLoading || !hasMore) return;
-    
+
     setIsLoading(true);
     try {
       const newActivities = await fetchActivities(page, investor.id);
@@ -745,7 +713,7 @@ export function InvestorDetailsDrawer({
       title: newActivity.title || '',
       description: newActivity.description || ''
     };
-    
+
     setActivities(prev => [activity, ...prev]);
   };
 
@@ -771,8 +739,8 @@ export function InvestorDetailsDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent 
-        className="w-full max-w-[90%] lg:max-w-[75%] 2xl:max-w-[1400px] overflow-y-auto" 
+      <SheetContent
+        className="w-full max-w-[90%] lg:max-w-[75%] 2xl:max-w-[1400px] overflow-y-auto"
       >
         <div className="h-full flex flex-col">
           <SheetHeader className="flex-none">
@@ -895,16 +863,16 @@ export function InvestorDetailsDrawer({
                   <div className="bg-card rounded-lg p-4 border">
                     <h3 className="font-medium mb-3">Suggested Actions</h3>
                     <div className="space-y-2">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full justify-start"
                         onClick={() => setActiveTab("activity")}
                       >
                         <RiCalendarLine className="w-4 h-4 mr-2" />
                         Add Activity or Note
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full justify-start"
                         onClick={() => setActiveTab("documents")}
                       >
@@ -923,7 +891,7 @@ export function InvestorDetailsDrawer({
                       Showing {activities.length} of {activities.length >= TOTAL_ACTIVITIES_LIMIT ? 'maximum ' : ''}{TOTAL_ACTIVITIES_LIMIT} activities
                     </div>
                     {!isArchived && (
-                      <Button 
+                      <Button
                         onClick={() => setIsAddingActivity(true)}
                         size="sm"
                         className="gap-2"
@@ -933,7 +901,7 @@ export function InvestorDetailsDrawer({
                       </Button>
                     )}
                   </div>
-                  
+
                   <div className="relative space-y-6 pl-8 before:absolute before:left-3 before:top-2 before:bottom-0 before:w-[2px] before:bg-border">
                     {activities.map((activity) => (
                       <div key={activity.id} className="relative">
@@ -974,7 +942,7 @@ export function InvestorDetailsDrawer({
                     {/* End of list message */}
                     {!hasMore && activities.length > 0 && (
                       <div className="text-center text-sm text-muted-foreground py-4">
-                        {activities.length >= TOTAL_ACTIVITIES_LIMIT 
+                        {activities.length >= TOTAL_ACTIVITIES_LIMIT
                           ? `Maximum limit of ${TOTAL_ACTIVITIES_LIMIT} activities reached`
                           : "No more activities to load"}
                       </div>
