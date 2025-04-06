@@ -4899,6 +4899,9 @@ const docTemplate = `{
         "malak.FundraiseContact": {
             "type": "object",
             "properties": {
+                "contact": {
+                    "$ref": "#/definitions/malak.Contact"
+                },
                 "contact_id": {
                     "type": "string"
                 },

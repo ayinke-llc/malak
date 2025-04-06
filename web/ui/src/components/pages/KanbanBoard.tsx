@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import {
   RiTimeLine, RiAddLine, RiSettings4Line, RiArchiveLine,
   RiInboxUnarchiveLine, RiInformationLine, RiCalendarLine, RiErrorWarningLine,
-  RiCloseLine
+  RiCloseLine, RiMailLine, RiPhoneLine, RiMoneyDollarCircleLine
 } from "@remixicon/react";
 import { InvestorDetailsDrawer } from "./InvestorDetailsDrawer";
 import { toast } from "sonner";
@@ -218,19 +218,21 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
               .map(contact => {
                 // Find the position for this contact
                 const position = positions.find(p => p.fundraising_pipeline_column_contact_id === contact.id);
-                const deal = (deals || []).find((d: MalakFundraiseContactDealDetails) => 
-                  d.fundraising_pipeline_column_contact_id === contact.id
-                );
+                const deal = contact.deal_details;
+                const contactDetails = contact.contact;
                 
                 return {
                   id: contact.reference || "",
-                  title: fullName(contact as unknown as MalakContact),
+                  title: contactDetails ? fullName(contactDetails) : "",
                   amount: deal?.check_size ? `$${(deal.check_size / 100).toLocaleString()}` : "",
                   stage: column?.title || "",
                   dueDate: pipeline.expected_close_date || "",
                   contact: {
-                    name: fullName(contact as unknown as MalakContact),
-                    company: (contact as unknown as MalakContact)?.company
+                    name: contactDetails ? fullName(contactDetails) : "",
+                    company: contactDetails?.company || "",
+                    email: contactDetails?.email || "",
+                    phone: contactDetails?.phone || "",
+                    title: contactDetails?.title || "",
                   },
                   roundDetails: {
                     raising: pipeline.target_amount ? `$${(pipeline.target_amount / 100).toLocaleString()}` : "",
@@ -241,7 +243,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                   initialContactDate: deal?.initial_contact || contact.created_at || "",
                   isLeadInvestor: deal?.can_lead_round || false,
                   rating: deal?.rating || 0,
-                  originalContact: contact as unknown as MalakContact,
+                  originalContact: contactDetails,
                   originalDeal: deal
                 };
               })
@@ -462,49 +464,72 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                                   <div className="flex items-start justify-between gap-2">
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-center gap-2">
-                                        <Avatar className="h-6 w-6">
+                                        <Avatar className="h-8 w-8">
                                           <AvatarImage src="" />
                                           <AvatarFallback className="text-xs">
                                             {card?.title?.split(' ').map(n => n[0]).join('').toUpperCase()}
                                           </AvatarFallback>
                                         </Avatar>
                                         <div className="space-y-1 min-w-0">
-                                          <div className="flex items-center gap-2">
-                                            <h4 className="font-medium text-sm truncate">
-                                              {card?.title}
-                                            </h4>
-                                            {card?.amount && (
-                                              <Badge variant="secondary" className="text-[10px] h-5 px-2 shrink-0">
-                                                {card.amount}
-                                              </Badge>
-                                            )}
-                                          </div>
-                                          {card?.originalContact?.email && (
-                                            <p className="text-xs text-muted-foreground truncate">
-                                              {card.originalContact.email}
-                                            </p>
-                                          )}
-                                          {card?.originalContact?.company && (
-                                            <p className="text-xs text-muted-foreground truncate">
-                                              {card.originalContact.company}
-                                            </p>
+                                          <h4 className="font-semibold text-sm truncate">
+                                            {card?.title}
+                                          </h4>
+                                          {card?.contact?.company && (
+                                            <div className="flex items-center gap-1.5">
+                                              <p className="text-xs font-medium text-muted-foreground truncate">
+                                                {card.contact.company}
+                                              </p>
+                                              {card?.contact?.title && (
+                                                <span className="text-xs text-muted-foreground/60">
+                                                  • {card.contact.title}
+                                                </span>
+                                              )}
+                                            </div>
                                           )}
                                         </div>
                                       </div>
                                     </div>
+                                    {card?.rating > 0 && (
+                                      <div className="flex items-center">
+                                        <Badge variant="secondary" className="text-[10px] h-5 px-2">
+                                          {Array(card.rating).fill('★').join('')}
+                                        </Badge>
+                                      </div>
+                                    )}
                                   </div>
-                                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                  
+                                  <div className="space-y-1.5">
+                                    {card?.contact?.email && (
+                                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <RiMailLine className="h-3.5 w-3.5 shrink-0" />
+                                        <span className="truncate">{card.contact.email}</span>
+                                      </div>
+                                    )}
+                                    {card?.contact?.phone && (
+                                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <RiPhoneLine className="h-3.5 w-3.5 shrink-0" />
+                                        <span className="truncate">{card.contact.phone}</span>
+                                      </div>
+                                    )}
+                                    {card?.checkSize && (
+                                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <RiMoneyDollarCircleLine className="h-3.5 w-3.5 shrink-0" />
+                                        <span className="truncate">Check size: {card.checkSize}</span>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
                                     {card?.initialContactDate && (
                                       <div className="flex items-center gap-1">
                                         <RiCalendarLine className="h-3.5 w-3.5" />
                                         {new Date(card.initialContactDate).toLocaleDateString()}
                                       </div>
                                     )}
-                                    {card?.dueDate && (
-                                      <div className="flex items-center gap-1">
-                                        <RiTimeLine className="h-3.5 w-3.5" />
-                                        {new Date(card.dueDate).toLocaleDateString()}
-                                      </div>
+                                    {card?.isLeadInvestor && (
+                                      <Badge variant="outline" className="text-[10px] h-5 px-2 border-primary/20">
+                                        Lead
+                                      </Badge>
                                     )}
                                   </div>
                                 </CardContent>

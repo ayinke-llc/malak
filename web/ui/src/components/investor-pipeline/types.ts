@@ -15,6 +15,9 @@ export interface Card {
   contact: {
     name: string;
     company?: string;
+    email?: string;
+    phone?: string;
+    title?: string;
   };
   roundDetails: {
     raising: string;

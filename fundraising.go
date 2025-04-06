@@ -122,6 +122,7 @@ type FundraiseContact struct {
 	FundraisingPipelineID       uuid.UUID `json:"fundraising_pipeline_id,omitempty"`
 	FundraisingPipelineColumnID uuid.UUID `json:"fundraising_pipeline_column_id,omitempty"`
 
+	Contact     *Contact                     `bun:"rel:belongs-to,join:contact_id=id" json:"contact,omitempty"`
 	DealDetails *FundraiseContactDealDetails `bun:"rel:has-one,join:id=fundraising_pipeline_column_contact_id" json:"deal_details,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`

@@ -103,6 +103,7 @@ func (d *fundingRepo) Board(ctx context.Context, pipeline *malak.FundraisingPipe
 		err = tx.NewSelect().
 			Model(&contacts).
 			Relation("DealDetails").
+			Relation("Contact").
 			Where("fundraising_pipeline_id = ?", pipeline.ID).
 			Scan(ctx)
 		if err != nil {

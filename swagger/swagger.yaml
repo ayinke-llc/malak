@@ -421,6 +421,8 @@ components:
       type: object
     malak.FundraiseContact:
       properties:
+        contact:
+          $ref: '#/components/schemas/malak.Contact'
         contact_id:
           type: string
         created_at:

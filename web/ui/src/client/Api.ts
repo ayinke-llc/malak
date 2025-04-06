@@ -252,6 +252,7 @@ export interface MalakDeckViewerSession {
 }
 
 export interface MalakFundraiseContact {
+  contact?: MalakContact;
   contact_id?: string;
   created_at?: string;
   deal_details?: MalakFundraiseContactDealDetails;
