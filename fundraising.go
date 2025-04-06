@@ -187,10 +187,21 @@ type FetchPipelineOptions struct {
 	Reference   Reference
 }
 
+type AddContactToBoardOptions struct {
+	Column             *FundraisingPipelineColumn
+	Contact            *Contact
+	ReferenceGenerator ReferenceGeneratorOperation
+}
+
 type FundraisingPipelineRepository interface {
 	Create(context.Context, *FundraisingPipeline, ...FundraisingPipelineColumn) error
 	List(context.Context, ListPipelineOptions) ([]FundraisingPipeline, int64, error)
 	Get(context.Context, FetchPipelineOptions) (*FundraisingPipeline, error)
 	Board(context.Context, *FundraisingPipeline) ([]FundraisingPipelineColumn, []FundraiseContact, []FundraiseContactPosition, error)
 	CloseBoard(context.Context, *FundraisingPipeline) error
+
+	// This is just the first inserted column for now. keeping it simple
+	DefaultColumn(context.Context, *FundraisingPipeline) (FundraisingPipelineColumn, error)
+
+	AddContactToBoard(context.Context, *AddContactToBoardOptions) error
 }

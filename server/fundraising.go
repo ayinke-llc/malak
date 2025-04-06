@@ -22,6 +22,7 @@ type fundraisingHandler struct {
 	cfg                config.Config
 	fundingRepo        malak.FundraisingPipelineRepository
 	referenceGenerator malak.ReferenceGeneratorOperation
+	contactRepo        malak.ContactRepository
 }
 
 type createNewPipelineRequest struct {

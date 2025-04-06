@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/google/uuid"
@@ -165,4 +166,56 @@ func (d *fundingRepo) CloseBoard(ctx context.Context, pipeline *malak.Fundraisin
 		Exec(ctx)
 
 	return err
+}
+
+func (d *fundingRepo) AddContactToBoard(ctx context.Context, opts *malak.AddContactToBoardOptions) error {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return d.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		fundraiseContact := &malak.FundraiseContact{
+			Reference:                   opts.ReferenceGenerator.Generate(malak.EntityTypeFundraisingPipelineColumnContact),
+			ContactID:                   opts.Contact.ID,
+			FundraisingPipelineID:       opts.Column.FundraisingPipelineID,
+			FundraisingPipelineColumnID: opts.Column.ID,
+		}
+
+		_, err := tx.NewInsert().
+			Model(fundraiseContact).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		position := &malak.FundraiseContactPosition{
+			ID:                                 uuid.New(),
+			Reference:                          opts.ReferenceGenerator.Generate(malak.EntityTypeFundraisingPipelineColumnContactPosition),
+			FundraisingPipelineColumnContactID: fundraiseContact.ID,
+			// use timestamp as order index for now, it just means the contact will be at the bottom of the column
+			// hack but saves us another query
+			OrderIndex: time.Now().Unix(),
+		}
+
+		_, err = tx.NewInsert().
+			Model(position).
+			Exec(ctx)
+		return err
+	})
+}
+
+func (d *fundingRepo) DefaultColumn(ctx context.Context, pipeline *malak.FundraisingPipeline) (malak.FundraisingPipelineColumn, error) {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	var column malak.FundraisingPipelineColumn
+	err := d.inner.NewSelect().
+		Model(&column).
+		Where("fundraising_pipeline_id = ?", pipeline.ID).
+		Where("column_type = ?", malak.FundraisePipelineColumnTypeNormal).
+		Order("created_at ASC").
+		Limit(1).
+		Scan(ctx)
+
+	return column, err
 }

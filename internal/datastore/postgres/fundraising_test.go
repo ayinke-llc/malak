@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"database/sql"
 	"testing"
 	"time"
 
@@ -504,12 +505,217 @@ func TestFundraising_CloseBoard(t *testing.T) {
 		err := fundingRepo.CloseBoard(t.Context(), pipeline)
 		require.NoError(t, err)
 
-		// Verify it's still closed
 		result, err := fundingRepo.Get(t.Context(), malak.FetchPipelineOptions{
 			WorkspaceID: workspace.ID,
 			Reference:   pipeline.Reference,
 		})
 		require.NoError(t, err)
 		require.True(t, result.IsClosed)
+	})
+}
+
+func TestFundraising_AddContactToBoard(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	fundingRepo := NewFundingRepo(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	pipeline := &malak.FundraisingPipeline{
+		Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
+		WorkspaceID:       workspace.ID,
+		Title:             "Test Pipeline",
+		Stage:             malak.FundraisePipelineStageSeed,
+		Description:       "Test pipeline description",
+		TargetAmount:      1000000,
+		StartDate:         time.Now().UTC(),
+		ExpectedCloseDate: time.Now().UTC().Add(90 * 24 * time.Hour),
+	}
+
+	column := malak.FundraisingPipelineColumn{
+		Title:       "Test Column",
+		ColumnType:  malak.FundraisePipelineColumnTypeNormal,
+		Description: "Test column description",
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+	}
+
+	err = fundingRepo.Create(t.Context(), pipeline, column)
+	require.NoError(t, err)
+
+	contact := &malak.Contact{
+		ID:          uuid.New(),
+		Email:       malak.Email("test@example.com"),
+		WorkspaceID: workspace.ID,
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeContact),
+		FirstName:   "Test",
+		LastName:    "Contact",
+	}
+
+	_, err = client.NewInsert().Model(contact).Exec(t.Context())
+	require.NoError(t, err)
+
+	var columns []malak.FundraisingPipelineColumn
+	err = client.NewSelect().
+		Model(&columns).
+		Where("fundraising_pipeline_id = ?", pipeline.ID).
+		Scan(t.Context())
+	require.NoError(t, err)
+	require.Len(t, columns, 1)
+
+	t.Run("successfully add contact to board", func(t *testing.T) {
+		opts := &malak.AddContactToBoardOptions{
+			Column:             &columns[0],
+			Contact:            contact,
+			ReferenceGenerator: malak.NewReferenceGenerator(),
+		}
+
+		err := fundingRepo.AddContactToBoard(t.Context(), opts)
+		require.NoError(t, err)
+
+		var contacts []malak.FundraiseContact
+		err = client.NewSelect().
+			Model(&contacts).
+			Where("fundraising_pipeline_id = ?", pipeline.ID).
+			Where("contact_id = ?", contact.ID).
+			Scan(t.Context())
+		require.NoError(t, err)
+		require.Len(t, contacts, 1)
+		require.Equal(t, contact.ID, contacts[0].ContactID)
+		require.Equal(t, columns[0].ID, contacts[0].FundraisingPipelineColumnID)
+
+		var positions []malak.FundraiseContactPosition
+		err = client.NewSelect().
+			Model(&positions).
+			Where("fundraising_pipeline_column_contact_id = ?", contacts[0].ID).
+			Scan(t.Context())
+		require.NoError(t, err)
+		require.Len(t, positions, 1)
+		require.NotZero(t, positions[0].OrderIndex)
+	})
+
+	t.Run("add same contact twice should fail", func(t *testing.T) {
+		opts := &malak.AddContactToBoardOptions{
+			Column:             &columns[0],
+			Contact:            contact,
+			ReferenceGenerator: malak.NewReferenceGenerator(),
+		}
+
+		err := fundingRepo.AddContactToBoard(t.Context(), opts)
+		require.Error(t, err) // Should fail due to unique constraint
+	})
+}
+
+func TestFundraising_DefaultColumn(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	fundingRepo := NewFundingRepo(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	t.Run("get default column from pipeline with multiple columns", func(t *testing.T) {
+		pipeline := &malak.FundraisingPipeline{
+			Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
+			WorkspaceID:       workspace.ID,
+			Title:             "Test Pipeline",
+			Stage:             malak.FundraisePipelineStageSeed,
+			Description:       "Test pipeline description",
+			TargetAmount:      1000000,
+			StartDate:         time.Now().UTC(),
+			ExpectedCloseDate: time.Now().UTC().Add(90 * 24 * time.Hour),
+		}
+
+		columns := []malak.FundraisingPipelineColumn{
+			{
+				Title:       "First Column",
+				ColumnType:  malak.FundraisePipelineColumnTypeNormal,
+				Description: "First normal column",
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+			},
+			{
+				Title:       "Second Column",
+				ColumnType:  malak.FundraisePipelineColumnTypeNormal,
+				Description: "Second normal column",
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+			},
+			{
+				Title:       "Closed Column",
+				ColumnType:  malak.FundraisePipelineColumnTypeClosed,
+				Description: "Closed column",
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+			},
+		}
+
+		err = fundingRepo.Create(t.Context(), pipeline, columns...)
+		require.NoError(t, err)
+
+		defaultColumn, err := fundingRepo.DefaultColumn(t.Context(), pipeline)
+		require.NoError(t, err)
+		require.Equal(t, columns[0].Title, defaultColumn.Title)
+		require.Equal(t, malak.FundraisePipelineColumnTypeNormal, defaultColumn.ColumnType)
+	})
+
+	t.Run("get default column from pipeline with no columns", func(t *testing.T) {
+		emptyPipeline := &malak.FundraisingPipeline{
+			Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
+			WorkspaceID:       workspace.ID,
+			Title:             "Empty Pipeline",
+			Stage:             malak.FundraisePipelineStageSeed,
+			Description:       "Empty pipeline description",
+			TargetAmount:      1000000,
+			StartDate:         time.Now().UTC(),
+			ExpectedCloseDate: time.Now().UTC().Add(90 * 24 * time.Hour),
+		}
+
+		err = fundingRepo.Create(t.Context(), emptyPipeline)
+		require.NoError(t, err)
+
+		_, err := fundingRepo.DefaultColumn(t.Context(), emptyPipeline)
+		require.Error(t, err)
+		require.ErrorIs(t, err, sql.ErrNoRows)
+	})
+
+	t.Run("get default column from pipeline with only closed columns", func(t *testing.T) {
+		pipeline := &malak.FundraisingPipeline{
+			Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
+			WorkspaceID:       workspace.ID,
+			Title:             "Closed Pipeline",
+			Stage:             malak.FundraisePipelineStageSeed,
+			Description:       "Pipeline with only closed columns",
+			TargetAmount:      1000000,
+			StartDate:         time.Now().UTC(),
+			ExpectedCloseDate: time.Now().UTC().Add(90 * 24 * time.Hour),
+		}
+
+		columns := []malak.FundraisingPipelineColumn{
+			{
+				Title:       "Closed Column 1",
+				ColumnType:  malak.FundraisePipelineColumnTypeClosed,
+				Description: "First closed column",
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+			},
+			{
+				Title:       "Closed Column 2",
+				ColumnType:  malak.FundraisePipelineColumnTypeClosed,
+				Description: "Second closed column",
+				Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+			},
+		}
+
+		err = fundingRepo.Create(t.Context(), pipeline, columns...)
+		require.NoError(t, err)
+
+		_, err := fundingRepo.DefaultColumn(t.Context(), pipeline)
+		require.Error(t, err)
+		require.ErrorIs(t, err, sql.ErrNoRows)
 	})
 }
