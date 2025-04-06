@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Dialog,
@@ -20,7 +20,13 @@ import {
   RiArrowRightLine,
   RiUserAddLine,
   RiContactsLine,
+  RiErrorWarningLine,
 } from "@remixicon/react";
+import { useQuery } from "@tanstack/react-query";
+import { SEARCH_CONTACTS } from "@/lib/query-constants";
+import client from "@/lib/client";
+import debounce from "lodash/debounce";
+import type { ServerListContactsResponse, MalakContact } from "@/client/Api";
 
 export interface SearchResult {
   id: string;
@@ -29,6 +35,14 @@ export interface SearchResult {
   email: string;
   image: string;
 }
+
+const mapContactToSearchResult = (contact: MalakContact): SearchResult => ({
+  id: contact.id || "",
+  name: `${contact.first_name || ""} ${contact.last_name || ""}`.trim(),
+  company: contact.company || "",
+  email: contact.email || "",
+  image: "", // MalakContact doesn't have an image field
+});
 
 interface AddInvestorDialogProps {
   open: boolean;
@@ -41,44 +55,6 @@ interface AddInvestorDialogProps {
   }) => void;
 }
 
-// Mock search results
-const mockSearchResults: SearchResult[] = [
-  {
-    id: "sr1",
-    name: "David Marcus",
-    company: "Breakthrough Capital",
-    email: "david@breakthrough.vc",
-    image: "/avatars/david.jpg"
-  },
-  {
-    id: "sr2",
-    name: "Lisa Wong",
-    company: "Horizon Ventures",
-    email: "lisa@horizon.vc",
-    image: "/avatars/lisa.jpg"
-  },
-  {
-    id: "sr3",
-    name: "Michael Chen",
-    company: "Dragon Capital",
-    email: "michael@dragon.vc",
-    image: "/avatars/michael.jpg"
-  }
-];
-
-// Mock search function
-const searchInvestors = async (query: string): Promise<SearchResult[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  // Filter mock results based on query
-  return mockSearchResults.filter(result =>
-    result.name.toLowerCase().includes(query.toLowerCase()) ||
-    result.company.toLowerCase().includes(query.toLowerCase()) ||
-    result.email.toLowerCase().includes(query.toLowerCase())
-  );
-};
-
 export function AddInvestorDialog({
   open,
   onOpenChange,
@@ -86,8 +62,7 @@ export function AddInvestorDialog({
 }: AddInvestorDialogProps) {
   const [step, setStep] = useState<'search' | 'details'>('search');
   const [searchQuery, setSearchQuery] = useState("");
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedInvestor, setSelectedInvestor] = useState<SearchResult | null>(null);
   const [investorDetails, setInvestorDetails] = useState({
     checkSize: "",
@@ -97,24 +72,34 @@ export function AddInvestorDialog({
   });
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
 
-  const handleSearch = async (query: string) => {
-    setSearchQuery(query);
-    if (query.length < 2) {
-      setResults([]);
-      return;
-    }
+  // Create a debounced function to update the search query
+  const debouncedSetQuery = useCallback(
+    debounce((query: string) => {
+      setDebouncedQuery(query);
+    }, 300),
+    []
+  );
 
-    setLoading(true);
-    try {
-      const searchResults = await searchInvestors(query);
-      setResults(searchResults);
-    } catch (error) {
-      console.error("Error searching investors:", error);
-      setResults([]);
-    } finally {
-      setLoading(false);
+  // Update the debounced query when the search input changes
+  useEffect(() => {
+    if (searchQuery.length >= 4) {
+      debouncedSetQuery(searchQuery);
+    } else {
+      debouncedSetQuery("");
     }
-  };
+  }, [searchQuery, debouncedSetQuery]);
+
+  const { data: results = [], isLoading, error } = useQuery({
+    queryKey: [SEARCH_CONTACTS, debouncedQuery],
+    queryFn: async () => {
+      if (!debouncedQuery || debouncedQuery.length < 4) return [];
+      const response = await client.contacts.searchList({
+        search: debouncedQuery
+      });
+      return (response.data.contacts || []).map(mapContactToSearchResult);
+    },
+    enabled: debouncedQuery.length >= 4,
+  });
 
   const handleSelectInvestor = (investor: SearchResult) => {
     setSelectedInvestor(investor);
@@ -133,7 +118,7 @@ export function AddInvestorDialog({
     // Reset state
     setStep('search');
     setSearchQuery("");
-    setResults([]);
+    setDebouncedQuery("");
     setSelectedInvestor(null);
     setInvestorDetails({
       checkSize: "",
@@ -149,7 +134,7 @@ export function AddInvestorDialog({
     // Reset state
     setStep('search');
     setSearchQuery("");
-    setResults([]);
+    setDebouncedQuery("");
     setSelectedInvestor(null);
     setInvestorDetails({
       checkSize: "",
@@ -185,42 +170,52 @@ export function AddInvestorDialog({
                     placeholder="Search investors..."
                     className="pl-9"
                     value={searchQuery}
-                    onChange={(e) => handleSearch(e.target.value)}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
+                {searchQuery && searchQuery.length < 4 && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Please enter at least 4 characters to search
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                {loading && (
+                {isLoading && (
                   <div className="text-center py-4 text-sm text-muted-foreground">
                     Searching...
                   </div>
                 )}
 
-                {!loading && results.length === 0 && searchQuery.length >= 2 && (
-                  <div className="text-center py-6 space-y-4">
-                    <div className="flex justify-center">
-                      <div className="bg-muted p-4 rounded-full">
-                        <RiUserAddLine className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="font-medium">Contact Not Found</h3>
-                      <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                        The contact you're looking for doesn't exist yet. You'll need to create it first in your contacts.
-                      </p>
-                    </div>
-                    <Link
-                      href="/contacts"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                    >
-                      <RiContactsLine className="h-4 w-4" />
-                      Create New Contact
-                    </Link>
+                {error && (
+                  <div className="flex flex-col items-center justify-center py-4">
+                    <RiErrorWarningLine className="w-8 h-8 text-destructive mb-2" />
+                    <p className="text-sm text-destructive text-center">
+                      An error occurred while searching. Please try again.
+                    </p>
                   </div>
                 )}
 
-                {!loading && results.map((result) => (
+                {!isLoading && !error && searchQuery.length >= 4 && results.length === 0 && (
+                  <Card className="py-8">
+                    <div className="flex flex-col items-center justify-center text-center px-4">
+                      <RiContactsLine className="h-8 w-8 text-muted-foreground/50 mb-4" />
+                      <h3 className="text-lg font-medium mb-2">No contacts found</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        We couldn't find any contacts matching your search. Would you like to add a new contact?
+                      </p>
+                      <Link 
+                        href="/contacts"
+                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+                      >
+                        <RiUserAddLine className="mr-2 h-4 w-4" />
+                        Add New Contact
+                      </Link>
+                    </div>
+                  </Card>
+                )}
+
+                {!isLoading && results.map((result: SearchResult) => (
                   <Card
                     key={result.id}
                     className="cursor-pointer transition-colors hover:bg-muted/50"
@@ -231,7 +226,7 @@ export function AddInvestorDialog({
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={result.image} alt={result.name} />
                           <AvatarFallback>
-                            {result.name.split(" ").map(n => n[0]).join("")}
+                            {result.name.split(" ").map((n: string) => n[0]).join("")}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0 flex-1">

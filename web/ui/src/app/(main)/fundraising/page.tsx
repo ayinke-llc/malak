@@ -402,84 +402,137 @@ export default function FundraisingBoards() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-          {pipelinesData?.pipelines
-            ?.slice()  // Create a copy of the array before sorting
-            .sort((a, b) => {
-              // First sort by status (open first)
-              if ((a.is_closed ?? false) === (b.is_closed ?? false)) {
-                // If status is the same, sort by created_at (assuming newer first)
-                const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
-                const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
-                return bTime - aTime;
-              }
-              // Put open pipelines first
-              return (a.is_closed ?? false) ? 1 : -1;
-            })
-            .map((pipeline: MalakFundraisingPipeline) => {
-              const statusConfig = getStatusConfig(pipeline.is_closed ?? false);
-              const stage = FUNDING_STAGES.find(s => s.value === pipeline.stage);
-
-              return (
-                <Card key={pipeline.id} className="flex flex-col">
-                  <CardHeader>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="space-y-1.5 min-w-0 flex-1">
-                        <CardTitle className="text-xl truncate" title={pipeline.title}>
-                          {pipeline.title}
-                        </CardTitle>
-                        <div className="text-sm font-medium text-muted-foreground">
-                          {stage?.label}
-                        </div>
+          {!pipelinesData?.pipelines?.length ? (
+            <div className="col-span-full flex items-center justify-center min-h-[400px]">
+              <Card className="w-full max-w-2xl border-muted/30">
+                <CardHeader className="text-center pb-6">
+                  <div className="mx-auto w-16 h-16 mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                    <RiAddLine className="w-8 h-8 text-primary" />
+                  </div>
+                  <CardTitle className="text-2xl mb-2">Start Your Fundraising Journey</CardTitle>
+                  <CardDescription className="text-base max-w-md mx-auto">
+                    Track and manage your fundraising rounds all in one place. Create your first funding round to get started.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[
+                      {
+                        icon: RiCheckboxCircleLine,
+                        title: "Track Progress",
+                        description: "Monitor fundraising goals and milestones"
+                      },
+                      {
+                        icon: RiTimeLine,
+                        title: "Manage Deadlines",
+                        description: "Set and track important dates and deadlines"
+                      },
+                      {
+                        icon: RiRefreshLine,
+                        title: "Stay Organized",
+                        description: "Keep all fundraising details in one place"
+                      }
+                    ].map((feature, index) => (
+                      <div key={index} className="flex flex-col items-center text-center p-4 rounded-lg bg-muted/30">
+                        <feature.icon className="w-6 h-6 text-primary mb-2" />
+                        <h3 className="font-medium mb-1">{feature.title}</h3>
+                        <p className="text-sm text-muted-foreground">{feature.description}</p>
                       </div>
-                      {pipeline.is_closed && (
-                        <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium shrink-0 ml-4 ${statusConfig.textColor} ${statusConfig.bgColor}`}>
-                          <statusConfig.icon className="w-3.5 h-3.5" />
-                          {statusConfig.label}
-                        </div>
-                      )}
-                    </div>
-                    <CardDescription className="line-clamp-2 min-h-[2.5rem]" title={pipeline.description}>
-                      {pipeline.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-1">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Progress</span>
-                          <span className="font-medium">
-                            {formatCurrency((pipeline.closed_amount ?? 0) / 100)} / {formatCurrency((pipeline.target_amount ?? 0) / 100)}
-                          </span>
-                        </div>
-                        <div className="w-full bg-muted rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full ${statusConfig.color}`}
-                            style={{ width: `${((pipeline.closed_amount ?? 0) / (pipeline.target_amount ?? 1)) * 100}%` }}
-                          />
-                        </div>
-                      </div>
+                    ))}
+                  </div>
+                  <div className="flex flex-col items-center pt-4">
+                    <Button 
+                      size="lg"
+                      className="w-full max-w-sm"
+                      onClick={() => setOpen(true)}
+                    >
+                      <RiAddLine className="w-5 h-5 mr-2" />
+                      Create Your First Funding Round
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            pipelinesData?.pipelines
+              ?.slice()
+              .sort((a, b) => {
+                // First sort by status (open first)
+                if ((a.is_closed ?? false) === (b.is_closed ?? false)) {
+                  // If status is the same, sort by created_at (assuming newer first)
+                  const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+                  const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+                  return bTime - aTime;
+                }
+                // Put open pipelines first
+                return (a.is_closed ?? false) ? 1 : -1;
+              })
+              .map((pipeline: MalakFundraisingPipeline) => {
+                const statusConfig = getStatusConfig(pipeline.is_closed ?? false);
+                const stage = FUNDING_STAGES.find(s => s.value === pipeline.stage);
 
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Deadline</span>
-                          <span>
-                            {pipeline.expected_close_date && isValid(parseISO(pipeline.expected_close_date))
-                              ? format(parseISO(pipeline.expected_close_date), 'MMM d, yyyy')
-                              : 'No deadline set'}
-                          </span>
+                return (
+                  <Card key={pipeline.id} className="flex flex-col">
+                    <CardHeader>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="space-y-1.5 min-w-0 flex-1">
+                          <CardTitle className="text-xl truncate" title={pipeline.title}>
+                            {pipeline.title}
+                          </CardTitle>
+                          <div className="text-sm font-medium text-muted-foreground">
+                            {stage?.label}
+                          </div>
                         </div>
+                        {pipeline.is_closed && (
+                          <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium shrink-0 ml-4 ${statusConfig.textColor} ${statusConfig.bgColor}`}>
+                            <statusConfig.icon className="w-3.5 h-3.5" />
+                            {statusConfig.label}
+                          </div>
+                        )}
                       </div>
+                      <CardDescription className="line-clamp-2 min-h-[2.5rem]" title={pipeline.description}>
+                        {pipeline.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-1">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Progress</span>
+                            <span className="font-medium">
+                              {formatCurrency((pipeline.closed_amount ?? 0) / 100)} / {formatCurrency((pipeline.target_amount ?? 0) / 100)}
+                            </span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full ${statusConfig.color}`}
+                              style={{ width: `${((pipeline.closed_amount ?? 0) / (pipeline.target_amount ?? 1)) * 100}%` }}
+                            />
+                          </div>
+                        </div>
 
-                      <Link href={`/fundraising/${pipeline.reference}`} className="block mt-4">
-                        <Button variant="outline" className="w-full">
-                          View Details
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Deadline</span>
+                            <span>
+                              {pipeline.expected_close_date && isValid(parseISO(pipeline.expected_close_date))
+                                ? format(parseISO(pipeline.expected_close_date), 'MMM d, yyyy')
+                                : 'No deadline set'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <Link href={`/fundraising/${pipeline.reference}`} className="block mt-4">
+                          <Button variant="outline" className="w-full">
+                            View Details
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+          )}
         </div>
       )}
     </div>

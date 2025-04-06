@@ -3412,6 +3412,77 @@
 				]
 			}
 		},
+		"/contacts/search": {
+			"get": {
+				"description": "Search contacts",
+				"parameters": [
+					{
+						"description": "search term",
+						"in": "query",
+						"name": "search",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.listContactsResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"contacts"
+				]
+			}
+		},
 		"/contacts/{reference}": {
 			"delete": {
 				"description": "delete a contact",

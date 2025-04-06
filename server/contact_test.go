@@ -353,6 +353,34 @@ func TestContactHandler_BatchCreate(t *testing.T) {
 	}
 }
 
+func TestContactHandler_Search(t *testing.T) {
+	for _, v := range generateSearchContactTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+			contactRepo := malak_mocks.NewMockContactRepository(controller)
+			v.mockFn(contactRepo)
+			a := &contactHandler{
+				cfg:         getConfig(),
+				contactRepo: contactRepo,
+			}
+			rr := httptest.NewRecorder()
+			url := "/contacts/search"
+			if v.searchValue != "" {
+				url += "?search=" + v.searchValue
+			}
+			req := httptest.NewRequest(http.MethodGet, url, nil)
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{
+				ID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440000"),
+			}))
+			WrapMalakHTTPHandler(getLogger(t), a.search, getConfig(), "contacts.search").
+				ServeHTTP(rr, req)
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
 func generateEditContactTestTable() []struct {
 	name               string
 	mockFn             func(contactRepo *malak_mocks.MockContactRepository)
@@ -1406,6 +1434,58 @@ func generateBatchCreateTestTable() []struct {
 					},
 				},
 			},
+		},
+	}
+}
+
+func generateSearchContactTestTable() []struct {
+	name               string
+	mockFn             func(contactRepo *malak_mocks.MockContactRepository)
+	expectedStatusCode int
+	searchValue        string
+} {
+	return []struct {
+		name               string
+		mockFn             func(contactRepo *malak_mocks.MockContactRepository)
+		expectedStatusCode int
+		searchValue        string
+	}{
+		{
+			name: "search with no query parameter",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				// No expectation since the handler returns 400 before calling Search
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			searchValue:        "",
+		},
+		{
+			name: "search with query parameter",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Search(gomock.Any(), malak.SearchContactOptions{
+					WorkspaceID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440000"),
+					SearchValue: "john",
+				}).Return([]malak.Contact{
+					{
+						ID:        uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
+						Email:     "john@example.com",
+						FirstName: "John",
+						LastName:  "Doe",
+					},
+				}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+			searchValue:        "john",
+		},
+		{
+			name: "search with error",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().Search(gomock.Any(), malak.SearchContactOptions{
+					WorkspaceID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440000"),
+					SearchValue: "error",
+				}).Return(nil, errors.New("search failed"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			searchValue:        "error",
 		},
 	}
 }
