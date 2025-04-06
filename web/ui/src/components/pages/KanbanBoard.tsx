@@ -7,8 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  RiTimeLine, RiAddLine, RiSettings4Line, RiArchiveLine, RiArchiveFill,
-  RiInboxUnarchiveLine, RiInformationLine, RiCalendarLine
+  RiTimeLine, RiAddLine, RiSettings4Line, RiArchiveLine,
+  RiInboxUnarchiveLine, RiInformationLine, RiCalendarLine, RiErrorWarningLine
 } from "@remixicon/react";
 import { InvestorDetailsDrawer } from "./InvestorDetailsDrawer";
 import { toast } from "sonner";
@@ -22,33 +22,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-
 import { ShareSettingsDialog } from "@/components/investor-pipeline/ShareSettingsDialog";
 import { AddInvestorDialog as AddInvestorDialogComponent } from "@/components/investor-pipeline/AddInvestorDialog";
 import type { SearchResult } from "@/components/investor-pipeline/AddInvestorDialog";
-import type { Card as InvestorCard, Columns, Board, ShareSettings } from "@/components/investor-pipeline/types";
-import { initialBoard } from "@/components/investor-pipeline/mock-data";
-import { Input } from "@/components/ui/input";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import type { Card as InvestorCard, Board, ShareSettings } from "@/components/investor-pipeline/types";
 import {
   Tooltip,
   TooltipContent,
@@ -60,9 +37,23 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { FETCH_FUNDRAISING_PIPELINE } from "@/lib/query-constants";
+import client from "@/lib/client";
+import type { ServerFetchBoardResponse } from "@/client/Api";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
-export default function KanbanBoard() {
-  const [board, setBoard] = useState<Board>(initialBoard);
+interface KanbanBoardProps {
+  slug: string;
+}
+
+export default function KanbanBoard({ slug }: KanbanBoardProps) {
   const [selectedInvestor, setSelectedInvestor] = useState<InvestorCard | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isAddInvestorOpen, setIsAddInvestorOpen] = useState(false);
@@ -77,12 +68,106 @@ export default function KanbanBoard() {
   });
   const [activeTab, setActiveTab] = useState("overview");
 
+  const queryClient = useQueryClient();
+
+  const { data: boardData, isLoading, error } = useQuery<ServerFetchBoardResponse>({
+    queryKey: [FETCH_FUNDRAISING_PIPELINE, slug],
+    queryFn: async () => {
+      const response = await client.pipelines.boardDetail(slug);
+      return response.data;
+    },
+  });
+
+  const updateBoardMutation = useMutation({
+    mutationFn: async (updatedBoard: Board) => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return updatedBoard;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [FETCH_FUNDRAISING_PIPELINE, slug] });
+      toast.success("Pipeline updated successfully");
+    },
+    onError: (error) => {
+      toast.error("Failed to update pipeline");
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen p-4 text-center">
+        <RiErrorWarningLine className="w-12 h-12 text-destructive mb-4" />
+        <h2 className="text-2xl font-semibold mb-2">Unable to Load Board</h2>
+        <p className="text-muted-foreground mb-4 max-w-md">
+          An error occurred while loading the board. Please try again.
+        </p>
+        <Button 
+          variant="default"
+          onClick={() => queryClient.invalidateQueries({ queryKey: [FETCH_FUNDRAISING_PIPELINE, slug] })}
+        >
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  if (!boardData) {
+    return null;
+  }
+
+  const { pipeline = {}, columns = [], contacts = [], positions = [] } = boardData;
+
+  // Transform the data into the format expected by the board
+  const board: Board = {
+    isArchived: pipeline.is_closed || false,
+    columns: columns.reduce<Board["columns"]>((acc, column) => {
+      if (column?.reference) {
+        acc[column.reference] = {
+          id: column.id || column.reference,
+          title: column.title || "",
+          description: column.description || "",
+          cards: (contacts || [])
+            .filter(contact => contact && contact.fundraising_pipeline_column_id === column.id)
+            .map(contact => ({
+              id: contact.reference || "",
+              title: contact.contact_id || "", // TODO: Get contact details
+              amount: "TBD",
+              stage: "Initial Contact",
+              dueDate: new Date().toISOString().split('T')[0],
+              contact: {
+                name: contact.contact_id || "Contact Name", // Using contact_id as fallback for name
+                image: "", // No image property available in the contact type
+              },
+              roundDetails: {
+                raising: "TBD",
+                type: "TBD",
+                ownership: "TBD"
+              },
+              checkSize: "TBD",
+              initialContactDate: contact.created_at || new Date().toISOString(),
+              isLeadInvestor: false,
+              rating: 0
+            }))
+        };
+      }
+      return acc;
+    }, {})
+  };
+
   const handleDragEnd = (result: DropResult) => {
-    if (!result.destination || board.isArchived) return;
+    if (!result?.destination || board.isArchived) return;
 
     const { source, destination } = result;
-    
-    // Don't do anything if dropped in the same position
+
+    if (!source || !destination) return;
+
     if (
       source.droppableId === destination.droppableId &&
       source.index === destination.index
@@ -92,46 +177,64 @@ export default function KanbanBoard() {
 
     const sourceColumn = board.columns[source.droppableId];
     const destColumn = board.columns[destination.droppableId];
-    
-    if (sourceColumn && destColumn) {
-      const sourceCards = Array.from(sourceColumn.cards);
-      const destCards = source.droppableId === destination.droppableId ? sourceCards : Array.from(destColumn.cards);
-      const [removed] = sourceCards.splice(source.index, 1);
-      destCards.splice(destination.index, 0, removed);
 
-      setBoard({
-        ...board,
-        columns: {
-          ...board.columns,
-          [source.droppableId]: {
-            ...sourceColumn,
-            cards: sourceCards,
-          },
-          [destination.droppableId]: {
-            ...destColumn,
-            cards: destCards,
-          },
-        }
-      });
+    if (!sourceColumn || !destColumn) {
+      toast.error("Invalid drag operation: column not found");
+      return;
     }
+
+    const sourceCards = Array.from(sourceColumn.cards || []);
+    const destCards = source.droppableId === destination.droppableId 
+      ? sourceCards 
+      : Array.from(destColumn.cards || []);
+
+    if (sourceCards.length === 0) {
+      toast.error("Invalid drag operation: no cards to move");
+      return;
+    }
+
+    const [removed] = sourceCards.splice(source.index, 1);
+    if (!removed) {
+      toast.error("Invalid drag operation: card not found");
+      return;
+    }
+
+    destCards.splice(destination.index, 0, removed);
+
+    const updatedBoard = {
+      ...board,
+      columns: {
+        ...board.columns,
+        [source.droppableId]: {
+          ...sourceColumn,
+          cards: sourceCards,
+        },
+        [destination.droppableId]: {
+          ...destColumn,
+          cards: destCards,
+        },
+      }
+    };
+
+    updateBoardMutation.mutate(updatedBoard);
   };
 
   const handleArchive = () => {
-    setBoard({
+    const updatedBoard = {
       ...board,
       isArchived: true
-    });
+    };
+    updateBoardMutation.mutate(updatedBoard);
     setIsArchiveConfirmOpen(false);
-    toast.success("Pipeline archived successfully");
   };
 
   const handleUnarchive = () => {
-    setBoard({
+    const updatedBoard = {
       ...board,
       isArchived: false
-    });
+    };
+    updateBoardMutation.mutate(updatedBoard);
     setIsUnarchiveConfirmOpen(false);
-    toast.success("Pipeline unarchived successfully");
   };
 
   const handleAddInvestor = (investor: SearchResult & {
@@ -145,37 +248,45 @@ export default function KanbanBoard() {
       return;
     }
 
+    // Ensure backlog column exists
+    if (!board.columns.backlog) {
+      toast.error("Cannot add investor: Backlog column not found");
+      return;
+    }
+
     const newCard: InvestorCard = {
-      id: investor.id,
-      title: investor.company,
+      id: investor.id || crypto.randomUUID(),
+      title: investor.company || "Unnamed Company",
       amount: "TBD",
       stage: "Initial Contact",
       dueDate: new Date().toISOString().split('T')[0],
       contact: {
-        name: investor.name,
-        image: investor.image,
+        name: investor.name || "Unknown Contact",
+        image: investor.image || "",
       },
       roundDetails: {
         raising: "TBD",
         type: "TBD",
         ownership: "TBD"
       },
-      checkSize: investor.checkSize,
-      initialContactDate: investor.initialContactDate,
-      isLeadInvestor: investor.isLeadInvestor,
-      rating: investor.rating
+      checkSize: investor.checkSize || "TBD",
+      initialContactDate: investor.initialContactDate || new Date().toISOString(),
+      isLeadInvestor: investor.isLeadInvestor || false,
+      rating: investor.rating || 0
     };
 
-    setBoard({
+    const updatedBoard = {
       ...board,
       columns: {
         ...board.columns,
         backlog: {
           ...board.columns.backlog,
-          cards: [...board.columns.backlog.cards, newCard],
+          cards: [...(board.columns.backlog.cards || []), newCard],
         },
       }
-    });
+    };
+
+    updateBoardMutation.mutate(updatedBoard);
   };
 
   return (
@@ -223,7 +334,7 @@ export default function KanbanBoard() {
       </div>
 
       <div className="flex-1 min-h-0">
-        <div 
+        <div
           className="h-full overflow-x-auto"
           style={{
             msOverflowStyle: 'none',
@@ -237,10 +348,10 @@ export default function KanbanBoard() {
               display: none;
             }
           `}</style>
-          
+
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="flex gap-4 p-4 h-full">
-              {Object.entries(board.columns).map(([columnId, column]) => (
+              {Object.entries(board.columns || {}).map(([columnId, column]) => (
                 <div key={columnId} className="flex flex-col w-[280px] shrink-0 rounded-lg bg-muted/20">
                   <div className="p-2 mb-1">
                     <div className="flex items-center justify-between px-2 py-1">
@@ -248,17 +359,17 @@ export default function KanbanBoard() {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div className="flex items-center gap-1 cursor-help">
-                              <h2 className="font-medium text-sm">{column.title}</h2>
+                              <h2 className="font-medium text-sm">{column?.title || "Unnamed Column"}</h2>
                               <RiInformationLine className="h-4 w-4 text-muted-foreground" />
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p className="max-w-xs">{column.description}</p>
+                            <p className="max-w-xs">{column?.description || "No description available"}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                       <Badge variant="secondary" className="text-xs">
-                        {column.cards.length}
+                        {(column?.cards || []).length}
                       </Badge>
                     </div>
                   </div>
@@ -269,7 +380,7 @@ export default function KanbanBoard() {
                         ref={provided.innerRef}
                         {...provided.droppableProps}
                         className={`flex-1 p-2 space-y-2 overflow-y-auto
-                          ${snapshot.isDraggingOver ? 'bg-muted/30' : ''}
+                          ${snapshot?.isDraggingOver ? 'bg-muted/30' : ''}
                           scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent
                           hover:scrollbar-thumb-muted-foreground/30`}
                         style={{
@@ -279,10 +390,10 @@ export default function KanbanBoard() {
                           overflowX: 'hidden'
                         }}
                       >
-                        {column.cards.map((card, index) => (
+                        {(column?.cards || []).map((card, index) => (
                           <Draggable
-                            key={card.id}
-                            draggableId={card.id}
+                            key={card?.id || index}
+                            draggableId={card?.id || `card-${index}`}
                             index={index}
                             isDragDisabled={board.isArchived}
                           >
@@ -292,40 +403,42 @@ export default function KanbanBoard() {
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
                                 className={`cursor-pointer border-none shadow-sm hover:shadow-md transition-shadow
-                                  ${snapshot.isDragging ? 'opacity-50 shadow-lg ring-2 ring-primary' : ''}`}
+                                  ${snapshot?.isDragging ? 'opacity-50 shadow-lg ring-2 ring-primary' : ''}`}
                                 onClick={() => {
-                                  setSelectedInvestor(card);
-                                  setIsDetailsOpen(true);
+                                  if (card) {
+                                    setSelectedInvestor(card);
+                                    setIsDetailsOpen(true);
+                                  }
                                 }}
                               >
                                 <CardContent className="p-3">
                                   <div className="flex items-center gap-3">
                                     <Avatar className="h-8 w-8">
                                       <AvatarImage
-                                        src={card.contact.image}
-                                        alt={card.contact.name}
+                                        src={card?.contact?.image || ""}
+                                        alt={card?.contact?.name || ""}
                                       />
                                       <AvatarFallback>
-                                        {card.contact.name
+                                        {(card?.contact?.name || "")
                                           .split(" ")
-                                          .map((n) => n[0])
+                                          .map((n) => n?.[0] || "")
                                           .join("")}
                                       </AvatarFallback>
                                     </Avatar>
                                     <div className="min-w-0 flex-1">
                                       <h4 className="truncate font-medium text-sm">
-                                        {card.title}
+                                        {card?.title || "Untitled"}
                                       </h4>
                                       <p className="truncate text-xs text-muted-foreground">
-                                        {card.contact.name}
+                                        {card?.contact?.name || "No contact name"}
                                       </p>
                                       <div className="mt-1 flex items-center gap-2">
                                         <Badge variant="secondary" className="text-xs">
-                                          {card.amount}
+                                          {card?.amount || "TBD"}
                                         </Badge>
                                         <div className="flex items-center text-xs text-muted-foreground">
                                           <RiTimeLine className="mr-1 h-3 w-3" />
-                                          {card.dueDate}
+                                          {card?.dueDate || "No date"}
                                         </div>
                                       </div>
                                     </div>
@@ -410,14 +523,25 @@ export default function KanbanBoard() {
         </TabsList>
       </Tabs>
 
-      <Button 
-        variant="outline" 
-        className="w-full justify-start"
-        onClick={() => setActiveTab("activity")}
-      >
-        <RiCalendarLine className="w-4 h-4 mr-2" />
-        Add Activity or Note
-      </Button>
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+            onClick={() => setActiveTab("activity")}
+          >
+            <RiCalendarLine className="w-4 h-4 mr-2" />
+            Add Activity or Note
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogTitle>Add Activity or Note</DialogTitle>
+          <DialogDescription>
+            Record an activity or add a note to the pipeline.
+          </DialogDescription>
+          {/* Add your form content here */}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

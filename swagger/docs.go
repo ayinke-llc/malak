@@ -2157,6 +2157,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/pipelines/{reference}/board": {
+            "get": {
+                "description": "Fetch a fundraising board with its columns",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fundraising"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pipeline reference",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchBoardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/public/dashboards/{reference}": {
             "get": {
                 "description": "fetch public dashboard and charting data points",
@@ -4667,6 +4722,60 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.FundraiseContact": {
+            "type": "object",
+            "properties": {
+                "contact_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "fundraising_pipeline_column_id": {
+                    "type": "string"
+                },
+                "fundraising_pipeline_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.FundraiseContactPosition": {
+            "type": "object",
+            "properties": {
+                "fundraising_pipeline_column_contact_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "order_index": {
+                    "type": "integer"
+                },
+                "reference": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.FundraisePipelineColumnType": {
+            "type": "string",
+            "enum": [
+                "normal",
+                "closed"
+            ],
+            "x-enum-varnames": [
+                "FundraisePipelineColumnTypeNormal",
+                "FundraisePipelineColumnTypeClosed"
+            ]
+        },
         "malak.FundraisePipelineStage": {
             "type": "string",
             "enum": [
@@ -4730,6 +4839,38 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.FundraisingPipelineColumn": {
+            "type": "object",
+            "properties": {
+                "column_type": {
+                    "$ref": "#/definitions/malak.FundraisePipelineColumnType"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "fundraising_pipeline_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "investors_count": {
+                    "type": "integer"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
@@ -5895,6 +6036,42 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "server.fetchBoardResponse": {
+            "type": "object",
+            "required": [
+                "columns",
+                "contacts",
+                "message",
+                "pipeline",
+                "positions"
+            ],
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.FundraisingPipelineColumn"
+                    }
+                },
+                "contacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.FundraiseContact"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "pipeline": {
+                    "$ref": "#/definitions/malak.FundraisingPipeline"
+                },
+                "positions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.FundraiseContactPosition"
+                    }
                 }
             }
         },

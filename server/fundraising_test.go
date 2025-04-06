@@ -358,3 +358,97 @@ func TestFundraisingHandler_List(t *testing.T) {
 		})
 	}
 }
+
+type boardTestCase struct {
+	name               string
+	mockFn             func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository)
+	expectedStatusCode int
+}
+
+func generateBoardTestTable() []boardTestCase {
+	return []boardTestCase{
+		{
+			name: "successful fetch",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				repo.EXPECT().
+					Board(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]malak.FundraisingPipelineColumn{
+						{
+							Title:      "Column 1",
+							ColumnType: malak.FundraisePipelineColumnTypeNormal,
+						},
+					}, []malak.FundraiseContact{
+						{
+							Reference: "contact_1",
+						},
+					}, []malak.FundraiseContactPosition{
+						{
+							Reference:  "position_1",
+							OrderIndex: 1,
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "repository error",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				repo.EXPECT().
+					Board(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, nil, nil, errors.New("repository error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+	}
+}
+
+func TestFundraisingHandler_Board(t *testing.T) {
+	for _, v := range generateBoardTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			fundingRepo := malak_mocks.NewMockFundraisingPipelineRepository(controller)
+			v.mockFn(t, fundingRepo)
+
+			handler := &fundraisingHandler{
+				cfg:                getConfig(),
+				fundingRepo:        fundingRepo,
+				referenceGenerator: &mockReferenceGenerator{},
+			}
+
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, "/pipelines/pipeline_123/board", nil)
+
+			workspace := &malak.Workspace{
+				ID: uuid.New(),
+			}
+			user := &malak.User{
+				ID: uuid.New(),
+			}
+
+			// Set up context in the correct order
+			ctx := req.Context()
+			ctx = writeUserToCtx(ctx, user)
+			ctx = writeWorkspaceToCtx(ctx, workspace)
+			ctx = context.WithValue(ctx, chi.RouteCtxKey, chi.NewRouteContext())
+			req = req.WithContext(ctx)
+
+			// Set up route params
+			rctx := chi.NewRouteContext()
+			rctx.URLParams.Add("reference", "pipeline_123")
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+			WrapMalakHTTPHandler(getLogger(t),
+				handler.board,
+				getConfig(),
+				"fundraising.board").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}

@@ -2,6 +2,10 @@
 
 import KanbanBoard from "./KanbanBoard";
 
-export default function Fundraising() {
-  return <KanbanBoard />;
+interface FundraisingProps {
+  slug: string;
+}
+
+export default function Fundraising({ slug }: FundraisingProps) {
+  return <KanbanBoard slug={slug} />;
 } 

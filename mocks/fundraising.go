@@ -41,6 +41,23 @@ func (m *MockFundraisingPipelineRepository) EXPECT() *MockFundraisingPipelineRep
 	return m.recorder
 }
 
+// Board mocks base method.
+func (m *MockFundraisingPipelineRepository) Board(arg0 context.Context, arg1 *malak.FundraisingPipeline) ([]malak.FundraisingPipelineColumn, []malak.FundraiseContact, []malak.FundraiseContactPosition, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Board", arg0, arg1)
+	ret0, _ := ret[0].([]malak.FundraisingPipelineColumn)
+	ret1, _ := ret[1].([]malak.FundraiseContact)
+	ret2, _ := ret[2].([]malak.FundraiseContactPosition)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
+}
+
+// Board indicates an expected call of Board.
+func (mr *MockFundraisingPipelineRepositoryMockRecorder) Board(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Board", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).Board), arg0, arg1)
+}
+
 // Create mocks base method.
 func (m *MockFundraisingPipelineRepository) Create(arg0 context.Context, arg1 *malak.FundraisingPipeline, arg2 ...malak.FundraisingPipelineColumn) error {
 	m.ctrl.T.Helper()
@@ -58,6 +75,21 @@ func (mr *MockFundraisingPipelineRepositoryMockRecorder) Create(arg0, arg1 any, 
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).Create), varargs...)
+}
+
+// Get mocks base method.
+func (m *MockFundraisingPipelineRepository) Get(arg0 context.Context, arg1 malak.FetchPipelineOptions) (*malak.FundraisingPipeline, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret0, _ := ret[0].(*malak.FundraisingPipeline)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockFundraisingPipelineRepositoryMockRecorder) Get(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).Get), arg0, arg1)
 }
 
 // List mocks base method.

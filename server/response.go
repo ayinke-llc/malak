@@ -219,3 +219,11 @@ type fetchPipelinesResponse struct {
 	Meta      meta                        `json:"meta,omitempty" validate:"required"`
 	APIStatus
 }
+
+type fetchBoardResponse struct {
+	Pipeline  malak.FundraisingPipeline         `json:"pipeline,omitempty" validate:"required"`
+	Columns   []malak.FundraisingPipelineColumn `json:"columns,omitempty" validate:"required"`
+	Contacts  []malak.FundraiseContact          `json:"contacts,omitempty" validate:"required"`
+	Positions []malak.FundraiseContactPosition  `json:"positions,omitempty" validate:"required"`
+	APIStatus
+}

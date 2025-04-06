@@ -419,6 +419,42 @@ components:
         viewed_at:
           type: string
       type: object
+    malak.FundraiseContact:
+      properties:
+        contact_id:
+          type: string
+        created_at:
+          type: string
+        fundraising_pipeline_column_id:
+          type: string
+        fundraising_pipeline_id:
+          type: string
+        id:
+          type: string
+        reference:
+          type: string
+        updated_at:
+          type: string
+      type: object
+    malak.FundraiseContactPosition:
+      properties:
+        fundraising_pipeline_column_contact_id:
+          type: string
+        id:
+          type: string
+        order_index:
+          type: integer
+        reference:
+          type: string
+      type: object
+    malak.FundraisePipelineColumnType:
+      enum:
+      - normal
+      - closed
+      type: string
+      x-enum-varnames:
+      - FundraisePipelineColumnTypeNormal
+      - FundraisePipelineColumnTypeClosed
     malak.FundraisePipelineStage:
       enum:
       - family_and_friend
@@ -468,6 +504,27 @@ components:
         updated_at:
           type: string
         workspace_id:
+          type: string
+      type: object
+    malak.FundraisingPipelineColumn:
+      properties:
+        column_type:
+          $ref: '#/components/schemas/malak.FundraisePipelineColumnType'
+        created_at:
+          type: string
+        description:
+          type: string
+        fundraising_pipeline_id:
+          type: string
+        id:
+          type: string
+        investors_count:
+          type: integer
+        reference:
+          type: string
+        title:
+          type: string
+        updated_at:
           type: string
       type: object
     malak.Integration:
@@ -1261,6 +1318,31 @@ components:
       required:
       - link
       - message
+      type: object
+    server.fetchBoardResponse:
+      properties:
+        columns:
+          items:
+            $ref: '#/components/schemas/malak.FundraisingPipelineColumn'
+          type: array
+        contacts:
+          items:
+            $ref: '#/components/schemas/malak.FundraiseContact'
+          type: array
+        message:
+          type: string
+        pipeline:
+          $ref: '#/components/schemas/malak.FundraisingPipeline'
+        positions:
+          items:
+            $ref: '#/components/schemas/malak.FundraiseContactPosition'
+          type: array
+      required:
+      - columns
+      - contacts
+      - message
+      - pipeline
+      - positions
       type: object
     server.fetchContactListResponse:
       properties:
@@ -3422,6 +3504,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/server.APIStatus'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      tags:
+      - fundraising
+  /pipelines/{reference}/board:
+    get:
+      description: Fetch a fundraising board with its columns
+      parameters:
+      - description: Pipeline reference
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.fetchBoardResponse'
           description: OK
         "400":
           content:

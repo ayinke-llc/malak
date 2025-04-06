@@ -251,6 +251,28 @@ export interface MalakDeckViewerSession {
   viewed_at?: string;
 }
 
+export interface MalakFundraiseContact {
+  contact_id?: string;
+  created_at?: string;
+  fundraising_pipeline_column_id?: string;
+  fundraising_pipeline_id?: string;
+  id?: string;
+  reference?: string;
+  updated_at?: string;
+}
+
+export interface MalakFundraiseContactPosition {
+  fundraising_pipeline_column_contact_id?: string;
+  id?: string;
+  order_index?: number;
+  reference?: string;
+}
+
+export enum MalakFundraisePipelineColumnType {
+  FundraisePipelineColumnTypeNormal = "normal",
+  FundraisePipelineColumnTypeClosed = "closed",
+}
+
 export enum MalakFundraisePipelineStage {
   FundraisePipelineStageFamilyAndFriend = "family_and_friend",
   FundraisePipelineStagePreSeed = "pre_seed",
@@ -280,6 +302,18 @@ export interface MalakFundraisingPipeline {
   title?: string;
   updated_at?: string;
   workspace_id?: string;
+}
+
+export interface MalakFundraisingPipelineColumn {
+  column_type?: MalakFundraisePipelineColumnType;
+  created_at?: string;
+  description?: string;
+  fundraising_pipeline_id?: string;
+  id?: string;
+  investors_count?: number;
+  reference?: string;
+  title?: string;
+  updated_at?: string;
 }
 
 export interface MalakIntegration {
@@ -739,6 +773,14 @@ export interface ServerEditContactRequest {
 export interface ServerFetchBillingPortalResponse {
   link: string;
   message: string;
+}
+
+export interface ServerFetchBoardResponse {
+  columns: MalakFundraisingPipelineColumn[];
+  contacts: MalakFundraiseContact[];
+  message: string;
+  pipeline: MalakFundraisingPipeline;
+  positions: MalakFundraiseContactPosition[];
 }
 
 export interface ServerFetchContactListResponse {
@@ -1754,6 +1796,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Fetch a fundraising board with its columns
+     *
+     * @tags fundraising
+     * @name BoardDetail
+     * @request GET:/pipelines/{reference}/board
+     */
+    boardDetail: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerFetchBoardResponse, ServerAPIStatus>({
+        path: `/pipelines/${reference}/board`,
+        method: "GET",
         format: "json",
         ...params,
       }),

@@ -6,6 +6,12 @@ tasks:
     cmds:
       - go mod tidy
 
+  generate:all:
+    desc: Build all mocks and swagger client
+    cmds:
+      - go generate ./...
+      - cd web/ui && bun run swagger && cd -
+
   migrate:
     desc: Run database migrations
     cmds:
@@ -14,7 +20,7 @@ tasks:
   migrate:create:
     desc: Create a new migration file
     vars:
-      NAME: '{{.CLI_ARGS}}'
+      NAME: "{{.CLI_ARGS}}"
     cmds:
       - migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://malak:malak@localhost:9432/malak?sslmode=disable" create --ext sql {{.NAME}}
 
@@ -23,7 +29,7 @@ tasks:
     cmds:
       - migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://malak:malak@localhost:9432/malak?sslmode=disable" down 1
 
-  run:
+  run:http:
     desc: Run the HTTP server
     cmds:
       - go run cmd/*.go http
@@ -42,4 +48,3 @@ tasks:
     desc: Run all tests including integration tests
     cmds:
       - go test -v -tags integration ./...
-

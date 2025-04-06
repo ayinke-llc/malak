@@ -2,10 +2,15 @@ package malak
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
+)
+
+var (
+	ErrPipelineNotFound = errors.New("pipeline not found")
 )
 
 var DefaultFundraisingColumns = []struct {
@@ -174,8 +179,17 @@ type ListPipelineOptions struct {
 	ActiveOnly  bool
 }
 
+type FetchPipelineOptions struct {
+	WorkspaceID uuid.UUID
+	Reference   Reference
+}
+
 type FundraisingPipelineRepository interface {
 	Create(context.Context, *FundraisingPipeline, ...FundraisingPipelineColumn) error
 
 	List(context.Context, ListPipelineOptions) ([]FundraisingPipeline, int64, error)
+
+	Get(context.Context, FetchPipelineOptions) (*FundraisingPipeline, error)
+
+	Board(context.Context, *FundraisingPipeline) ([]FundraisingPipelineColumn, []FundraiseContact, []FundraiseContactPosition, error)
 }

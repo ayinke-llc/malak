@@ -10,6 +10,7 @@ import (
 	"github.com/ayinke-llc/hermes"
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
@@ -197,5 +198,60 @@ func (d *fundraisingHandler) list(
 				Page:    paginator.Page,
 			},
 		},
+	}, StatusSuccess
+}
+
+// @Description Fetch a fundraising board with its columns
+// @Tags fundraising
+// @Accept  json
+// @Produce  json
+// @Param reference path string true "Pipeline reference"
+// @Success 200 {object} fetchBoardResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /pipelines/{reference}/board [get]
+func (d *fundraisingHandler) board(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("fetching fundraising board")
+
+	reference := chi.URLParam(r, "reference")
+	if hermes.IsStringEmpty(reference) {
+		return newAPIStatus(http.StatusBadRequest, "please provide the pipeline reference"), StatusFailed
+	}
+
+	workspace := getWorkspaceFromContext(ctx)
+
+	pipeline, err := d.fundingRepo.Get(ctx, malak.FetchPipelineOptions{
+		Reference:   malak.Reference(reference),
+		WorkspaceID: workspace.ID,
+	})
+	if err != nil {
+		if errors.Is(err, malak.ErrPipelineNotFound) {
+			return newAPIStatus(http.StatusNotFound, "fundraising pipeline not found"), StatusFailed
+		}
+
+		logger.Error("could not fetch fundraising pipeline", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch fundraising pipeline"), StatusFailed
+	}
+
+	columns, contacts, positions, err := d.fundingRepo.Board(ctx, pipeline)
+	if err != nil {
+		logger.Error("could not fetch fundraising board", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch fundraising board"), StatusFailed
+	}
+
+	return fetchBoardResponse{
+		Pipeline:  hermes.DeRef(pipeline),
+		Columns:   columns,
+		Contacts:  contacts,
+		Positions: positions,
+		APIStatus: newAPIStatus(http.StatusOK, "fetched fundraising board"),
 	}, StatusSuccess
 }
