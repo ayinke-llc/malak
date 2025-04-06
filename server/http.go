@@ -251,6 +251,7 @@ func buildRoutes(
 		referenceGenerator: referenceGenerator,
 		cfg:                cfg,
 		fundingRepo:        fundingRepo,
+		contactRepo:        contactRepo,
 	}
 
 	router.Use(middleware.RequestID)
@@ -402,6 +403,9 @@ func buildRoutes(
 
 			r.Delete("/{reference}",
 				WrapMalakHTTPHandler(logger, pipelineHandler.closeBoard, cfg, "pipelines.board.close"))
+
+			r.Post("/{reference}/contacts",
+				WrapMalakHTTPHandler(logger, pipelineHandler.addContact, cfg, "pipelines.board.contacts.add"))
 		})
 
 		r.Route("/contacts", func(r chi.Router) {

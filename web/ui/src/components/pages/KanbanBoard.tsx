@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import {
   RiTimeLine, RiAddLine, RiSettings4Line, RiArchiveLine,
   RiInboxUnarchiveLine, RiInformationLine, RiCalendarLine, RiErrorWarningLine,
-  RiCloseLine
+  RiCloseLine, RiMailLine, RiPhoneLine, RiMoneyDollarCircleLine, RiFileCopyLine
 } from "@remixicon/react";
 import { InvestorDetailsDrawer } from "./InvestorDetailsDrawer";
 import { toast } from "sonner";
@@ -39,7 +39,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FETCH_FUNDRAISING_PIPELINE, CLOSE_FUNDRAISING_PIPELINE } from "@/lib/query-constants";
+import { FETCH_FUNDRAISING_PIPELINE, CLOSE_FUNDRAISING_PIPELINE, ADD_INVESTOR_TO_PIPELINE, SEARCH_CONTACTS } from "@/lib/query-constants";
 import client from "@/lib/client";
 import type { ServerFetchBoardResponse } from "@/client/Api";
 import {
@@ -51,6 +51,10 @@ import {
 } from "@/components/ui/dialog";
 import type { AxiosError } from "axios";
 import type { ServerAPIStatus } from "@/client/Api";
+import { fullName } from "@/lib/custom";
+import type { MalakContact } from "@/client/Api";
+import type { MalakFundraiseContactDealDetails } from "@/client/Api";
+import CopyToClipboard from 'react-copy-to-clipboard';
 
 interface KanbanBoardProps {
   slug: string;
@@ -110,6 +114,33 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
     },
   });
 
+  const addInvestorMutation = useMutation({
+    mutationKey: [ADD_INVESTOR_TO_PIPELINE, slug],
+    mutationFn: async (investor: SearchResult & {
+      checkSize: string;
+      initialContactDate: string;
+      isLeadInvestor: boolean;
+      rating: number;
+    }) => {
+      const response = await client.pipelines.contactsCreate(slug, {
+        contact_reference: investor.reference,
+        check_size: Number(investor.checkSize) * 100, // Convert to cents
+        initial_contact: Math.floor(new Date(investor.initialContactDate).getTime() / 1000),
+        can_lead_round: investor.isLeadInvestor,
+        rating: investor.rating
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [FETCH_FUNDRAISING_PIPELINE, slug] });
+      toast.success("Investor added successfully");
+      setIsAddInvestorOpen(false);
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err.response?.data.message ?? "Failed to add investor");
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -142,41 +173,84 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
 
   const { pipeline = {}, columns = [], contacts = [], positions = [] } = boardData;
 
+  // Get all contact IDs from all contacts in the board
+  const existingContactIds = contacts.map(contact => contact.contact_id || "").filter(Boolean);
+  console.log('All board contacts:', contacts);
+  console.log('Extracted contact IDs:', existingContactIds);
+
   // Transform the data into the format expected by the board
   const board: Board = {
     isArchived: pipeline.is_closed || false,
-    columns: columns.reduce<Board["columns"]>((acc, column) => {
-      if (column?.reference) {
-        acc[column.reference] = {
-          id: column.id || column.reference,
-          title: column.title || "",
-          description: column.description || "",
-          cards: (contacts || [])
-            .filter(contact => contact && contact.fundraising_pipeline_column_id === column.id)
-            .map(contact => ({
-              id: contact.reference || "",
-              title: contact.contact_id || "", // TODO: Get contact details
-              amount: "TBD",
-              stage: "Initial Contact",
-              dueDate: new Date().toISOString().split('T')[0],
-              contact: {
-                name: contact.contact_id || "Contact Name", // Using contact_id as fallback for name
-                image: "", // No image property available in the contact type
-              },
-              roundDetails: {
-                raising: "TBD",
-                type: "TBD",
-                ownership: "TBD"
-              },
-              checkSize: "TBD",
-              initialContactDate: contact.created_at || new Date().toISOString(),
-              isLeadInvestor: false,
-              rating: 0
-            }))
-        };
-      }
-      return acc;
-    }, {})
+    columns: columns
+      .sort((a, b) => {
+        // Hardcoded column order based on title
+        const columnOrder = [
+          "Backlog",
+          "Contacted",
+          "Partner Meeting",
+          "Passed",
+          "Termsheet/SAFE",
+          "Closed"
+        ];
+        
+        const aIndex = columnOrder.indexOf(a.title || "");
+        const bIndex = columnOrder.indexOf(b.title || "");
+        
+        // If both columns are in our order list, sort by their position
+        if (aIndex !== -1 && bIndex !== -1) {
+          return aIndex - bIndex;
+        }
+        
+        // If only one column is in our order list, prioritize it
+        if (aIndex !== -1) return -1;
+        if (bIndex !== -1) return 1;
+        
+        // For any columns not in our list, maintain their original order
+        return 0;
+      })
+      .reduce<Board["columns"]>((acc, column) => {
+        if (column?.reference) {
+          acc[column.reference] = {
+            id: column.id || column.reference,
+            title: column.title || "",
+            description: column.description || "",
+            cards: (contacts || [])
+              .filter(contact => contact && contact.fundraising_pipeline_column_id === column.id)
+              .map(contact => {
+                // Find the position for this contact
+                const position = positions.find(p => p.fundraising_pipeline_column_contact_id === contact.id);
+                const deal = contact.deal_details;
+                const contactDetails = contact.contact;
+                
+                return {
+                  id: contact.reference || "",
+                  title: contactDetails ? fullName(contactDetails) : "",
+                  amount: deal?.check_size ? `$${(deal.check_size / 100).toLocaleString()}` : "",
+                  stage: column?.title || "",
+                  dueDate: pipeline.expected_close_date || "",
+                  contact: {
+                    name: contactDetails ? fullName(contactDetails) : "",
+                    company: contactDetails?.company || "",
+                    email: contactDetails?.email || "",
+                    phone: contactDetails?.phone || "",
+                  },
+                  roundDetails: {
+                    raising: pipeline.target_amount ? `$${(pipeline.target_amount / 100).toLocaleString()}` : "",
+                    type: pipeline.stage || "",
+                    ownership: "" // This data isn't available in the current API
+                  },
+                  checkSize: deal?.check_size ? `$${(deal.check_size / 100).toLocaleString()}` : "",
+                  initialContactDate: deal?.initial_contact || contact.created_at || "",
+                  isLeadInvestor: deal?.can_lead_round || false,
+                  rating: deal?.rating || 0,
+                  originalContact: contactDetails,
+                  originalDeal: deal
+                };
+              })
+          };
+        }
+        return acc;
+      }, {})
   };
 
   const handleDragEnd = (result: DropResult) => {
@@ -252,45 +326,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
       return;
     }
 
-    // Ensure backlog column exists
-    if (!board.columns.backlog) {
-      toast.error("Cannot add investor: Backlog column not found");
-      return;
-    }
-
-    const newCard: InvestorCard = {
-      id: investor.id || crypto.randomUUID(),
-      title: investor.company || "Unnamed Company",
-      amount: "TBD",
-      stage: "Initial Contact",
-      dueDate: new Date().toISOString().split('T')[0],
-      contact: {
-        name: investor.name || "Unknown Contact",
-        image: investor.image || "",
-      },
-      roundDetails: {
-        raising: "TBD",
-        type: "TBD",
-        ownership: "TBD"
-      },
-      checkSize: investor.checkSize || "TBD",
-      initialContactDate: investor.initialContactDate || new Date().toISOString(),
-      isLeadInvestor: investor.isLeadInvestor || false,
-      rating: investor.rating || 0
-    };
-
-    const updatedBoard = {
-      ...board,
-      columns: {
-        ...board.columns,
-        backlog: {
-          ...board.columns.backlog,
-          cards: [...(board.columns.backlog.cards || []), newCard],
-        },
-      }
-    };
-
-    updateBoardMutation.mutate(updatedBoard);
+    addInvestorMutation.mutate(investor);
   };
 
   return (
@@ -424,37 +460,78 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                                   }
                                 }}
                               >
-                                <CardContent className="p-3">
-                                  <div className="flex items-center gap-3">
-                                    <Avatar className="h-8 w-8">
-                                      <AvatarImage
-                                        src={card?.contact?.image || ""}
-                                        alt={card?.contact?.name || ""}
-                                      />
-                                      <AvatarFallback>
-                                        {(card?.contact?.name || "")
-                                          .split(" ")
-                                          .map((n) => n?.[0] || "")
-                                          .join("")}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div className="min-w-0 flex-1">
-                                      <h4 className="truncate font-medium text-sm">
-                                        {card?.title || "Untitled"}
-                                      </h4>
-                                      <p className="truncate text-xs text-muted-foreground">
-                                        {card?.contact?.name || "No contact name"}
-                                      </p>
-                                      <div className="mt-1 flex items-center gap-2">
-                                        <Badge variant="secondary" className="text-xs">
-                                          {card?.amount || "TBD"}
-                                        </Badge>
-                                        <div className="flex items-center text-xs text-muted-foreground">
-                                          <RiTimeLine className="mr-1 h-3 w-3" />
-                                          {card?.dueDate || "No date"}
+                                <CardContent className="p-3 space-y-3">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <Avatar className="h-8 w-8">
+                                          <AvatarImage src="" />
+                                          <AvatarFallback className="text-xs">
+                                            {card?.title?.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                          </AvatarFallback>
+                                        </Avatar>
+                                        <div className="space-y-1 min-w-0">
+                                          <h4 className="font-semibold text-sm truncate">
+                                            {card?.title}
+                                          </h4>
+                                          {card?.contact?.company && (
+                                            <div className="flex items-center gap-1.5">
+                                              <p className="text-xs font-medium text-muted-foreground truncate">
+                                                {card.contact.company}
+                                              </p>
+                                              {card?.contact?.title && (
+                                                <span className="text-xs text-muted-foreground/60">
+                                                  • {card.contact.title}
+                                                </span>
+                                              )}
+                                            </div>
+                                          )}
                                         </div>
                                       </div>
                                     </div>
+                                  </div>
+                                  
+                                  <div className="space-y-1.5">
+                                    {card?.contact?.email && (
+                                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground group">
+                                        <RiMailLine className="h-3.5 w-3.5 shrink-0" />
+                                        <span className="truncate">{card.contact.email}</span>
+                                        <CopyToClipboard 
+                                          text={card.contact.email}
+                                          onCopy={() => toast.success("Email copied to clipboard")}
+                                        >
+                                          <button className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <RiFileCopyLine className="h-3.5 w-3.5 hover:text-primary" />
+                                          </button>
+                                        </CopyToClipboard>
+                                      </div>
+                                    )}
+                                    {card?.contact?.phone && (
+                                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <RiPhoneLine className="h-3.5 w-3.5 shrink-0" />
+                                        <span className="truncate">{card.contact.phone}</span>
+                                      </div>
+                                    )}
+                                    {card?.checkSize && (
+                                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <RiMoneyDollarCircleLine className="h-3.5 w-3.5 shrink-0" />
+                                        <span className="truncate">Check size: {card.checkSize}</span>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+                                    {card?.initialContactDate && (
+                                      <div className="flex items-center gap-1">
+                                        <RiCalendarLine className="h-3.5 w-3.5" />
+                                        {new Date(card.initialContactDate).toLocaleDateString()}
+                                      </div>
+                                    )}
+                                    {card?.isLeadInvestor && (
+                                      <Badge variant="outline" className="text-[10px] h-5 px-2 border-primary/20">
+                                        Lead
+                                      </Badge>
+                                    )}
                                   </div>
                                 </CardContent>
                               </Card>
@@ -477,12 +554,16 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
         open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
         isArchived={board.isArchived}
+        contact={selectedInvestor?.originalContact}
+        deal={selectedInvestor?.originalDeal}
       />
 
       <AddInvestorDialogComponent
         open={isAddInvestorOpen}
         onOpenChange={setIsAddInvestorOpen}
         onAddInvestor={handleAddInvestor}
+        isLoading={addInvestorMutation.isPending}
+        existingContacts={existingContactIds}
       />
 
       <ShareSettingsDialog

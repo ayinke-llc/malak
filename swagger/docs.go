@@ -2322,6 +2322,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/pipelines/{reference}/contacts": {
+            "post": {
+                "description": "Add a contact to a fundraising board",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fundraising"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pipeline reference",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "contact request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.addContactRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/public/dashboards/{reference}": {
             "get": {
                 "description": "fetch public dashboard and charting data points",
@@ -4835,11 +4899,17 @@ const docTemplate = `{
         "malak.FundraiseContact": {
             "type": "object",
             "properties": {
+                "contact": {
+                    "$ref": "#/definitions/malak.Contact"
+                },
                 "contact_id": {
                     "type": "string"
                 },
                 "created_at": {
                     "type": "string"
+                },
+                "deal_details": {
+                    "$ref": "#/definitions/malak.FundraiseContactDealDetails"
                 },
                 "fundraising_pipeline_column_id": {
                     "type": "string"
@@ -4849,6 +4919,38 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.FundraiseContactDealDetails": {
+            "type": "object",
+            "properties": {
+                "can_lead_round": {
+                    "type": "boolean"
+                },
+                "check_size": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "fundraising_pipeline_column_contact_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "initial_contact": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
                 },
                 "reference": {
                     "type": "string"
@@ -5809,6 +5911,34 @@ const docTemplate = `{
             "properties": {
                 "chart_reference": {
                     "type": "string"
+                }
+            }
+        },
+        "server.addContactRequest": {
+            "type": "object",
+            "required": [
+                "check_size",
+                "contact_reference",
+                "initial_contact",
+                "rating"
+            ],
+            "properties": {
+                "can_lead_round": {
+                    "type": "boolean"
+                },
+                "check_size": {
+                    "type": "integer"
+                },
+                "contact_reference": {
+                    "type": "string"
+                },
+                "initial_contact": {
+                    "type": "integer"
+                },
+                "rating": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 0
                 }
             }
         },

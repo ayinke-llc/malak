@@ -252,11 +252,25 @@ export interface MalakDeckViewerSession {
 }
 
 export interface MalakFundraiseContact {
+  contact?: MalakContact;
   contact_id?: string;
   created_at?: string;
+  deal_details?: MalakFundraiseContactDealDetails;
   fundraising_pipeline_column_id?: string;
   fundraising_pipeline_id?: string;
   id?: string;
+  reference?: string;
+  updated_at?: string;
+}
+
+export interface MalakFundraiseContactDealDetails {
+  can_lead_round?: boolean;
+  check_size?: number;
+  created_at?: string;
+  fundraising_pipeline_column_contact_id?: string;
+  id?: string;
+  initial_contact?: string;
+  rating?: number;
   reference?: string;
   updated_at?: string;
 }
@@ -659,6 +673,18 @@ export interface ServerAPIStatus {
 
 export interface ServerAddChartToDashboardRequest {
   chart_reference: string;
+}
+
+export interface ServerAddContactRequest {
+  can_lead_round?: boolean;
+  check_size: number;
+  contact_reference: string;
+  initial_contact: number;
+  /**
+   * @min 0
+   * @max 5
+   */
+  rating: number;
 }
 
 export interface ServerAddContactToListRequest {
@@ -1848,6 +1874,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerFetchBoardResponse, ServerAPIStatus>({
         path: `/pipelines/${reference}/board`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Add a contact to a fundraising board
+     *
+     * @tags fundraising
+     * @name ContactsCreate
+     * @request POST:/pipelines/{reference}/contacts
+     */
+    contactsCreate: (reference: string, data: ServerAddContactRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/pipelines/${reference}/contacts`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

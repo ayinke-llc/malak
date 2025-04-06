@@ -122,6 +122,9 @@ type FundraiseContact struct {
 	FundraisingPipelineID       uuid.UUID `json:"fundraising_pipeline_id,omitempty"`
 	FundraisingPipelineColumnID uuid.UUID `json:"fundraising_pipeline_column_id,omitempty"`
 
+	Contact     *Contact                     `bun:"rel:belongs-to,join:contact_id=id" json:"contact,omitempty"`
+	DealDetails *FundraiseContactDealDetails `bun:"rel:has-one,join:id=fundraising_pipeline_column_contact_id" json:"deal_details,omitempty"`
+
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`
 	DeletedAt *time.Time `bun:",soft_delete,nullzero" json:"-,omitempty" bson:"deleted_at"`
@@ -136,6 +139,7 @@ type FundraiseContactDealDetails struct {
 	CheckSize                          int64     `json:"check_size,omitempty"`
 	CanLeadRound                       bool      `json:"can_lead_round,omitempty"`
 	Rating                             int64     `json:"rating,omitempty"`
+	InitialContact                     time.Time `json:"initial_contact,omitempty"`
 
 	CreatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"created_at,omitempty" bson:"created_at"`
 	UpdatedAt time.Time  `bun:",nullzero,notnull,default:current_timestamp" json:"updated_at,omitempty" bson:"updated_at"`
@@ -187,10 +191,25 @@ type FetchPipelineOptions struct {
 	Reference   Reference
 }
 
+type AddContactToBoardOptions struct {
+	Column             *FundraisingPipelineColumn
+	Contact            *Contact
+	ReferenceGenerator ReferenceGeneratorOperation
+	Rating             int
+	CanLeadRound       bool
+	InitialContact     time.Time
+	CheckSize          int64
+}
+
 type FundraisingPipelineRepository interface {
 	Create(context.Context, *FundraisingPipeline, ...FundraisingPipelineColumn) error
 	List(context.Context, ListPipelineOptions) ([]FundraisingPipeline, int64, error)
 	Get(context.Context, FetchPipelineOptions) (*FundraisingPipeline, error)
 	Board(context.Context, *FundraisingPipeline) ([]FundraisingPipelineColumn, []FundraiseContact, []FundraiseContactPosition, error)
 	CloseBoard(context.Context, *FundraisingPipeline) error
+
+	// This is just the first inserted column for now. keeping it simple
+	DefaultColumn(context.Context, *FundraisingPipeline) (FundraisingPipelineColumn, error)
+
+	AddContactToBoard(context.Context, *AddContactToBoardOptions) error
 }

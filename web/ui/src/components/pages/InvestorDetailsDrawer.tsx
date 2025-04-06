@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+import type { MalakContact, MalakFundraiseContactDealDetails } from "@/client/Api";
+import { fullName } from "@/lib/custom";
 import {
   Sheet,
   SheetContent,
@@ -31,44 +33,14 @@ import {
   RiMailLine,
   RiPhoneLine,
   RiCalendarLine,
-  RiFileTextLine,
-  RiMoneyDollarCircleLine,
-  RiTeamLine,
-  RiCloseLine,
-  RiTimeLine,
-  RiAddLine,
-  RiArrowRightLine,
-  RiEditLine,
-  RiDeleteBinLine,
-  RiDownloadLine,
-  RiUploadLine,
-  RiFile3Line,
-  RiFileExcelLine,
-  RiImageLine,
-  RiMoreLine,
-  RiUploadCloud2Line,
+  RiFileTextLine, RiCloseLine, RiAddLine, RiUploadLine, RiUploadCloud2Line,
   RiStarFill,
   RiStarLine,
   RiArchiveFill,
+  RiTeamLine,
+  RiArrowRightSLine
 } from "@remixicon/react";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
 import {
   Tooltip,
   TooltipContent,
@@ -78,47 +50,16 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { NumericFormat } from "react-number-format";
-
-interface Contact {
-  name: string;
-  image: string;
-}
-
-interface Card {
-  id: string;
-  title: string;
-  amount: string;
-  stage: string;
-  dueDate: string;
-  contact: Contact;
-  checkSize: string;
-  initialContactDate: string;
-  isLeadInvestor: boolean;
-  rating: number;
-}
-
-interface Note {
-  id: string;
-  title: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface Activity {
-  id: string;
-  type: 'email' | 'meeting' | 'note';
-  title: string;
-  description: string;
-  timestamp: string;
-  content?: string;
-}
+import { format, fromUnixTime, isValid, parseISO } from "date-fns";
+import type { Card, Activity, Note } from "@/components/investor-pipeline/types";
 
 interface InvestorDetailsDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   investor: Card | null;
   isArchived?: boolean;
+  contact?: MalakContact;
+  deal?: MalakFundraiseContactDealDetails;
 }
 
 const TOTAL_ACTIVITIES_LIMIT = 250;
@@ -128,23 +69,23 @@ const ACTIVITIES_PER_PAGE = 25;
 const fetchActivities = async (page: number, investorId: string): Promise<Activity[]> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 1000));
-  
+
   const startIndex = page * ACTIVITIES_PER_PAGE;
   // If we've reached the limit, return empty array
   if (startIndex >= TOTAL_ACTIVITIES_LIMIT) {
     return [];
   }
-  
+
   // Calculate how many items to generate (handle last page)
   const itemsToGenerate = Math.min(
     ACTIVITIES_PER_PAGE,
     TOTAL_ACTIVITIES_LIMIT - startIndex
   );
-  
+
   // Generate activities
   return Array.from({ length: itemsToGenerate }, (_, i) => ({
     id: `${page}-${i}-${Math.random()}`,
-    type: ['email', 'meeting', 'note'][Math.floor(Math.random() * 3)] as Activity['type'],
+    type: ['email', 'meeting', 'document', 'team', 'stage_change'][Math.floor(Math.random() * 5)] as Activity['type'],
     title: `Activity ${startIndex + i + 1}`,
     description: `Description for activity ${startIndex + i + 1}`,
     timestamp: new Date(Date.now() - (startIndex + i) * 24 * 60 * 60 * 1000).toISOString(),
@@ -170,12 +111,12 @@ function ActivitySkeleton() {
   );
 }
 
-function AddActivityDialog({ 
-  open, 
+function AddActivityDialog({
+  open,
   onOpenChange,
-  onSubmit 
-}: { 
-  open: boolean; 
+  onSubmit
+}: {
+  open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (activity: Partial<Activity>) => void;
 }) {
@@ -217,57 +158,47 @@ function AddActivityDialog({
               <SelectContent>
                 <SelectItem value="email">Email</SelectItem>
                 <SelectItem value="meeting">Meeting</SelectItem>
-                <SelectItem value="note">Note</SelectItem>
+                <SelectItem value="document">Document</SelectItem>
+                <SelectItem value="team">Team</SelectItem>
+                <SelectItem value="stage_change">Stage Change</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="space-y-2">
             <label className="text-sm font-medium">Title</label>
             <Input
               value={activity.title}
               onChange={(e) => setActivity({ ...activity, title: e.target.value })}
-              placeholder={activity.type === 'note' ? 'Note title' : 'Activity title'}
+              placeholder="Activity title"
               required
             />
           </div>
-          
+
           <div className="space-y-2">
-            <label className="text-sm font-medium">{activity.type === 'note' ? 'Note Content' : 'Description'}</label>
-            {activity.type === 'note' ? (
-              <Textarea
-                value={activity.content}
-                onChange={(e) => setActivity({ ...activity, content: e.target.value, description: e.target.value.slice(0, 100) + '...' })}
-                placeholder="Write your note here"
-                className="min-h-[200px]"
-                required
-              />
-            ) : (
-              <Input
-                value={activity.description}
-                onChange={(e) => setActivity({ ...activity, description: e.target.value })}
-                placeholder="Brief description"
-                required
-              />
-            )}
+            <label className="text-sm font-medium">Description</label>
+            <Input
+              value={activity.description}
+              onChange={(e) => setActivity({ ...activity, description: e.target.value })}
+              placeholder="Brief description"
+              required
+            />
           </div>
-          
-          {activity.type !== 'note' && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Content (optional)</label>
-              <Textarea
-                value={activity.content}
-                onChange={(e) => setActivity({ ...activity, content: e.target.value })}
-                placeholder="Additional details or content"
-              />
-            </div>
-          )}
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Content (optional)</label>
+            <Textarea
+              value={activity.content}
+              onChange={(e) => setActivity({ ...activity, content: e.target.value })}
+              placeholder="Additional details or content"
+            />
+          </div>
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">Add {activity.type === 'note' ? 'Note' : 'Activity'}</Button>
+            <Button type="submit">Add Activity</Button>
           </div>
         </form>
       </DialogContent>
@@ -275,13 +206,13 @@ function AddActivityDialog({
   );
 }
 
-function NoteDialog({ 
-  open, 
+function NoteDialog({
+  open,
   onOpenChange,
   onSubmit,
   initialNote
-}: { 
-  open: boolean; 
+}: {
+  open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (note: Partial<Note>) => void;
   initialNote?: Note;
@@ -319,7 +250,7 @@ function NoteDialog({
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <label className="text-sm font-medium">Content</label>
             <Textarea
@@ -347,181 +278,18 @@ function formatFileSize(bytes: number): string {
   const units = ['B', 'KB', 'MB', 'GB'];
   let size = bytes;
   let unitIndex = 0;
-  
+
   while (size >= 1024 && unitIndex < units.length - 1) {
     size /= 1024;
     unitIndex++;
   }
-  
+
   return `${size.toFixed(1)} ${units[unitIndex]}`;
 }
 
 function truncateText(text: string, maxLength: number) {
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength - 3) + '...';
-}
-
-function UploadDocumentModal({ 
-  onUpload 
-}: { 
-  onUpload: (document: Document) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [title, setTitle] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      // Set the title to the file name without the extension
-      const fileName = file.name.replace(/\.[^/.]+$/, "");
-      setTitle(fileName);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      const fileName = file.name.replace(/\.[^/.]+$/, "");
-      setTitle(fileName);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
-    e.preventDefault();
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedFile) return;
-
-    const newDocument: Document = {
-      id: Math.random().toString(36).substring(7),
-      name: title || selectedFile.name,
-      type: selectedFile.type.includes('pdf') ? 'pdf' 
-        : selectedFile.type.includes('excel') || selectedFile.type.includes('spreadsheet') ? 'excel'
-        : selectedFile.type.includes('image') ? 'image'
-        : 'other',
-      size: selectedFile.size,
-      uploadedAt: new Date(),
-      uploadedBy: 'Current User'
-    };
-
-    onUpload(newDocument);
-    setOpen(false);
-    setSelectedFile(null);
-    setTitle('');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-2"
-        >
-          <RiUploadLine className="w-4 h-4" />
-          Upload Document
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Upload Document</DialogTitle>
-          <DialogDescription>
-            Upload a document to attach to this investor.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="title">Document Title</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter document title"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="document">Document File</Label>
-            <div className="flex items-center justify-center w-full">
-              <label
-                htmlFor="document"
-                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer border-input bg-background/50 hover:bg-hover"
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-              >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <RiUploadCloud2Line className="w-8 h-8 mb-3 text-muted-foreground" />
-                  {selectedFile ? (
-                    <div className="text-center">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <p className="mb-2 text-sm text-muted-foreground">
-                              Selected: <span className="font-medium text-foreground">{truncateText(selectedFile.name, 40)}</span>
-                            </p>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{selectedFile.name}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      <p className="text-xs text-muted-foreground">Click or drag to change file</p>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="mb-2 text-sm text-muted-foreground">
-                        <span className="font-semibold">Click to upload</span> or drag and drop
-                      </p>
-                      <p className="text-xs text-muted-foreground">PDF, Excel, or image files</p>
-                    </>
-                  )}
-                </div>
-                <Input
-                  ref={fileInputRef}
-                  id="document"
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.xlsx,.xls,.doc,.docx,.png,.jpg,.jpeg"
-                  onChange={handleFileChange}
-                />
-              </label>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                setOpen(false);
-                setSelectedFile(null);
-                setTitle('');
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={!selectedFile || !title}
-            >
-              Upload
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
 }
 
 function DocumentsTab({ isReadOnly }: { isReadOnly: boolean }) {
@@ -538,13 +306,13 @@ function DocumentsTab({ isReadOnly }: { isReadOnly: boolean }) {
   );
 }
 
-function EditInvestorDialog({ 
-  open, 
+function EditInvestorDialog({
+  open,
   onOpenChange,
   investor,
   onSave
-}: { 
-  open: boolean; 
+}: {
+  open: boolean;
   onOpenChange: (open: boolean) => void;
   investor: Card | null;
   onSave: (updatedInvestor: Card) => void;
@@ -612,7 +380,7 @@ function EditInvestorDialog({
               className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label>Initial Contact Date</Label>
             <Input
@@ -621,7 +389,7 @@ function EditInvestorDialog({
               onChange={(e) => setEditedInvestor({ ...editedInvestor, initialContactDate: e.target.value })}
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label>Lead Investor</Label>
             <div className="flex items-center space-x-2">
@@ -634,7 +402,7 @@ function EditInvestorDialog({
               </span>
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label>Rating</Label>
             <div className="flex items-center gap-1">
@@ -674,17 +442,34 @@ function EditInvestorDialog({
   );
 }
 
+// Add a safe date formatting helper
+const formatSafeDate = (dateValue: string | number | undefined | null, formatStr: string = 'MMM d, yyyy') => {
+  if (!dateValue) return "Not set";
+  try {
+    // Handle different date formats
+    const date = typeof dateValue === 'number' 
+      ? fromUnixTime(dateValue) // Unix timestamp in seconds
+      : parseISO(dateValue); // ISO string
+    
+    return isValid(date) ? format(date, formatStr) : "Invalid date";
+  } catch (e) {
+    return "Invalid date";
+  }
+};
+
 export function InvestorDetailsDrawer({
   open,
   onOpenChange,
   investor,
   isArchived = false,
+  contact,
+  deal
 }: InvestorDetailsDrawerProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isAddingActivity, setIsAddingActivity] = useState(false);
   const [isEditingInvestor, setIsEditingInvestor] = useState(false);
-  
+
   // Infinite scroll states
   const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -693,7 +478,7 @@ export function InvestorDetailsDrawer({
 
   const loadMoreActivities = async () => {
     if (!investor || isLoading || !hasMore) return;
-    
+
     setIsLoading(true);
     try {
       const newActivities = await fetchActivities(page, investor.id);
@@ -745,7 +530,7 @@ export function InvestorDetailsDrawer({
       title: newActivity.title || '',
       description: newActivity.description || ''
     };
-    
+
     setActivities(prev => [activity, ...prev]);
   };
 
@@ -755,8 +540,12 @@ export function InvestorDetailsDrawer({
         return <RiMailLine className="w-4 h-4 text-primary" />;
       case 'meeting':
         return <RiCalendarLine className="w-4 h-4 text-primary" />;
-      case 'note':
+      case 'document':
         return <RiFileTextLine className="w-4 h-4 text-primary" />;
+      case 'team':
+        return <RiTeamLine className="w-4 h-4 text-primary" />;
+      case 'stage_change':
+        return <RiArrowRightSLine className="w-4 h-4 text-primary" />;
       default:
         return <RiMailLine className="w-4 h-4 text-primary" />;
     }
@@ -767,12 +556,15 @@ export function InvestorDetailsDrawer({
     onOpenChange(false);
   };
 
+  // Remove console logs and unused code
+  const existingContactIds = [];
+
   if (!investor) return null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent 
-        className="w-full max-w-[90%] lg:max-w-[75%] 2xl:max-w-[1400px] overflow-y-auto" 
+      <SheetContent
+        className="w-full max-w-[90%] lg:max-w-[75%] 2xl:max-w-[1400px] overflow-y-auto"
       >
         <div className="h-full flex flex-col">
           <SheetHeader className="flex-none">
@@ -792,9 +584,6 @@ export function InvestorDetailsDrawer({
             <div className="flex items-center justify-between">
               <div className="space-x-2">
                 <Badge variant="outline">{investor.stage}</Badge>
-                <Badge variant="secondary" className="bg-primary/10 text-primary">
-                  ${investor.amount}
-                </Badge>
                 {isArchived && (
                   <Badge variant="outline" className="text-muted-foreground">
                     <RiArchiveFill className="w-3 h-3 mr-1 inline" />
@@ -818,33 +607,25 @@ export function InvestorDetailsDrawer({
                   <div className="bg-card rounded-lg p-4 border">
                     <h3 className="font-medium mb-3">Contact Information</h3>
                     <div className="space-y-3">
-                      <div className="flex items-center">
-                        <Avatar className="w-10 h-10">
-                          <AvatarImage
-                            src={investor.contact.image}
-                            alt={investor.contact.name}
-                          />
-                          <AvatarFallback>
-                            {investor.contact.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="ml-3">
-                          <p className="font-medium">{investor.contact.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Primary Contact
-                          </p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-semibold truncate">
+                            {contact ? fullName(contact) : investor?.contact?.name}
+                          </h3>
+                          {contact?.company ? (
+                            <p className="text-sm text-muted-foreground">
+                              {contact.company}
+                            </p>
+                          ) : investor?.contact?.company ? (
+                            <p className="text-sm text-muted-foreground">
+                              {investor.contact.company}
+                            </p>
+                          ) : (
+                            <p className="text-sm text-muted-foreground italic">
+                              No company
+                            </p>
+                          )}
                         </div>
-                      </div>
-                      <div className="flex items-center text-sm">
-                        <RiMailLine className="w-4 h-4 mr-2" />
-                        <span>contact@example.com</span>
-                      </div>
-                      <div className="flex items-center text-sm">
-                        <RiPhoneLine className="w-4 h-4 mr-2" />
-                        <span>+1 (555) 123-4567</span>
                       </div>
                     </div>
                   </div>
@@ -853,41 +634,44 @@ export function InvestorDetailsDrawer({
                     <h3 className="font-medium mb-3">Deal Information</h3>
                     <div className="space-y-3 text-sm">
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Deal Size</span>
-                        <span className="font-medium">${investor.amount}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Check Size</span>
-                        <span className="font-medium">{investor.checkSize}</span>
+                        <span className="text-muted-foreground">Expected Check Size</span>
+                        <span className="font-medium">
+                          {deal?.check_size !== undefined
+                            ? `$${(Number(deal.check_size) / 100).toLocaleString()}`
+                            : investor?.checkSize || "TBD"}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Initial Contact</span>
-                        <span className="font-medium">{investor.initialContactDate}</span>
+                        <span className="font-medium">
+                          {formatSafeDate(deal?.initial_contact) || formatSafeDate(investor?.initialContactDate)}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Lead Investor</span>
-                        <Badge variant={investor.isLeadInvestor ? "default" : "outline"}>
-                          {investor.isLeadInvestor ? "Yes" : "No"}
+                        <Badge variant={deal?.can_lead_round || investor?.isLeadInvestor ? "default" : "outline"}>
+                          {deal?.can_lead_round || investor?.isLeadInvestor ? "Yes" : "No"}
                         </Badge>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Rating</span>
                         <div className="flex items-center">
                           {[1, 2, 3, 4, 5].map((star) => (
-                            <RiStarLine
-                              key={star}
-                              className={`w-4 h-4 ${star <= (investor.rating || 0) ? 'text-yellow-400' : 'text-muted-foreground'}`}
-                            />
+                            star <= (deal?.rating || investor?.rating || 0) 
+                              ? <RiStarFill key={star} className="w-4 h-4 text-yellow-400" />
+                              : <RiStarLine key={star} className="w-4 h-4 text-muted-foreground" />
                           ))}
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Stage</span>
-                        <Badge variant="outline">{investor.stage}</Badge>
+                        <Badge variant="outline">{investor?.stage || "Not set"}</Badge>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Due Date</span>
-                        <span className="font-medium">{investor.dueDate}</span>
+                        <span className="font-medium">
+                          {formatSafeDate(investor?.dueDate)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -895,16 +679,16 @@ export function InvestorDetailsDrawer({
                   <div className="bg-card rounded-lg p-4 border">
                     <h3 className="font-medium mb-3">Suggested Actions</h3>
                     <div className="space-y-2">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full justify-start"
                         onClick={() => setActiveTab("activity")}
                       >
                         <RiCalendarLine className="w-4 h-4 mr-2" />
                         Add Activity or Note
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full justify-start"
                         onClick={() => setActiveTab("documents")}
                       >
@@ -923,7 +707,7 @@ export function InvestorDetailsDrawer({
                       Showing {activities.length} of {activities.length >= TOTAL_ACTIVITIES_LIMIT ? 'maximum ' : ''}{TOTAL_ACTIVITIES_LIMIT} activities
                     </div>
                     {!isArchived && (
-                      <Button 
+                      <Button
                         onClick={() => setIsAddingActivity(true)}
                         size="sm"
                         className="gap-2"
@@ -933,7 +717,7 @@ export function InvestorDetailsDrawer({
                       </Button>
                     )}
                   </div>
-                  
+
                   <div className="relative space-y-6 pl-8 before:absolute before:left-3 before:top-2 before:bottom-0 before:w-[2px] before:bg-border">
                     {activities.map((activity) => (
                       <div key={activity.id} className="relative">
@@ -944,7 +728,7 @@ export function InvestorDetailsDrawer({
                           <div className="flex items-center justify-between mb-2">
                             <h4 className="font-medium">{activity.title}</h4>
                             <span className="text-xs text-muted-foreground">
-                              {new Date(activity.timestamp).toLocaleString()}
+                              {formatSafeDate(activity.timestamp, 'MMM d, yyyy h:mm a')}
                             </span>
                           </div>
                           <p className="text-sm text-muted-foreground mb-3">
@@ -974,7 +758,7 @@ export function InvestorDetailsDrawer({
                     {/* End of list message */}
                     {!hasMore && activities.length > 0 && (
                       <div className="text-center text-sm text-muted-foreground py-4">
-                        {activities.length >= TOTAL_ACTIVITIES_LIMIT 
+                        {activities.length >= TOTAL_ACTIVITIES_LIMIT
                           ? `Maximum limit of ${TOTAL_ACTIVITIES_LIMIT} activities reached`
                           : "No more activities to load"}
                       </div>

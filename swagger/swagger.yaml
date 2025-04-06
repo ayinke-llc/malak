@@ -421,16 +421,41 @@ components:
       type: object
     malak.FundraiseContact:
       properties:
+        contact:
+          $ref: '#/components/schemas/malak.Contact'
         contact_id:
           type: string
         created_at:
           type: string
+        deal_details:
+          $ref: '#/components/schemas/malak.FundraiseContactDealDetails'
         fundraising_pipeline_column_id:
           type: string
         fundraising_pipeline_id:
           type: string
         id:
           type: string
+        reference:
+          type: string
+        updated_at:
+          type: string
+      type: object
+    malak.FundraiseContactDealDetails:
+      properties:
+        can_lead_round:
+          type: boolean
+        check_size:
+          type: integer
+        created_at:
+          type: string
+        fundraising_pipeline_column_contact_id:
+          type: string
+        id:
+          type: string
+        initial_contact:
+          type: string
+        rating:
+          type: integer
         reference:
           type: string
         updated_at:
@@ -1094,6 +1119,26 @@ components:
           type: string
       required:
       - chart_reference
+      type: object
+    server.addContactRequest:
+      properties:
+        can_lead_round:
+          type: boolean
+        check_size:
+          type: integer
+        contact_reference:
+          type: string
+        initial_contact:
+          type: integer
+        rating:
+          maximum: 5
+          minimum: 0
+          type: integer
+      required:
+      - check_size
+      - contact_reference
+      - initial_contact
+      - rating
       type: object
     server.addContactToListRequest:
       properties:
@@ -3633,6 +3678,57 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/server.fetchBoardResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      tags:
+      - fundraising
+  /pipelines/{reference}/contacts:
+    post:
+      description: Add a contact to a fundraising board
+      parameters:
+      - description: Pipeline reference
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.addContactRequest'
+        description: contact request body
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
           description: OK
         "400":
           content:

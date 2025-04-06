@@ -41,6 +41,20 @@ func (m *MockFundraisingPipelineRepository) EXPECT() *MockFundraisingPipelineRep
 	return m.recorder
 }
 
+// AddContactToBoard mocks base method.
+func (m *MockFundraisingPipelineRepository) AddContactToBoard(arg0 context.Context, arg1 *malak.AddContactToBoardOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddContactToBoard", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddContactToBoard indicates an expected call of AddContactToBoard.
+func (mr *MockFundraisingPipelineRepositoryMockRecorder) AddContactToBoard(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddContactToBoard", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).AddContactToBoard), arg0, arg1)
+}
+
 // Board mocks base method.
 func (m *MockFundraisingPipelineRepository) Board(arg0 context.Context, arg1 *malak.FundraisingPipeline) ([]malak.FundraisingPipelineColumn, []malak.FundraiseContact, []malak.FundraiseContactPosition, error) {
 	m.ctrl.T.Helper()
@@ -89,6 +103,21 @@ func (mr *MockFundraisingPipelineRepositoryMockRecorder) Create(arg0, arg1 any, 
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).Create), varargs...)
+}
+
+// DefaultColumn mocks base method.
+func (m *MockFundraisingPipelineRepository) DefaultColumn(arg0 context.Context, arg1 *malak.FundraisingPipeline) (malak.FundraisingPipelineColumn, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DefaultColumn", arg0, arg1)
+	ret0, _ := ret[0].(malak.FundraisingPipelineColumn)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DefaultColumn indicates an expected call of DefaultColumn.
+func (mr *MockFundraisingPipelineRepositoryMockRecorder) DefaultColumn(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DefaultColumn", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).DefaultColumn), arg0, arg1)
 }
 
 // Get mocks base method.

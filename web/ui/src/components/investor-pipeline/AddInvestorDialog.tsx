@@ -27,21 +27,21 @@ import { SEARCH_CONTACTS } from "@/lib/query-constants";
 import client from "@/lib/client";
 import debounce from "lodash/debounce";
 import type { ServerListContactsResponse, MalakContact } from "@/client/Api";
+import { CurrencyInput } from "@/components/ui/currency-input";
 
 export interface SearchResult {
-  id: string;
+  reference: string;
   name: string;
   company: string;
   email: string;
-  image: string;
+  isExisting?: boolean;
 }
 
 const mapContactToSearchResult = (contact: MalakContact): SearchResult => ({
-  id: contact.id || "",
+  reference: contact.reference || "",
   name: `${contact.first_name || ""} ${contact.last_name || ""}`.trim(),
   company: contact.company || "",
   email: contact.email || "",
-  image: "", // MalakContact doesn't have an image field
 });
 
 interface AddInvestorDialogProps {
@@ -53,12 +53,16 @@ interface AddInvestorDialogProps {
     isLeadInvestor: boolean;
     rating: number;
   }) => void;
+  isLoading?: boolean;
+  existingContacts?: string[]; // Array of contact IDs that are already in the board
 }
 
 export function AddInvestorDialog({
   open,
   onOpenChange,
-  onAddInvestor
+  onAddInvestor,
+  isLoading = false,
+  existingContacts = []
 }: AddInvestorDialogProps) {
   const [step, setStep] = useState<'search' | 'details'>('search');
   const [searchQuery, setSearchQuery] = useState("");
@@ -89,14 +93,22 @@ export function AddInvestorDialog({
     }
   }, [searchQuery, debouncedSetQuery]);
 
-  const { data: results = [], isLoading, error } = useQuery({
+  const { data: results = [], isLoading: queryLoading, error } = useQuery<(SearchResult & { isExisting: boolean })[]>({
     queryKey: [SEARCH_CONTACTS, debouncedQuery],
     queryFn: async () => {
       if (!debouncedQuery || debouncedQuery.length < 4) return [];
       const response = await client.contacts.searchList({
         search: debouncedQuery
       });
-      return (response.data.contacts || []).map(mapContactToSearchResult);
+      
+      // Create a Set for O(1) lookup of existing contacts
+      const existingContactsSet = new Set(existingContacts);
+      
+      // Map all contacts and include whether they're already in the board
+      return (response.data.contacts || []).map(contact => ({
+        ...mapContactToSearchResult(contact),
+        isExisting: existingContactsSet.has(contact.id || "")
+      }));
     },
     enabled: debouncedQuery.length >= 4,
   });
@@ -115,22 +127,12 @@ export function AddInvestorDialog({
       ...investorDetails
     });
 
-    // Reset state
-    setStep('search');
-    setSearchQuery("");
-    setDebouncedQuery("");
-    setSelectedInvestor(null);
-    setInvestorDetails({
-      checkSize: "",
-      initialContactDate: new Date().toISOString().split('T')[0],
-      isLeadInvestor: false,
-      rating: 0
-    });
-    setHoveredRating(null);
-    onOpenChange(false);
+    // Don't reset state or close dialog here - let the parent component handle it after successful API call
   };
 
   const handleClose = () => {
+    if (isLoading) return; // Prevent closing while loading
+    
     // Reset state
     setStep('search');
     setSearchQuery("");
@@ -181,64 +183,65 @@ export function AddInvestorDialog({
               </div>
 
               <div className="space-y-2">
-                {isLoading && (
+                {queryLoading && (
                   <div className="text-center py-4 text-sm text-muted-foreground">
                     Searching...
                   </div>
                 )}
 
                 {error && (
-                  <div className="flex flex-col items-center justify-center py-4">
-                    <RiErrorWarningLine className="w-8 h-8 text-destructive mb-2" />
-                    <p className="text-sm text-destructive text-center">
-                      An error occurred while searching. Please try again.
-                    </p>
+                  <div className="text-center py-4">
+                    <RiErrorWarningLine className="w-6 h-6 text-destructive mx-auto mb-2" />
+                    <p className="text-sm text-destructive">Failed to search contacts</p>
                   </div>
                 )}
 
-                {!isLoading && !error && searchQuery.length >= 4 && results.length === 0 && (
-                  <Card className="py-8">
-                    <div className="flex flex-col items-center justify-center text-center px-4">
-                      <RiContactsLine className="h-8 w-8 text-muted-foreground/50 mb-4" />
-                      <h3 className="text-lg font-medium mb-2">No contacts found</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        We couldn't find any contacts matching your search. Would you like to add a new contact?
-                      </p>
-                      <Link 
-                        href="/contacts"
-                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-                      >
-                        <RiUserAddLine className="mr-2 h-4 w-4" />
-                        Add New Contact
-                      </Link>
-                    </div>
-                  </Card>
+                {!queryLoading && !error && results.length === 0 && debouncedQuery && (
+                  <div className="text-center py-4">
+                    <RiContactsLine className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">No contacts found</p>
+                  </div>
                 )}
 
-                {!isLoading && results.map((result: SearchResult) => (
-                  <Card
-                    key={result.id}
-                    className="cursor-pointer transition-colors hover:bg-muted/50"
-                    onClick={() => handleSelectInvestor(result)}
-                  >
-                    <CardContent className="p-3">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={result.image} alt={result.name} />
-                          <AvatarFallback>
-                            {result.name.split(" ").map((n: string) => n[0]).join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="truncate font-medium text-sm">{result.name}</h4>
-                          <p className="truncate text-xs text-muted-foreground">{result.company}</p>
-                          <p className="truncate text-xs text-muted-foreground/75">{result.email}</p>
-                        </div>
-                        <RiArrowRightLine className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {results.length > 0 ? (
+                  <div className="space-y-2">
+                    {results.map((result) => (
+                      <Card
+                        key={result.reference}
+                        className={`cursor-pointer transition-colors hover:bg-muted/50 ${
+                          result.isExisting ? 'opacity-50' : ''
+                        }`}
+                        onClick={() => !result.isExisting && handleSelectInvestor(result)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium truncate">{result.name}</h4>
+                              {result.company && (
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {result.company}
+                                </p>
+                              )}
+                              <p className="text-sm text-muted-foreground truncate">
+                                {result.email}
+                              </p>
+                            </div>
+                            {result.isExisting ? (
+                              <span className="text-sm text-muted-foreground">Already added</span>
+                            ) : (
+                              <RiArrowRightLine className="h-5 w-5 text-muted-foreground" />
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <RiContactsLine className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">No contacts found</p>
+                  </div>
+                )}
               </div>
             </div>
           </>
@@ -254,9 +257,14 @@ export function AddInvestorDialog({
             <form onSubmit={handleSubmitDetails} className="mt-4 space-y-4">
               <div className="space-y-2">
                 <Label>Check Size</Label>
-                <Input
+                <CurrencyInput
                   value={investorDetails.checkSize}
-                  onChange={(e) => setInvestorDetails({ ...investorDetails, checkSize: e.target.value })}
+                  onValueChange={(values) => {
+                    setInvestorDetails({
+                      ...investorDetails,
+                      checkSize: values.value
+                    });
+                  }}
                   placeholder="Enter check size"
                 />
               </div>
@@ -315,10 +323,20 @@ export function AddInvestorDialog({
                   type="button"
                   variant="outline"
                   onClick={() => setStep('search')}
+                  disabled={isLoading}
                 >
                   Back to Search
                 </Button>
-                <Button type="submit">Add to Pipeline</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-background mr-2" />
+                      Adding...
+                    </>
+                  ) : (
+                    "Add to Pipeline"
+                  )}
+                </Button>
               </div>
             </form>
           </>
