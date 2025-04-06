@@ -177,38 +177,65 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
   // Transform the data into the format expected by the board
   const board: Board = {
     isArchived: pipeline.is_closed || false,
-    columns: columns.reduce<Board["columns"]>((acc, column) => {
-      if (column?.reference) {
-        acc[column.reference] = {
-          id: column.id || column.reference,
-          title: column.title || "",
-          description: column.description || "",
-          cards: (contacts || [])
-            .filter(contact => contact && contact.fundraising_pipeline_column_id === column.id)
-            .map(contact => ({
-              id: contact.reference || "",
-              title: contact.contact_id || "", // TODO: Get contact details
-              amount: "TBD",
-              stage: "Initial Contact",
-              dueDate: new Date().toISOString().split('T')[0],
-              contact: {
-                name: contact.contact_id || "Contact Name", // Using contact_id as fallback for name
-                image: "", // No image property available in the contact type
-              },
-              roundDetails: {
-                raising: "TBD",
-                type: "TBD",
-                ownership: "TBD"
-              },
-              checkSize: "TBD",
-              initialContactDate: contact.created_at || new Date().toISOString(),
-              isLeadInvestor: false,
-              rating: 0
-            }))
-        };
-      }
-      return acc;
-    }, {})
+    columns: columns
+      .sort((a, b) => {
+        // Hardcoded column order based on title
+        const columnOrder = [
+          "Backlog",
+          "Contacted",
+          "Partner Meeting",
+          "Passed",
+          "Termsheet/SAFE",
+          "Closed"
+        ];
+        
+        const aIndex = columnOrder.indexOf(a.title || "");
+        const bIndex = columnOrder.indexOf(b.title || "");
+        
+        // If both columns are in our order list, sort by their position
+        if (aIndex !== -1 && bIndex !== -1) {
+          return aIndex - bIndex;
+        }
+        
+        // If only one column is in our order list, prioritize it
+        if (aIndex !== -1) return -1;
+        if (bIndex !== -1) return 1;
+        
+        // For any columns not in our list, maintain their original order
+        return 0;
+      })
+      .reduce<Board["columns"]>((acc, column) => {
+        if (column?.reference) {
+          acc[column.reference] = {
+            id: column.id || column.reference,
+            title: column.title || "",
+            description: column.description || "",
+            cards: (contacts || [])
+              .filter(contact => contact && contact.fundraising_pipeline_column_id === column.id)
+              .map(contact => ({
+                id: contact.reference || "",
+                title: contact.contact_id || "", // TODO: Get contact details
+                amount: "TBD",
+                stage: "Initial Contact",
+                dueDate: new Date().toISOString().split('T')[0],
+                contact: {
+                  name: contact.contact_id || "Contact Name", // Using contact_id as fallback for name
+                  image: "", // No image property available in the contact type
+                },
+                roundDetails: {
+                  raising: "TBD",
+                  type: "TBD",
+                  ownership: "TBD"
+                },
+                checkSize: "TBD",
+                initialContactDate: contact.created_at || new Date().toISOString(),
+                isLeadInvestor: false,
+                rating: 0
+              }))
+          };
+        }
+        return acc;
+      }, {})
   };
 
   const handleDragEnd = (result: DropResult) => {
