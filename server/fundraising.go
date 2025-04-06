@@ -311,3 +311,100 @@ func (d *fundraisingHandler) closeBoard(
 
 	return newAPIStatus(http.StatusOK, "fundraising board closed successfully"), StatusSuccess
 }
+
+type addContactRequest struct {
+	GenericRequest
+	ContactReference string `json:"contact_reference" validate:"required"`
+}
+
+func (c *addContactRequest) Validate() error {
+	if hermes.IsStringEmpty(c.ContactReference) {
+		return errors.New("please provide the contact reference")
+	}
+	return nil
+}
+
+// @Description Add a contact to a fundraising board
+// @Tags fundraising
+// @Accept  json
+// @Produce  json
+// @Param reference path string true "Pipeline reference"
+// @Param message body addContactRequest true "contact request body"
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /pipelines/{reference}/contacts [post]
+func (d *fundraisingHandler) addContact(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("adding contact to fundraising board")
+
+	reference := chi.URLParam(r, "reference")
+	if hermes.IsStringEmpty(reference) {
+		return newAPIStatus(http.StatusBadRequest, "please provide the pipeline reference"), StatusFailed
+	}
+
+	req := new(addContactRequest)
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	workspace := getWorkspaceFromContext(ctx)
+
+	logger = logger.With(zap.String("reference", reference),
+		zap.String("contact_reference", req.ContactReference))
+
+	pipeline, err := d.fundingRepo.Get(ctx, malak.FetchPipelineOptions{
+		Reference:   malak.Reference(reference),
+		WorkspaceID: workspace.ID,
+	})
+	if err != nil {
+		if errors.Is(err, malak.ErrPipelineNotFound) {
+			return newAPIStatus(http.StatusNotFound, "fundraising pipeline not found"), StatusFailed
+		}
+
+		logger.Error("could not fetch fundraising pipeline", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch fundraising pipeline"), StatusFailed
+	}
+
+	contact, err := d.contactRepo.Get(ctx, malak.FetchContactOptions{
+		Reference:   malak.Reference(req.ContactReference),
+		WorkspaceID: workspace.ID,
+	})
+	if err != nil {
+		if errors.Is(err, malak.ErrContactNotFound) {
+			return newAPIStatus(http.StatusNotFound, "contact not found"), StatusFailed
+		}
+
+		logger.Error("could not fetch contact", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch contact"), StatusFailed
+	}
+
+	defaultColumn, err := d.fundingRepo.DefaultColumn(ctx, pipeline)
+	if err != nil {
+		logger.Error("could not get default column", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not get default column"), StatusFailed
+	}
+
+	err = d.fundingRepo.AddContactToBoard(ctx, &malak.AddContactToBoardOptions{
+		Column:             &defaultColumn,
+		Contact:            contact,
+		ReferenceGenerator: d.referenceGenerator,
+	})
+	if err != nil {
+		logger.Error("could not add contact to board", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not add contact to board"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "contact added to board successfully"), StatusSuccess
+}

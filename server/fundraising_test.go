@@ -685,3 +685,239 @@ func TestFundraisingHandler_CloseBoard(t *testing.T) {
 		})
 	}
 }
+
+type addContactTestCase struct {
+	name               string
+	mockFn             func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository)
+	req                addContactRequest
+	pipelineReference  string
+	expectedStatusCode int
+}
+
+func generateAddContactTestTable() []addContactTestCase {
+	validPipelineRef := "pipeline-123"
+	validContactRef := "contact-123"
+	workspaceID := uuid.MustParse("56670b6d-48d4-4b17-bc8f-d101b7d0b53c")
+	workspace := &malak.Workspace{ID: workspaceID}
+	pipeline := &malak.FundraisingPipeline{ID: uuid.New()}
+	contact := &malak.Contact{ID: uuid.New()}
+	defaultColumn := malak.FundraisingPipelineColumn{
+		Reference:  "col-123",
+		Title:      "New",
+		ColumnType: malak.FundraisePipelineColumnTypeNormal,
+	}
+
+	return []addContactTestCase{
+		{
+			name: "successful add contact to board",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+				repo.EXPECT().
+					Get(gomock.Any(), malak.FetchPipelineOptions{
+						Reference:   malak.Reference(validPipelineRef),
+						WorkspaceID: workspace.ID,
+					}).
+					Return(pipeline, nil)
+
+				contactRepo.EXPECT().
+					Get(gomock.Any(), malak.FetchContactOptions{
+						Reference:   malak.Reference(validContactRef),
+						WorkspaceID: workspace.ID,
+					}).
+					Return(contact, nil)
+
+				repo.EXPECT().
+					DefaultColumn(gomock.Any(), pipeline).
+					Return(defaultColumn, nil)
+
+				repo.EXPECT().
+					AddContactToBoard(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, opts *malak.AddContactToBoardOptions) error {
+						require.Equal(t, &defaultColumn, opts.Column)
+						require.Equal(t, contact, opts.Contact)
+						require.NotNil(t, opts.ReferenceGenerator)
+						return nil
+					})
+			},
+			req: addContactRequest{
+				ContactReference: validContactRef,
+			},
+			pipelineReference:  validPipelineRef,
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "pipeline not found",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+				repo.EXPECT().
+					Get(gomock.Any(), malak.FetchPipelineOptions{
+						Reference:   malak.Reference(validPipelineRef),
+						WorkspaceID: workspace.ID,
+					}).
+					Return(nil, malak.ErrPipelineNotFound)
+			},
+			req: addContactRequest{
+				ContactReference: validContactRef,
+			},
+			pipelineReference:  validPipelineRef,
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "contact not found",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+				repo.EXPECT().
+					Get(gomock.Any(), malak.FetchPipelineOptions{
+						Reference:   malak.Reference(validPipelineRef),
+						WorkspaceID: workspace.ID,
+					}).
+					Return(pipeline, nil)
+
+				contactRepo.EXPECT().
+					Get(gomock.Any(), malak.FetchContactOptions{
+						Reference:   malak.Reference(validContactRef),
+						WorkspaceID: workspace.ID,
+					}).
+					Return(nil, malak.ErrContactNotFound)
+			},
+			req: addContactRequest{
+				ContactReference: validContactRef,
+			},
+			pipelineReference:  validPipelineRef,
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "default column error",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+				repo.EXPECT().
+					Get(gomock.Any(), malak.FetchPipelineOptions{
+						Reference:   malak.Reference(validPipelineRef),
+						WorkspaceID: workspace.ID,
+					}).
+					Return(pipeline, nil)
+
+				contactRepo.EXPECT().
+					Get(gomock.Any(), malak.FetchContactOptions{
+						Reference:   malak.Reference(validContactRef),
+						WorkspaceID: workspace.ID,
+					}).
+					Return(contact, nil)
+
+				repo.EXPECT().
+					DefaultColumn(gomock.Any(), pipeline).
+					Return(malak.FundraisingPipelineColumn{}, errors.New("failed to get default column"))
+			},
+			req: addContactRequest{
+				ContactReference: validContactRef,
+			},
+			pipelineReference:  validPipelineRef,
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "add contact to board error",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+				repo.EXPECT().
+					Get(gomock.Any(), malak.FetchPipelineOptions{
+						Reference:   malak.Reference(validPipelineRef),
+						WorkspaceID: workspace.ID,
+					}).
+					Return(pipeline, nil)
+
+				contactRepo.EXPECT().
+					Get(gomock.Any(), malak.FetchContactOptions{
+						Reference:   malak.Reference(validContactRef),
+						WorkspaceID: workspace.ID,
+					}).
+					Return(contact, nil)
+
+				repo.EXPECT().
+					DefaultColumn(gomock.Any(), pipeline).
+					Return(defaultColumn, nil)
+
+				repo.EXPECT().
+					AddContactToBoard(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, opts *malak.AddContactToBoardOptions) error {
+						require.Equal(t, &defaultColumn, opts.Column)
+						require.Equal(t, contact, opts.Contact)
+						require.NotNil(t, opts.ReferenceGenerator)
+						return errors.New("failed to add contact")
+					})
+			},
+			req: addContactRequest{
+				ContactReference: validContactRef,
+			},
+			pipelineReference:  validPipelineRef,
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "invalid request - empty contact reference",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+			},
+			req: addContactRequest{
+				ContactReference: "",
+			},
+			pipelineReference:  validPipelineRef,
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "invalid request - empty pipeline reference",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+			},
+			req: addContactRequest{
+				ContactReference: validContactRef,
+			},
+			pipelineReference:  "",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+	}
+}
+
+func TestFundraisingHandler_AddContact(t *testing.T) {
+	workspaceID := uuid.MustParse("56670b6d-48d4-4b17-bc8f-d101b7d0b53c")
+	for _, v := range generateAddContactTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			fundingRepo := malak_mocks.NewMockFundraisingPipelineRepository(controller)
+			contactRepo := malak_mocks.NewMockContactRepository(controller)
+			v.mockFn(t, fundingRepo, contactRepo)
+
+			handler := &fundraisingHandler{
+				cfg:                getConfig(),
+				fundingRepo:        fundingRepo,
+				contactRepo:        contactRepo,
+				referenceGenerator: &mockReferenceGenerator{},
+			}
+
+			var b = bytes.NewBuffer(nil)
+			require.NoError(t, json.NewEncoder(b).Encode(v.req))
+
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodPost, "/pipelines/"+v.pipelineReference+"/contacts", b)
+			req.Header.Add("Content-Type", "application/json")
+
+			workspace := &malak.Workspace{
+				ID: workspaceID,
+			}
+			user := &malak.User{
+				ID: uuid.New(),
+			}
+
+			// Set up context in the correct order
+			ctx := req.Context()
+			ctx = writeUserToCtx(ctx, user)
+			ctx = writeWorkspaceToCtx(ctx, workspace)
+			routeCtx := chi.NewRouteContext()
+			routeCtx.URLParams.Add("reference", v.pipelineReference)
+			ctx = context.WithValue(ctx, chi.RouteCtxKey, routeCtx)
+			req = req.WithContext(ctx)
+
+			WrapMalakHTTPHandler(getLogger(t),
+				handler.addContact,
+				getConfig(),
+				"fundraising.add_contact").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}

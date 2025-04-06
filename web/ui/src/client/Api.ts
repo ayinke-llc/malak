@@ -661,6 +661,10 @@ export interface ServerAddChartToDashboardRequest {
   chart_reference: string;
 }
 
+export interface ServerAddContactRequest {
+  contact_reference: string;
+}
+
 export interface ServerAddContactToListRequest {
   reference?: string;
 }
@@ -1848,6 +1852,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerFetchBoardResponse, ServerAPIStatus>({
         path: `/pipelines/${reference}/board`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Add a contact to a fundraising board
+     *
+     * @tags fundraising
+     * @name ContactsCreate
+     * @request POST:/pipelines/{reference}/contacts
+     */
+    contactsCreate: (reference: string, data: ServerAddContactRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/pipelines/${reference}/contacts`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

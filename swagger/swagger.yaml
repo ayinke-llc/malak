@@ -1095,6 +1095,13 @@ components:
       required:
       - chart_reference
       type: object
+    server.addContactRequest:
+      properties:
+        contact_reference:
+          type: string
+      required:
+      - contact_reference
+      type: object
     server.addContactToListRequest:
       properties:
         reference:
@@ -3633,6 +3640,57 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/server.fetchBoardResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      tags:
+      - fundraising
+  /pipelines/{reference}/contacts:
+    post:
+      description: Add a contact to a fundraising board
+      parameters:
+      - description: Pipeline reference
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/server.addContactRequest'
+        description: contact request body
+        required: true
+        x-originalParamName: message
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
           description: OK
         "400":
           content:
