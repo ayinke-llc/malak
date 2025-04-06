@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import {
   RiTimeLine, RiAddLine, RiSettings4Line, RiArchiveLine,
   RiInboxUnarchiveLine, RiInformationLine, RiCalendarLine, RiErrorWarningLine,
-  RiCloseLine, RiMailLine, RiPhoneLine, RiMoneyDollarCircleLine
+  RiCloseLine, RiMailLine, RiPhoneLine, RiMoneyDollarCircleLine, RiFileCopyLine
 } from "@remixicon/react";
 import { InvestorDetailsDrawer } from "./InvestorDetailsDrawer";
 import { toast } from "sonner";
@@ -54,6 +54,7 @@ import type { ServerAPIStatus } from "@/client/Api";
 import { fullName } from "@/lib/custom";
 import type { MalakContact } from "@/client/Api";
 import type { MalakFundraiseContactDealDetails } from "@/client/Api";
+import CopyToClipboard from 'react-copy-to-clipboard';
 
 interface KanbanBoardProps {
   slug: string;
@@ -170,7 +171,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
     return null;
   }
 
-  const { pipeline = {}, columns = [], contacts = [], positions = [], deals = [] } = boardData;
+  const { pipeline = {}, columns = [], contacts = [], positions = [] } = boardData;
 
   // Get all contact IDs from all contacts in the board
   const existingContactIds = contacts.map(contact => contact.contact_id || "").filter(Boolean);
@@ -232,7 +233,6 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                     company: contactDetails?.company || "",
                     email: contactDetails?.email || "",
                     phone: contactDetails?.phone || "",
-                    title: contactDetails?.title || "",
                   },
                   roundDetails: {
                     raising: pipeline.target_amount ? `$${(pipeline.target_amount / 100).toLocaleString()}` : "",
@@ -489,20 +489,21 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                                         </div>
                                       </div>
                                     </div>
-                                    {card?.rating > 0 && (
-                                      <div className="flex items-center">
-                                        <Badge variant="secondary" className="text-[10px] h-5 px-2">
-                                          {Array(card.rating).fill('★').join('')}
-                                        </Badge>
-                                      </div>
-                                    )}
                                   </div>
                                   
                                   <div className="space-y-1.5">
                                     {card?.contact?.email && (
-                                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground group">
                                         <RiMailLine className="h-3.5 w-3.5 shrink-0" />
                                         <span className="truncate">{card.contact.email}</span>
+                                        <CopyToClipboard 
+                                          text={card.contact.email}
+                                          onCopy={() => toast.success("Email copied to clipboard")}
+                                        >
+                                          <button className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <RiFileCopyLine className="h-3.5 w-3.5 hover:text-primary" />
+                                          </button>
+                                        </CopyToClipboard>
                                       </div>
                                     )}
                                     {card?.contact?.phone && (
