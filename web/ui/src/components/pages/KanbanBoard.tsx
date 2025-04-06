@@ -51,6 +51,9 @@ import {
 } from "@/components/ui/dialog";
 import type { AxiosError } from "axios";
 import type { ServerAPIStatus } from "@/client/Api";
+import { fullName } from "@/lib/custom";
+import type { MalakContact } from "@/client/Api";
+import type { MalakFundraiseContactDealDetails } from "@/client/Api";
 
 interface KanbanBoardProps {
   slug: string;
@@ -167,7 +170,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
     return null;
   }
 
-  const { pipeline = {}, columns = [], contacts = [], positions = [] } = boardData;
+  const { pipeline = {}, columns = [], contacts = [], positions = [], deals = [] } = boardData;
 
   // Get all contact IDs from all contacts in the board
   const existingContactIds = contacts.map(contact => contact.contact_id || "").filter(Boolean);
@@ -212,26 +215,36 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
             description: column.description || "",
             cards: (contacts || [])
               .filter(contact => contact && contact.fundraising_pipeline_column_id === column.id)
-              .map(contact => ({
-                id: contact.reference || "",
-                title: contact.contact_id || "", // TODO: Get contact details
-                amount: "TBD",
-                stage: "Initial Contact",
-                dueDate: new Date().toISOString().split('T')[0],
-                contact: {
-                  name: contact.contact_id || "Contact Name", // Using contact_id as fallback for name
-                  image: "", // No image property available in the contact type
-                },
-                roundDetails: {
-                  raising: "TBD",
-                  type: "TBD",
-                  ownership: "TBD"
-                },
-                checkSize: "TBD",
-                initialContactDate: contact.created_at || new Date().toISOString(),
-                isLeadInvestor: false,
-                rating: 0
-              }))
+              .map(contact => {
+                // Find the position for this contact
+                const position = positions.find(p => p.fundraising_pipeline_column_contact_id === contact.id);
+                const deal = (deals || []).find((d: MalakFundraiseContactDealDetails) => 
+                  d.fundraising_pipeline_column_contact_id === contact.id
+                );
+                
+                return {
+                  id: contact.reference || "",
+                  title: fullName(contact as unknown as MalakContact),
+                  amount: deal?.check_size ? `$${(deal.check_size / 100).toLocaleString()}` : "TBD",
+                  stage: "Initial Contact",
+                  dueDate: new Date().toISOString().split('T')[0],
+                  contact: {
+                    name: fullName(contact as unknown as MalakContact),
+                    company: (contact as unknown as MalakContact)?.company || undefined
+                  },
+                  roundDetails: {
+                    raising: "TBD",
+                    type: "TBD",
+                    ownership: "TBD"
+                  },
+                  checkSize: deal?.check_size ? `$${(deal.check_size / 100).toLocaleString()}` : "TBD",
+                  initialContactDate: deal?.initial_contact || contact.created_at || new Date().toISOString(),
+                  isLeadInvestor: deal?.can_lead_round || false,
+                  rating: deal?.rating || 0,
+                  originalContact: contact as unknown as MalakContact,
+                  originalDeal: deal
+                };
+              })
           };
         }
         return acc;
@@ -445,36 +458,42 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                                   }
                                 }}
                               >
-                                <CardContent className="p-3">
-                                  <div className="flex items-center gap-3">
-                                    <Avatar className="h-8 w-8">
-                                      <AvatarImage
-                                        src={card?.contact?.image || ""}
-                                        alt={card?.contact?.name || ""}
-                                      />
-                                      <AvatarFallback>
-                                        {(card?.contact?.name || "")
-                                          .split(" ")
-                                          .map((n) => n?.[0] || "")
-                                          .join("")}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div className="min-w-0 flex-1">
-                                      <h4 className="truncate font-medium text-sm">
-                                        {card?.title || "Untitled"}
-                                      </h4>
-                                      <p className="truncate text-xs text-muted-foreground">
-                                        {card?.contact?.name || "No contact name"}
-                                      </p>
-                                      <div className="mt-1 flex items-center gap-2">
-                                        <Badge variant="secondary" className="text-xs">
-                                          {card?.amount || "TBD"}
-                                        </Badge>
-                                        <div className="flex items-center text-xs text-muted-foreground">
-                                          <RiTimeLine className="mr-1 h-3 w-3" />
-                                          {card?.dueDate || "No date"}
-                                        </div>
+                                <CardContent className="p-3 space-y-3">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <Avatar className="h-6 w-6">
+                                          <AvatarImage src="" />
+                                          <AvatarFallback className="text-xs">
+                                            {card?.title?.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                          </AvatarFallback>
+                                        </Avatar>
+                                        <h4 className="font-medium text-sm truncate">
+                                          {card?.title}
+                                        </h4>
                                       </div>
+                                      {card?.contact?.company ? (
+                                        <p className="text-xs text-muted-foreground truncate ml-8">
+                                          {card?.contact?.company}
+                                        </p>
+                                      ) : (
+                                        <p className="text-xs text-muted-foreground truncate italic ml-8">
+                                          No company
+                                        </p>
+                                      )}
+                                    </div>
+                                    <Badge variant="secondary" className="text-[10px] h-5 px-2 shrink-0">
+                                      {card?.amount || "TBD"}
+                                    </Badge>
+                                  </div>
+                                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                      <RiCalendarLine className="h-3.5 w-3.5" />
+                                      {new Date(card?.initialContactDate || '').toLocaleDateString()}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <RiTimeLine className="h-3.5 w-3.5" />
+                                      {card?.dueDate || "No date"}
                                     </div>
                                   </div>
                                 </CardContent>
@@ -498,6 +517,8 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
         open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
         isArchived={board.isArchived}
+        contact={selectedInvestor?.originalContact}
+        deal={selectedInvestor?.originalDeal}
       />
 
       <AddInvestorDialogComponent

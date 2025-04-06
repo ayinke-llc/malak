@@ -4905,6 +4905,9 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
+                "deal_details": {
+                    "$ref": "#/definitions/malak.FundraiseContactDealDetails"
+                },
                 "fundraising_pipeline_column_id": {
                     "type": "string"
                 },
@@ -4913,6 +4916,38 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.FundraiseContactDealDetails": {
+            "type": "object",
+            "properties": {
+                "can_lead_round": {
+                    "type": "boolean"
+                },
+                "check_size": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "fundraising_pipeline_column_contact_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "initial_contact": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
                 },
                 "reference": {
                     "type": "string"

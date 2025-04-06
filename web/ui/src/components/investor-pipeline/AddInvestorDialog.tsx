@@ -34,7 +34,6 @@ export interface SearchResult {
   name: string;
   company: string;
   email: string;
-  image: string;
   isExisting?: boolean;
 }
 
@@ -43,7 +42,6 @@ const mapContactToSearchResult = (contact: MalakContact): SearchResult => ({
   name: `${contact.first_name || ""} ${contact.last_name || ""}`.trim(),
   company: contact.company || "",
   email: contact.email || "",
-  image: "", // MalakContact doesn't have an image field
 });
 
 interface AddInvestorDialogProps {
@@ -205,50 +203,45 @@ export function AddInvestorDialog({
                   </div>
                 )}
 
-                {!queryLoading && !error && results.map((result) => (
-                  <Card
-                    key={result.reference}
-                    className={`cursor-pointer transition-colors ${
-                      result.isExisting ? 'opacity-50 pointer-events-none' : 'hover:bg-accent/5'
-                    }`}
-                    onClick={() => !result.isExisting && handleSelectInvestor(result)}
-                  >
-                    <CardContent className="p-3">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={result.image} alt={result.name} />
-                          <AvatarFallback>
-                            {result.name.split(" ").map((n) => n[0]).join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="truncate font-medium text-sm">
-                            {result.name}
-                            {result.isExisting && (
-                              <span className="ml-2 text-xs text-muted-foreground">(Already in board)</span>
+                {results.length > 0 ? (
+                  <div className="space-y-2">
+                    {results.map((result) => (
+                      <Card
+                        key={result.reference}
+                        className={`cursor-pointer transition-colors hover:bg-muted/50 ${
+                          result.isExisting ? 'opacity-50' : ''
+                        }`}
+                        onClick={() => !result.isExisting && handleSelectInvestor(result)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium truncate">{result.name}</h4>
+                              {result.company && (
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {result.company}
+                                </p>
+                              )}
+                              <p className="text-sm text-muted-foreground truncate">
+                                {result.email}
+                              </p>
+                            </div>
+                            {result.isExisting ? (
+                              <span className="text-sm text-muted-foreground">Already added</span>
+                            ) : (
+                              <RiArrowRightLine className="h-5 w-5 text-muted-foreground" />
                             )}
-                          </h4>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {result.company}
-                          </p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {result.email}
-                          </p>
-                        </div>
-                        {!result.isExisting && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="ml-2"
-                            onClick={() => handleSelectInvestor(result)}
-                          >
-                            <RiArrowRightLine className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <RiContactsLine className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">No contacts found</p>
+                  </div>
+                )}
               </div>
             </div>
           </>

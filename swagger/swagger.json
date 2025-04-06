@@ -637,6 +637,9 @@
 					"created_at": {
 						"type": "string"
 					},
+					"deal_details": {
+						"$ref": "#/components/schemas/malak.FundraiseContactDealDetails"
+					},
 					"fundraising_pipeline_column_id": {
 						"type": "string"
 					},
@@ -645,6 +648,38 @@
 					},
 					"id": {
 						"type": "string"
+					},
+					"reference": {
+						"type": "string"
+					},
+					"updated_at": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"malak.FundraiseContactDealDetails": {
+				"properties": {
+					"can_lead_round": {
+						"type": "boolean"
+					},
+					"check_size": {
+						"type": "integer"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"fundraising_pipeline_column_contact_id": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"initial_contact": {
+						"type": "string"
+					},
+					"rating": {
+						"type": "integer"
 					},
 					"reference": {
 						"type": "string"

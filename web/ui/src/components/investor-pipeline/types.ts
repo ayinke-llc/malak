@@ -1,6 +1,9 @@
+import type { MalakContact, MalakFundraiseContactDealDetails } from "@/client/Api";
+
 export interface Contact {
   name: string;
-  image: string;
+  image?: string;
+  company?: string;
 }
 
 export interface Card {
@@ -9,7 +12,10 @@ export interface Card {
   amount: string;
   stage: string;
   dueDate: string;
-  contact: Contact;
+  contact: {
+    name: string;
+    company?: string;
+  };
   roundDetails: {
     raising: string;
     type: string;
@@ -19,6 +25,8 @@ export interface Card {
   initialContactDate: string;
   isLeadInvestor: boolean;
   rating: number;
+  originalContact?: MalakContact;
+  originalDeal?: MalakFundraiseContactDealDetails;
 }
 
 export interface Column {

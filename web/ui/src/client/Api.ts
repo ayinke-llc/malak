@@ -254,9 +254,22 @@ export interface MalakDeckViewerSession {
 export interface MalakFundraiseContact {
   contact_id?: string;
   created_at?: string;
+  deal_details?: MalakFundraiseContactDealDetails;
   fundraising_pipeline_column_id?: string;
   fundraising_pipeline_id?: string;
   id?: string;
+  reference?: string;
+  updated_at?: string;
+}
+
+export interface MalakFundraiseContactDealDetails {
+  can_lead_round?: boolean;
+  check_size?: number;
+  created_at?: string;
+  fundraising_pipeline_column_contact_id?: string;
+  id?: string;
+  initial_contact?: string;
+  rating?: number;
   reference?: string;
   updated_at?: string;
 }

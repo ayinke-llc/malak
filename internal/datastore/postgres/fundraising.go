@@ -102,6 +102,7 @@ func (d *fundingRepo) Board(ctx context.Context, pipeline *malak.FundraisingPipe
 
 		err = tx.NewSelect().
 			Model(&contacts).
+			Relation("DealDetails").
 			Where("fundraising_pipeline_id = ?", pipeline.ID).
 			Scan(ctx)
 		if err != nil {
@@ -228,6 +229,7 @@ func (d *fundingRepo) DefaultColumn(ctx context.Context, pipeline *malak.Fundrai
 		Model(&column).
 		Where("fundraising_pipeline_id = ?", pipeline.ID).
 		Where("column_type = ?", malak.FundraisePipelineColumnTypeNormal).
+		Where("title = ?", "Backlog").
 		Order("created_at ASC").
 		Limit(1).
 		Scan(ctx)
