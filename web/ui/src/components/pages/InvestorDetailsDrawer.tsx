@@ -50,7 +50,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { NumericFormat } from "react-number-format";
-import { format } from "date-fns";
+import { format, fromUnixTime, isValid, parseISO } from "date-fns";
 import type { Card, Activity, Note } from "@/components/investor-pipeline/types";
 
 interface InvestorDetailsDrawerProps {
@@ -442,6 +442,21 @@ function EditInvestorDialog({
   );
 }
 
+// Add a safe date formatting helper
+const formatSafeDate = (dateValue: string | number | undefined | null, formatStr: string = 'MMM d, yyyy') => {
+  if (!dateValue) return "Not set";
+  try {
+    // Handle different date formats
+    const date = typeof dateValue === 'number' 
+      ? fromUnixTime(dateValue) // Unix timestamp in seconds
+      : parseISO(dateValue); // ISO string
+    
+    return isValid(date) ? format(date, formatStr) : "Invalid date";
+  } catch (e) {
+    return "Invalid date";
+  }
+};
+
 export function InvestorDetailsDrawer({
   open,
   onOpenChange,
@@ -541,6 +556,9 @@ export function InvestorDetailsDrawer({
     onOpenChange(false);
   };
 
+  // Remove console logs and unused code
+  const existingContactIds = [];
+
   if (!investor) return null;
 
   return (
@@ -618,19 +636,15 @@ export function InvestorDetailsDrawer({
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Expected Check Size</span>
                         <span className="font-medium">
-                          {contact?.deal_details?.check_size !== undefined
-                            ? `$${(Number(contact.deal_details.check_size) / 100).toLocaleString()}`
+                          {deal?.check_size !== undefined
+                            ? `$${(Number(deal.check_size) / 100).toLocaleString()}`
                             : investor?.checkSize || "TBD"}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Initial Contact</span>
                         <span className="font-medium">
-                          {deal?.initial_contact 
-                            ? format(new Date(Number(deal.initial_contact) * 1000), 'MMM d, yyyy')
-                            : investor?.initialContactDate 
-                              ? format(new Date(investor.initialContactDate), 'MMM d, yyyy')
-                              : "Not set"}
+                          {formatSafeDate(deal?.initial_contact) || formatSafeDate(investor?.initialContactDate)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -643,7 +657,7 @@ export function InvestorDetailsDrawer({
                         <span className="text-muted-foreground">Rating</span>
                         <div className="flex items-center">
                           {[1, 2, 3, 4, 5].map((star) => (
-                            star <= (contact?.deal_details?.rating || investor?.rating || 0) 
+                            star <= (deal?.rating || investor?.rating || 0) 
                               ? <RiStarFill key={star} className="w-4 h-4 text-yellow-400" />
                               : <RiStarLine key={star} className="w-4 h-4 text-muted-foreground" />
                           ))}
@@ -656,9 +670,7 @@ export function InvestorDetailsDrawer({
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Due Date</span>
                         <span className="font-medium">
-                          {investor?.dueDate 
-                            ? format(new Date(investor.dueDate), 'MMM d, yyyy')
-                            : "Not set"}
+                          {formatSafeDate(investor?.dueDate)}
                         </span>
                       </div>
                     </div>
@@ -716,7 +728,7 @@ export function InvestorDetailsDrawer({
                           <div className="flex items-center justify-between mb-2">
                             <h4 className="font-medium">{activity.title}</h4>
                             <span className="text-xs text-muted-foreground">
-                              {new Date(activity.timestamp).toLocaleString()}
+                              {formatSafeDate(activity.timestamp, 'MMM d, yyyy h:mm a')}
                             </span>
                           </div>
                           <p className="text-sm text-muted-foreground mb-3">
