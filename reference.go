@@ -26,7 +26,9 @@ func GenerateReference(e EntityType) string {
 // integration_chart, integration_sync_checkpoint,dashboard_chart,system_template,
 // deck_daily_engagement, deck_analytic, deck_viewer_session,
 // deck_geographic_stat, session,dashboard_link,dashboard_link_access_log,api_key,
-// fundraising_pipeline,fundraising_pipeline_column)
+// fundraising_pipeline,fundraising_pipeline_column,fundraising_pipeline_column_contact_document,
+// fundraising_pipeline_column_contact,fundraising_pipeline_column_contact_activity,
+// fundraising_pipeline_column_contact_deal, fundraising_pipeline_column_contact_position)
 type EntityType string
 
 type Reference string

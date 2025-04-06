@@ -338,8 +338,12 @@ func TestFundraisingHandler_List(t *testing.T) {
 			}
 			req.URL.RawQuery = q.Encode()
 
-			workspace := &malak.Workspace{}
-			user := &malak.User{}
+			workspace := &malak.Workspace{
+				ID: uuid.MustParse("1e66cedd-0e53-493a-adfd-7f81221c2248"),
+			}
+			user := &malak.User{
+				ID: uuid.MustParse("00000000-0000-0000-0000-000000000000"),
+			}
 
 			ctx := req.Context()
 			ctx = writeUserToCtx(ctx, user)
@@ -370,8 +374,19 @@ func generateBoardTestTable() []boardTestCase {
 		{
 			name: "successful fetch",
 			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:          uuid.MustParse("34bc303d-6ca6-4881-a31f-55503b98eb9a"),
+					Reference:   "pipeline_123",
+					Title:       "Test Pipeline",
+					WorkspaceID: uuid.MustParse("1e66cedd-0e53-493a-adfd-7f81221c2248"),
+				}
 				repo.EXPECT().
-					Board(gomock.Any(), gomock.Any()).
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(pipeline, nil)
+
+				repo.EXPECT().
+					Board(gomock.Any(), pipeline).
 					Times(1).
 					Return([]malak.FundraisingPipelineColumn{
 						{
@@ -392,10 +407,48 @@ func generateBoardTestTable() []boardTestCase {
 			expectedStatusCode: http.StatusOK,
 		},
 		{
-			name: "repository error",
+			name: "missing reference parameter",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				// No mock expectations since it should fail before repository calls
+			},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "pipeline not found",
 			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
 				repo.EXPECT().
-					Board(gomock.Any(), gomock.Any()).
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, malak.ErrPipelineNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "get pipeline error",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("database error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "board fetch error",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:          uuid.New(),
+					Reference:   "pipeline_123",
+					Title:       "Test Pipeline",
+					WorkspaceID: uuid.New(),
+				}
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(pipeline, nil)
+
+				repo.EXPECT().
+					Board(gomock.Any(), pipeline).
 					Times(1).
 					Return(nil, nil, nil, errors.New("repository error"))
 			},
@@ -420,13 +473,27 @@ func TestFundraisingHandler_Board(t *testing.T) {
 			}
 
 			rr := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodGet, "/pipelines/pipeline_123/board", nil)
+			var reference string
+			switch v.name {
+			case "missing reference parameter":
+				reference = ""
+			case "pipeline not found":
+				reference = "non_existent_pipeline"
+			default:
+				reference = "pipeline_123"
+			}
+
+			path := "/pipelines/" + reference + "/board"
+			if reference == "" {
+				path = "/pipelines//board" // Test missing reference case
+			}
+			req := httptest.NewRequest(http.MethodGet, path, nil)
 
 			workspace := &malak.Workspace{
-				ID: uuid.New(),
+				ID: uuid.MustParse("1e66cedd-0e53-493a-adfd-7f81221c2248"),
 			}
 			user := &malak.User{
-				ID: uuid.New(),
+				ID: uuid.MustParse("00000000-0000-0000-0000-000000000000"),
 			}
 
 			// Set up context in the correct order
@@ -438,7 +505,9 @@ func TestFundraisingHandler_Board(t *testing.T) {
 
 			// Set up route params
 			rctx := chi.NewRouteContext()
-			rctx.URLParams.Add("reference", "pipeline_123")
+			if reference != "" {
+				rctx.URLParams.Add("reference", reference)
+			}
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 			WrapMalakHTTPHandler(getLogger(t),

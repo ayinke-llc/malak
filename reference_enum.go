@@ -88,6 +88,16 @@ const (
 	EntityTypeFundraisingPipeline EntityType = "fundraising_pipeline"
 	// EntityTypeFundraisingPipelineColumn is a EntityType of type fundraising_pipeline_column.
 	EntityTypeFundraisingPipelineColumn EntityType = "fundraising_pipeline_column"
+	// EntityTypeFundraisingPipelineColumnContactDocument is a EntityType of type fundraising_pipeline_column_contact_document.
+	EntityTypeFundraisingPipelineColumnContactDocument EntityType = "fundraising_pipeline_column_contact_document"
+	// EntityTypeFundraisingPipelineColumnContact is a EntityType of type fundraising_pipeline_column_contact.
+	EntityTypeFundraisingPipelineColumnContact EntityType = "fundraising_pipeline_column_contact"
+	// EntityTypeFundraisingPipelineColumnContactActivity is a EntityType of type fundraising_pipeline_column_contact_activity.
+	EntityTypeFundraisingPipelineColumnContactActivity EntityType = "fundraising_pipeline_column_contact_activity"
+	// EntityTypeFundraisingPipelineColumnContactDeal is a EntityType of type fundraising_pipeline_column_contact_deal.
+	EntityTypeFundraisingPipelineColumnContactDeal EntityType = "fundraising_pipeline_column_contact_deal"
+	// EntityTypeFundraisingPipelineColumnContactPosition is a EntityType of type fundraising_pipeline_column_contact_position.
+	EntityTypeFundraisingPipelineColumnContactPosition EntityType = "fundraising_pipeline_column_contact_position"
 )
 
 var ErrInvalidEntityType = errors.New("not a valid EntityType")
@@ -143,6 +153,11 @@ var _EntityTypeValue = map[string]EntityType{
 	"api_key":                     EntityTypeApiKey,
 	"fundraising_pipeline":        EntityTypeFundraisingPipeline,
 	"fundraising_pipeline_column": EntityTypeFundraisingPipelineColumn,
+	"fundraising_pipeline_column_contact_document": EntityTypeFundraisingPipelineColumnContactDocument,
+	"fundraising_pipeline_column_contact":          EntityTypeFundraisingPipelineColumnContact,
+	"fundraising_pipeline_column_contact_activity": EntityTypeFundraisingPipelineColumnContactActivity,
+	"fundraising_pipeline_column_contact_deal":     EntityTypeFundraisingPipelineColumnContactDeal,
+	"fundraising_pipeline_column_contact_position": EntityTypeFundraisingPipelineColumnContactPosition,
 }
 
 // ParseEntityType attempts to convert a string to a EntityType.
