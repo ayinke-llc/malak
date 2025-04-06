@@ -8,7 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   RiTimeLine, RiAddLine, RiSettings4Line, RiArchiveLine,
-  RiInboxUnarchiveLine, RiInformationLine, RiCalendarLine, RiErrorWarningLine
+  RiInboxUnarchiveLine, RiInformationLine, RiCalendarLine, RiErrorWarningLine,
+  RiCloseLine
 } from "@remixicon/react";
 import { InvestorDetailsDrawer } from "./InvestorDetailsDrawer";
 import { toast } from "sonner";
@@ -338,7 +339,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
               size="sm"
               onClick={() => setIsCloseConfirmOpen(true)}
             >
-              <RiArchiveLine className="mr-1 h-4 w-4" />
+              <RiCloseLine className="mr-1 h-4 w-4" />
               Close Board
             </Button>
           )}

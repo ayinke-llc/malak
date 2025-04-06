@@ -73,11 +73,11 @@ function formatCurrency(amount: number) {
 function getStatusConfig(isClosed: boolean) {
   if (isClosed) {
     return {
-      color: 'bg-green-500',
-      textColor: 'text-green-700',
-      bgColor: 'bg-green-50',
-      icon: RiCheckboxCircleLine,
-      label: 'Successful'
+      color: 'bg-neutral-500',
+      textColor: 'text-neutral-700',
+      bgColor: 'bg-neutral-50',
+      icon: RiCloseCircleLine,
+      label: 'Closed'
     }
   }
   return {
@@ -402,69 +402,84 @@ export default function FundraisingBoards() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-          {pipelinesData?.pipelines?.map((pipeline: MalakFundraisingPipeline) => {
-            const statusConfig = getStatusConfig(pipeline.is_closed ?? false);
-            const stage = FUNDING_STAGES.find(s => s.value === pipeline.stage);
+          {pipelinesData?.pipelines
+            ?.slice()  // Create a copy of the array before sorting
+            .sort((a, b) => {
+              // First sort by status (open first)
+              if ((a.is_closed ?? false) === (b.is_closed ?? false)) {
+                // If status is the same, sort by created_at (assuming newer first)
+                const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+                const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+                return bTime - aTime;
+              }
+              // Put open pipelines first
+              return (a.is_closed ?? false) ? 1 : -1;
+            })
+            .map((pipeline: MalakFundraisingPipeline) => {
+              const statusConfig = getStatusConfig(pipeline.is_closed ?? false);
+              const stage = FUNDING_STAGES.find(s => s.value === pipeline.stage);
 
-            return (
-              <Card key={pipeline.id} className="flex flex-col">
-                <CardHeader>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="space-y-1.5 min-w-0 flex-1">
-                      <CardTitle className="text-xl truncate" title={pipeline.title}>
-                        {pipeline.title}
-                      </CardTitle>
-                      <div className="text-sm font-medium text-muted-foreground">
-                        {stage?.label}
+              return (
+                <Card key={pipeline.id} className="flex flex-col">
+                  <CardHeader>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="space-y-1.5 min-w-0 flex-1">
+                        <CardTitle className="text-xl truncate" title={pipeline.title}>
+                          {pipeline.title}
+                        </CardTitle>
+                        <div className="text-sm font-medium text-muted-foreground">
+                          {stage?.label}
+                        </div>
                       </div>
+                      {pipeline.is_closed && (
+                        <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium shrink-0 ml-4 ${statusConfig.textColor} ${statusConfig.bgColor}`}>
+                          <statusConfig.icon className="w-3.5 h-3.5" />
+                          {statusConfig.label}
+                        </div>
+                      )}
                     </div>
-                    <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium shrink-0 ml-4 ${statusConfig.textColor} ${statusConfig.bgColor}`}>
-                      <statusConfig.icon className="w-3.5 h-3.5" />
-                      {statusConfig.label}
-                    </div>
-                  </div>
-                  <CardDescription className="line-clamp-2 min-h-[2.5rem]" title={pipeline.description}>
-                    {pipeline.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Progress</span>
-                        <span className="font-medium">
-                          {formatCurrency((pipeline.closed_amount ?? 0) / 100)} / {formatCurrency((pipeline.target_amount ?? 0) / 100)}
-                        </span>
+                    <CardDescription className="line-clamp-2 min-h-[2.5rem]" title={pipeline.description}>
+                      {pipeline.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Progress</span>
+                          <span className="font-medium">
+                            {formatCurrency((pipeline.closed_amount ?? 0) / 100)} / {formatCurrency((pipeline.target_amount ?? 0) / 100)}
+                          </span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full ${statusConfig.color}`}
+                            style={{ width: `${((pipeline.closed_amount ?? 0) / (pipeline.target_amount ?? 1)) * 100}%` }}
+                          />
+                        </div>
                       </div>
-                      <div className="w-full bg-muted rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full ${statusConfig.color}`}
-                          style={{ width: `${((pipeline.closed_amount ?? 0) / (pipeline.target_amount ?? 1)) * 100}%` }}
-                        />
-                      </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Deadline</span>
-                        <span>
-                          {pipeline.expected_close_date && isValid(parseISO(pipeline.expected_close_date))
-                            ? format(parseISO(pipeline.expected_close_date), 'MMM d, yyyy')
-                            : 'No deadline set'}
-                        </span>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Deadline</span>
+                          <span>
+                            {pipeline.expected_close_date && isValid(parseISO(pipeline.expected_close_date))
+                              ? format(parseISO(pipeline.expected_close_date), 'MMM d, yyyy')
+                              : 'No deadline set'}
+                          </span>
+                        </div>
                       </div>
-                    </div>
 
-                    <Link href={`/fundraising/${pipeline.reference}`} className="block mt-4">
-                      <Button variant="outline" className="w-full">
-                        View Details
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                      <Link href={`/fundraising/${pipeline.reference}`} className="block mt-4">
+                        <Button variant="outline" className="w-full">
+                          View Details
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
         </div>
       )}
     </div>
