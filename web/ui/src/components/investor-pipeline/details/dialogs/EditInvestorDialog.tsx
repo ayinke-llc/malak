@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { RiStarFill, RiStarLine } from "@remixicon/react";
 import { NumericFormat } from "react-number-format";
-import { Card } from "../../../types";
+import { Card } from "../../types";
 
 interface EditInvestorDialogProps {
   open: boolean;
@@ -20,8 +20,8 @@ interface EditInvestorDialogProps {
   onSave: (updatedInvestor: Card) => void;
 }
 
-export function EditInvestorDialog({ 
-  open, 
+export function EditInvestorDialog({
+  open,
   onOpenChange,
   investor,
   onSave
@@ -87,7 +87,7 @@ export function EditInvestorDialog({
               className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label>Initial Contact Date</Label>
             <Input
@@ -96,7 +96,7 @@ export function EditInvestorDialog({
               onChange={(e) => setEditedInvestor({ ...editedInvestor, initialContactDate: e.target.value })}
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label>Lead Investor</Label>
             <div className="flex items-center space-x-2">
@@ -109,7 +109,7 @@ export function EditInvestorDialog({
               </span>
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label>Rating</Label>
             <div className="flex items-center gap-1">
