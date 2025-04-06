@@ -330,8 +330,8 @@ func (c *addContactRequest) Validate() error {
 		return errors.New("rating must be between 0 and 5")
 	}
 
-	if c.CheckSize < (5000 * 100) {
-		return errors.New("check size must be at least 5000 USD ($5,000)")
+	if c.CheckSize < (1000 * 100) {
+		return errors.New("check size must be at least 1000 USD ($1,000)")
 	}
 
 	initialContactDate := time.Unix(c.InitialContact, 0).UTC()

@@ -27,9 +27,10 @@ import { SEARCH_CONTACTS } from "@/lib/query-constants";
 import client from "@/lib/client";
 import debounce from "lodash/debounce";
 import type { ServerListContactsResponse, MalakContact } from "@/client/Api";
+import { CurrencyInput } from "@/components/ui/currency-input";
 
 export interface SearchResult {
-  id: string;
+  reference: string;
   name: string;
   company: string;
   email: string;
@@ -37,7 +38,7 @@ export interface SearchResult {
 }
 
 const mapContactToSearchResult = (contact: MalakContact): SearchResult => ({
-  id: contact.id || "",
+  reference: contact.reference || "",
   name: `${contact.first_name || ""} ${contact.last_name || ""}`.trim(),
   company: contact.company || "",
   email: contact.email || "",
@@ -217,7 +218,7 @@ export function AddInvestorDialog({
 
                 {!isLoading && results.map((result: SearchResult) => (
                   <Card
-                    key={result.id}
+                    key={result.reference}
                     className="cursor-pointer transition-colors hover:bg-muted/50"
                     onClick={() => handleSelectInvestor(result)}
                   >
@@ -254,9 +255,14 @@ export function AddInvestorDialog({
             <form onSubmit={handleSubmitDetails} className="mt-4 space-y-4">
               <div className="space-y-2">
                 <Label>Check Size</Label>
-                <Input
+                <CurrencyInput
                   value={investorDetails.checkSize}
-                  onChange={(e) => setInvestorDetails({ ...investorDetails, checkSize: e.target.value })}
+                  onValueChange={(values) => {
+                    setInvestorDetails({
+                      ...investorDetails,
+                      checkSize: values.value
+                    });
+                  }}
                   placeholder="Enter check size"
                 />
               </div>

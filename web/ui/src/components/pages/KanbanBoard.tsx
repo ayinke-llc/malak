@@ -39,7 +39,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FETCH_FUNDRAISING_PIPELINE, CLOSE_FUNDRAISING_PIPELINE } from "@/lib/query-constants";
+import { FETCH_FUNDRAISING_PIPELINE, CLOSE_FUNDRAISING_PIPELINE, ADD_INVESTOR_TO_PIPELINE } from "@/lib/query-constants";
 import client from "@/lib/client";
 import type { ServerFetchBoardResponse } from "@/client/Api";
 import {
@@ -107,6 +107,33 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
     },
     onError: (err: AxiosError<ServerAPIStatus>) => {
       toast.error(err.response?.data.message ?? "Failed to close pipeline");
+    },
+  });
+
+  const addInvestorMutation = useMutation({
+    mutationKey: [ADD_INVESTOR_TO_PIPELINE, slug],
+    mutationFn: async (investor: SearchResult & {
+      checkSize: string;
+      initialContactDate: string;
+      isLeadInvestor: boolean;
+      rating: number;
+    }) => {
+      const response = await client.pipelines.contactsCreate(slug, {
+        contact_reference: investor.reference,
+        check_size: Number(investor.checkSize) * 100, // Convert to cents
+        initial_contact: Math.floor(new Date(investor.initialContactDate).getTime() / 1000),
+        can_lead_round: investor.isLeadInvestor,
+        rating: investor.rating
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [FETCH_FUNDRAISING_PIPELINE, slug] });
+      toast.success("Investor added successfully");
+      setIsAddInvestorOpen(false);
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err.response?.data.message ?? "Failed to add investor");
     },
   });
 
@@ -252,45 +279,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
       return;
     }
 
-    // Ensure backlog column exists
-    if (!board.columns.backlog) {
-      toast.error("Cannot add investor: Backlog column not found");
-      return;
-    }
-
-    const newCard: InvestorCard = {
-      id: investor.id || crypto.randomUUID(),
-      title: investor.company || "Unnamed Company",
-      amount: "TBD",
-      stage: "Initial Contact",
-      dueDate: new Date().toISOString().split('T')[0],
-      contact: {
-        name: investor.name || "Unknown Contact",
-        image: investor.image || "",
-      },
-      roundDetails: {
-        raising: "TBD",
-        type: "TBD",
-        ownership: "TBD"
-      },
-      checkSize: investor.checkSize || "TBD",
-      initialContactDate: investor.initialContactDate || new Date().toISOString(),
-      isLeadInvestor: investor.isLeadInvestor || false,
-      rating: investor.rating || 0
-    };
-
-    const updatedBoard = {
-      ...board,
-      columns: {
-        ...board.columns,
-        backlog: {
-          ...board.columns.backlog,
-          cards: [...(board.columns.backlog.cards || []), newCard],
-        },
-      }
-    };
-
-    updateBoardMutation.mutate(updatedBoard);
+    addInvestorMutation.mutate(investor);
   };
 
   return (
