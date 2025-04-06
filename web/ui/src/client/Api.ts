@@ -1355,6 +1355,28 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
+
+    /**
+     * @description Search contacts
+     *
+     * @tags contacts
+     * @name SearchList
+     * @request GET:/contacts/search
+     */
+    searchList: (
+      query: {
+        /** search term */
+        search: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerListContactsResponse, ServerAPIStatus>({
+        path: `/contacts/search`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
   };
   dashboards = {
     /**

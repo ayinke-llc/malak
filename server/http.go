@@ -414,6 +414,9 @@ func buildRoutes(
 			r.Get("/",
 				WrapMalakHTTPHandler(logger, contactHandler.list, cfg, "contacts.list"))
 
+			r.Get("/search",
+				WrapMalakHTTPHandler(logger, contactHandler.search, cfg, "contacts.search"))
+
 			r.Get("/{reference}",
 				WrapMalakHTTPHandler(logger, contactHandler.fetchContact, cfg, "contacts.fetch"))
 

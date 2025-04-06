@@ -68,6 +68,11 @@ type ContactOverview struct {
 	TotalContacts int64 `json:"total_contacts,omitempty"`
 }
 
+type SearchContactOptions struct {
+	WorkspaceID uuid.UUID
+	SearchValue string
+}
+
 type ContactRepository interface {
 	Create(context.Context, ...*Contact) error
 	Get(context.Context, FetchContactOptions) (*Contact, error)
@@ -75,4 +80,5 @@ type ContactRepository interface {
 	Delete(context.Context, *Contact) error
 	Update(context.Context, *Contact) error
 	Overview(context.Context, uuid.UUID) (*ContactOverview, error)
+	Search(context.Context, SearchContactOptions) ([]Contact, error)
 }

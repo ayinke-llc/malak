@@ -818,3 +818,56 @@ func (c *contactHandler) editContact(
 		Contact:   hermes.DeRef(contact),
 	}, StatusSuccess
 }
+
+// @Description Search contacts
+// @Tags contacts
+// @Accept  json
+// @Produce  json
+// @Param search query string true "search term"
+// @Success 200 {object} listContactsResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /contacts/search [get]
+func (c *contactHandler) search(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("searching contacts")
+
+	workspace := getWorkspaceFromContext(r.Context())
+	searchValue := r.URL.Query().Get("search")
+
+	if searchValue == "" {
+		return newAPIStatus(http.StatusBadRequest, "search parameter is required"), StatusFailed
+	}
+
+	contacts, err := c.contactRepo.Search(ctx, malak.SearchContactOptions{
+		WorkspaceID: workspace.ID,
+		SearchValue: searchValue,
+	})
+	if err != nil {
+		logger.Error("could not search contacts",
+			zap.Error(err))
+
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"could not search contacts"), StatusFailed
+	}
+
+	return listContactsResponse{
+		APIStatus: newAPIStatus(http.StatusOK, "contacts searched successfully"),
+		Contacts:  contacts,
+		Meta: meta{
+			Paging: pagingInfo{
+				PerPage: int64(len(contacts)),
+				Page:    1,
+				Total:   int64(len(contacts)),
+			},
+		},
+	}, StatusSuccess
+}
