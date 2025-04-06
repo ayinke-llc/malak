@@ -3574,6 +3574,49 @@ paths:
           description: Internal Server Error
       tags:
       - fundraising
+  /pipelines/{reference}/close:
+    post:
+      description: Close a fundraising board permanently
+      parameters:
+      - description: Pipeline reference
+        in: path
+        name: reference
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server.APIStatus'
+          description: Internal Server Error
+      tags:
+      - fundraising
   /public/dashboards/{reference}:
     get:
       description: fetch public dashboard and charting data points

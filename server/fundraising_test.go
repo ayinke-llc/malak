@@ -521,3 +521,167 @@ func TestFundraisingHandler_Board(t *testing.T) {
 		})
 	}
 }
+
+type closeBoardTestCase struct {
+	name               string
+	mockFn             func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository)
+	expectedStatusCode int
+}
+
+func generateCloseBoardTestTable() []closeBoardTestCase {
+	return []closeBoardTestCase{
+		{
+			name: "successful close",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:          uuid.MustParse("34bc303d-6ca6-4881-a31f-55503b98eb9a"),
+					Reference:   "pipeline_123",
+					Title:       "Test Pipeline",
+					WorkspaceID: uuid.MustParse("1e66cedd-0e53-493a-adfd-7f81221c2248"),
+					IsClosed:    false,
+				}
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(pipeline, nil)
+
+				repo.EXPECT().
+					CloseBoard(gomock.Any(), pipeline).
+					Times(1).
+					Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "missing reference parameter",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				// No mock expectations since it should fail before repository calls
+			},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "pipeline not found",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, malak.ErrPipelineNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "pipeline already closed",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:          uuid.MustParse("34bc303d-6ca6-4881-a31f-55503b98eb9a"),
+					Reference:   "pipeline_123",
+					Title:       "Test Pipeline",
+					WorkspaceID: uuid.MustParse("1e66cedd-0e53-493a-adfd-7f81221c2248"),
+					IsClosed:    true,
+				}
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(pipeline, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "get pipeline error",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("database error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "close board error",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:          uuid.MustParse("34bc303d-6ca6-4881-a31f-55503b98eb9a"),
+					Reference:   "pipeline_123",
+					Title:       "Test Pipeline",
+					WorkspaceID: uuid.MustParse("1e66cedd-0e53-493a-adfd-7f81221c2248"),
+					IsClosed:    false,
+				}
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(pipeline, nil)
+
+				repo.EXPECT().
+					CloseBoard(gomock.Any(), pipeline).
+					Times(1).
+					Return(errors.New("repository error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+	}
+}
+
+func TestFundraisingHandler_CloseBoard(t *testing.T) {
+	for _, v := range generateCloseBoardTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			fundingRepo := malak_mocks.NewMockFundraisingPipelineRepository(controller)
+			v.mockFn(t, fundingRepo)
+
+			handler := &fundraisingHandler{
+				cfg:                getConfig(),
+				fundingRepo:        fundingRepo,
+				referenceGenerator: &mockReferenceGenerator{},
+			}
+
+			rr := httptest.NewRecorder()
+			var reference string
+			switch v.name {
+			case "missing reference parameter":
+				reference = ""
+			case "pipeline not found":
+				reference = "non_existent_pipeline"
+			default:
+				reference = "pipeline_123"
+			}
+
+			path := "/pipelines/" + reference + "/close"
+			if reference == "" {
+				path = "/pipelines//close" // Test missing reference case
+			}
+			req := httptest.NewRequest(http.MethodPost, path, nil)
+
+			workspace := &malak.Workspace{
+				ID: uuid.MustParse("1e66cedd-0e53-493a-adfd-7f81221c2248"),
+			}
+			user := &malak.User{
+				ID: uuid.MustParse("00000000-0000-0000-0000-000000000000"),
+			}
+
+			// Set up context in the correct order
+			ctx := req.Context()
+			ctx = writeUserToCtx(ctx, user)
+			ctx = writeWorkspaceToCtx(ctx, workspace)
+			ctx = context.WithValue(ctx, chi.RouteCtxKey, chi.NewRouteContext())
+			req = req.WithContext(ctx)
+
+			// Set up route params
+			rctx := chi.NewRouteContext()
+			if reference != "" {
+				rctx.URLParams.Add("reference", reference)
+			}
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+			WrapMalakHTTPHandler(getLogger(t),
+				handler.closeBoard,
+				getConfig(),
+				"fundraising.close_board").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}

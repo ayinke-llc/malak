@@ -226,6 +226,7 @@ func (d *fundraisingHandler) board(
 		return newAPIStatus(http.StatusBadRequest, "please provide the pipeline reference"), StatusFailed
 	}
 
+	logger = logger.With(zap.String("reference", reference))
 	workspace := getWorkspaceFromContext(ctx)
 
 	pipeline, err := d.fundingRepo.Get(ctx, malak.FetchPipelineOptions{
@@ -254,4 +255,58 @@ func (d *fundraisingHandler) board(
 		Positions: positions,
 		APIStatus: newAPIStatus(http.StatusOK, "fetched fundraising board"),
 	}, StatusSuccess
+}
+
+// @Description Close a fundraising board permanently
+// @Tags fundraising
+// @Accept  json
+// @Produce  json
+// @Param reference path string true "Pipeline reference"
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /pipelines/{reference} [delete]
+func (d *fundraisingHandler) closeBoard(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("closing fundraising board")
+
+	reference := chi.URLParam(r, "reference")
+	if hermes.IsStringEmpty(reference) {
+		return newAPIStatus(http.StatusBadRequest, "please provide the pipeline reference"), StatusFailed
+	}
+
+	logger = logger.With(zap.String("reference", reference))
+
+	workspace := getWorkspaceFromContext(ctx)
+
+	pipeline, err := d.fundingRepo.Get(ctx, malak.FetchPipelineOptions{
+		Reference:   malak.Reference(reference),
+		WorkspaceID: workspace.ID,
+	})
+	if err != nil {
+		if errors.Is(err, malak.ErrPipelineNotFound) {
+			return newAPIStatus(http.StatusNotFound, "fundraising pipeline not found"), StatusFailed
+		}
+
+		logger.Error("could not fetch fundraising pipeline", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch fundraising pipeline"), StatusFailed
+	}
+
+	if pipeline.IsClosed {
+		return newAPIStatus(http.StatusOK, "fundraising pipeline is already closed"), StatusSuccess
+	}
+
+	if err := d.fundingRepo.CloseBoard(ctx, pipeline); err != nil {
+		logger.Error("could not close fundraising board", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not close fundraising board"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "fundraising board closed successfully"), StatusSuccess
 }

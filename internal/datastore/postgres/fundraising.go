@@ -153,3 +153,16 @@ func (d *fundingRepo) Get(ctx context.Context, opts malak.FetchPipelineOptions) 
 
 	return pipeline, nil
 }
+
+func (d *fundingRepo) CloseBoard(ctx context.Context, pipeline *malak.FundraisingPipeline) error {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	_, err := d.inner.NewUpdate().
+		Model(pipeline).
+		Set("is_closed = ?", true).
+		Where("id = ?", pipeline.ID).
+		Exec(ctx)
+
+	return err
+}

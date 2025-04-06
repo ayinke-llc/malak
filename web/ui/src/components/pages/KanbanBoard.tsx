@@ -58,8 +58,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isAddInvestorOpen, setIsAddInvestorOpen] = useState(false);
   const [isShareSettingsOpen, setIsShareSettingsOpen] = useState(false);
-  const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
-  const [isUnarchiveConfirmOpen, setIsUnarchiveConfirmOpen] = useState(false);
+  const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false);
   const [shareSettings, setShareSettings] = useState<ShareSettings>({
     isEnabled: false,
     shareLink: "",
@@ -219,22 +218,13 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
     updateBoardMutation.mutate(updatedBoard);
   };
 
-  const handleArchive = () => {
+  const handleClose = () => {
     const updatedBoard = {
       ...board,
       isArchived: true
     };
     updateBoardMutation.mutate(updatedBoard);
-    setIsArchiveConfirmOpen(false);
-  };
-
-  const handleUnarchive = () => {
-    const updatedBoard = {
-      ...board,
-      isArchived: false
-    };
-    updateBoardMutation.mutate(updatedBoard);
-    setIsUnarchiveConfirmOpen(false);
+    setIsCloseConfirmOpen(false);
   };
 
   const handleAddInvestor = (investor: SearchResult & {
@@ -303,31 +293,40 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
             <RiAddLine className="mr-1 h-4 w-4" />
             Add Investor
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsShareSettingsOpen(true)}
-          >
-            <RiSettings4Line className="mr-1 h-4 w-4" />
-            Share Settings
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled
+                >
+                  <RiSettings4Line className="mr-1 h-4 w-4" />
+                  Share Settings
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Coming soon!</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           {board.isArchived ? (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsUnarchiveConfirmOpen(true)}
+              disabled
             >
-              <RiInboxUnarchiveLine className="mr-1 h-4 w-4" />
-              Unarchive
+              <RiArchiveLine className="mr-1 h-4 w-4" />
+              Closed
             </Button>
           ) : (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsArchiveConfirmOpen(true)}
+              onClick={() => setIsCloseConfirmOpen(true)}
             >
               <RiArchiveLine className="mr-1 h-4 w-4" />
-              Archive
+              Close Board
             </Button>
           )}
         </div>
@@ -479,37 +478,31 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
         onSettingsChange={setShareSettings}
       />
 
-      <AlertDialog open={isArchiveConfirmOpen} onOpenChange={setIsArchiveConfirmOpen}>
+      <AlertDialog open={isCloseConfirmOpen} onOpenChange={setIsCloseConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Archive Pipeline</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to archive this pipeline? This will make it read-only
-              and prevent any further changes.
+            <AlertDialogTitle>Close Pipeline Board</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-4">
+              <p>
+                Are you sure you want to close this pipeline board? This action is permanent and has the following effects:
+              </p>
+              <ul className="list-disc pl-4 space-y-2">
+                <li>The board will become read-only</li>
+                <li>You cannot add new investors or move existing ones</li>
+                <li>This action cannot be undone - you cannot reopen the board once closed</li>
+              </ul>
+              <p className="font-medium text-destructive">
+                Please confirm that you understand this is a permanent action.
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleArchive}>
-              Archive Pipeline
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={isUnarchiveConfirmOpen} onOpenChange={setIsUnarchiveConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Unarchive Pipeline</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to unarchive this pipeline? This will make it editable
-              and allow changes to be made.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleUnarchive}>
-              Unarchive Pipeline
+            <AlertDialogAction 
+              onClick={handleClose}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Close Board Permanently
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

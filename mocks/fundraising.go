@@ -58,6 +58,20 @@ func (mr *MockFundraisingPipelineRepositoryMockRecorder) Board(arg0, arg1 any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Board", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).Board), arg0, arg1)
 }
 
+// CloseBoard mocks base method.
+func (m *MockFundraisingPipelineRepository) CloseBoard(arg0 context.Context, arg1 *malak.FundraisingPipeline) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CloseBoard", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CloseBoard indicates an expected call of CloseBoard.
+func (mr *MockFundraisingPipelineRepositoryMockRecorder) CloseBoard(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloseBoard", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).CloseBoard), arg0, arg1)
+}
+
 // Create mocks base method.
 func (m *MockFundraisingPipelineRepository) Create(arg0 context.Context, arg1 *malak.FundraisingPipeline, arg2 ...malak.FundraisingPipelineColumn) error {
 	m.ctrl.T.Helper()

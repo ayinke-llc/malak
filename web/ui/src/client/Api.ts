@@ -1814,6 +1814,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
+
+    /**
+     * @description Close a fundraising board permanently
+     *
+     * @tags fundraising
+     * @name CloseCreate
+     * @request POST:/pipelines/{reference}/close
+     */
+    closeCreate: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/pipelines/${reference}/close`,
+        method: "POST",
+        format: "json",
+        ...params,
+      }),
   };
   public = {
     /**

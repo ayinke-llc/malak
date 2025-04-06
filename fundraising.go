@@ -53,6 +53,9 @@ var DefaultFundraisingColumns = []struct {
 // ENUM(family_and_friend,pre_seed,bridge_round,seed,series_a,series_b,series_c)
 type FundraisePipelineStage string
 
+// ENUM(active,closed)
+type FundraisePipelineStatus string
+
 // ENUM(normal,closed)
 //
 // normal columns are just normal columns really
@@ -186,10 +189,8 @@ type FetchPipelineOptions struct {
 
 type FundraisingPipelineRepository interface {
 	Create(context.Context, *FundraisingPipeline, ...FundraisingPipelineColumn) error
-
 	List(context.Context, ListPipelineOptions) ([]FundraisingPipeline, int64, error)
-
 	Get(context.Context, FetchPipelineOptions) (*FundraisingPipeline, error)
-
 	Board(context.Context, *FundraisingPipeline) ([]FundraisingPipelineColumn, []FundraiseContact, []FundraiseContactPosition, error)
+	CloseBoard(context.Context, *FundraisingPipeline) error
 }

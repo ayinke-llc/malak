@@ -459,3 +459,57 @@ func TestFundraising_Board(t *testing.T) {
 		require.Empty(t, resultPositions)
 	})
 }
+
+func TestFundraising_CloseBoard(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	fundingRepo := NewFundingRepo(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	pipeline := &malak.FundraisingPipeline{
+		Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
+		WorkspaceID:       workspace.ID,
+		Title:             "Test Pipeline",
+		Stage:             malak.FundraisePipelineStageSeed,
+		Description:       "Test pipeline description",
+		TargetAmount:      1000000,
+		StartDate:         time.Now().UTC(),
+		ExpectedCloseDate: time.Now().UTC().Add(90 * 24 * time.Hour),
+		IsClosed:          false,
+	}
+
+	err = fundingRepo.Create(t.Context(), pipeline)
+	require.NoError(t, err)
+
+	t.Run("close board successfully", func(t *testing.T) {
+		err := fundingRepo.CloseBoard(t.Context(), pipeline)
+		require.NoError(t, err)
+
+		// Verify the pipeline is marked as closed
+		result, err := fundingRepo.Get(t.Context(), malak.FetchPipelineOptions{
+			WorkspaceID: workspace.ID,
+			Reference:   pipeline.Reference,
+		})
+		require.NoError(t, err)
+		require.True(t, result.IsClosed)
+	})
+
+	t.Run("close already closed board", func(t *testing.T) {
+		err := fundingRepo.CloseBoard(t.Context(), pipeline)
+		require.NoError(t, err)
+
+		// Verify it's still closed
+		result, err := fundingRepo.Get(t.Context(), malak.FetchPipelineOptions{
+			WorkspaceID: workspace.ID,
+			Reference:   pipeline.Reference,
+		})
+		require.NoError(t, err)
+		require.True(t, result.IsClosed)
+	})
+}
