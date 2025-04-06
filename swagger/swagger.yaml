@@ -3531,9 +3531,9 @@ paths:
           description: Internal Server Error
       tags:
       - fundraising
-  /pipelines/{reference}/board:
-    get:
-      description: Fetch a fundraising board with its columns
+  /pipelines/{reference}:
+    delete:
+      description: Close a fundraising board permanently
       parameters:
       - description: Pipeline reference
         in: path
@@ -3546,7 +3546,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/server.fetchBoardResponse'
+                $ref: '#/components/schemas/server.APIStatus'
           description: OK
         "400":
           content:
@@ -3574,9 +3574,9 @@ paths:
           description: Internal Server Error
       tags:
       - fundraising
-  /pipelines/{reference}/close:
-    post:
-      description: Close a fundraising board permanently
+  /pipelines/{reference}/board:
+    get:
+      description: Fetch a fundraising board with its columns
       parameters:
       - description: Pipeline reference
         in: path
@@ -3589,7 +3589,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/server.APIStatus'
+                $ref: '#/components/schemas/server.fetchBoardResponse'
           description: OK
         "400":
           content:

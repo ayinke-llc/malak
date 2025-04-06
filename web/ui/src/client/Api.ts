@@ -1801,6 +1801,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
+     * @description Close a fundraising board permanently
+     *
+     * @tags fundraising
+     * @name PipelinesDelete
+     * @request DELETE:/pipelines/{reference}
+     */
+    pipelinesDelete: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/pipelines/${reference}`,
+        method: "DELETE",
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Fetch a fundraising board with its columns
      *
      * @tags fundraising
@@ -1811,21 +1826,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerFetchBoardResponse, ServerAPIStatus>({
         path: `/pipelines/${reference}/board`,
         method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Close a fundraising board permanently
-     *
-     * @tags fundraising
-     * @name CloseCreate
-     * @request POST:/pipelines/{reference}/close
-     */
-    closeCreate: (reference: string, params: RequestParams = {}) =>
-      this.request<ServerAPIStatus, ServerAPIStatus>({
-        path: `/pipelines/${reference}/close`,
-        method: "POST",
         format: "json",
         ...params,
       }),

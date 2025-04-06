@@ -5491,9 +5491,9 @@
 				]
 			}
 		},
-		"/pipelines/{reference}/board": {
-			"get": {
-				"description": "Fetch a fundraising board with its columns",
+		"/pipelines/{reference}": {
+			"delete": {
+				"description": "Close a fundraising board permanently",
 				"parameters": [
 					{
 						"description": "Pipeline reference",
@@ -5510,7 +5510,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/server.fetchBoardResponse"
+									"$ref": "#/components/schemas/server.APIStatus"
 								}
 							}
 						},
@@ -5562,9 +5562,9 @@
 				]
 			}
 		},
-		"/pipelines/{reference}/close": {
-			"post": {
-				"description": "Close a fundraising board permanently",
+		"/pipelines/{reference}/board": {
+			"get": {
+				"description": "Fetch a fundraising board with its columns",
 				"parameters": [
 					{
 						"description": "Pipeline reference",
@@ -5581,7 +5581,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/server.APIStatus"
+									"$ref": "#/components/schemas/server.fetchBoardResponse"
 								}
 							}
 						},

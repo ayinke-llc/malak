@@ -38,7 +38,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FETCH_FUNDRAISING_PIPELINE } from "@/lib/query-constants";
+import { FETCH_FUNDRAISING_PIPELINE, CLOSE_FUNDRAISING_PIPELINE } from "@/lib/query-constants";
 import client from "@/lib/client";
 import type { ServerFetchBoardResponse } from "@/client/Api";
 import {
@@ -48,6 +48,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import type { AxiosError } from "axios";
+import type { ServerAPIStatus } from "@/client/Api";
 
 interface KanbanBoardProps {
   slug: string;
@@ -86,8 +88,24 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
       queryClient.invalidateQueries({ queryKey: [FETCH_FUNDRAISING_PIPELINE, slug] });
       toast.success("Pipeline updated successfully");
     },
-    onError: (error) => {
-      toast.error("Failed to update pipeline");
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err.response?.data.message ?? "Failed to update pipeline");
+    },
+  });
+
+  const closeBoardMutation = useMutation({
+    mutationKey: [CLOSE_FUNDRAISING_PIPELINE, slug],
+    mutationFn: async () => {
+      const response = await client.pipelines.pipelinesDelete(slug);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [FETCH_FUNDRAISING_PIPELINE, slug] });
+      toast.success("Pipeline closed successfully");
+      setIsCloseConfirmOpen(false);
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err.response?.data.message ?? "Failed to close pipeline");
     },
   });
 
@@ -107,7 +125,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
         <p className="text-muted-foreground mb-4 max-w-md">
           An error occurred while loading the board. Please try again.
         </p>
-        <Button 
+        <Button
           variant="default"
           onClick={() => queryClient.invalidateQueries({ queryKey: [FETCH_FUNDRAISING_PIPELINE, slug] })}
         >
@@ -183,8 +201,8 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
     }
 
     const sourceCards = Array.from(sourceColumn.cards || []);
-    const destCards = source.droppableId === destination.droppableId 
-      ? sourceCards 
+    const destCards = source.droppableId === destination.droppableId
+      ? sourceCards
       : Array.from(destColumn.cards || []);
 
     if (sourceCards.length === 0) {
@@ -219,12 +237,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
   };
 
   const handleClose = () => {
-    const updatedBoard = {
-      ...board,
-      isArchived: true
-    };
-    updateBoardMutation.mutate(updatedBoard);
-    setIsCloseConfirmOpen(false);
+    closeBoardMutation.mutate();
   };
 
   const handleAddInvestor = (investor: SearchResult & {
@@ -498,11 +511,19 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleClose}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={closeBoardMutation.isPending}
             >
-              Close Board Permanently
+              {closeBoardMutation.isPending ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-background mr-2" />
+                  Closing...
+                </>
+              ) : (
+                "Close Board Permanently"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

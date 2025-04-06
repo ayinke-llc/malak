@@ -2157,9 +2157,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/pipelines/{reference}/board": {
-            "get": {
-                "description": "Fetch a fundraising board with its columns",
+        "/pipelines/{reference}": {
+            "delete": {
+                "description": "Close a fundraising board permanently",
                 "consumes": [
                     "application/json"
                 ],
@@ -2182,7 +2182,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.fetchBoardResponse"
+                            "$ref": "#/definitions/server.APIStatus"
                         }
                     },
                     "400": {
@@ -2212,9 +2212,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/pipelines/{reference}/close": {
-            "post": {
-                "description": "Close a fundraising board permanently",
+        "/pipelines/{reference}/board": {
+            "get": {
+                "description": "Fetch a fundraising board with its columns",
                 "consumes": [
                     "application/json"
                 ],
@@ -2237,7 +2237,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.APIStatus"
+                            "$ref": "#/definitions/server.fetchBoardResponse"
                         }
                     },
                     "400": {
