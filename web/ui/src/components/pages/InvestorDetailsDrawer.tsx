@@ -114,15 +114,6 @@ interface Activity {
   content?: string;
 }
 
-interface Document {
-  id: string;
-  name: string;
-  type: 'pdf' | 'excel' | 'image' | 'other';
-  size: number;
-  uploadedAt: Date;
-  uploadedBy: string;
-}
-
 interface InvestorDetailsDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -160,34 +151,6 @@ const fetchActivities = async (page: number, investorId: string): Promise<Activi
     content: Math.random() > 0.5 ? `Content for activity ${startIndex + i + 1}` : undefined,
   }));
 };
-
-// Mock documents data
-const mockDocuments: Document[] = [
-  {
-    id: '1',
-    name: 'Financial Report Q4 2023.pdf',
-    type: 'pdf',
-    size: 2500000,
-    uploadedAt: new Date('2024-01-15'),
-    uploadedBy: 'John Doe'
-  },
-  {
-    id: '2',
-    name: 'Investment Metrics.xlsx',
-    type: 'excel',
-    size: 1800000,
-    uploadedAt: new Date('2024-01-20'),
-    uploadedBy: 'Jane Smith'
-  },
-  {
-    id: '3',
-    name: 'Company Logo.png',
-    type: 'image',
-    size: 500000,
-    uploadedAt: new Date('2024-01-25'),
-    uploadedBy: 'John Doe'
-  }
-];
 
 function ActivitySkeleton() {
   return (
@@ -380,19 +343,6 @@ function NoteDialog({
   );
 }
 
-function DocumentIcon({ type }: { type: string }) {
-  switch (type) {
-    case 'pdf':
-      return <RiFileTextLine className="w-5 h-5 text-red-500" />;
-    case 'excel':
-      return <RiFileExcelLine className="w-5 h-5 text-green-500" />;
-    case 'image':
-      return <RiImageLine className="w-5 h-5 text-blue-500" />;
-    default:
-      return <RiFile3Line className="w-5 h-5 text-gray-500" />;
-  }
-}
-
 function formatFileSize(bytes: number): string {
   const units = ['B', 'KB', 'MB', 'GB'];
   let size = bytes;
@@ -575,102 +525,15 @@ function UploadDocumentModal({
 }
 
 function DocumentsTab({ isReadOnly }: { isReadOnly: boolean }) {
-  const [documents, setDocuments] = useState<Document[]>(mockDocuments);
-  const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
-
-  const handleUpload = (document: Document) => {
-    setDocuments(prev => [document, ...prev]);
-    toast.success('Document uploaded successfully');
-  };
-
-  const handleDownload = (document: Document) => {
-    // In a real implementation, you would download the file from your backend here
-    toast.success(`Downloading ${document.name}`);
-  };
-
-  const handleDelete = (document: Document) => {
-    setDocumentToDelete(document);
-  };
-
-  const confirmDelete = () => {
-    if (!documentToDelete) return;
-    
-    setDocuments(prev => prev.filter(doc => doc.id !== documentToDelete.id));
-    toast.success('Document deleted successfully');
-    setDocumentToDelete(null);
-  };
-
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Documents</h3>
-        {!isReadOnly && (
-          <UploadDocumentModal onUpload={handleUpload} />
-        )}
+    <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+      <RiFileTextLine className="w-12 h-12 text-muted-foreground" />
+      <div>
+        <h3 className="text-lg font-semibold">Documents Coming Soon</h3>
+        <p className="text-sm text-muted-foreground">
+          The documents feature is currently under development and will be available soon.
+        </p>
       </div>
-
-      {documents.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          No documents uploaded yet
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {documents.map(document => (
-            <div
-              key={document.id}
-              className="flex items-center justify-between p-3 rounded-lg border bg-card"
-            >
-              <div className="flex items-center gap-3">
-                <DocumentIcon type={document.type} />
-                <div>
-                  <p className="font-medium">{document.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatFileSize(document.size)} • Uploaded by {document.uploadedBy} on{' '}
-                    {new Date(document.uploadedAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {!isReadOnly && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDownload(document)}
-                  >
-                    <RiDownloadLine className="w-4 h-4" />
-                  </Button>
-                )}
-                {!isReadOnly && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(document)}
-                  >
-                    <RiDeleteBinLine className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <AlertDialog open={!!documentToDelete} onOpenChange={() => setDocumentToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Document</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{documentToDelete?.name}"? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            {!isReadOnly && (
-              <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
-            )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
