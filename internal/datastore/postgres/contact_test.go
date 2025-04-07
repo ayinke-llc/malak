@@ -298,3 +298,119 @@ func TestContact_Overview(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(1), overview.TotalContacts)
 }
+
+func TestContact_Search(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	contactRepo := NewContactRepository(client)
+
+	contacts := []*malak.Contact{
+		{
+			Email:       malak.Email("john.doe@example.com"),
+			FirstName:   "John",
+			LastName:    "Doe",
+			Company:     "ACME Corp",
+			WorkspaceID: workspaceID,
+			CreatedBy:   uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
+			OwnerID:     uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
+			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeContact),
+		},
+		{
+			Email:       malak.Email("JANE.DOE@example.com"),
+			FirstName:   "JANE",
+			LastName:    "DOE",
+			Company:     "Acme Corp",
+			WorkspaceID: workspaceID,
+			CreatedBy:   uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
+			OwnerID:     uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
+			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeContact),
+		},
+		{
+			Email:       malak.Email("bob.smith@example.com"),
+			FirstName:   "Bob",
+			LastName:    "Smith",
+			Company:     "TechCo",
+			WorkspaceID: workspaceID,
+			CreatedBy:   uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
+			OwnerID:     uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
+			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeContact),
+		},
+	}
+
+	for _, c := range contacts {
+		err := contactRepo.Create(t.Context(), c)
+		require.NoError(t, err)
+	}
+
+	tests := []struct {
+		name          string
+		searchOpts    malak.SearchContactOptions
+		expectedCount int
+		checkFn       func(t *testing.T, results []malak.Contact)
+	}{
+		{
+			name: "Search by email - case insensitive",
+			searchOpts: malak.SearchContactOptions{
+				WorkspaceID: workspaceID,
+				SearchValue: "JOHN.DOE",
+			},
+			expectedCount: 1,
+			checkFn: func(t *testing.T, results []malak.Contact) {
+				require.Equal(t, "john.doe@example.com", results[0].Email.String())
+			},
+		},
+		{
+			name: "Search by first name - case insensitive",
+			searchOpts: malak.SearchContactOptions{
+				WorkspaceID: workspaceID,
+				SearchValue: "jane",
+			},
+			expectedCount: 1,
+			checkFn: func(t *testing.T, results []malak.Contact) {
+				require.Equal(t, "JANE", results[0].FirstName)
+			},
+		},
+		{
+			name: "Search by company - case insensitive",
+			searchOpts: malak.SearchContactOptions{
+				WorkspaceID: workspaceID,
+				SearchValue: "acme",
+			},
+			expectedCount: 2,
+			checkFn: func(t *testing.T, results []malak.Contact) {
+				companies := []string{results[0].Company, results[1].Company}
+				require.Contains(t, companies, "ACME Corp")
+				require.Contains(t, companies, "Acme Corp")
+			},
+		},
+		{
+			name: "Search with no results",
+			searchOpts: malak.SearchContactOptions{
+				WorkspaceID: workspaceID,
+				SearchValue: "nonexistent",
+			},
+			expectedCount: 0,
+		},
+		{
+			name: "Search with empty workspace ID",
+			searchOpts: malak.SearchContactOptions{
+				WorkspaceID: uuid.Nil,
+				SearchValue: "john",
+			},
+			expectedCount: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			results, err := contactRepo.Search(t.Context(), tt.searchOpts)
+			require.NoError(t, err)
+			require.Len(t, results, tt.expectedCount)
+
+			if tt.checkFn != nil && len(results) > 0 {
+				tt.checkFn(t, results)
+			}
+		})
+	}
+}

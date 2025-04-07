@@ -51,7 +51,8 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockSecretClient(controller),
 			geoService,
 			&gulter.Gulter{},
-			&gulter.Gulter{})
+			&gulter.Gulter{},
+			malak_mocks.NewMockFundraisingPipelineRepository(controller))
 
 		require.NotNil(t, srv)
 		require.NotNil(t, closeFn)
@@ -91,7 +92,8 @@ func TestServer_New(t *testing.T) {
 			malak_mocks.NewMockSecretClient(controller),
 			geoService,
 			&gulter.Gulter{},
-			&gulter.Gulter{})
+			&gulter.Gulter{},
+			malak_mocks.NewMockFundraisingPipelineRepository(controller))
 
 		require.NotNil(t, srv)
 		require.NotNil(t, closeFn)
@@ -134,7 +136,8 @@ func TestNew(t *testing.T) {
 		&httplimit.Middleware{},
 		queueRepo, cacheRepo, billingClient,
 		integrations.NewManager(), secretsClient, geoService,
-		&gulter.Gulter{}, &gulter.Gulter{})
+		&gulter.Gulter{}, &gulter.Gulter{},
+		malak_mocks.NewMockFundraisingPipelineRepository(controller))
 
 	require.NotNil(t, srv)
 	require.NotNil(t, closeFn)
@@ -177,7 +180,8 @@ func TestNewWithInvalidConfig(t *testing.T) {
 		&httplimit.Middleware{},
 		queueRepo, cacheRepo, billingClient,
 		integrations.NewManager(), secretsClient, geoService,
-		&gulter.Gulter{}, &gulter.Gulter{})
+		&gulter.Gulter{}, &gulter.Gulter{},
+		malak_mocks.NewMockFundraisingPipelineRepository(controller))
 
 	require.NotNil(t, srv)
 	require.NotNil(t, closeFn)

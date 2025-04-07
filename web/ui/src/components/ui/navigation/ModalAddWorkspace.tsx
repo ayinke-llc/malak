@@ -67,7 +67,7 @@ export function ModalAddWorkspace({
         const input = document.getElementById('workspace-name');
         input?.focus();
       }, 100);
-      
+
       return () => clearTimeout(timeoutId);
     }
   }, [open, forceOpen]);

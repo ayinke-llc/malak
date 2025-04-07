@@ -547,6 +547,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/contacts/search": {
+            "get": {
+                "description": "Search contacts",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contacts"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "search term",
+                        "name": "search",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.listContactsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/contacts/{reference}": {
             "get": {
                 "description": "fetch a contact by reference",
@@ -1999,6 +2054,301 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/server.revokeAPIKeyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/pipelines": {
+            "get": {
+                "description": "list all fundraising pipelines with pagination and filtering",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fundraising"
+                ],
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page to query data from. Defaults to 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number to items to return. Defaults to 10 items",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether to return only active pipelines. Defaults to false",
+                        "name": "active_only",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchPipelinesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new fundraising pipeline entry",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fundraising"
+                ],
+                "parameters": [
+                    {
+                        "description": "pipeline request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.createNewPipelineRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/pipelines/{reference}": {
+            "delete": {
+                "description": "Close a fundraising board permanently",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fundraising"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pipeline reference",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/pipelines/{reference}/board": {
+            "get": {
+                "description": "Fetch a fundraising board with its columns",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fundraising"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pipeline reference",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.fetchBoardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/pipelines/{reference}/contacts": {
+            "post": {
+                "description": "Add a contact to a fundraising board",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fundraising"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pipeline reference",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "contact request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.addContactRequest"
                         }
                     }
                 ],
@@ -4546,6 +4896,197 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.FundraiseContact": {
+            "type": "object",
+            "properties": {
+                "contact": {
+                    "$ref": "#/definitions/malak.Contact"
+                },
+                "contact_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deal_details": {
+                    "$ref": "#/definitions/malak.FundraiseContactDealDetails"
+                },
+                "fundraising_pipeline_column_id": {
+                    "type": "string"
+                },
+                "fundraising_pipeline_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.FundraiseContactDealDetails": {
+            "type": "object",
+            "properties": {
+                "can_lead_round": {
+                    "type": "boolean"
+                },
+                "check_size": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "fundraising_pipeline_column_contact_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "initial_contact": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.FundraiseContactPosition": {
+            "type": "object",
+            "properties": {
+                "fundraising_pipeline_column_contact_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "order_index": {
+                    "type": "integer"
+                },
+                "reference": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.FundraisePipelineColumnType": {
+            "type": "string",
+            "enum": [
+                "normal",
+                "closed"
+            ],
+            "x-enum-varnames": [
+                "FundraisePipelineColumnTypeNormal",
+                "FundraisePipelineColumnTypeClosed"
+            ]
+        },
+        "malak.FundraisePipelineStage": {
+            "type": "string",
+            "enum": [
+                "family_and_friend",
+                "pre_seed",
+                "bridge_round",
+                "seed",
+                "series_a",
+                "series_b",
+                "series_c"
+            ],
+            "x-enum-varnames": [
+                "FundraisePipelineStageFamilyAndFriend",
+                "FundraisePipelineStagePreSeed",
+                "FundraisePipelineStageBridgeRound",
+                "FundraisePipelineStageSeed",
+                "FundraisePipelineStageSeriesA",
+                "FundraisePipelineStageSeriesB",
+                "FundraisePipelineStageSeriesC"
+            ]
+        },
+        "malak.FundraisingPipeline": {
+            "type": "object",
+            "properties": {
+                "closed_amount": {
+                    "description": "this is being updated dynamically by postgres triggers\nWe also use to calculate progress",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "expected_close_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_closed": {
+                    "type": "boolean"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "stage": {
+                    "$ref": "#/definitions/malak.FundraisePipelineStage"
+                },
+                "start_date": {
+                    "description": "Can be in the future",
+                    "type": "string"
+                },
+                "target_amount": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "malak.FundraisingPipelineColumn": {
+            "type": "object",
+            "properties": {
+                "column_type": {
+                    "$ref": "#/definitions/malak.FundraisePipelineColumnType"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "fundraising_pipeline_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "investors_count": {
+                    "type": "integer"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "malak.Integration": {
             "type": "object",
             "properties": {
@@ -5373,6 +5914,34 @@ const docTemplate = `{
                 }
             }
         },
+        "server.addContactRequest": {
+            "type": "object",
+            "required": [
+                "check_size",
+                "contact_reference",
+                "initial_contact",
+                "rating"
+            ],
+            "properties": {
+                "can_lead_round": {
+                    "type": "boolean"
+                },
+                "check_size": {
+                    "type": "integer"
+                },
+                "contact_reference": {
+                    "type": "string"
+                },
+                "initial_contact": {
+                    "type": "integer"
+                },
+                "rating": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 0
+                }
+            }
+        },
         "server.addContactToListRequest": {
             "type": "object",
             "properties": {
@@ -5547,6 +6116,37 @@ const docTemplate = `{
                 }
             }
         },
+        "server.createNewPipelineRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "description",
+                "expected_close_date",
+                "stage",
+                "start_date",
+                "title"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "expected_close_date": {
+                    "type": "integer"
+                },
+                "stage": {
+                    "$ref": "#/definitions/malak.FundraisePipelineStage"
+                },
+                "start_date": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "server.createUpdateContent": {
             "type": "object",
             "required": [
@@ -5676,6 +6276,42 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "server.fetchBoardResponse": {
+            "type": "object",
+            "required": [
+                "columns",
+                "contacts",
+                "message",
+                "pipeline",
+                "positions"
+            ],
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.FundraisingPipelineColumn"
+                    }
+                },
+                "contacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.FundraiseContact"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "pipeline": {
+                    "$ref": "#/definitions/malak.FundraisingPipeline"
+                },
+                "positions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.FundraiseContactPosition"
+                    }
                 }
             }
         },
@@ -5824,6 +6460,28 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "server.fetchPipelinesResponse": {
+            "type": "object",
+            "required": [
+                "message",
+                "meta",
+                "pipelines"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "meta": {
+                    "$ref": "#/definitions/server.meta"
+                },
+                "pipelines": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/malak.FundraisingPipeline"
+                    }
                 }
             }
         },

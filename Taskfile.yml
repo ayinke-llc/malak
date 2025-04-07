@@ -1,0 +1,50 @@
+version: "3"
+
+tasks:
+  tidy:
+    desc: Tidy up Go module dependencies
+    cmds:
+      - go mod tidy
+
+  generate:all:
+    desc: Build all mocks and swagger client
+    cmds:
+      - go generate ./...
+      - cd web/ui && bun run swagger && cd -
+
+  migrate:
+    desc: Run database migrations
+    cmds:
+      - go run cmd/*.go migrate
+
+  migrate:create:
+    desc: Create a new migration file
+    vars:
+      NAME: "{{.CLI_ARGS}}"
+    cmds:
+      - migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://malak:malak@localhost:9432/malak?sslmode=disable" create --ext sql {{.NAME}}
+
+  migrate:down:one:
+    desc: Rollback the last database migration
+    cmds:
+      - migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://malak:malak@localhost:9432/malak?sslmode=disable" down 1
+
+  run:http:
+    desc: Run the HTTP server
+    cmds:
+      - go run cmd/*.go http
+
+  env:
+    desc: Export environment variables from Infisical
+    cmds:
+      - infisical export --env=dev > .env
+
+  test:
+    desc: Run unit tests
+    cmds:
+      - go test -v ./...
+
+  test-all:
+    desc: Run all tests including integration tests
+    cmds:
+      - go test -v -tags integration ./...

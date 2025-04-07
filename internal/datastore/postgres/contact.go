@@ -190,3 +190,43 @@ func (o *contactRepo) Overview(ctx context.Context, workspaceID uuid.UUID) (*mal
 		TotalContacts: int64(total),
 	}, nil
 }
+
+func (o *contactRepo) Search(ctx context.Context, opts malak.SearchContactOptions) ([]malak.Contact, error) {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	if opts.WorkspaceID == uuid.Nil {
+		return []malak.Contact{}, nil
+	}
+
+	var contacts []malak.Contact
+
+	q := o.inner.NewSelect().
+		Model(&contacts).
+		Where("workspace_id = ?", opts.WorkspaceID).
+		Where("deleted_at IS NULL")
+
+	if !hermes.IsStringEmpty(opts.SearchValue) {
+		searchValue := strings.ToLower(opts.SearchValue)
+		q = q.Where(`(
+			LOWER(email) LIKE ? OR 
+			LOWER(first_name) LIKE ? OR 
+			LOWER(last_name) LIKE ? OR 
+			LOWER(company) LIKE ?
+		)`,
+			"%"+searchValue+"%",
+			"%"+searchValue+"%",
+			"%"+searchValue+"%",
+			"%"+searchValue+"%")
+	}
+
+	err := q.Order("created_at DESC").Scan(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return []malak.Contact{}, nil
+		}
+		return nil, err
+	}
+
+	return contacts, nil
+}

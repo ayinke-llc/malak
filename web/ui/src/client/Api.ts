@@ -251,6 +251,85 @@ export interface MalakDeckViewerSession {
   viewed_at?: string;
 }
 
+export interface MalakFundraiseContact {
+  contact?: MalakContact;
+  contact_id?: string;
+  created_at?: string;
+  deal_details?: MalakFundraiseContactDealDetails;
+  fundraising_pipeline_column_id?: string;
+  fundraising_pipeline_id?: string;
+  id?: string;
+  reference?: string;
+  updated_at?: string;
+}
+
+export interface MalakFundraiseContactDealDetails {
+  can_lead_round?: boolean;
+  check_size?: number;
+  created_at?: string;
+  fundraising_pipeline_column_contact_id?: string;
+  id?: string;
+  initial_contact?: string;
+  rating?: number;
+  reference?: string;
+  updated_at?: string;
+}
+
+export interface MalakFundraiseContactPosition {
+  fundraising_pipeline_column_contact_id?: string;
+  id?: string;
+  order_index?: number;
+  reference?: string;
+}
+
+export enum MalakFundraisePipelineColumnType {
+  FundraisePipelineColumnTypeNormal = "normal",
+  FundraisePipelineColumnTypeClosed = "closed",
+}
+
+export enum MalakFundraisePipelineStage {
+  FundraisePipelineStageFamilyAndFriend = "family_and_friend",
+  FundraisePipelineStagePreSeed = "pre_seed",
+  FundraisePipelineStageBridgeRound = "bridge_round",
+  FundraisePipelineStageSeed = "seed",
+  FundraisePipelineStageSeriesA = "series_a",
+  FundraisePipelineStageSeriesB = "series_b",
+  FundraisePipelineStageSeriesC = "series_c",
+}
+
+export interface MalakFundraisingPipeline {
+  /**
+   * this is being updated dynamically by postgres triggers
+   * We also use to calculate progress
+   */
+  closed_amount?: number;
+  created_at?: string;
+  description?: string;
+  expected_close_date?: string;
+  id?: string;
+  is_closed?: boolean;
+  reference?: string;
+  stage?: MalakFundraisePipelineStage;
+  /** Can be in the future */
+  start_date?: string;
+  target_amount?: number;
+  title?: string;
+  updated_at?: string;
+  workspace_id?: string;
+}
+
+export interface MalakFundraisingPipelineColumn {
+  column_type?: MalakFundraisePipelineColumnType;
+  created_at?: string;
+  description?: string;
+  fundraising_pipeline_id?: string;
+  id?: string;
+  investors_count?: number;
+  reference?: string;
+  title?: string;
+  updated_at?: string;
+}
+
 export interface MalakIntegration {
   created_at?: string;
   description?: string;
@@ -596,6 +675,18 @@ export interface ServerAddChartToDashboardRequest {
   chart_reference: string;
 }
 
+export interface ServerAddContactRequest {
+  can_lead_round?: boolean;
+  check_size: number;
+  contact_reference: string;
+  initial_contact: number;
+  /**
+   * @min 0
+   * @max 5
+   */
+  rating: number;
+}
+
 export interface ServerAddContactToListRequest {
   reference?: string;
 }
@@ -658,6 +749,15 @@ export interface ServerCreateDeckViewerSession {
   password: string;
 }
 
+export interface ServerCreateNewPipelineRequest {
+  amount: number;
+  description: string;
+  expected_close_date: number;
+  stage: MalakFundraisePipelineStage;
+  start_date: number;
+  title: string;
+}
+
 export interface ServerCreateUpdateContent {
   template?: {
     is_system_template?: boolean;
@@ -699,6 +799,14 @@ export interface ServerEditContactRequest {
 export interface ServerFetchBillingPortalResponse {
   link: string;
   message: string;
+}
+
+export interface ServerFetchBoardResponse {
+  columns: MalakFundraisingPipelineColumn[];
+  contacts: MalakFundraiseContact[];
+  message: string;
+  pipeline: MalakFundraisingPipeline;
+  positions: MalakFundraiseContactPosition[];
 }
 
 export interface ServerFetchContactListResponse {
@@ -743,6 +851,12 @@ export interface ServerFetchDetailedContactResponse {
 export interface ServerFetchEngagementsResponse {
   engagements: MalakDeckEngagementResponse;
   message: string;
+}
+
+export interface ServerFetchPipelinesResponse {
+  message: string;
+  meta: ServerMeta;
+  pipelines: MalakFundraisingPipeline[];
 }
 
 export interface ServerFetchPublicDeckResponse {
@@ -1267,6 +1381,28 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
+
+    /**
+     * @description Search contacts
+     *
+     * @tags contacts
+     * @name SearchList
+     * @request GET:/contacts/search
+     */
+    searchList: (
+      query: {
+        /** search term */
+        search: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerListContactsResponse, ServerAPIStatus>({
+        path: `/contacts/search`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
   };
   dashboards = {
     /**
@@ -1662,6 +1798,97 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerAPIStatus, ServerAPIStatus>({
         path: `/developers/keys/${reference}`,
         method: "DELETE",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  pipelines = {
+    /**
+     * @description list all fundraising pipelines with pagination and filtering
+     *
+     * @tags fundraising
+     * @name PipelinesList
+     * @request GET:/pipelines
+     */
+    pipelinesList: (
+      query?: {
+        /** Page to query data from. Defaults to 1 */
+        page?: number;
+        /** Number to items to return. Defaults to 10 items */
+        per_page?: number;
+        /** Whether to return only active pipelines. Defaults to false */
+        active_only?: boolean;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerFetchPipelinesResponse, ServerAPIStatus>({
+        path: `/pipelines`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Creates a new fundraising pipeline entry
+     *
+     * @tags fundraising
+     * @name PipelinesCreate
+     * @request POST:/pipelines
+     */
+    pipelinesCreate: (data: ServerCreateNewPipelineRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/pipelines`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Close a fundraising board permanently
+     *
+     * @tags fundraising
+     * @name PipelinesDelete
+     * @request DELETE:/pipelines/{reference}
+     */
+    pipelinesDelete: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/pipelines/${reference}`,
+        method: "DELETE",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Fetch a fundraising board with its columns
+     *
+     * @tags fundraising
+     * @name BoardDetail
+     * @request GET:/pipelines/{reference}/board
+     */
+    boardDetail: (reference: string, params: RequestParams = {}) =>
+      this.request<ServerFetchBoardResponse, ServerAPIStatus>({
+        path: `/pipelines/${reference}/board`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Add a contact to a fundraising board
+     *
+     * @tags fundraising
+     * @name ContactsCreate
+     * @request POST:/pipelines/{reference}/contacts
+     */
+    contactsCreate: (reference: string, data: ServerAddContactRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/pipelines/${reference}/contacts`,
+        method: "POST",
         body: data,
         type: ContentType.Json,
         format: "json",
