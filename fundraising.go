@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	ErrPipelineNotFound = errors.New("pipeline not found")
+	ErrPipelineNotFound       = errors.New("pipeline not found")
+	ErrContactNotFoundOnBoard = errors.New("contact not found on board")
 )
 
 var DefaultFundraisingColumns = []struct {
@@ -201,6 +202,12 @@ type AddContactToBoardOptions struct {
 	CheckSize          int64
 }
 
+type UpdateContactDealOptions struct {
+	Rating       int64
+	CanLeadRound bool
+	CheckSize    int64
+}
+
 type FundraisingPipelineRepository interface {
 	Create(context.Context, *FundraisingPipeline, ...FundraisingPipelineColumn) error
 	List(context.Context, ListPipelineOptions) ([]FundraisingPipeline, int64, error)
@@ -212,4 +219,7 @@ type FundraisingPipelineRepository interface {
 	DefaultColumn(context.Context, *FundraisingPipeline) (FundraisingPipelineColumn, error)
 
 	AddContactToBoard(context.Context, *AddContactToBoardOptions) error
+	UpdateBoardContact(context.Context, *FundraiseContactDealDetails) error
+	GetContact(context.Context, uuid.UUID) (*FundraiseContact, error)
+	UpdateContactDeal(context.Context, *FundraisingPipeline, string, UpdateContactDealOptions) error
 }

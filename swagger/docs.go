@@ -2386,6 +2386,77 @@ const docTemplate = `{
                 }
             }
         },
+        "/pipelines/{reference}/contacts/{contact_id}": {
+            "patch": {
+                "description": "Update deal details for a contact on the fundraising board",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fundraising"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pipeline reference",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Contact ID",
+                        "name": "contact_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update deal request body",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.updateContactDealRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/public/dashboards/{reference}": {
             "get": {
                 "description": "fetch public dashboard and charting data points",
@@ -6912,6 +6983,26 @@ const docTemplate = `{
             "properties": {
                 "api_key": {
                     "type": "string"
+                }
+            }
+        },
+        "server.updateContactDealRequest": {
+            "type": "object",
+            "required": [
+                "check_size",
+                "rating"
+            ],
+            "properties": {
+                "can_lead_round": {
+                    "type": "boolean"
+                },
+                "check_size": {
+                    "type": "integer"
+                },
+                "rating": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 0
                 }
             }
         },
