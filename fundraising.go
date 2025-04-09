@@ -206,6 +206,7 @@ type UpdateContactDealOptions struct {
 	Rating       int64
 	CanLeadRound bool
 	CheckSize    int64
+	ContactID    uuid.UUID
 }
 
 type FundraisingPipelineRepository interface {
@@ -221,5 +222,5 @@ type FundraisingPipelineRepository interface {
 	AddContactToBoard(context.Context, *AddContactToBoardOptions) error
 	UpdateBoardContact(context.Context, *FundraiseContactDealDetails) error
 	GetContact(context.Context, uuid.UUID) (*FundraiseContact, error)
-	UpdateContactDeal(context.Context, *FundraisingPipeline, string, UpdateContactDealOptions) error
+	UpdateContactDeal(context.Context, *FundraisingPipeline, UpdateContactDealOptions) error
 }

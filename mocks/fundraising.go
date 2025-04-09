@@ -182,15 +182,15 @@ func (mr *MockFundraisingPipelineRepositoryMockRecorder) UpdateBoardContact(arg0
 }
 
 // UpdateContactDeal mocks base method.
-func (m *MockFundraisingPipelineRepository) UpdateContactDeal(arg0 context.Context, arg1 *malak.FundraisingPipeline, arg2 string, arg3 malak.UpdateContactDealOptions) error {
+func (m *MockFundraisingPipelineRepository) UpdateContactDeal(arg0 context.Context, arg1 *malak.FundraisingPipeline, arg2 malak.UpdateContactDealOptions) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateContactDeal", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "UpdateContactDeal", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateContactDeal indicates an expected call of UpdateContactDeal.
-func (mr *MockFundraisingPipelineRepositoryMockRecorder) UpdateContactDeal(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockFundraisingPipelineRepositoryMockRecorder) UpdateContactDeal(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateContactDeal", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).UpdateContactDeal), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateContactDeal", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).UpdateContactDeal), arg0, arg1, arg2)
 }

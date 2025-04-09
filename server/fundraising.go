@@ -330,8 +330,8 @@ func (c *addContactRequest) Validate() error {
 		return errors.New("rating must be between 0 and 5")
 	}
 
-	if c.CheckSize < (5000 * 100) {
-		return errors.New("check size must be at least 5000 USD ($5,000)")
+	if c.CheckSize < (1000 * 100) {
+		return errors.New("check size must be at least 1000 USD ($1,000)")
 	}
 
 	initialContactDate := time.Unix(c.InitialContact, 0).UTC()
@@ -443,8 +443,8 @@ func (c *updateContactDealRequest) Validate() error {
 		return errors.New("rating must be between 0 and 5")
 	}
 
-	if c.CheckSize < (5000 * 100) {
-		return errors.New("check size must be at least 5000 USD ($5,000)")
+	if c.CheckSize < (1000 * 100) {
+		return errors.New("check size must be at least 1000 USD ($1,000)")
 	}
 
 	return nil
@@ -482,6 +482,11 @@ func (d *fundraisingHandler) updateContactDeal(
 		return newAPIStatus(http.StatusBadRequest, "please provide the contact id"), StatusFailed
 	}
 
+	contactUUID, err := uuid.Parse(contactID)
+	if err != nil {
+		return newAPIStatus(http.StatusBadRequest, "you must provide a valid contact uuid"), StatusFailed
+	}
+
 	req := new(updateContactDealRequest)
 	if err := render.Bind(r, req); err != nil {
 		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
@@ -509,10 +514,21 @@ func (d *fundraisingHandler) updateContactDeal(
 		return newAPIStatus(http.StatusInternalServerError, "could not fetch fundraising pipeline"), StatusFailed
 	}
 
-	err = d.fundingRepo.UpdateContactDeal(ctx, pipeline, contactID, malak.UpdateContactDealOptions{
+	contact, err := d.fundingRepo.GetContact(ctx, contactUUID)
+	if err != nil {
+		if errors.Is(err, malak.ErrContactNotFoundOnBoard) {
+			return newAPIStatus(http.StatusNotFound, "this contact is not on this board"), StatusFailed
+		}
+
+		logger.Error("could not fetch contact", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "an error occurred while fetching a contact"), StatusFailed
+	}
+
+	err = d.fundingRepo.UpdateContactDeal(ctx, pipeline, malak.UpdateContactDealOptions{
 		Rating:       int64(req.Rating),
 		CanLeadRound: req.CanLeadRound,
 		CheckSize:    req.CheckSize,
+		ContactID:    contact.ID,
 	})
 	if err != nil {
 		logger.Error("could not update contact deal details", zap.Error(err))
