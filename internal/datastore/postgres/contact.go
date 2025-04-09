@@ -132,47 +132,6 @@ func (o *contactRepo) List(ctx context.Context,
 		Scan(ctx)
 }
 
-func (o *contactRepo) Delete(ctx context.Context,
-	contact *malak.Contact) error {
-
-	ctx, cancelFn := withContext(ctx)
-	defer cancelFn()
-
-	return o.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
-
-		_, err := tx.NewDelete().
-			Where("contact_id = ?", contact.ID).
-			Model(new(malak.ContactListMapping)).
-			Exec(ctx)
-		if err != nil {
-			return err
-		}
-
-		_, err = tx.NewDelete().
-			Where("contact_id = ?", contact.ID).
-			Model(new(malak.ContactShare)).
-			Exec(ctx)
-		if err != nil {
-			return err
-		}
-
-		_, err = tx.NewDelete().
-			Where("contact_id = ?", contact.ID).
-			Model(new(malak.UpdateRecipient)).
-			Exec(ctx)
-		if err != nil {
-			return err
-		}
-
-		_, err = tx.NewDelete().
-			Where("id = ?", contact.ID).
-			Model(contact).
-			Exec(ctx)
-		return err
-	})
-
-}
-
 func (o *contactRepo) Overview(ctx context.Context, workspaceID uuid.UUID) (*malak.ContactOverview, error) {
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
@@ -229,4 +188,77 @@ func (o *contactRepo) Search(ctx context.Context, opts malak.SearchContactOption
 	}
 
 	return contacts, nil
+}
+
+func (o *contactRepo) Delete(ctx context.Context,
+	contact *malak.Contact) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return o.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		// _, err := tx.NewDelete().
+		// 	Where("fundraising_pipeline_column_contact_id IN (SELECT id FROM fundraising_pipeline_column_contacts WHERE contact_id = ?)", contact.ID).
+		// 	Model(new(malak.FundraiseContactActivity)).
+		// 	Exec(ctx)
+		// if err != nil {
+		// 	return err
+		// }
+
+		_, err := tx.NewDelete().
+			Where("fundraising_pipeline_column_contact_id IN (SELECT id FROM fundraising_pipeline_column_contacts WHERE contact_id = ?)", contact.ID).
+			Model(new(malak.FundraiseContactDealDetails)).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.NewDelete().
+			Where("fundraising_pipeline_column_contact_id IN (SELECT id FROM fundraising_pipeline_column_contacts WHERE contact_id = ?)", contact.ID).
+			Model(new(malak.FundraiseContactPosition)).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.NewDelete().
+			Where("contact_id = ?", contact.ID).
+			Model(new(malak.FundraiseContact)).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.NewDelete().
+			Where("contact_id = ?", contact.ID).
+			Model(new(malak.ContactListMapping)).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.NewDelete().
+			Where("contact_id = ?", contact.ID).
+			Model(new(malak.ContactShare)).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.NewDelete().
+			Where("contact_id = ?", contact.ID).
+			Model(new(malak.UpdateRecipient)).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		// finally delete the contact
+		_, err = tx.NewDelete().
+			Where("id = ?", contact.ID).
+			Model(contact).
+			Exec(ctx)
+		return err
+	})
 }
