@@ -7,9 +7,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  RiTimeLine, RiAddLine, RiSettings4Line, RiArchiveLine,
-  RiInboxUnarchiveLine, RiInformationLine, RiCalendarLine, RiErrorWarningLine,
-  RiCloseLine, RiMailLine, RiPhoneLine, RiMoneyDollarCircleLine, RiFileCopyLine
+  RiAddLine, RiSettings4Line, RiArchiveLine, RiInformationLine,
+  RiCalendarLine, RiErrorWarningLine,
+  RiCloseLine, RiMailLine, RiPhoneLine,
+  RiMoneyDollarCircleLine, RiFileCopyLine
 } from "@remixicon/react";
 import { InvestorDetailsDrawer } from "./InvestorDetailsDrawer";
 import { toast } from "sonner";
@@ -39,7 +40,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FETCH_FUNDRAISING_PIPELINE, CLOSE_FUNDRAISING_PIPELINE, ADD_INVESTOR_TO_PIPELINE, SEARCH_CONTACTS } from "@/lib/query-constants";
+import { FETCH_FUNDRAISING_PIPELINE, CLOSE_FUNDRAISING_PIPELINE, ADD_INVESTOR_TO_PIPELINE } from "@/lib/query-constants";
 import client from "@/lib/client";
 import type { ServerFetchBoardResponse } from "@/client/Api";
 import {
@@ -52,8 +53,6 @@ import {
 import type { AxiosError } from "axios";
 import type { ServerAPIStatus } from "@/client/Api";
 import { fullName } from "@/lib/custom";
-import type { MalakContact } from "@/client/Api";
-import type { MalakFundraiseContactDealDetails } from "@/client/Api";
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 interface KanbanBoardProps {
@@ -124,7 +123,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
     }) => {
       const response = await client.pipelines.contactsCreate(slug, {
         contact_reference: investor.reference,
-        check_size: Number(investor.checkSize) * 100, // Convert to cents
+        check_size: Number(investor.checkSize) * 100,
         initial_contact: Math.floor(new Date(investor.initialContactDate).getTime() / 1000),
         can_lead_round: investor.isLeadInvestor,
         rating: investor.rating
@@ -173,10 +172,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
 
   const { pipeline = {}, columns = [], contacts = [], positions = [] } = boardData;
 
-  // Get all contact IDs from all contacts in the board
   const existingContactIds = contacts.map(contact => contact.contact_id || "").filter(Boolean);
-  console.log('All board contacts:', contacts);
-  console.log('Extracted contact IDs:', existingContactIds);
 
   // Transform the data into the format expected by the board
   const board: Board = {
@@ -192,19 +188,19 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
           "Termsheet/SAFE",
           "Closed"
         ];
-        
+
         const aIndex = columnOrder.indexOf(a.title || "");
         const bIndex = columnOrder.indexOf(b.title || "");
-        
+
         // If both columns are in our order list, sort by their position
         if (aIndex !== -1 && bIndex !== -1) {
           return aIndex - bIndex;
         }
-        
+
         // If only one column is in our order list, prioritize it
         if (aIndex !== -1) return -1;
         if (bIndex !== -1) return 1;
-        
+
         // For any columns not in our list, maintain their original order
         return 0;
       })
@@ -221,7 +217,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                 const position = positions.find(p => p.fundraising_pipeline_column_contact_id === contact.id);
                 const deal = contact.deal_details;
                 const contactDetails = contact.contact;
-                
+
                 return {
                   id: contact.reference || "",
                   title: contactDetails ? fullName(contactDetails) : "",
@@ -490,13 +486,13 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                                       </div>
                                     </div>
                                   </div>
-                                  
+
                                   <div className="space-y-1.5">
                                     {card?.contact?.email && (
                                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground group">
                                         <RiMailLine className="h-3.5 w-3.5 shrink-0" />
                                         <span className="truncate">{card.contact.email}</span>
-                                        <CopyToClipboard 
+                                        <CopyToClipboard
                                           text={card.contact.email}
                                           onCopy={() => toast.success("Email copied to clipboard")}
                                         >

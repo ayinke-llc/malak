@@ -29,6 +29,7 @@ export function EditInvestorDialog({
   const [editedInvestor, setEditedInvestor] = useState<Card | null>(null);
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
 
+
   useEffect(() => {
     if (investor) {
       setEditedInvestor({ ...investor });

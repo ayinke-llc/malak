@@ -39,7 +39,8 @@ import {
   RiArchiveFill,
   RiTeamLine,
   RiArrowRightSLine,
-  RiEditLine
+  RiEditLine,
+  RiClipboardLine
 } from "@remixicon/react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -59,6 +60,7 @@ import client from "@/lib/client";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
 import type { ServerAPIStatus } from "@/client/Api";
+import CopyToClipboard from "react-copy-to-clipboard";
 
 interface InvestorDetailsDrawerProps {
   open: boolean;
@@ -338,7 +340,6 @@ function EditInvestorDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(editedDeal);
-    onOpenChange(false);
   };
 
   return (
@@ -406,15 +407,8 @@ function EditInvestorDialog({
             <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-background mr-2" />
-                  Saving...
-                </>
-              ) : (
-                "Save Changes"
-              )}
+            <Button type="submit" loading={isLoading}>
+              Save Changes
             </Button>
           </DialogFooter>
         </form>
@@ -428,10 +422,10 @@ const formatSafeDate = (dateValue: string | number | undefined | null, formatStr
   if (!dateValue) return "Not set";
   try {
     // Handle different date formats
-    const date = typeof dateValue === 'number' 
+    const date = typeof dateValue === 'number'
       ? fromUnixTime(dateValue) // Unix timestamp in seconds
       : parseISO(dateValue); // ISO string
-    
+
     return isValid(date) ? format(date, formatStr) : "Invalid date";
   } catch (e) {
     return "Invalid date";
@@ -462,7 +456,10 @@ export function InvestorDetailsDrawer({
   const updateInvestorMutation = useMutation({
     mutationKey: [UPDATE_INVESTOR_IN_PIPELINE, slug],
     mutationFn: async (updatedDeal: Partial<MalakFundraiseContactDealDetails>) => {
-      if (!contact?.reference) throw new Error("No contact reference provided");
+      if (!contact?.reference) {
+        throw new Error("No contact reference provided")
+      }
+
       const response = await client.pipelines.contactsPartialUpdate(slug, contact.id as string, {
         check_size: updatedDeal.check_size ?? 0,
         can_lead_round: updatedDeal.can_lead_round ?? false,
@@ -474,6 +471,7 @@ export function InvestorDetailsDrawer({
       queryClient.invalidateQueries({ queryKey: [FETCH_FUNDRAISING_PIPELINE, slug] });
       toast.success("Investor details updated successfully");
       setIsEditingInvestor(false);
+      onOpenChange(false);
     },
     onError: (err: AxiosError<ServerAPIStatus>) => {
       toast.error(err.response?.data.message ?? "Failed to update investor details");
@@ -559,7 +557,6 @@ export function InvestorDetailsDrawer({
     updateInvestorMutation.mutate(updatedDeal);
   };
 
-  // Remove console logs and unused code
   const existingContactIds = [];
 
   if (!investor) return null;
@@ -628,6 +625,34 @@ export function InvestorDetailsDrawer({
                               No company
                             </p>
                           )}
+                          {contact?.email && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <RiMailLine className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-sm">{contact.email}</span>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <CopyToClipboard 
+                                      text={contact.email}
+                                      onCopy={() => toast.success("Email copied to clipboard")}
+                                    >
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 hover:bg-muted"
+                                        type="button"
+                                      >
+                                        <RiClipboardLine className="w-3 h-3" />
+                                      </Button>
+                                    </CopyToClipboard>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Copy email</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -671,7 +696,7 @@ export function InvestorDetailsDrawer({
                         <span className="text-muted-foreground">Rating</span>
                         <div className="flex items-center">
                           {[1, 2, 3, 4, 5].map((star) => (
-                            star <= (deal?.rating || investor?.rating || 0) 
+                            star <= (deal?.rating || investor?.rating || 0)
                               ? <RiStarFill key={star} className="w-4 h-4 text-yellow-400" />
                               : <RiStarLine key={star} className="w-4 h-4 text-muted-foreground" />
                           ))}
@@ -757,7 +782,6 @@ export function InvestorDetailsDrawer({
                       </div>
                     ))}
 
-                    {/* Loading state */}
                     {isLoading && (
                       <>
                         <ActivitySkeleton />
@@ -766,10 +790,8 @@ export function InvestorDetailsDrawer({
                       </>
                     )}
 
-                    {/* Intersection observer target */}
                     <div ref={observerTarget} className="h-4" />
 
-                    {/* End of list message */}
                     {!hasMore && activities.length > 0 && (
                       <div className="text-center text-sm text-muted-foreground py-4">
                         {activities.length >= TOTAL_ACTIVITIES_LIMIT
