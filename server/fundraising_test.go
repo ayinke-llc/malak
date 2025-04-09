@@ -977,3 +977,249 @@ func TestFundraisingHandler_AddContact(t *testing.T) {
 		})
 	}
 }
+
+type updateContactDealTestCase struct {
+	name               string
+	mockFn             func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository)
+	req                updateContactDealRequest
+	pipelineReference  string
+	contactID          string
+	expectedStatusCode int
+}
+
+func generateUpdateContactDealTestTable() []updateContactDealTestCase {
+	workspaceID := uuid.MustParse("56670b6d-48d4-4b17-bc8f-d101b7d0b53c")
+	return []updateContactDealTestCase{
+		{
+			name: "successful update contact deal",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:          uuid.MustParse("550e8400-e29b-41d4-a716-446655440000"),
+					Title:       "Test Pipeline",
+					Stage:       malak.FundraisePipelineStageSeed,
+					IsClosed:    false,
+					WorkspaceID: workspaceID,
+				}
+
+				contactID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440001")
+
+				repo.EXPECT().
+					Get(gomock.Any(), malak.FetchPipelineOptions{
+						Reference:   malak.Reference("pipeline_123"),
+						WorkspaceID: workspaceID,
+					}).
+					Times(1).
+					Return(pipeline, nil)
+
+				repo.EXPECT().
+					GetContact(gomock.Any(), pipeline.ID, contactID).
+					Times(1).
+					Return(&malak.FundraiseContact{
+						ID: contactID,
+					}, nil)
+
+				repo.EXPECT().
+					UpdateContactDeal(gomock.Any(), pipeline, malak.UpdateContactDealOptions{
+						Rating:       int64(4),
+						CanLeadRound: true,
+						CheckSize:    1000000 * 100,
+						ContactID:    contactID,
+					}).
+					Times(1).
+					Return(nil)
+			},
+			req: updateContactDealRequest{
+				Rating:       4,
+				CanLeadRound: true,
+				CheckSize:    1000000 * 100, // $1M in cents
+			},
+			pipelineReference:  "pipeline_123",
+			contactID:          "550e8400-e29b-41d4-a716-446655440001",
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "invalid request - empty pipeline reference",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+			},
+			req: updateContactDealRequest{
+				Rating:       4,
+				CanLeadRound: true,
+				CheckSize:    1000000 * 100,
+			},
+			pipelineReference:  "",
+			contactID:          "550e8400-e29b-41d4-a716-446655440001",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "invalid request - empty contact ID",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+			},
+			req: updateContactDealRequest{
+				Rating:       4,
+				CanLeadRound: true,
+				CheckSize:    1000000 * 100,
+			},
+			pipelineReference:  "pipeline_123",
+			contactID:          "",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "invalid request - rating too high",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+			},
+			req: updateContactDealRequest{
+				Rating:       6,
+				CanLeadRound: true,
+				CheckSize:    1000000 * 100,
+			},
+			pipelineReference:  "pipeline_123",
+			contactID:          "550e8400-e29b-41d4-a716-446655440001",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "invalid request - rating too low",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+			},
+			req: updateContactDealRequest{
+				Rating:       -1,
+				CanLeadRound: true,
+				CheckSize:    1000000 * 100,
+			},
+			pipelineReference:  "pipeline_123",
+			contactID:          "550e8400-e29b-41d4-a716-446655440001",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "invalid request - check size too small",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+			},
+			req: updateContactDealRequest{
+				Rating:       4,
+				CanLeadRound: true,
+				CheckSize:    500 * 100, // $500 in cents
+			},
+			pipelineReference:  "pipeline_123",
+			contactID:          "550e8400-e29b-41d4-a716-446655440001",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "pipeline not found",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				repo.EXPECT().
+					Get(gomock.Any(), malak.FetchPipelineOptions{
+						Reference:   malak.Reference("non_existent_pipeline"),
+						WorkspaceID: workspaceID,
+					}).
+					Times(1).
+					Return(nil, malak.ErrPipelineNotFound)
+			},
+			req: updateContactDealRequest{
+				Rating:       4,
+				CanLeadRound: true,
+				CheckSize:    1000000 * 100,
+			},
+			pipelineReference:  "non_existent_pipeline",
+			contactID:          "550e8400-e29b-41d4-a716-446655440001",
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "update contact deal error",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:          uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+					Title:       "Test Pipeline",
+					Stage:       malak.FundraisePipelineStageSeed,
+					IsClosed:    false,
+					WorkspaceID: workspaceID,
+				}
+
+				contactID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440001")
+
+				repo.EXPECT().
+					Get(gomock.Any(), malak.FetchPipelineOptions{
+						Reference:   malak.Reference("pipeline_123"),
+						WorkspaceID: workspaceID,
+					}).
+					Times(1).
+					Return(pipeline, nil)
+
+				repo.EXPECT().
+					GetContact(gomock.Any(), pipeline.ID, contactID).
+					Times(1).
+					Return(&malak.FundraiseContact{
+						ID: contactID,
+					}, nil)
+
+				repo.EXPECT().
+					UpdateContactDeal(gomock.Any(), pipeline, malak.UpdateContactDealOptions{
+						Rating:       int64(4),
+						CanLeadRound: true,
+						CheckSize:    1000000 * 100,
+						ContactID:    contactID,
+					}).
+					Times(1).
+					Return(errors.New("update error"))
+			},
+			req: updateContactDealRequest{
+				Rating:       4,
+				CanLeadRound: true,
+				CheckSize:    1000000 * 100,
+			},
+			pipelineReference:  "pipeline_123",
+			contactID:          "550e8400-e29b-41d4-a716-446655440001",
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+	}
+}
+
+func TestFundraisingHandler_UpdateContactDeal(t *testing.T) {
+	workspaceID := uuid.MustParse("56670b6d-48d4-4b17-bc8f-d101b7d0b53c")
+	for _, v := range generateUpdateContactDealTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			fundingRepo := malak_mocks.NewMockFundraisingPipelineRepository(controller)
+			v.mockFn(t, fundingRepo)
+
+			handler := &fundraisingHandler{
+				cfg:                getConfig(),
+				fundingRepo:        fundingRepo,
+				referenceGenerator: &mockReferenceGenerator{},
+			}
+
+			var b = bytes.NewBuffer(nil)
+			require.NoError(t, json.NewEncoder(b).Encode(v.req))
+
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodPatch, "/pipelines/"+v.pipelineReference+"/contacts/"+v.contactID, b)
+			req.Header.Add("Content-Type", "application/json")
+
+			workspace := &malak.Workspace{
+				ID: workspaceID,
+			}
+			user := &malak.User{
+				ID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440004"),
+			}
+
+			// Set up context in the correct order
+			ctx := req.Context()
+			ctx = writeUserToCtx(ctx, user)
+			ctx = writeWorkspaceToCtx(ctx, workspace)
+			routeCtx := chi.NewRouteContext()
+			routeCtx.URLParams.Add("reference", v.pipelineReference)
+			routeCtx.URLParams.Add("contact_id", v.contactID)
+			ctx = context.WithValue(ctx, chi.RouteCtxKey, routeCtx)
+			req = req.WithContext(ctx)
+
+			WrapMalakHTTPHandler(getLogger(t),
+				handler.updateContactDeal,
+				getConfig(),
+				"fundraising.update_contact_deal").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}

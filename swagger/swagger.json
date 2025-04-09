@@ -2648,6 +2648,27 @@
 				],
 				"type": "object"
 			},
+			"server.updateContactDealRequest": {
+				"properties": {
+					"can_lead_round": {
+						"type": "boolean"
+					},
+					"check_size": {
+						"type": "integer"
+					},
+					"rating": {
+						"maximum": 5,
+						"minimum": 0,
+						"type": "integer"
+					}
+				},
+				"required": [
+					"can_lead_round",
+					"check_size",
+					"rating"
+				],
+				"type": "object"
+			},
 			"server.updateDashboardPositionsRequest": {
 				"properties": {
 					"positions": {
@@ -5793,6 +5814,98 @@
 						}
 					},
 					"description": "contact request body",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"fundraising"
+				]
+			}
+		},
+		"/pipelines/{reference}/contacts/{contact_id}": {
+			"patch": {
+				"description": "Update deal details for a contact on the fundraising board",
+				"parameters": [
+					{
+						"description": "Pipeline reference",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Contact ID",
+						"in": "path",
+						"name": "contact_id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.updateContactDealRequest"
+							}
+						}
+					},
+					"description": "update deal request body",
 					"required": true,
 					"x-originalParamName": "message"
 				},

@@ -237,3 +237,54 @@ func (d *fundingRepo) DefaultColumn(ctx context.Context, pipeline *malak.Fundrai
 
 	return column, err
 }
+
+func (d *fundingRepo) UpdateContactDeal(ctx context.Context,
+	pipeline *malak.FundraisingPipeline, opts malak.UpdateContactDealOptions) error {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	_, err := d.inner.NewUpdate().
+		Model((*malak.FundraiseContactDealDetails)(nil)).
+		Set("rating = ?", opts.Rating).
+		Set("can_lead_round = ?", opts.CanLeadRound).
+		Set("check_size = ?", opts.CheckSize).
+		Set("updated_at = ?", time.Now()).
+		Where("fundraising_pipeline_column_contact_id = ?", opts.ContactID).
+		Exec(ctx)
+
+	return err
+}
+
+func (d *fundingRepo) GetContact(ctx context.Context, pipelineID, contactID uuid.UUID) (*malak.FundraiseContact, error) {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	var contact malak.FundraiseContact
+	err := d.inner.NewSelect().
+		Model(&contact).
+		Relation("DealDetails").
+		Relation("Contact").
+		Where("fundraise_contact.contact_id = ?", contactID).
+		Where("fundraise_contact.fundraising_pipeline_id = ?", pipelineID).
+		Scan(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, malak.ErrContactNotFoundOnBoard
+		}
+		return nil, err
+	}
+
+	return &contact, nil
+}
+
+func (d *fundingRepo) UpdateBoardContact(ctx context.Context, details *malak.FundraiseContactDealDetails) error {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	_, err := d.inner.NewUpdate().
+		Model(details).
+		WherePK().
+		Exec(ctx)
+
+	return err
+}

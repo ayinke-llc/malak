@@ -719,3 +719,208 @@ func TestFundraising_DefaultColumn(t *testing.T) {
 		require.ErrorIs(t, err, sql.ErrNoRows)
 	})
 }
+
+func TestFundraising_GetContact(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	fundingRepo := NewFundingRepo(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	pipeline := &malak.FundraisingPipeline{
+		Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
+		WorkspaceID:       workspace.ID,
+		Title:             "Test Pipeline",
+		Stage:             malak.FundraisePipelineStageSeed,
+		Description:       "Test pipeline description",
+		TargetAmount:      1000000,
+		StartDate:         time.Now().UTC(),
+		ExpectedCloseDate: time.Now().UTC().Add(90 * 24 * time.Hour),
+	}
+
+	column := malak.FundraisingPipelineColumn{
+		Title:       "Test Column",
+		ColumnType:  malak.FundraisePipelineColumnTypeNormal,
+		Description: "Test column description",
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+	}
+
+	err = fundingRepo.Create(t.Context(), pipeline, column)
+	require.NoError(t, err)
+
+	contact := &malak.Contact{
+		ID:          uuid.New(),
+		Email:       malak.Email("test@example.com"),
+		WorkspaceID: workspace.ID,
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeContact),
+		FirstName:   "Test",
+		LastName:    "Contact",
+	}
+
+	_, err = client.NewInsert().Model(contact).Exec(t.Context())
+	require.NoError(t, err)
+
+	var columns []malak.FundraisingPipelineColumn
+	err = client.NewSelect().
+		Model(&columns).
+		Where("fundraising_pipeline_id = ?", pipeline.ID).
+		Scan(t.Context())
+	require.NoError(t, err)
+	require.Len(t, columns, 1)
+
+	// Add contact to board first
+	opts := &malak.AddContactToBoardOptions{
+		Column:             &columns[0],
+		Contact:            contact,
+		ReferenceGenerator: malak.NewReferenceGenerator(),
+		Rating:             3,
+		CanLeadRound:       true,
+		CheckSize:          1000000, // $1M
+	}
+
+	err = fundingRepo.AddContactToBoard(t.Context(), opts)
+	require.NoError(t, err)
+
+	t.Run("get existing contact", func(t *testing.T) {
+		result, err := fundingRepo.GetContact(t.Context(), pipeline.ID, contact.ID)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.Equal(t, contact.ID, result.ContactID)
+		require.Equal(t, pipeline.ID, result.FundraisingPipelineID)
+		require.Equal(t, columns[0].ID, result.FundraisingPipelineColumnID)
+		require.NotNil(t, result.Contact)
+		require.Equal(t, contact.FirstName, result.Contact.FirstName)
+		require.Equal(t, contact.LastName, result.Contact.LastName)
+		require.Equal(t, contact.Email, result.Contact.Email)
+	})
+
+	t.Run("get non-existent contact", func(t *testing.T) {
+		result, err := fundingRepo.GetContact(t.Context(), pipeline.ID, uuid.New())
+		require.Error(t, err)
+		require.ErrorIs(t, err, malak.ErrContactNotFoundOnBoard)
+		require.Nil(t, result)
+	})
+
+	t.Run("get contact from non-existent pipeline", func(t *testing.T) {
+		result, err := fundingRepo.GetContact(t.Context(), uuid.New(), contact.ID)
+		require.Error(t, err)
+		require.ErrorIs(t, err, malak.ErrContactNotFoundOnBoard)
+		require.Nil(t, result)
+	})
+}
+
+func TestFundraising_UpdateContactDeal(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	fundingRepo := NewFundingRepo(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	pipeline := &malak.FundraisingPipeline{
+		Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
+		WorkspaceID:       workspace.ID,
+		Title:             "Test Pipeline",
+		Stage:             malak.FundraisePipelineStageSeed,
+		Description:       "Test pipeline description",
+		TargetAmount:      1000000,
+		StartDate:         time.Now().UTC(),
+		ExpectedCloseDate: time.Now().UTC().Add(90 * 24 * time.Hour),
+	}
+
+	column := malak.FundraisingPipelineColumn{
+		Title:       "Test Column",
+		ColumnType:  malak.FundraisePipelineColumnTypeNormal,
+		Description: "Test column description",
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+	}
+
+	err = fundingRepo.Create(t.Context(), pipeline, column)
+	require.NoError(t, err)
+
+	contact := &malak.Contact{
+		ID:          uuid.New(),
+		Email:       malak.Email("test@example.com"),
+		WorkspaceID: workspace.ID,
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeContact),
+		FirstName:   "Test",
+		LastName:    "Contact",
+	}
+
+	_, err = client.NewInsert().Model(contact).Exec(t.Context())
+	require.NoError(t, err)
+
+	var columns []malak.FundraisingPipelineColumn
+	err = client.NewSelect().
+		Model(&columns).
+		Where("fundraising_pipeline_id = ?", pipeline.ID).
+		Scan(t.Context())
+	require.NoError(t, err)
+	require.Len(t, columns, 1)
+
+	// Add contact to board first
+	opts := &malak.AddContactToBoardOptions{
+		Column:             &columns[0],
+		Contact:            contact,
+		ReferenceGenerator: malak.NewReferenceGenerator(),
+		Rating:             3,
+		CanLeadRound:       true,
+		CheckSize:          1000000, // $1M
+	}
+
+	err = fundingRepo.AddContactToBoard(t.Context(), opts)
+	require.NoError(t, err)
+
+	// Get the fundraise contact ID
+	var fundraiseContact malak.FundraiseContact
+	err = client.NewSelect().
+		Model(&fundraiseContact).
+		Where("contact_id = ?", contact.ID).
+		Where("fundraising_pipeline_id = ?", pipeline.ID).
+		Scan(t.Context())
+	require.NoError(t, err)
+
+	t.Run("update contact deal details", func(t *testing.T) {
+		updateOpts := malak.UpdateContactDealOptions{
+			ContactID:    fundraiseContact.ID,
+			Rating:       5,
+			CanLeadRound: false,
+			CheckSize:    5000000, // $5M
+		}
+
+		err := fundingRepo.UpdateContactDeal(t.Context(), pipeline, updateOpts)
+		require.NoError(t, err)
+
+		// Verify the update
+		var dealDetails malak.FundraiseContactDealDetails
+		err = client.NewSelect().
+			Model(&dealDetails).
+			Where("fundraising_pipeline_column_contact_id = ?", fundraiseContact.ID).
+			Scan(t.Context())
+		require.NoError(t, err)
+		require.Equal(t, int64(5), dealDetails.Rating)
+		require.Equal(t, false, dealDetails.CanLeadRound)
+		require.Equal(t, int64(5000000), dealDetails.CheckSize)
+	})
+
+	t.Run("update non-existent contact deal", func(t *testing.T) {
+		updateOpts := malak.UpdateContactDealOptions{
+			ContactID:    uuid.New(),
+			Rating:       4,
+			CanLeadRound: true,
+			CheckSize:    1000000, // $1M
+		}
+
+		err := fundingRepo.UpdateContactDeal(t.Context(), pipeline, updateOpts)
+		require.NoError(t, err) // Should not error as it's a no-op update
+	})
+}

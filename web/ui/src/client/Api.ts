@@ -987,6 +987,16 @@ export interface ServerTestAPIIntegrationRequest {
   api_key: string;
 }
 
+export interface ServerUpdateContactDealRequest {
+  can_lead_round: boolean;
+  check_size: number;
+  /**
+   * @min 0
+   * @max 5
+   */
+  rating: number;
+}
+
 export interface ServerUpdateDashboardPositionsRequest {
   positions: {
     chart_id: string;
@@ -1889,6 +1899,28 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerAPIStatus, ServerAPIStatus>({
         path: `/pipelines/${reference}/contacts`,
         method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Update deal details for a contact on the fundraising board
+     *
+     * @tags fundraising
+     * @name ContactsPartialUpdate
+     * @request PATCH:/pipelines/{reference}/contacts/{contact_id}
+     */
+    contactsPartialUpdate: (
+      reference: string,
+      contactId: string,
+      data: ServerUpdateContactDealRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/pipelines/${reference}/contacts/${contactId}`,
+        method: "PATCH",
         body: data,
         type: ContentType.Json,
         format: "json",
