@@ -556,6 +556,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
         isArchived={board.isArchived}
         contact={selectedInvestor?.originalContact}
         deal={selectedInvestor?.originalDeal}
+        slug={slug}
       />
 
       <AddInvestorDialogComponent

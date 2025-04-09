@@ -2663,6 +2663,7 @@
 					}
 				},
 				"required": [
+					"can_lead_round",
 					"check_size",
 					"rating"
 				],

@@ -221,6 +221,6 @@ type FundraisingPipelineRepository interface {
 
 	AddContactToBoard(context.Context, *AddContactToBoardOptions) error
 	UpdateBoardContact(context.Context, *FundraiseContactDealDetails) error
-	GetContact(context.Context, uuid.UUID) (*FundraiseContact, error)
+	GetContact(context.Context, uuid.UUID, uuid.UUID) (*FundraiseContact, error)
 	UpdateContactDeal(context.Context, *FundraisingPipeline, UpdateContactDealOptions) error
 }

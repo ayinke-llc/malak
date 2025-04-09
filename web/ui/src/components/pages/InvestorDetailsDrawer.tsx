@@ -38,7 +38,8 @@ import {
   RiStarLine,
   RiArchiveFill,
   RiTeamLine,
-  RiArrowRightSLine
+  RiArrowRightSLine,
+  RiEditLine
 } from "@remixicon/react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -52,6 +53,12 @@ import { Switch } from "@/components/ui/switch";
 import { NumericFormat } from "react-number-format";
 import { format, fromUnixTime, isValid, parseISO } from "date-fns";
 import type { Card, Activity, Note } from "@/components/investor-pipeline/types";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { FETCH_FUNDRAISING_PIPELINE, UPDATE_INVESTOR_IN_PIPELINE } from "@/lib/query-constants";
+import client from "@/lib/client";
+import { toast } from "sonner";
+import type { AxiosError } from "axios";
+import type { ServerAPIStatus } from "@/client/Api";
 
 interface InvestorDetailsDrawerProps {
   open: boolean;
@@ -60,6 +67,7 @@ interface InvestorDetailsDrawerProps {
   isArchived?: boolean;
   contact?: MalakContact;
   deal?: MalakFundraiseContactDealDetails;
+  slug: string;
 }
 
 const TOTAL_ACTIVITIES_LIMIT = 250;
@@ -310,33 +318,28 @@ function EditInvestorDialog({
   open,
   onOpenChange,
   investor,
-  onSave
+  onSave,
+  deal,
+  isLoading
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   investor: Card | null;
-  onSave: (updatedInvestor: Card) => void;
+  onSave: (updatedDeal: Partial<MalakFundraiseContactDealDetails>) => void;
+  deal?: MalakFundraiseContactDealDetails;
+  isLoading: boolean;
 }) {
-  const [editedInvestor, setEditedInvestor] = useState<Card | null>(null);
-  const [hoveredRating, setHoveredRating] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (investor) {
-      setEditedInvestor({ ...investor });
-    }
-  }, [investor]);
-
-  if (!editedInvestor) return null;
+  const [editedDeal, setEditedDeal] = useState<Partial<MalakFundraiseContactDealDetails>>({
+    check_size: deal?.check_size ?? 0,
+    can_lead_round: deal?.can_lead_round ?? false,
+    rating: deal?.rating ?? 0
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (editedInvestor) {
-      onSave(editedInvestor);
-      onOpenChange(false);
-    }
+    onSave(editedDeal);
+    onOpenChange(false);
   };
-
-  const displayRating = hoveredRating !== null ? hoveredRating : editedInvestor.rating;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -346,32 +349,12 @@ function EditInvestorDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Amount</Label>
-            <NumericFormat
-              value={editedInvestor.amount.replace(/[^0-9.]/g, '')}
-              onValueChange={(values) => {
-                const { value } = values;
-                // Format the value with 'M' suffix
-                const formattedValue = `${value}M`;
-                setEditedInvestor({ ...editedInvestor, amount: formattedValue });
-              }}
-              thousandSeparator
-              prefix="$"
-              customInput={Input}
-              placeholder="Enter amount (e.g. 5M)"
-              className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label>Check Size</Label>
             <NumericFormat
-              value={editedInvestor.checkSize.replace(/[^0-9.]/g, '')}
+              value={editedDeal.check_size ? (editedDeal.check_size / 100).toLocaleString() : ""}
               onValueChange={(values) => {
                 const { value } = values;
-                // Format the value with 'M' suffix
-                const formattedValue = `${value}M`;
-                setEditedInvestor({ ...editedInvestor, checkSize: formattedValue });
+                setEditedDeal({ ...editedDeal, check_size: Number(value) * 100 });
               }}
               thousandSeparator
               prefix="$"
@@ -382,23 +365,14 @@ function EditInvestorDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Initial Contact Date</Label>
-            <Input
-              type="date"
-              value={editedInvestor.initialContactDate}
-              onChange={(e) => setEditedInvestor({ ...editedInvestor, initialContactDate: e.target.value })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Lead Investor</Label>
+            <Label>Can Lead Round</Label>
             <div className="flex items-center space-x-2">
               <Switch
-                checked={editedInvestor.isLeadInvestor}
-                onCheckedChange={(checked) => setEditedInvestor({ ...editedInvestor, isLeadInvestor: checked })}
+                checked={editedDeal.can_lead_round}
+                onCheckedChange={(checked) => setEditedDeal({ ...editedDeal, can_lead_round: checked })}
               />
               <span className="text-sm text-muted-foreground">
-                {editedInvestor.isLeadInvestor ? 'Yes' : 'No'}
+                {editedDeal.can_lead_round ? 'Yes' : 'No'}
               </span>
             </div>
           </div>
@@ -413,11 +387,9 @@ function EditInvestorDialog({
                   variant="ghost"
                   size="icon"
                   className="hover:bg-transparent"
-                  onClick={() => setEditedInvestor({ ...editedInvestor, rating: star })}
-                  onMouseEnter={() => setHoveredRating(star)}
-                  onMouseLeave={() => setHoveredRating(null)}
+                  onClick={() => setEditedDeal({ ...editedDeal, rating: star })}
                 >
-                  {star <= displayRating ? (
+                  {star <= (editedDeal.rating || 0) ? (
                     <RiStarFill className="w-6 h-6 text-yellow-400" />
                   ) : (
                     <RiStarLine className="w-6 h-6 text-muted-foreground" />
@@ -425,17 +397,26 @@ function EditInvestorDialog({
                 </Button>
               ))}
               <span className="ml-2 text-sm text-muted-foreground">
-                {displayRating} of 5
+                {editedDeal.rating} of 5
               </span>
             </div>
           </div>
 
-          <div className="flex justify-end gap-2">
+          <DialogFooter>
             <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
-          </div>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-background mr-2" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -463,18 +444,41 @@ export function InvestorDetailsDrawer({
   investor,
   isArchived = false,
   contact,
-  deal
+  deal,
+  slug
 }: InvestorDetailsDrawerProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isAddingActivity, setIsAddingActivity] = useState(false);
   const [isEditingInvestor, setIsEditingInvestor] = useState(false);
+  const queryClient = useQueryClient();
 
   // Infinite scroll states
   const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const observerTarget = useRef<HTMLDivElement>(null);
+
+  const updateInvestorMutation = useMutation({
+    mutationKey: [UPDATE_INVESTOR_IN_PIPELINE, slug],
+    mutationFn: async (updatedDeal: Partial<MalakFundraiseContactDealDetails>) => {
+      if (!contact?.reference) throw new Error("No contact reference provided");
+      const response = await client.pipelines.contactsPartialUpdate(slug, contact.id as string, {
+        check_size: updatedDeal.check_size ?? 0,
+        can_lead_round: updatedDeal.can_lead_round ?? false,
+        rating: updatedDeal.rating ?? 0
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [FETCH_FUNDRAISING_PIPELINE, slug] });
+      toast.success("Investor details updated successfully");
+      setIsEditingInvestor(false);
+    },
+    onError: (err: AxiosError<ServerAPIStatus>) => {
+      toast.error(err.response?.data.message ?? "Failed to update investor details");
+    },
+  });
 
   const loadMoreActivities = async () => {
     if (!investor || isLoading || !hasMore) return;
@@ -551,9 +555,8 @@ export function InvestorDetailsDrawer({
     }
   };
 
-  const handleSaveInvestor = (updatedInvestor: Card) => {
-    // In a real implementation, you would update the investor in your backend here
-    onOpenChange(false);
+  const handleSaveInvestor = (updatedDeal: Partial<MalakFundraiseContactDealDetails>) => {
+    updateInvestorMutation.mutate(updatedDeal);
   };
 
   // Remove console logs and unused code
@@ -631,7 +634,18 @@ export function InvestorDetailsDrawer({
                   </div>
 
                   <div className="bg-card rounded-lg p-4 border">
-                    <h3 className="font-medium mb-3">Deal Information</h3>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-medium">Deal Information</h3>
+                      {!isArchived && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setIsEditingInvestor(true)}
+                        >
+                          <RiEditLine className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                     <div className="space-y-3 text-sm">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Expected Check Size</span>
@@ -780,6 +794,8 @@ export function InvestorDetailsDrawer({
                 onOpenChange={setIsEditingInvestor}
                 investor={investor}
                 onSave={handleSaveInvestor}
+                deal={deal}
+                isLoading={updateInvestorMutation.isPending}
               />
 
               <AddActivityDialog

@@ -988,7 +988,7 @@ export interface ServerTestAPIIntegrationRequest {
 }
 
 export interface ServerUpdateContactDealRequest {
-  can_lead_round?: boolean;
+  can_lead_round: boolean;
   check_size: number;
   /**
    * @min 0

@@ -255,7 +255,7 @@ func (d *fundingRepo) UpdateContactDeal(ctx context.Context,
 	return err
 }
 
-func (d *fundingRepo) GetContact(ctx context.Context, contactID uuid.UUID) (*malak.FundraiseContact, error) {
+func (d *fundingRepo) GetContact(ctx context.Context, pipelineID, contactID uuid.UUID) (*malak.FundraiseContact, error) {
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
 
@@ -264,7 +264,8 @@ func (d *fundingRepo) GetContact(ctx context.Context, contactID uuid.UUID) (*mal
 		Model(&contact).
 		Relation("DealDetails").
 		Relation("Contact").
-		Where("id = ?", contactID).
+		Where("fundraise_contact.contact_id = ?", contactID).
+		Where("fundraise_contact.fundraising_pipeline_id = ?", pipelineID).
 		Scan(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

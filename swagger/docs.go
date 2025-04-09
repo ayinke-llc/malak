@@ -6989,6 +6989,7 @@ const docTemplate = `{
         "server.updateContactDealRequest": {
             "type": "object",
             "required": [
+                "can_lead_round",
                 "check_size",
                 "rating"
             ],

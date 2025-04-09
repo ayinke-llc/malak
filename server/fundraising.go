@@ -433,9 +433,9 @@ func (d *fundraisingHandler) addContact(
 
 type updateContactDealRequest struct {
 	GenericRequest
-	Rating       int   `json:"rating" validate:"required,min=0,max=5"`
-	CanLeadRound bool  `json:"can_lead_round"`
-	CheckSize    int64 `json:"check_size" validate:"required"`
+	Rating       int   `json:"rating,omitempty" validate:"required,min=0,max=5"`
+	CanLeadRound bool  `json:"can_lead_round,omitempty" validate:"required"`
+	CheckSize    int64 `json:"check_size,omitempty" validate:"required"`
 }
 
 func (c *updateContactDealRequest) Validate() error {
@@ -514,7 +514,7 @@ func (d *fundraisingHandler) updateContactDeal(
 		return newAPIStatus(http.StatusInternalServerError, "could not fetch fundraising pipeline"), StatusFailed
 	}
 
-	contact, err := d.fundingRepo.GetContact(ctx, contactUUID)
+	contact, err := d.fundingRepo.GetContact(ctx, pipeline.ID, contactUUID)
 	if err != nil {
 		if errors.Is(err, malak.ErrContactNotFoundOnBoard) {
 			return newAPIStatus(http.StatusNotFound, "this contact is not on this board"), StatusFailed

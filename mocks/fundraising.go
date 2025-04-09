@@ -137,18 +137,18 @@ func (mr *MockFundraisingPipelineRepositoryMockRecorder) Get(arg0, arg1 any) *go
 }
 
 // GetContact mocks base method.
-func (m *MockFundraisingPipelineRepository) GetContact(arg0 context.Context, arg1 uuid.UUID) (*malak.FundraiseContact, error) {
+func (m *MockFundraisingPipelineRepository) GetContact(arg0 context.Context, arg1, arg2 uuid.UUID) (*malak.FundraiseContact, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetContact", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetContact", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*malak.FundraiseContact)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetContact indicates an expected call of GetContact.
-func (mr *MockFundraisingPipelineRepositoryMockRecorder) GetContact(arg0, arg1 any) *gomock.Call {
+func (mr *MockFundraisingPipelineRepositoryMockRecorder) GetContact(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContact", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).GetContact), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContact", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).GetContact), arg0, arg1, arg2)
 }
 
 // List mocks base method.
