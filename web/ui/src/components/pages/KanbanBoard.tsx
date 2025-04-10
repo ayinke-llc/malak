@@ -588,45 +588,11 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={closeBoardMutation.isPending}
             >
-              {closeBoardMutation.isPending ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-background mr-2" />
-                  Closing...
-                </>
-              ) : (
-                "Close Board Permanently"
-              )}
+              Close Board Permanently
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <Tabs className="w-full">
-        <TabsList className="w-full">
-          <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
-          <TabsTrigger value="activity" className="flex-1">Activity</TabsTrigger>
-          <TabsTrigger value="documents" className="flex-1">Documents</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={() => setActiveTab("activity")}
-          >
-            <RiCalendarLine className="w-4 h-4 mr-2" />
-            Add Activity or Note
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogTitle>Add Activity or Note</DialogTitle>
-          <DialogDescription>
-            Record an activity or add a note to the pipeline.
-          </DialogDescription>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 } 
