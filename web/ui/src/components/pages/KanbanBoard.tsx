@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import {
   RiAddLine, RiSettings4Line, RiArchiveLine, RiInformationLine,
   RiCalendarLine, RiErrorWarningLine,
-  RiCloseLine, RiMailLine, RiPhoneLine,
-  RiMoneyDollarCircleLine, RiFileCopyLine
+  RiCloseLine, RiPhoneLine,
+  RiMoneyDollarCircleLine
 } from "@remixicon/react";
 import { InvestorDetailsDrawer } from "./InvestorDetailsDrawer";
 import { toast } from "sonner";
@@ -53,7 +53,7 @@ import {
 import type { AxiosError } from "axios";
 import type { ServerAPIStatus } from "@/client/Api";
 import { fullName } from "@/lib/custom";
-import CopyToClipboard from 'react-copy-to-clipboard';
+import Copy from "../ui/custom/copy";
 
 interface KanbanBoardProps {
   slug: string;
@@ -78,7 +78,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
   const { data: boardData, isLoading, error } = useQuery<ServerFetchBoardResponse>({
     queryKey: [FETCH_FUNDRAISING_PIPELINE, slug],
     queryFn: async () => {
-      const response = await client.pipelines.boardDetail(slug);
+      const response = await client.pipelines.pipelinesDetail(slug);
       return response.data;
     },
   });
@@ -148,7 +148,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
     );
   }
 
-  if (error) {
+  if (error || !boardData) {
     return (
       <div className="flex flex-col items-center justify-center h-screen p-4 text-center">
         <RiErrorWarningLine className="w-12 h-12 text-destructive mb-4" />
@@ -166,20 +166,17 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
     );
   }
 
-  if (!boardData) {
-    return null;
-  }
-
   const { pipeline = {}, columns = [], contacts = [], positions = [] } = boardData;
 
   const existingContactIds = contacts.map(contact => contact.contact_id || "").filter(Boolean);
 
-  // Transform the data into the format expected by the board
+  // transform the data into the format expected by the board
   const board: Board = {
     isArchived: pipeline.is_closed || false,
     columns: columns
       .sort((a, b) => {
-        // Hardcoded column order based on title
+        // hardcoded column order based on title
+        // TODO(adelowo:) long term this should be on backend
         const columnOrder = [
           "Backlog",
           "Contacted",
@@ -213,7 +210,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
             cards: (contacts || [])
               .filter(contact => contact && contact.fundraising_pipeline_column_id === column.id)
               .map(contact => {
-                // Find the position for this contact
+                // find the position for this contact
                 const position = positions.find(p => p.fundraising_pipeline_column_contact_id === contact.id);
                 const deal = contact.deal_details;
                 const contactDetails = contact.contact;
@@ -490,16 +487,12 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                                   <div className="space-y-1.5">
                                     {card?.contact?.email && (
                                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground group">
-                                        <RiMailLine className="h-3.5 w-3.5 shrink-0" />
                                         <span className="truncate">{card.contact.email}</span>
-                                        <CopyToClipboard
+                                        <Copy
+                                          onCopyText="Email copied to clipboard"
                                           text={card.contact.email}
-                                          onCopy={() => toast.success("Email copied to clipboard")}
-                                        >
-                                          <button className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <RiFileCopyLine className="h-3.5 w-3.5 hover:text-primary" />
-                                          </button>
-                                        </CopyToClipboard>
+                                          tooltipText="Copy email"
+                                        />
                                       </div>
                                     )}
                                     {card?.contact?.phone && (
@@ -632,7 +625,6 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
           <DialogDescription>
             Record an activity or add a note to the pipeline.
           </DialogDescription>
-          {/* Add your form content here */}
         </DialogContent>
       </Dialog>
     </div>
