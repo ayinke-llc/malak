@@ -16,7 +16,7 @@ Own full control of your data and company state if you decide to selfhost.
 
 - [Features](#features)
 - [Self hosting](#self-hosting)
-- [Cloud]($#cloud)
+- [Cloud](#cloud)
 
 ## Features
 
