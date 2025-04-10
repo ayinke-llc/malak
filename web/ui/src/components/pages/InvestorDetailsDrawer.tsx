@@ -9,16 +9,12 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogTrigger,
+  DialogTitle, DialogFooter
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -30,11 +26,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  RiMailLine,
-  RiPhoneLine,
-  RiCalendarLine,
-  RiFileTextLine, RiCloseLine, RiAddLine, RiUploadLine, RiUploadCloud2Line,
-  RiStarFill,
+  RiMailLine, RiCalendarLine,
+  RiFileTextLine, RiCloseLine, RiAddLine, RiStarFill,
   RiStarLine,
   RiArchiveFill,
   RiTeamLine,
@@ -54,13 +47,15 @@ import { Switch } from "@/components/ui/switch";
 import { NumericFormat } from "react-number-format";
 import { format, fromUnixTime, isValid, parseISO } from "date-fns";
 import type { Card, Activity, Note } from "@/components/investor-pipeline/types";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FETCH_FUNDRAISING_PIPELINE, UPDATE_INVESTOR_IN_PIPELINE } from "@/lib/query-constants";
 import client from "@/lib/client";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
 import type { ServerAPIStatus } from "@/client/Api";
 import CopyToClipboard from "react-copy-to-clipboard";
+import { ActivityList } from "../investor-pipeline/details/tabs/activity/ActivityList";
+import Copy from "../ui/custom/copy";
 
 interface InvestorDetailsDrawerProps {
   open: boolean;
@@ -632,22 +627,13 @@ export function InvestorDetailsDrawer({
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger>
-                                    <CopyToClipboard 
+                                    <Copy
                                       text={contact.email}
-                                      onCopy={() => toast.success("Email copied to clipboard")}
-                                    >
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 hover:bg-muted"
-                                        type="button"
-                                      >
-                                        <RiClipboardLine className="w-3 h-3" />
-                                      </Button>
-                                    </CopyToClipboard>
+                                      onCopyText={"Email copied to clipboard"}
+                                    />
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>Copy email</p>
+                                    Copy email
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
@@ -740,67 +726,7 @@ export function InvestorDetailsDrawer({
               </TabsContent>
 
               <TabsContent value="activity">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      Showing {activities.length} of {activities.length >= TOTAL_ACTIVITIES_LIMIT ? 'maximum ' : ''}{TOTAL_ACTIVITIES_LIMIT} activities
-                    </div>
-                    {!isArchived && (
-                      <Button
-                        onClick={() => setIsAddingActivity(true)}
-                        size="sm"
-                        className="gap-2"
-                      >
-                        <RiAddLine className="w-4 h-4" />
-                        Add Activity or Note
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="relative space-y-6 pl-8 before:absolute before:left-3 before:top-2 before:bottom-0 before:w-[2px] before:bg-border">
-                    {activities.map((activity) => (
-                      <div key={activity.id} className="relative">
-                        <div className="absolute -left-[27px] bg-background p-1 border rounded-full">
-                          {getActivityIcon(activity.type)}
-                        </div>
-                        <div className="bg-card rounded-lg p-4 border">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium">{activity.title}</h4>
-                            <span className="text-xs text-muted-foreground">
-                              {formatSafeDate(activity.timestamp, 'MMM d, yyyy h:mm a')}
-                            </span>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-3">
-                            {activity.description}
-                          </p>
-                          {activity.content && (
-                            <div className="bg-muted/50 rounded-md p-3 text-sm">
-                              <p className="whitespace-pre-wrap">{activity.content}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-
-                    {isLoading && (
-                      <>
-                        <ActivitySkeleton />
-                        <ActivitySkeleton />
-                        <ActivitySkeleton />
-                      </>
-                    )}
-
-                    <div ref={observerTarget} className="h-4" />
-
-                    {!hasMore && activities.length > 0 && (
-                      <div className="text-center text-sm text-muted-foreground py-4">
-                        {activities.length >= TOTAL_ACTIVITIES_LIMIT
-                          ? `Maximum limit of ${TOTAL_ACTIVITIES_LIMIT} activities reached`
-                          : "No more activities to load"}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <ActivityList />
               </TabsContent>
 
               <TabsContent value="documents">
