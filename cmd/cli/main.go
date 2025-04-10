@@ -180,7 +180,7 @@ func setDefaults() {
 
 	viper.SetDefault("biling.is_enabled", false)
 	viper.SetDefault("billing.default_plan", uuid.Nil)
-	viper.SetDefault("billing.trial_days", 14)
+	viper.SetDefault("billing.trial_days", 30)
 
 	viper.SetDefault("auth.google.scopes", []string{"profile", "email"})
 
