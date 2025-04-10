@@ -32,16 +32,9 @@ import {
   RiArchiveFill,
   RiTeamLine,
   RiArrowRightSLine,
-  RiEditLine,
-  RiClipboardLine
+  RiEditLine
 } from "@remixicon/react";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { NumericFormat } from "react-number-format";
@@ -53,7 +46,6 @@ import client from "@/lib/client";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
 import type { ServerAPIStatus } from "@/client/Api";
-import CopyToClipboard from "react-copy-to-clipboard";
 import { ActivityList } from "../investor-pipeline/details/tabs/activity/ActivityList";
 import Copy from "../ui/custom/copy";
 
@@ -65,55 +57,6 @@ interface InvestorDetailsDrawerProps {
   contact?: MalakContact;
   deal?: MalakFundraiseContactDealDetails;
   slug: string;
-}
-
-const TOTAL_ACTIVITIES_LIMIT = 250;
-const ACTIVITIES_PER_PAGE = 25;
-
-// Mock function to fetch activities
-const fetchActivities = async (page: number, investorId: string): Promise<Activity[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  const startIndex = page * ACTIVITIES_PER_PAGE;
-  // If we've reached the limit, return empty array
-  if (startIndex >= TOTAL_ACTIVITIES_LIMIT) {
-    return [];
-  }
-
-  // Calculate how many items to generate (handle last page)
-  const itemsToGenerate = Math.min(
-    ACTIVITIES_PER_PAGE,
-    TOTAL_ACTIVITIES_LIMIT - startIndex
-  );
-
-  // Generate activities
-  return Array.from({ length: itemsToGenerate }, (_, i) => ({
-    id: `${page}-${i}-${Math.random()}`,
-    type: ['email', 'meeting', 'document', 'team', 'stage_change'][Math.floor(Math.random() * 5)] as Activity['type'],
-    title: `Activity ${startIndex + i + 1}`,
-    description: `Description for activity ${startIndex + i + 1}`,
-    timestamp: new Date(Date.now() - (startIndex + i) * 24 * 60 * 60 * 1000).toISOString(),
-    content: Math.random() > 0.5 ? `Content for activity ${startIndex + i + 1}` : undefined,
-  }));
-};
-
-function ActivitySkeleton() {
-  return (
-    <div className="relative">
-      <div className="absolute -left-[27px] bg-background p-1 border rounded-full">
-        <Skeleton className="h-4 w-4 rounded-full" />
-      </div>
-      <div className="bg-card rounded-lg p-4 border">
-        <div className="flex items-center justify-between mb-2">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-3 w-24" />
-        </div>
-        <Skeleton className="h-4 w-full mb-3" />
-        <Skeleton className="h-16 w-full" />
-      </div>
-    </div>
-  );
 }
 
 function AddActivityDialog({
@@ -442,11 +385,8 @@ export function InvestorDetailsDrawer({
   const [isEditingInvestor, setIsEditingInvestor] = useState(false);
   const queryClient = useQueryClient();
 
-  // Infinite scroll states
   const [page, setPage] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const observerTarget = useRef<HTMLDivElement>(null);
 
   const updateInvestorMutation = useMutation({
     mutationKey: [UPDATE_INVESTOR_IN_PIPELINE, slug],
@@ -473,48 +413,12 @@ export function InvestorDetailsDrawer({
     },
   });
 
-  const loadMoreActivities = async () => {
-    if (!investor || isLoading || !hasMore) return;
-
-    setIsLoading(true);
-    try {
-      const newActivities = await fetchActivities(page, investor.id);
-      if (newActivities.length === 0 || activities.length + newActivities.length >= TOTAL_ACTIVITIES_LIMIT) {
-        setHasMore(false);
-      }
-      setActivities(prev => [...prev, ...newActivities]);
-      setPage(prev => prev + 1);
-    } catch (error) {
-      console.error('Error loading activities:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting && hasMore && !isLoading) {
-          loadMoreActivities();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-
-    return () => observer.disconnect();
-  }, [hasMore, isLoading, page]);
-
-  // Reset states when investor changes
+  // reset states when investor changes
   useEffect(() => {
     if (investor) {
       setActivities([]);
       setPage(0);
       setHasMore(true);
-      loadMoreActivities();
     }
   }, [investor?.id]);
 
@@ -531,28 +435,9 @@ export function InvestorDetailsDrawer({
     setActivities(prev => [activity, ...prev]);
   };
 
-  const getActivityIcon = (type: Activity['type']) => {
-    switch (type) {
-      case 'email':
-        return <RiMailLine className="w-4 h-4 text-primary" />;
-      case 'meeting':
-        return <RiCalendarLine className="w-4 h-4 text-primary" />;
-      case 'document':
-        return <RiFileTextLine className="w-4 h-4 text-primary" />;
-      case 'team':
-        return <RiTeamLine className="w-4 h-4 text-primary" />;
-      case 'stage_change':
-        return <RiArrowRightSLine className="w-4 h-4 text-primary" />;
-      default:
-        return <RiMailLine className="w-4 h-4 text-primary" />;
-    }
-  };
-
   const handleSaveInvestor = (updatedDeal: Partial<MalakFundraiseContactDealDetails>) => {
     updateInvestorMutation.mutate(updatedDeal);
   };
-
-  const existingContactIds = [];
 
   if (!investor) return null;
 
@@ -563,19 +448,6 @@ export function InvestorDetailsDrawer({
       >
         <div className="h-full flex flex-col">
           <SheetHeader className="flex-none">
-            <div className="flex items-center justify-between">
-              <SheetTitle className="text-xl">{investor.title}</SheetTitle>
-              <div className="flex items-center gap-2">
-                {!isArchived && (
-                  <Button variant="ghost" size="icon" onClick={() => setIsAddingActivity(true)}>
-                    <RiAddLine className="w-4 h-4" />
-                  </Button>
-                )}
-                <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
-                  <RiCloseLine className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
             <div className="flex items-center justify-between">
               <div className="space-x-2">
                 <Badge variant="outline">{investor.stage}</Badge>
@@ -590,10 +462,10 @@ export function InvestorDetailsDrawer({
           </SheetHeader>
 
           <div className="mt-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={activeTab} onValueChange={setActiveTab} >
               <TabsList className="w-full">
                 <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
-                <TabsTrigger value="activity" className="flex-1">Activity</TabsTrigger>
+                <TabsTrigger value="activity" className="flex-1">Activities</TabsTrigger>
                 <TabsTrigger value="documents" className="flex-1">Documents</TabsTrigger>
               </TabsList>
 
@@ -624,19 +496,11 @@ export function InvestorDetailsDrawer({
                             <div className="flex items-center gap-2 mt-2">
                               <RiMailLine className="w-4 h-4 text-muted-foreground" />
                               <span className="text-sm">{contact.email}</span>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger>
-                                    <Copy
-                                      text={contact.email}
-                                      onCopyText={"Email copied to clipboard"}
-                                    />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    Copy email
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
+                              <Copy
+                                text={contact.email}
+                                onCopyText={"Email copied to clipboard"}
+                                tooltipText="Copy email"
+                              />
                             </div>
                           )}
                         </div>
