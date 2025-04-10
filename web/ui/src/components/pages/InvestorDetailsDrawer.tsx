@@ -565,7 +565,7 @@ export function InvestorDetailsDrawer({
                       <Button
                         variant="outline"
                         className="w-full justify-start"
-                        onClick={() => setActiveTab("activity")}
+                        disabled={true}
                       >
                         <RiCalendarLine className="w-4 h-4 mr-2" />
                         Add Activity or Note
@@ -573,7 +573,7 @@ export function InvestorDetailsDrawer({
                       <Button
                         variant="outline"
                         className="w-full justify-start"
-                        onClick={() => setActiveTab("documents")}
+                        disabled={true}
                       >
                         <RiFileTextLine className="w-4 h-4 mr-2" />
                         Upload Documents
