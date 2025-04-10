@@ -398,7 +398,7 @@ func buildRoutes(
 			r.Get("/",
 				WrapMalakHTTPHandler(logger, pipelineHandler.list, cfg, "pipelines.list"))
 
-			r.Get("/{reference}/board",
+			r.Get("/{reference}",
 				WrapMalakHTTPHandler(logger, pipelineHandler.board, cfg, "pipelines.board"))
 
 			r.Delete("/{reference}",

@@ -852,6 +852,31 @@ func generateAddContactTestTable() []addContactTestCase {
 			expectedStatusCode: http.StatusNotFound,
 		},
 		{
+			name: "closed pipeline cannot be written to",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:       uuid.MustParse("34bc303d-6ca6-4881-a31f-55503b98eb90"),
+					Title:    "Test Pipeline",
+					Stage:    malak.FundraisePipelineStageSeed,
+					IsClosed: true,
+				}
+
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(pipeline, nil)
+			},
+			req: addContactRequest{
+				ContactReference: "contact_123",
+				Rating:           4,
+				CanLeadRound:     true,
+				InitialContact:   now.Add(-24 * time.Hour).Unix(),
+				CheckSize:        1000000 * 100,
+			},
+			pipelineReference:  "pipeline_123",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
 			name: "contact not found",
 			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository, contactRepo *malak_mocks.MockContactRepository) {
 				pipeline := &malak.FundraisingPipeline{
@@ -1121,6 +1146,37 @@ func generateUpdateContactDealTestTable() []updateContactDealTestCase {
 			pipelineReference:  "non_existent_pipeline",
 			contactID:          "550e8400-e29b-41d4-a716-446655440001",
 			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "cannot update pipeline that is closed",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:          uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+					Title:       "Test Pipeline",
+					Stage:       malak.FundraisePipelineStageSeed,
+					IsClosed:    true,
+					WorkspaceID: workspaceID,
+				}
+
+				// contactID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440001")
+
+				repo.EXPECT().
+					Get(gomock.Any(), malak.FetchPipelineOptions{
+						Reference:   malak.Reference("pipeline_123"),
+						WorkspaceID: workspaceID,
+					}).
+					Times(1).
+					Return(pipeline, nil)
+
+			},
+			req: updateContactDealRequest{
+				Rating:       4,
+				CanLeadRound: true,
+				CheckSize:    1000000 * 100,
+			},
+			pipelineReference:  "pipeline_123",
+			contactID:          "550e8400-e29b-41d4-a716-446655440001",
+			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
 			name: "update contact deal error",

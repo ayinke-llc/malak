@@ -212,7 +212,7 @@ func (d *fundraisingHandler) list(
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /pipelines/{reference}/board [get]
+// @Router /pipelines/{reference} [get]
 func (d *fundraisingHandler) board(
 	ctx context.Context,
 	span trace.Span,
@@ -395,6 +395,10 @@ func (d *fundraisingHandler) addContact(
 		return newAPIStatus(http.StatusInternalServerError, "could not fetch fundraising pipeline"), StatusFailed
 	}
 
+	if pipeline.IsClosed {
+		return newAPIStatus(http.StatusBadRequest, "this pipeline is closed already"), StatusFailed
+	}
+
 	contact, err := d.contactRepo.Get(ctx, malak.FetchContactOptions{
 		Reference:   malak.Reference(req.ContactReference),
 		WorkspaceID: workspace.ID,
@@ -512,6 +516,10 @@ func (d *fundraisingHandler) updateContactDeal(
 
 		logger.Error("could not fetch fundraising pipeline contact", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "could not fetch fundraising pipeline"), StatusFailed
+	}
+
+	if pipeline.IsClosed {
+		return newAPIStatus(http.StatusBadRequest, "this pipeline is closed already"), StatusFailed
 	}
 
 	contact, err := d.fundingRepo.GetContact(ctx, pipeline.ID, contactUUID)

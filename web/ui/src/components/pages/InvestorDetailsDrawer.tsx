@@ -1,24 +1,19 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { MalakContact, MalakFundraiseContactDealDetails } from "@/client/Api";
 import { fullName } from "@/lib/custom";
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
+  SheetHeader
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogTrigger,
+  DialogTitle, DialogFooter
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -30,37 +25,24 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  RiMailLine,
-  RiPhoneLine,
-  RiCalendarLine,
-  RiFileTextLine, RiCloseLine, RiAddLine, RiUploadLine, RiUploadCloud2Line,
-  RiStarFill,
+  RiMailLine, RiCalendarLine,
+  RiFileTextLine, RiStarFill,
   RiStarLine,
-  RiArchiveFill,
-  RiTeamLine,
-  RiArrowRightSLine,
-  RiEditLine,
-  RiClipboardLine
+  RiArchiveFill, RiEditLine
 } from "@remixicon/react";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { NumericFormat } from "react-number-format";
 import { format, fromUnixTime, isValid, parseISO } from "date-fns";
 import type { Card, Activity, Note } from "@/components/investor-pipeline/types";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FETCH_FUNDRAISING_PIPELINE, UPDATE_INVESTOR_IN_PIPELINE } from "@/lib/query-constants";
 import client from "@/lib/client";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
 import type { ServerAPIStatus } from "@/client/Api";
-import CopyToClipboard from "react-copy-to-clipboard";
+import { ActivityList } from "../investor-pipeline/details/tabs/activity/ActivityList";
+import Copy from "../ui/custom/copy";
 
 interface InvestorDetailsDrawerProps {
   open: boolean;
@@ -70,55 +52,6 @@ interface InvestorDetailsDrawerProps {
   contact?: MalakContact;
   deal?: MalakFundraiseContactDealDetails;
   slug: string;
-}
-
-const TOTAL_ACTIVITIES_LIMIT = 250;
-const ACTIVITIES_PER_PAGE = 25;
-
-// Mock function to fetch activities
-const fetchActivities = async (page: number, investorId: string): Promise<Activity[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  const startIndex = page * ACTIVITIES_PER_PAGE;
-  // If we've reached the limit, return empty array
-  if (startIndex >= TOTAL_ACTIVITIES_LIMIT) {
-    return [];
-  }
-
-  // Calculate how many items to generate (handle last page)
-  const itemsToGenerate = Math.min(
-    ACTIVITIES_PER_PAGE,
-    TOTAL_ACTIVITIES_LIMIT - startIndex
-  );
-
-  // Generate activities
-  return Array.from({ length: itemsToGenerate }, (_, i) => ({
-    id: `${page}-${i}-${Math.random()}`,
-    type: ['email', 'meeting', 'document', 'team', 'stage_change'][Math.floor(Math.random() * 5)] as Activity['type'],
-    title: `Activity ${startIndex + i + 1}`,
-    description: `Description for activity ${startIndex + i + 1}`,
-    timestamp: new Date(Date.now() - (startIndex + i) * 24 * 60 * 60 * 1000).toISOString(),
-    content: Math.random() > 0.5 ? `Content for activity ${startIndex + i + 1}` : undefined,
-  }));
-};
-
-function ActivitySkeleton() {
-  return (
-    <div className="relative">
-      <div className="absolute -left-[27px] bg-background p-1 border rounded-full">
-        <Skeleton className="h-4 w-4 rounded-full" />
-      </div>
-      <div className="bg-card rounded-lg p-4 border">
-        <div className="flex items-center justify-between mb-2">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-3 w-24" />
-        </div>
-        <Skeleton className="h-4 w-full mb-3" />
-        <Skeleton className="h-16 w-full" />
-      </div>
-    </div>
-  );
 }
 
 function AddActivityDialog({
@@ -417,7 +350,6 @@ function EditInvestorDialog({
   );
 }
 
-// Add a safe date formatting helper
 const formatSafeDate = (dateValue: string | number | undefined | null, formatStr: string = 'MMM d, yyyy') => {
   if (!dateValue) return "Not set";
   try {
@@ -447,11 +379,8 @@ export function InvestorDetailsDrawer({
   const [isEditingInvestor, setIsEditingInvestor] = useState(false);
   const queryClient = useQueryClient();
 
-  // Infinite scroll states
   const [page, setPage] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const observerTarget = useRef<HTMLDivElement>(null);
 
   const updateInvestorMutation = useMutation({
     mutationKey: [UPDATE_INVESTOR_IN_PIPELINE, slug],
@@ -478,48 +407,12 @@ export function InvestorDetailsDrawer({
     },
   });
 
-  const loadMoreActivities = async () => {
-    if (!investor || isLoading || !hasMore) return;
-
-    setIsLoading(true);
-    try {
-      const newActivities = await fetchActivities(page, investor.id);
-      if (newActivities.length === 0 || activities.length + newActivities.length >= TOTAL_ACTIVITIES_LIMIT) {
-        setHasMore(false);
-      }
-      setActivities(prev => [...prev, ...newActivities]);
-      setPage(prev => prev + 1);
-    } catch (error) {
-      console.error('Error loading activities:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting && hasMore && !isLoading) {
-          loadMoreActivities();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-
-    return () => observer.disconnect();
-  }, [hasMore, isLoading, page]);
-
-  // Reset states when investor changes
+  // reset states when investor changes
   useEffect(() => {
     if (investor) {
       setActivities([]);
       setPage(0);
       setHasMore(true);
-      loadMoreActivities();
     }
   }, [investor?.id]);
 
@@ -536,28 +429,9 @@ export function InvestorDetailsDrawer({
     setActivities(prev => [activity, ...prev]);
   };
 
-  const getActivityIcon = (type: Activity['type']) => {
-    switch (type) {
-      case 'email':
-        return <RiMailLine className="w-4 h-4 text-primary" />;
-      case 'meeting':
-        return <RiCalendarLine className="w-4 h-4 text-primary" />;
-      case 'document':
-        return <RiFileTextLine className="w-4 h-4 text-primary" />;
-      case 'team':
-        return <RiTeamLine className="w-4 h-4 text-primary" />;
-      case 'stage_change':
-        return <RiArrowRightSLine className="w-4 h-4 text-primary" />;
-      default:
-        return <RiMailLine className="w-4 h-4 text-primary" />;
-    }
-  };
-
   const handleSaveInvestor = (updatedDeal: Partial<MalakFundraiseContactDealDetails>) => {
     updateInvestorMutation.mutate(updatedDeal);
   };
-
-  const existingContactIds = [];
 
   if (!investor) return null;
 
@@ -568,19 +442,6 @@ export function InvestorDetailsDrawer({
       >
         <div className="h-full flex flex-col">
           <SheetHeader className="flex-none">
-            <div className="flex items-center justify-between">
-              <SheetTitle className="text-xl">{investor.title}</SheetTitle>
-              <div className="flex items-center gap-2">
-                {!isArchived && (
-                  <Button variant="ghost" size="icon" onClick={() => setIsAddingActivity(true)}>
-                    <RiAddLine className="w-4 h-4" />
-                  </Button>
-                )}
-                <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
-                  <RiCloseLine className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
             <div className="flex items-center justify-between">
               <div className="space-x-2">
                 <Badge variant="outline">{investor.stage}</Badge>
@@ -595,10 +456,10 @@ export function InvestorDetailsDrawer({
           </SheetHeader>
 
           <div className="mt-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={activeTab} onValueChange={setActiveTab} >
               <TabsList className="w-full">
                 <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
-                <TabsTrigger value="activity" className="flex-1">Activity</TabsTrigger>
+                <TabsTrigger value="activity" className="flex-1">Activities</TabsTrigger>
                 <TabsTrigger value="documents" className="flex-1">Documents</TabsTrigger>
               </TabsList>
 
@@ -629,28 +490,11 @@ export function InvestorDetailsDrawer({
                             <div className="flex items-center gap-2 mt-2">
                               <RiMailLine className="w-4 h-4 text-muted-foreground" />
                               <span className="text-sm">{contact.email}</span>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger>
-                                    <CopyToClipboard 
-                                      text={contact.email}
-                                      onCopy={() => toast.success("Email copied to clipboard")}
-                                    >
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 hover:bg-muted"
-                                        type="button"
-                                      >
-                                        <RiClipboardLine className="w-3 h-3" />
-                                      </Button>
-                                    </CopyToClipboard>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Copy email</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
+                              <Copy
+                                text={contact.email}
+                                onCopyText={"Email copied to clipboard"}
+                                tooltipText="Copy email"
+                              />
                             </div>
                           )}
                         </div>
@@ -721,7 +565,7 @@ export function InvestorDetailsDrawer({
                       <Button
                         variant="outline"
                         className="w-full justify-start"
-                        onClick={() => setActiveTab("activity")}
+                        disabled={true}
                       >
                         <RiCalendarLine className="w-4 h-4 mr-2" />
                         Add Activity or Note
@@ -729,7 +573,7 @@ export function InvestorDetailsDrawer({
                       <Button
                         variant="outline"
                         className="w-full justify-start"
-                        onClick={() => setActiveTab("documents")}
+                        disabled={true}
                       >
                         <RiFileTextLine className="w-4 h-4 mr-2" />
                         Upload Documents
@@ -740,67 +584,7 @@ export function InvestorDetailsDrawer({
               </TabsContent>
 
               <TabsContent value="activity">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      Showing {activities.length} of {activities.length >= TOTAL_ACTIVITIES_LIMIT ? 'maximum ' : ''}{TOTAL_ACTIVITIES_LIMIT} activities
-                    </div>
-                    {!isArchived && (
-                      <Button
-                        onClick={() => setIsAddingActivity(true)}
-                        size="sm"
-                        className="gap-2"
-                      >
-                        <RiAddLine className="w-4 h-4" />
-                        Add Activity or Note
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="relative space-y-6 pl-8 before:absolute before:left-3 before:top-2 before:bottom-0 before:w-[2px] before:bg-border">
-                    {activities.map((activity) => (
-                      <div key={activity.id} className="relative">
-                        <div className="absolute -left-[27px] bg-background p-1 border rounded-full">
-                          {getActivityIcon(activity.type)}
-                        </div>
-                        <div className="bg-card rounded-lg p-4 border">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium">{activity.title}</h4>
-                            <span className="text-xs text-muted-foreground">
-                              {formatSafeDate(activity.timestamp, 'MMM d, yyyy h:mm a')}
-                            </span>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-3">
-                            {activity.description}
-                          </p>
-                          {activity.content && (
-                            <div className="bg-muted/50 rounded-md p-3 text-sm">
-                              <p className="whitespace-pre-wrap">{activity.content}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-
-                    {isLoading && (
-                      <>
-                        <ActivitySkeleton />
-                        <ActivitySkeleton />
-                        <ActivitySkeleton />
-                      </>
-                    )}
-
-                    <div ref={observerTarget} className="h-4" />
-
-                    {!hasMore && activities.length > 0 && (
-                      <div className="text-center text-sm text-muted-foreground py-4">
-                        {activities.length >= TOTAL_ACTIVITIES_LIMIT
-                          ? `Maximum limit of ${TOTAL_ACTIVITIES_LIMIT} activities reached`
-                          : "No more activities to load"}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <ActivityList />
               </TabsContent>
 
               <TabsContent value="documents">
