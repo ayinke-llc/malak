@@ -573,8 +573,8 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
               </p>
               <ul className="list-disc pl-4 space-y-2">
                 <li>The board will become read-only</li>
-                <li>You cannot add new investors or move existing ones</li>
-                <li>This action cannot be undone - you cannot reopen the board once closed</li>
+                <li>You will not be able to add new investors or move existing ones</li>
+                <li>you cannot reopen the board once closed</li>
               </ul>
               <p className="font-medium text-destructive">
                 Please confirm that you understand this is a permanent action.
@@ -588,7 +588,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={closeBoardMutation.isPending}
             >
-              Close Board Permanently
+              Close Board
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
