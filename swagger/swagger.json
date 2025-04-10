@@ -5718,9 +5718,7 @@
 				"tags": [
 					"fundraising"
 				]
-			}
-		},
-		"/pipelines/{reference}/board": {
+			},
 			"get": {
 				"description": "Fetch a fundraising board with its columns",
 				"parameters": [

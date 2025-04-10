@@ -1,11 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { MalakContact, MalakFundraiseContactDealDetails } from "@/client/Api";
 import { fullName } from "@/lib/custom";
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
+  SheetHeader
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,14 +26,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   RiMailLine, RiCalendarLine,
-  RiFileTextLine, RiCloseLine, RiAddLine, RiStarFill,
+  RiFileTextLine, RiStarFill,
   RiStarLine,
-  RiArchiveFill,
-  RiTeamLine,
-  RiArrowRightSLine,
-  RiEditLine
+  RiArchiveFill, RiEditLine
 } from "@remixicon/react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { NumericFormat } from "react-number-format";
@@ -355,7 +350,6 @@ function EditInvestorDialog({
   );
 }
 
-// Add a safe date formatting helper
 const formatSafeDate = (dateValue: string | number | undefined | null, formatStr: string = 'MMM d, yyyy') => {
   if (!dateValue) return "Not set";
   try {

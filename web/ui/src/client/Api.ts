@@ -1877,12 +1877,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @description Fetch a fundraising board with its columns
      *
      * @tags fundraising
-     * @name BoardDetail
-     * @request GET:/pipelines/{reference}/board
+     * @name PipelinesDetail
+     * @request GET:/pipelines/{reference}
      */
-    boardDetail: (reference: string, params: RequestParams = {}) =>
+    pipelinesDetail: (reference: string, params: RequestParams = {}) =>
       this.request<ServerFetchBoardResponse, ServerAPIStatus>({
-        path: `/pipelines/${reference}/board`,
+        path: `/pipelines/${reference}`,
         method: "GET",
         format: "json",
         ...params,

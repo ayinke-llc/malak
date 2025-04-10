@@ -212,7 +212,7 @@ func (d *fundraisingHandler) list(
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /pipelines/{reference}/board [get]
+// @Router /pipelines/{reference} [get]
 func (d *fundraisingHandler) board(
 	ctx context.Context,
 	span trace.Span,
