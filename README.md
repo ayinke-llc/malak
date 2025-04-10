@@ -16,11 +16,9 @@ Own full control of your data and company state if you decide to selfhost.
 
 - [Features](#features)
 - [Self hosting](#self-hosting)
+- [Cloud]($#cloud)
 
 ## Features
-
-> [!IMPORTANT]
-> Hosted version available at <https://app.malak.vc>
 
 - 100% Opensource. Own your own data, metrics, and story
 - Send investors' updates to anyone via email
@@ -45,3 +43,7 @@ Own full control of your data and company state if you decide to selfhost.
 ## Self-hosting
 
 Detailed guide at <https://docs.malak.vc/self-hosting/installation>
+
+## Cloud
+
+We have an hosted version available at <https://app.malak.vc>
