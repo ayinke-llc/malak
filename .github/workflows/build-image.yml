@@ -7,7 +7,7 @@ on:
 
 name: Build container Image
 jobs:
-  deploy:
+  image:
     runs-on: "ubuntu-latest"
     steps:
       - name: Checkout code
@@ -34,12 +34,11 @@ jobs:
       - name: Build latest image
         run: |
           docker build \
-            --build-arg VERSION=${GITHUB_SHA::8} \
-            --build-arg COMMIT=${GITHUB_SHA} \
+            --build-arg VERSION=${{ env.TAG }} \
+          --build-arg COMMIT=${GITHUB_SHA::8} \
             -t ghcr.io/${GITHUB_REPOSITORY}:${{ env.TAG }} .
 
       - name: Push
         uses: actions-hub/docker@master
         with:
           args: push ghcr.io/${GITHUB_REPOSITORY}:${{ env.TAG }}
-
