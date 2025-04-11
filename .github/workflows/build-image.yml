@@ -34,8 +34,8 @@ jobs:
       - name: Build latest image
         run: |
           docker build \
+            --build-arg COMMIT=${GITHUB_SHA::8} \
             --build-arg VERSION=${{ env.TAG }} \
-          --build-arg COMMIT=${GITHUB_SHA::8} \
             -t ghcr.io/${GITHUB_REPOSITORY}:${{ env.TAG }} .
 
       - name: Push
