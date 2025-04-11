@@ -407,6 +407,9 @@ func buildRoutes(
 			r.Post("/{reference}/contacts",
 				WrapMalakHTTPHandler(logger, pipelineHandler.addContact, cfg, "pipelines.board.contacts.add"))
 
+			r.Post("/{reference}/contacts/board",
+				WrapMalakHTTPHandler(logger, pipelineHandler.moveContactAcrossBoard, cfg, "pipelines.board.contacts.move"))
+
 			r.Patch("/{reference}/contacts/{contact_id}",
 				WrapMalakHTTPHandler(logger, pipelineHandler.updateContactDeal, cfg, "pipelines.board.contacts.edit"))
 		})
