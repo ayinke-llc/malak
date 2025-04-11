@@ -954,6 +954,11 @@ export interface ServerMeta {
   paging: ServerPagingInfo;
 }
 
+export interface ServerMoveContactAcrossBoardRequest {
+  /** GenericRequest */
+  columnID?: string;
+}
+
 export interface ServerPagingInfo {
   page: number;
   per_page: number;
@@ -1906,7 +1911,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description move contact across board
+     * @description Update deal details for a contact on the fundraising board
      *
      * @tags fundraising
      * @name ContactsPartialUpdate
@@ -1921,6 +1926,28 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerAPIStatus, ServerAPIStatus>({
         path: `/pipelines/${reference}/contacts/${contactId}`,
         method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description move contact across board
+     *
+     * @tags fundraising
+     * @name ContactsBoardCreate
+     * @request POST:/pipelines/{reference}/contacts/board
+     */
+    contactsBoardCreate: (
+      reference: string,
+      contactId: string,
+      data: ServerMoveContactAcrossBoardRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/pipelines/${reference}/contacts/board`,
+        method: "POST",
         body: data,
         type: ContentType.Json,
         format: "json",

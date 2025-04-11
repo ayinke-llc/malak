@@ -287,7 +287,7 @@ func (d *fundingRepo) GetColumn(ctx context.Context,
 
 	err := d.inner.NewSelect().
 		Model(column).
-		Where("pipeline_id = ?", opts.PipelineID).
+		Where("fundraising_pipeline_id = ?", opts.PipelineID).
 		Where("id = ?", opts.ColumnID).
 		Scan(ctx)
 	if err != nil {

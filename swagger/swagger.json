@@ -2552,6 +2552,15 @@
 				],
 				"type": "object"
 			},
+			"server.moveContactAcrossBoardRequest": {
+				"properties": {
+					"columnID": {
+						"description": "GenericRequest",
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
 			"server.pagingInfo": {
 				"properties": {
 					"page": {
@@ -5872,9 +5881,101 @@
 				]
 			}
 		},
+		"/pipelines/{reference}/contacts/board": {
+			"post": {
+				"description": "move contact across board",
+				"parameters": [
+					{
+						"description": "Pipeline reference",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Contact ID",
+						"in": "path",
+						"name": "contact_id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.moveContactAcrossBoardRequest"
+							}
+						}
+					},
+					"description": "move cotnact across board",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"fundraising"
+				]
+			}
+		},
 		"/pipelines/{reference}/contacts/{contact_id}": {
 			"patch": {
-				"description": "move contact across board",
+				"description": "Update deal details for a contact on the fundraising board",
 				"parameters": [
 					{
 						"description": "Pipeline reference",

@@ -2384,9 +2384,80 @@ const docTemplate = `{
                 }
             }
         },
+        "/pipelines/{reference}/contacts/board": {
+            "post": {
+                "description": "move contact across board",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fundraising"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pipeline reference",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Contact ID",
+                        "name": "contact_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "move cotnact across board",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.moveContactAcrossBoardRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/pipelines/{reference}/contacts/{contact_id}": {
             "patch": {
-                "description": "move contact across board",
+                "description": "Update deal details for a contact on the fundraising board",
                 "consumes": [
                     "application/json"
                 ],
@@ -6885,6 +6956,15 @@ const docTemplate = `{
             "properties": {
                 "paging": {
                     "$ref": "#/definitions/server.pagingInfo"
+                }
+            }
+        },
+        "server.moveContactAcrossBoardRequest": {
+            "type": "object",
+            "properties": {
+                "columnID": {
+                    "description": "GenericRequest",
+                    "type": "string"
                 }
             }
         },

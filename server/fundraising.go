@@ -16,6 +16,7 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 type fundraisingHandler struct {
@@ -547,11 +548,20 @@ func (d *fundraisingHandler) updateContactDeal(
 }
 
 type moveContactAcrossBoardRequest struct {
-	// GenericRequest
-	ColumnID uuid.UUID
+	GenericRequest
+	ColumnID  uuid.UUID `json:"column_id,omitempty" validate:"required"`
+	ContactID uuid.UUID `json:"contact_id,omitempty" validate:"required"`
 }
 
 func (c *moveContactAcrossBoardRequest) Validate() error {
+
+	if c.ColumnID == uuid.Nil {
+		return errors.New("please provide a valid column uuid")
+	}
+
+	if c.ContactID == uuid.Nil {
+		return errors.New("Please provide a valid contact uuid")
+	}
 
 	return nil
 }
@@ -568,7 +578,7 @@ func (c *moveContactAcrossBoardRequest) Validate() error {
 // @Failure 401 {object} APIStatus
 // @Failure 404 {object} APIStatus
 // @Failure 500 {object} APIStatus
-// @Router /pipelines/{reference}/contacts/{contact_id} [post]
+// @Router /pipelines/{reference}/contacts/board [post]
 func (d *fundraisingHandler) moveContactAcrossBoard(
 	ctx context.Context,
 	span trace.Span,
@@ -576,24 +586,14 @@ func (d *fundraisingHandler) moveContactAcrossBoard(
 	w http.ResponseWriter,
 	r *http.Request) (render.Renderer, Status) {
 
-	logger.Debug("updating contact deal details")
+	logger.Debug("moving contact across board")
 
 	reference := chi.URLParam(r, "reference")
 	if hermes.IsStringEmpty(reference) {
 		return newAPIStatus(http.StatusBadRequest, "please provide the pipeline reference"), StatusFailed
 	}
 
-	contactID := chi.URLParam(r, "contact_id")
-	if hermes.IsStringEmpty(contactID) {
-		return newAPIStatus(http.StatusBadRequest, "please provide the contact id"), StatusFailed
-	}
-
-	contactUUID, err := uuid.Parse(contactID)
-	if err != nil {
-		return newAPIStatus(http.StatusBadRequest, "you must provide a valid contact uuid"), StatusFailed
-	}
-
-	req := new(updateContactDealRequest)
+	req := new(moveContactAcrossBoardRequest)
 	if err := render.Bind(r, req); err != nil {
 		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
 	}
@@ -605,7 +605,8 @@ func (d *fundraisingHandler) moveContactAcrossBoard(
 	workspace := getWorkspaceFromContext(ctx)
 
 	logger = logger.With(zap.String("reference", reference),
-		zap.String("contact_id", contactID))
+		zap.String("board_column_id", req.ColumnID.String()),
+		zap.String("contact_id", req.ContactID.String()))
 
 	pipeline, err := d.fundingRepo.Get(ctx, malak.FetchPipelineOptions{
 		Reference:   malak.Reference(reference),
@@ -624,22 +625,47 @@ func (d *fundraisingHandler) moveContactAcrossBoard(
 		return newAPIStatus(http.StatusBadRequest, "this pipeline is closed already"), StatusFailed
 	}
 
-	contact, err := d.fundingRepo.GetContact(ctx, pipeline.ID, contactUUID)
-	if err != nil {
-		if errors.Is(err, malak.ErrContactNotFoundOnBoard) {
-			return newAPIStatus(http.StatusNotFound, "this contact is not on this board"), StatusFailed
+	var contact *malak.FundraiseContact
+	var column *malak.FundraisingPipelineColumn
+	var g errgroup.Group
+
+	g.Go(func() error {
+
+		var err error
+
+		contact, err = d.fundingRepo.GetContact(ctx, pipeline.ID, req.ContactID)
+		if err != nil {
+			logger.Error("could not fetch contact", zap.Error(err))
+			return err
 		}
 
-		logger.Error("could not fetch contact", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError, "an error occurred while fetching a contact"), StatusFailed
+		return nil
+	})
+
+	g.Go(func() error {
+		var err error
+
+		column, err = d.fundingRepo.GetColumn(ctx, malak.GetBoardOptions{
+			PipelineID: pipeline.ID,
+			ColumnID:   req.ColumnID,
+		})
+		if err != nil {
+			logger.Error("could not fetch board column", zap.Error(err))
+			return err
+		}
+
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		if errors.Is(err, malak.ErrPipelineColumnNotFound) || errors.Is(err, malak.ErrContactNotFoundOnBoard) {
+			return newAPIStatus(http.StatusNotFound, err.Error()), StatusFailed
+		}
+
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch your contact or column"), StatusFailed
 	}
 
-	err = d.fundingRepo.UpdateContactDeal(ctx, pipeline, malak.UpdateContactDealOptions{
-		Rating:       int64(req.Rating),
-		CanLeadRound: req.CanLeadRound,
-		CheckSize:    req.CheckSize,
-		ContactID:    contact.ID,
-	})
+	err = d.fundingRepo.UpdateContactDeal(ctx, pipeline, nil)
 	if err != nil {
 		logger.Error("could not update contact deal details", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "could not update contact deal details"), StatusFailed
