@@ -30,7 +30,8 @@ import * as yup from "yup";
 import type { ButtonProps } from "./props";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import CreatableSelect, { OptionType } from "@/components/ui/multi-select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ServerAPIStatus, ServerSendUpdateRequest } from "@/client/Api";
 import { AxiosError } from "axios";
 import { usePostHog } from "posthog-js/react";
@@ -53,6 +54,7 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
 
   const [loading, setLoading] = useState<boolean>(false);
   const [showAllRecipients, setShowAllRecipients] = useState<boolean>(false);
+  const [open, setOpen] = useState(false);
 
   const { data } = useQuery({
     queryKey: [LIST_CONTACT_LISTS],
@@ -180,69 +182,94 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
               {isSent ? "Add recipient" : "Send"}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent className="sm:max-w-2xl">
             <form onSubmit={handleSubmit(onSubmit)}>
               <DialogHeader>
-                <DialogTitle>Send this update</DialogTitle>
-                <DialogDescription className="mt-1 text-sm leading-6">
+                <DialogTitle className="text-xl">Send this update</DialogTitle>
+                <DialogDescription className="mt-3 text-base leading-6">
                   An email will be sent to all selected contacts immediately.
                   Please re-verify your content is ready and good to go
                 </DialogDescription>
 
-                <div className="mt-4">
-                  <CreatableSelect placeholder="Select a list or add an email"
-                    isMulti
-                    options={options}
-                    allowCustomInput={true}
-                    onCustomInputEnter={addNewContacts}
-                    onChange={handleOnChange}
-                  />
-                </div>
-
-                {values.length > 0 && (
-                  <div className="flex-1 pt-5">
-                    <div
-                      className={cn(
-                        "w-full rounded-md border bg-background p-2",
-                        showAllRecipients ? "h-[100px]" : "h-full",
-                        "overflow-y-auto"
-                      )}
-                    >
-                      <div className="flex flex-wrap gap-2">
-                        {values
-                          .slice(0, showAllRecipients ? values.length : 5)
-                          .map((recipient, index) => (
-                            <Badge
-                              key={index}
-                              variant="secondary"
-                              className="flex items-center gap-1 pr-1"
+                <div className="mt-4 flex flex-col gap-4">
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={open}
+                        className="w-full justify-between"
+                      >
+                        Select contacts or enter email...
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[520px] p-0" side="bottom" align="start">
+                      <Command className="w-full rounded-lg border shadow-md">
+                        <CommandInput placeholder="Search contacts or enter email..." className="h-11 px-4" />
+                        <CommandEmpty className="py-6 text-center text-sm">No contact found.</CommandEmpty>
+                        <CommandGroup className="p-2">
+                          {options.map((option) => (
+                            <CommandItem
+                              key={option.value}
+                              onSelect={() => {
+                                handleOnChange([option])
+                                setOpen(false)
+                              }}
+                              className="flex items-center gap-2 px-4 py-2 hover:bg-accent"
                             >
-                              <span className="text-sm">{recipient.label}</span>
-                              <button
-                                onClick={() => removeContact(index)}
-                                className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                              >
-                                <RiCloseLargeLine className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                                <span className="sr-only">Remove recipient</span>
-                              </button>
-                            </Badge>
+                              {option.label}
+                            </CommandItem>
                           ))}
-                        {values.length > 5 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={toggleShowAllRecipientState}
-                            className="h-8"
-                          >
-                            {showAllRecipients
-                              ? "Show less"
-                              : `+${values.length - 5} more`}
-                          </Button>
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+
+                  {values.length > 0 && (
+                    <div className="flex-1">
+                      <div
+                        className={cn(
+                          "w-full rounded-md border bg-background p-2",
+                          showAllRecipients ? "h-[100px]" : "h-full",
+                          "overflow-y-auto"
                         )}
+                      >
+                        <div className="flex flex-wrap gap-2">
+                          {values
+                            .slice(0, showAllRecipients ? values.length : 5)
+                            .map((recipient, index) => (
+                              <Badge
+                                key={index}
+                                variant="secondary"
+                                className="flex items-center gap-1 pr-1"
+                              >
+                                <span className="text-sm">{recipient.label}</span>
+                                <button
+                                  onClick={() => removeContact(index)}
+                                  className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                >
+                                  <RiCloseLargeLine className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                                  <span className="sr-only">Remove recipient</span>
+                                </button>
+                              </Badge>
+                            ))}
+                          {values.length > 5 && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={toggleShowAllRecipientState}
+                              className="h-8"
+                            >
+                              {showAllRecipients
+                                ? "Show less"
+                                : `+${values.length - 5} more`}
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </DialogHeader>
               <DialogFooter className="mt-6">
                 <DialogClose asChild>
