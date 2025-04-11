@@ -2405,13 +2405,6 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "Contact ID",
-                        "name": "contact_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
                         "description": "move cotnact across board",
                         "name": "message",
                         "in": "body",

@@ -80,16 +80,28 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
   });
 
   const updateBoardMutation = useMutation({
-    mutationFn: async (updatedBoard: Board) => {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return updatedBoard;
+    mutationKey: [UPDATE_CONTACT_COLUMN_PIPELINE, slug],
+    mutationFn: async (params: {
+      contactId: string,
+      columnId: string,
+      position: number
+    }) => {
+      const response = await client.pipelines.contactsBoardCreate(
+        slug,
+        {
+          contact_id: params.contactId,
+          column_id: params.columnId,
+        }
+      );
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [FETCH_FUNDRAISING_PIPELINE, slug] });
-      toast.success("Pipeline updated successfully");
+      toast.success("Card moved successfully");
     },
     onError: (err: AxiosError<ServerAPIStatus>) => {
-      toast.error(err.response?.data.message ?? "Failed to update pipeline");
+      console.log(err)
+      toast.error(err.response?.data?.message ?? "Failed to move card");
     },
   });
 
@@ -244,12 +256,11 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
 
   const handleDragEnd = (result: DropResult) => {
     if (!result?.destination || board.isArchived) {
-      toast.error("this board is read only")
-      return
-    };
+      toast.error("This board is read only");
+      return;
+    }
 
-    console.log(result)
-    const { source, destination } = result;
+    const { source, destination, draggableId } = result;
 
     if (!source || !destination) return;
 
@@ -260,48 +271,23 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
       return;
     }
 
-    const sourceColumn = board.columns[source.droppableId];
-    const destColumn = board.columns[destination.droppableId];
+    // Find the contact from the contacts array using the draggableId
+    const contact = contacts.find(c => c.reference === draggableId);
+    
+    // Find the destination column from columns array using the destination droppableId 
+    const column = columns.find(c => c.reference === destination.droppableId);
 
-    if (!sourceColumn || !destColumn) {
-      toast.error("Invalid drag operation: column not found");
+    if (!contact?.id || !column?.id) {
+      toast.error("Unable to move card - missing data");
       return;
     }
 
-    const sourceCards = Array.from(sourceColumn.cards || []);
-    const destCards = source.droppableId === destination.droppableId
-      ? sourceCards
-      : Array.from(destColumn.cards || []);
-
-    if (sourceCards.length === 0) {
-      toast.error("Invalid drag operation: no cards to move");
-      return;
-    }
-
-    const [removed] = sourceCards.splice(source.index, 1);
-    if (!removed) {
-      toast.error("Invalid drag operation: card not found");
-      return;
-    }
-
-    destCards.splice(destination.index, 0, removed);
-
-    const updatedBoard = {
-      ...board,
-      columns: {
-        ...board.columns,
-        [source.droppableId]: {
-          ...sourceColumn,
-          cards: sourceCards,
-        },
-        [destination.droppableId]: {
-          ...destColumn,
-          cards: destCards,
-        },
-      }
-    };
-
-    // updateBoardMutation.mutate(updatedBoard);
+    // Call mutation with UUIDs instead of references
+    updateBoardMutation.mutate({
+      contactId: contact.id,
+      columnId: column.id, 
+      position: destination.index
+    });
   };
 
   const handleClose = () => {
@@ -375,22 +361,8 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0">
-        <div
-          className="h-full overflow-x-auto"
-          style={{
-            msOverflowStyle: 'none',
-            scrollbarWidth: 'none',
-            WebkitOverflowScrolling: 'touch',
-          }}
-        >
-          <style jsx global>{`
-            /* Hide scrollbar for Chrome, Safari and Opera */
-            .overflow-x-auto::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
-
+      <div className="flex-1 overflow-x-auto">
+        <div className="h-full min-w-fit">
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="flex gap-4 p-4 h-full">
               {Object.entries(board.columns || {}).map(([columnId, column]) => (
@@ -411,7 +383,8 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                         </Tooltip>
                       </TooltipProvider>
                       <Badge variant="secondary" className="text-xs">
-                        {(column?.cards || []).length}
+                        {(column?.cards || []).length
+                        }
                       </Badge>
                     </div>
                   </div>
@@ -421,15 +394,13 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                       <div
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        className={`flex-1 p-2 space-y-2 overflow-y-auto
+                        className={`flex-1 p-2 space-y-2
                           ${snapshot?.isDraggingOver ? 'bg-muted/30' : ''}
                           scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent
                           hover:scrollbar-thumb-muted-foreground/30`}
                         style={{
-                          height: 'calc(100vh - 8rem)',
+                          minHeight: '100px',
                           maxHeight: 'calc(100vh - 8rem)',
-                          overflowY: 'auto',
-                          overflowX: 'hidden'
                         }}
                       >
                         {(column?.cards || []).map((card, index) => (
@@ -595,4 +566,4 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
       </AlertDialog>
     </div>
   );
-} 
+}

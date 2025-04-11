@@ -1939,12 +1939,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name ContactsBoardCreate
      * @request POST:/pipelines/{reference}/contacts/board
      */
-    contactsBoardCreate: (
-      reference: string,
-      contactId: string,
-      data: ServerMoveContactAcrossBoardRequest,
-      params: RequestParams = {},
-    ) =>
+    contactsBoardCreate: (reference: string, data: ServerMoveContactAcrossBoardRequest, params: RequestParams = {}) =>
       this.request<ServerAPIStatus, ServerAPIStatus>({
         path: `/pipelines/${reference}/contacts/board`,
         method: "POST",

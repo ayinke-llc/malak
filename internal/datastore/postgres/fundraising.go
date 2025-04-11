@@ -264,7 +264,7 @@ func (d *fundingRepo) GetContact(ctx context.Context, pipelineID, contactID uuid
 		Model(&contact).
 		Relation("DealDetails").
 		Relation("Contact").
-		Where("fundraise_contact.contact_id = ?", contactID).
+		Where("fundraise_contact.id = ?", contactID).
 		Where("fundraise_contact.fundraising_pipeline_id = ?", pipelineID).
 		Scan(ctx)
 	if err != nil {

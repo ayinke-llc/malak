@@ -3847,12 +3847,6 @@ paths:
         required: true
         schema:
           type: string
-      - description: Contact ID
-        in: path
-        name: contact_id
-        required: true
-        schema:
-          type: string
       requestBody:
         content:
           application/json:

@@ -571,7 +571,6 @@ func (c *moveContactAcrossBoardRequest) Validate() error {
 // @Accept  json
 // @Produce  json
 // @Param reference path string true "Pipeline reference"
-// @Param contact_id path string true "Contact ID"
 // @Param message body moveContactAcrossBoardRequest true "move cotnact across board"
 // @Success 200 {object} APIStatus
 // @Failure 400 {object} APIStatus
