@@ -218,6 +218,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
             cards: (contacts || [])
               .filter(contact => contact && contact.fundraising_pipeline_column_id === column.id)
               .map(contact => {
+                console.log(contact, "here")
                 // find the position for this contact
                 const position = positions.find(p => p.fundraising_pipeline_column_contact_id === contact.id);
                 const deal = contact.deal_details;
@@ -245,7 +246,8 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                   isLeadInvestor: deal?.can_lead_round || false,
                   rating: deal?.rating || 0,
                   originalContact: contactDetails,
-                  originalDeal: deal
+                  originalDeal: deal,
+                  dataID: contact?.deal_details?.fundraising_pipeline_column_contact_id as string
                 };
               })
           };
@@ -514,6 +516,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
         contact={selectedInvestor?.originalContact}
         deal={selectedInvestor?.originalDeal}
         slug={slug}
+        contactID={selectedInvestor?.id}
       />
 
       <AddInvestorDialogComponent
