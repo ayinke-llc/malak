@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"testing"
 	"time"
@@ -983,91 +984,110 @@ func TestFundraising_GetColumn(t *testing.T) {
 	require.Equal(t, coumn.Reference, defaultColumn.Reference)
 }
 
-// func TestFundraising_MoveContactColumn(t *testing.T) {
-// 	client, teardownFunc := setupDatabase(t)
-// 	defer teardownFunc()
-//
-// 	fundingRepo := NewFundingRepo(client)
-// 	workspaceRepo := NewWorkspaceRepository(client)
-//
-// 	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
-// 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
-// 	})
-// 	require.NoError(t, err)
-//
-// 	pipeline := &malak.FundraisingPipeline{
-// 		Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
-// 		WorkspaceID:       workspace.ID,
-// 		Title:             "Test Pipeline",
-// 		Stage:             malak.FundraisePipelineStageSeed,
-// 		Description:       "Test pipeline description",
-// 		TargetAmount:      1000000,
-// 		StartDate:         time.Now().UTC(),
-// 		ExpectedCloseDate: time.Now().UTC().Add(90 * 24 * time.Hour),
-// 	}
-//
-// 	columns := []malak.FundraisingPipelineColumn{
-// 		{
-// 			Title:       "First Column",
-// 			ColumnType:  malak.FundraisePipelineColumnTypeNormal,
-// 			Description: "First normal column",
-// 			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
-// 		},
-// 		{
-// 			Title:       "Backlog",
-// 			ColumnType:  malak.FundraisePipelineColumnTypeNormal,
-// 			Description: "Default backlog column",
-// 			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
-// 		},
-// 		{
-// 			Title:       "Closed Column",
-// 			ColumnType:  malak.FundraisePipelineColumnTypeClosed,
-// 			Description: "Closed column",
-// 			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
-// 		},
-// 	}
-//
-// 	err = fundingRepo.Create(t.Context(), pipeline, columns...)
-// 	require.NoError(t, err)
-//
-// 	// defaultColumn, err := fundingRepo.DefaultColumn(t.Context(), pipeline)
-// 	// require.NoError(t, err)
-// 	// require.Equal(t, "Backlog", defaultColumn.Title)
-// 	// require.Equal(t, malak.FundraisePipelineColumnTypeNormal, defaultColumn.ColumnType)
-//
-// 	contact := &malak.Contact{
-// 		ID:          uuid.New(),
-// 		Email:       malak.Email("test@example.com"),
-// 		WorkspaceID: workspace.ID,
-// 		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeContact),
-// 		FirstName:   "Test",
-// 		LastName:    "Contact",
-// 	}
-//
-// 	_, err = client.NewInsert().Model(contact).Exec(t.Context())
-// 	require.NoError(t, err)
-//
-// 	err = client.NewSelect().
-// 		Model(&columns).
-// 		Where("fundraising_pipeline_id = ?", pipeline.ID).
-// 		Scan(t.Context())
-// 	require.NoError(t, err)
-// 	require.Len(t, columns, 1)
-//
-// 	// Add contact to board first
-// 	opts := &malak.AddContactToBoardOptions{
-// 		Column:             &columns[0],
-// 		Contact:            contact,
-// 		ReferenceGenerator: malak.NewReferenceGenerator(),
-// 		Rating:             3,
-// 		CanLeadRound:       true,
-// 		CheckSize:          1000000, // $1M
-// 	}
-//
-// 	err = fundingRepo.AddContactToBoard(t.Context(), opts)
-// 	require.NoError(t, err)
-//
-// 	err = fundingRepo.MoveContactColumn(t.Context(), contact, &columns[0])
-// 	require.NoError(t, err)
-// 	require.Equal(t, coumn.Reference, defaultColumn.Reference)
-// }
+func TestFundraising_MoveContactColumn(t *testing.T) {
+	ctx := context.Background()
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	fundingRepo := NewFundingRepo(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	workspace, err := workspaceRepo.Get(ctx, &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	pipeline := &malak.FundraisingPipeline{
+		Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
+		WorkspaceID:       workspace.ID,
+		Title:             "Test Pipeline",
+		Stage:             malak.FundraisePipelineStageSeed,
+		Description:       "Test pipeline description",
+		TargetAmount:      1000000,
+		StartDate:         time.Now().UTC(),
+		ExpectedCloseDate: time.Now().UTC().Add(90 * 24 * time.Hour),
+	}
+
+	columns := []malak.FundraisingPipelineColumn{
+		{
+			Title:       "First Column",
+			ColumnType:  malak.FundraisePipelineColumnTypeNormal,
+			Description: "First normal column",
+			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+		},
+		{
+			Title:       "Second Column",
+			ColumnType:  malak.FundraisePipelineColumnTypeNormal,
+			Description: "Second column",
+			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+		},
+	}
+
+	err = fundingRepo.Create(ctx, pipeline, columns...)
+	require.NoError(t, err)
+
+	contact := &malak.Contact{
+		ID:          uuid.New(),
+		Email:       malak.Email("test@example.com"),
+		WorkspaceID: workspace.ID,
+		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeContact),
+		FirstName:   "Test",
+		LastName:    "Contact",
+	}
+
+	_, err = client.NewInsert().Model(contact).Exec(ctx)
+	require.NoError(t, err)
+
+	var dbColumns []malak.FundraisingPipelineColumn
+	err = client.NewSelect().
+		Model(&dbColumns).
+		Where("fundraising_pipeline_id = ?", pipeline.ID).
+		Order("created_at ASC").
+		Scan(ctx)
+	require.NoError(t, err)
+	require.Len(t, dbColumns, 2)
+
+	// Add contact to first column
+	opts := &malak.AddContactToBoardOptions{
+		Column:             &dbColumns[0],
+		Contact:            contact,
+		ReferenceGenerator: malak.NewReferenceGenerator(),
+		Rating:             3,
+		CanLeadRound:       true,
+		CheckSize:          1000000,
+	}
+
+	err = fundingRepo.AddContactToBoard(ctx, opts)
+	require.NoError(t, err)
+
+	var fundraiseContact malak.FundraiseContact
+	err = client.NewSelect().
+		Model(&fundraiseContact).
+		Where("contact_id = ?", contact.ID).
+		Where("fundraising_pipeline_id = ?", pipeline.ID).
+		Scan(ctx)
+	require.NoError(t, err)
+
+	t.Run("move contact to different column", func(t *testing.T) {
+		err = fundingRepo.MoveContactColumn(ctx, &fundraiseContact, &dbColumns[1])
+		require.NoError(t, err)
+
+		// Verify contact was moved
+		var updatedContact malak.FundraiseContact
+		err = client.NewSelect().
+			Model(&updatedContact).
+			Where("id = ?", fundraiseContact.ID).
+			Scan(ctx)
+		require.NoError(t, err)
+		require.Equal(t, dbColumns[1].ID, updatedContact.FundraisingPipelineColumnID)
+
+		// Verify position was updated
+		var position malak.FundraiseContactPosition
+		err = client.NewSelect().
+			Model(&position).
+			Where("fundraising_pipeline_column_contact_id = ?", fundraiseContact.ID).
+			Scan(ctx)
+		require.NoError(t, err)
+		require.NotZero(t, position.OrderIndex)
+	})
+}

@@ -322,7 +322,7 @@ func (d *fundingRepo) MoveContactColumn(ctx context.Context, contact *malak.Fund
 
 		_, err = tx.NewUpdate().
 			Model(new(malak.FundraiseContactPosition)).
-			Where("fundraising_pipeline_column_contact_id = ?", column.ID).
+			Where("fundraising_pipeline_column_contact_id = ?", contact.ID).
 			Set("order_index = ?", time.Now().Unix()).
 			Exec(ctx)
 		return err
