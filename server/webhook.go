@@ -2,7 +2,9 @@ package server
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"time"
@@ -84,6 +86,13 @@ func (we *webhookHandler) handleResend(
 		}
 
 		log, recipientStat, err := we.updateRepo.GetStatByEmailID(ctx, req.Data.EmailID, malak.UpdateRecipientLogProviderResend)
+		if errors.Is(err, sql.ErrNoRows) {
+			// other emails not an update email
+			// we cannot track those because it is just not needed
+			_ = render.Render(w, r, newAPIStatus(http.StatusOK, ""))
+			return
+		}
+
 		if err != nil {
 			logger.Error("could not fetch recipient by id", zap.Error(err),
 				zap.String("email_reference", req.Data.EmailID))
