@@ -207,10 +207,11 @@ type createdAPIKeyResponse struct {
 }
 
 type workspaceOverviewResponse struct {
-	Updates  *malak.UpdateOverview  `json:"updates,omitempty" validate:"required"`
-	Decks    *malak.DeckOverview    `json:"decks,omitempty" validate:"required"`
-	Contacts *malak.ContactOverview `json:"contacts,omitempty" validate:"required"`
-	Shares   *malak.ShareOverview   `json:"shares,omitempty" validate:"required"`
+	Updates   *malak.UpdateOverview          `json:"updates,omitempty" validate:"required"`
+	Decks     *malak.DeckOverview            `json:"decks,omitempty" validate:"required"`
+	Contacts  *malak.ContactOverview         `json:"contacts,omitempty" validate:"required"`
+	Shares    *malak.ShareOverview           `json:"shares,omitempty" validate:"required"`
+	Pipelines *malak.FundingPipelineOverview `json:"pipelines,omitempty" validate:"required"`
 	APIStatus
 }
 

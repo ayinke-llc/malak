@@ -251,6 +251,10 @@ export interface MalakDeckViewerSession {
   viewed_at?: string;
 }
 
+export interface MalakFundingPipelineOverview {
+  total?: number;
+}
+
 export interface MalakFundraiseContact {
   contact?: MalakContact;
   contact_id?: string;
@@ -1041,6 +1045,7 @@ export interface ServerWorkspaceOverviewResponse {
   contacts: MalakContactOverview;
   decks: MalakDeckOverview;
   message: string;
+  pipelines: MalakFundingPipelineOverview;
   shares: MalakShareOverview;
   updates: MalakUpdateOverview;
 }

@@ -36,6 +36,7 @@ type workspaceHandler struct {
 	integrationManager      *integrations.IntegrationsManager
 	secretsClient           secret.SecretClient
 	referenceGenerator      malak.ReferenceGeneratorOperation
+	fundingRepo             malak.FundraisingPipelineRepository
 
 	shareRepo   malak.ContactShareRepository
 	deckRepo    malak.DeckRepository

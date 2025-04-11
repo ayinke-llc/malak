@@ -629,6 +629,14 @@
 				},
 				"type": "object"
 			},
+			"malak.FundingPipelineOverview": {
+				"properties": {
+					"total": {
+						"type": "integer"
+					}
+				},
+				"type": "object"
+			},
 			"malak.FundraiseContact": {
 				"properties": {
 					"contact": {
@@ -2798,6 +2806,9 @@
 					"message": {
 						"type": "string"
 					},
+					"pipelines": {
+						"$ref": "#/components/schemas/malak.FundingPipelineOverview"
+					},
 					"shares": {
 						"$ref": "#/components/schemas/malak.ShareOverview"
 					},
@@ -2809,6 +2820,7 @@
 					"contacts",
 					"decks",
 					"message",
+					"pipelines",
 					"shares",
 					"updates"
 				],

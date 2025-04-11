@@ -196,6 +196,21 @@ func (mr *MockFundraisingPipelineRepositoryMockRecorder) MoveContactColumn(arg0,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MoveContactColumn", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).MoveContactColumn), arg0, arg1, arg2)
 }
 
+// Overview mocks base method.
+func (m *MockFundraisingPipelineRepository) Overview(arg0 context.Context, arg1 uuid.UUID) (*malak.FundingPipelineOverview, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Overview", arg0, arg1)
+	ret0, _ := ret[0].(*malak.FundingPipelineOverview)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Overview indicates an expected call of Overview.
+func (mr *MockFundraisingPipelineRepositoryMockRecorder) Overview(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Overview", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).Overview), arg0, arg1)
+}
+
 // UpdateContactDeal mocks base method.
 func (m *MockFundraisingPipelineRepository) UpdateContactDeal(arg0 context.Context, arg1 *malak.FundraisingPipeline, arg2 malak.UpdateContactDealOptions) error {
 	m.ctrl.T.Helper()
