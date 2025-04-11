@@ -182,18 +182,18 @@ func (mr *MockFundraisingPipelineRepositoryMockRecorder) List(arg0, arg1 any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).List), arg0, arg1)
 }
 
-// UpdateBoardContact mocks base method.
-func (m *MockFundraisingPipelineRepository) UpdateBoardContact(arg0 context.Context, arg1 *malak.FundraiseContactDealDetails) error {
+// MoveContactColumn mocks base method.
+func (m *MockFundraisingPipelineRepository) MoveContactColumn(arg0 context.Context, arg1 *malak.FundraiseContact, arg2 *malak.FundraisingPipelineColumn) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateBoardContact", arg0, arg1)
+	ret := m.ctrl.Call(m, "MoveContactColumn", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateBoardContact indicates an expected call of UpdateBoardContact.
-func (mr *MockFundraisingPipelineRepositoryMockRecorder) UpdateBoardContact(arg0, arg1 any) *gomock.Call {
+// MoveContactColumn indicates an expected call of MoveContactColumn.
+func (mr *MockFundraisingPipelineRepositoryMockRecorder) MoveContactColumn(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBoardContact", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).UpdateBoardContact), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MoveContactColumn", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).MoveContactColumn), arg0, arg1, arg2)
 }
 
 // UpdateContactDeal mocks base method.

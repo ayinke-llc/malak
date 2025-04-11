@@ -2554,11 +2554,17 @@
 			},
 			"server.moveContactAcrossBoardRequest": {
 				"properties": {
-					"columnID": {
-						"description": "GenericRequest",
+					"column_id": {
+						"type": "string"
+					},
+					"contact_id": {
 						"type": "string"
 					}
 				},
+				"required": [
+					"column_id",
+					"contact_id"
+				],
 				"type": "object"
 			},
 			"server.pagingInfo": {

@@ -226,10 +226,8 @@ type FundraisingPipelineRepository interface {
 	DefaultColumn(context.Context, *FundraisingPipeline) (FundraisingPipelineColumn, error)
 
 	GetColumn(context.Context, GetBoardOptions) (*FundraisingPipelineColumn, error)
-	// MoveContactColumn(context.Context,)
-
+	MoveContactColumn(context.Context, *FundraiseContact, *FundraisingPipelineColumn) error
 	AddContactToBoard(context.Context, *AddContactToBoardOptions) error
-	UpdateBoardContact(context.Context, *FundraiseContactDealDetails) error
 	GetContact(context.Context, uuid.UUID, uuid.UUID) (*FundraiseContact, error)
 	UpdateContactDeal(context.Context, *FundraisingPipeline, UpdateContactDealOptions) error
 }

@@ -301,14 +301,30 @@ func (d *fundingRepo) GetColumn(ctx context.Context,
 	return column, nil
 }
 
-func (d *fundingRepo) UpdateBoardContact(ctx context.Context, details *malak.FundraiseContactDealDetails) error {
+func (d *fundingRepo) MoveContactColumn(ctx context.Context, contact *malak.FundraiseContact,
+	column *malak.FundraisingPipelineColumn) error {
+
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
 
-	_, err := d.inner.NewUpdate().
-		Model(details).
-		WherePK().
-		Exec(ctx)
+	return d.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 
-	return err
+		contact.UpdatedAt = time.Now()
+		contact.FundraisingPipelineColumnID = column.ID
+
+		_, err := tx.NewUpdate().
+			Where("id = ?", contact.ID).
+			Model(contact).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.NewUpdate().
+			Model(new(malak.FundraiseContactPosition)).
+			Where("fundraising_pipeline_column_contact_id = ?", column.ID).
+			Set("order_index = ?", time.Now().Unix()).
+			Exec(ctx)
+		return err
+	})
 }

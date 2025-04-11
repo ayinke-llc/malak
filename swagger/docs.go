@@ -6961,9 +6961,15 @@ const docTemplate = `{
         },
         "server.moveContactAcrossBoardRequest": {
             "type": "object",
+            "required": [
+                "column_id",
+                "contact_id"
+            ],
             "properties": {
-                "columnID": {
-                    "description": "GenericRequest",
+                "column_id": {
+                    "type": "string"
+                },
+                "contact_id": {
                     "type": "string"
                 }
             }

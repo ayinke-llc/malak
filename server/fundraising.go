@@ -665,11 +665,10 @@ func (d *fundraisingHandler) moveContactAcrossBoard(
 		return newAPIStatus(http.StatusInternalServerError, "could not fetch your contact or column"), StatusFailed
 	}
 
-	err = d.fundingRepo.UpdateContactDeal(ctx, pipeline, nil)
-	if err != nil {
-		logger.Error("could not update contact deal details", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError, "could not update contact deal details"), StatusFailed
+	if err = d.fundingRepo.MoveContactColumn(ctx, contact, column); err != nil {
+		logger.Error("could not move contact across column in board", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not update contact column"), StatusFailed
 	}
 
-	return newAPIStatus(http.StatusOK, "contact deal details updated successfully"), StatusSuccess
+	return newAPIStatus(http.StatusOK, "column updated"), StatusSuccess
 }

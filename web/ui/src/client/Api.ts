@@ -955,8 +955,8 @@ export interface ServerMeta {
 }
 
 export interface ServerMoveContactAcrossBoardRequest {
-  /** GenericRequest */
-  columnID?: string;
+  column_id: string;
+  contact_id: string;
 }
 
 export interface ServerPagingInfo {
