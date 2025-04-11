@@ -27,7 +27,10 @@ import {
 import { ShareSettingsDialog } from "@/components/investor-pipeline/ShareSettingsDialog";
 import { AddInvestorDialog as AddInvestorDialogComponent } from "@/components/investor-pipeline/AddInvestorDialog";
 import type { SearchResult } from "@/components/investor-pipeline/AddInvestorDialog";
-import type { Card as InvestorCard, Board, ShareSettings } from "@/components/investor-pipeline/types";
+import type {
+  Card as InvestorCard, Board,
+  ShareSettings
+} from "@/components/investor-pipeline/types";
 import {
   Tooltip,
   TooltipContent,
@@ -35,7 +38,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FETCH_FUNDRAISING_PIPELINE, CLOSE_FUNDRAISING_PIPELINE, ADD_INVESTOR_TO_PIPELINE } from "@/lib/query-constants";
+import {
+  FETCH_FUNDRAISING_PIPELINE,
+  CLOSE_FUNDRAISING_PIPELINE,
+  ADD_INVESTOR_TO_PIPELINE,
+  UPDATE_CONTACT_COLUMN_PIPELINE
+} from "@/lib/query-constants";
 import client from "@/lib/client";
 import type { ServerFetchBoardResponse } from "@/client/Api";
 import type { AxiosError } from "axios";
@@ -63,7 +71,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
 
   const queryClient = useQueryClient();
 
-  const { data: boardData, isLoading, error } = useQuery<ServerFetchBoardResponse>({
+  const { data: boardData, isLoading, error, refetch } = useQuery<ServerFetchBoardResponse>({
     queryKey: [FETCH_FUNDRAISING_PIPELINE, slug],
     queryFn: async () => {
       const response = await client.pipelines.pipelinesDetail(slug);
@@ -146,7 +154,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
         </p>
         <Button
           variant="default"
-          onClick={() => queryClient.invalidateQueries({ queryKey: [FETCH_FUNDRAISING_PIPELINE, slug] })}
+          onClick={() => refetch()}
         >
           Retry
         </Button>
@@ -177,16 +185,16 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
         const aIndex = columnOrder.indexOf(a.title || "");
         const bIndex = columnOrder.indexOf(b.title || "");
 
-        // If both columns are in our order list, sort by their position
+        // if both columns are in our order list, sort by their position
         if (aIndex !== -1 && bIndex !== -1) {
           return aIndex - bIndex;
         }
 
-        // If only one column is in our order list, prioritize it
+        // if only one column is in our order list, prioritize it
         if (aIndex !== -1) return -1;
         if (bIndex !== -1) return 1;
 
-        // For any columns not in our list, maintain their original order
+        // for any columns not in our list, maintain their original order
         return 0;
       })
       .reduce<Board["columns"]>((acc, column) => {
@@ -235,8 +243,12 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
   };
 
   const handleDragEnd = (result: DropResult) => {
-    if (!result?.destination || board.isArchived) return;
+    if (!result?.destination || board.isArchived) {
+      toast.error("this board is read only")
+      return
+    };
 
+    console.log(result)
     const { source, destination } = result;
 
     if (!source || !destination) return;
@@ -289,7 +301,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
       }
     };
 
-    updateBoardMutation.mutate(updatedBoard);
+    // updateBoardMutation.mutate(updatedBoard);
   };
 
   const handleClose = () => {

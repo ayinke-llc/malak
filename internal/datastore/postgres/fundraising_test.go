@@ -982,3 +982,92 @@ func TestFundraising_GetColumn(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, coumn.Reference, defaultColumn.Reference)
 }
+
+// func TestFundraising_MoveContactColumn(t *testing.T) {
+// 	client, teardownFunc := setupDatabase(t)
+// 	defer teardownFunc()
+//
+// 	fundingRepo := NewFundingRepo(client)
+// 	workspaceRepo := NewWorkspaceRepository(client)
+//
+// 	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+// 		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+// 	})
+// 	require.NoError(t, err)
+//
+// 	pipeline := &malak.FundraisingPipeline{
+// 		Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
+// 		WorkspaceID:       workspace.ID,
+// 		Title:             "Test Pipeline",
+// 		Stage:             malak.FundraisePipelineStageSeed,
+// 		Description:       "Test pipeline description",
+// 		TargetAmount:      1000000,
+// 		StartDate:         time.Now().UTC(),
+// 		ExpectedCloseDate: time.Now().UTC().Add(90 * 24 * time.Hour),
+// 	}
+//
+// 	columns := []malak.FundraisingPipelineColumn{
+// 		{
+// 			Title:       "First Column",
+// 			ColumnType:  malak.FundraisePipelineColumnTypeNormal,
+// 			Description: "First normal column",
+// 			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+// 		},
+// 		{
+// 			Title:       "Backlog",
+// 			ColumnType:  malak.FundraisePipelineColumnTypeNormal,
+// 			Description: "Default backlog column",
+// 			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+// 		},
+// 		{
+// 			Title:       "Closed Column",
+// 			ColumnType:  malak.FundraisePipelineColumnTypeClosed,
+// 			Description: "Closed column",
+// 			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+// 		},
+// 	}
+//
+// 	err = fundingRepo.Create(t.Context(), pipeline, columns...)
+// 	require.NoError(t, err)
+//
+// 	// defaultColumn, err := fundingRepo.DefaultColumn(t.Context(), pipeline)
+// 	// require.NoError(t, err)
+// 	// require.Equal(t, "Backlog", defaultColumn.Title)
+// 	// require.Equal(t, malak.FundraisePipelineColumnTypeNormal, defaultColumn.ColumnType)
+//
+// 	contact := &malak.Contact{
+// 		ID:          uuid.New(),
+// 		Email:       malak.Email("test@example.com"),
+// 		WorkspaceID: workspace.ID,
+// 		Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeContact),
+// 		FirstName:   "Test",
+// 		LastName:    "Contact",
+// 	}
+//
+// 	_, err = client.NewInsert().Model(contact).Exec(t.Context())
+// 	require.NoError(t, err)
+//
+// 	err = client.NewSelect().
+// 		Model(&columns).
+// 		Where("fundraising_pipeline_id = ?", pipeline.ID).
+// 		Scan(t.Context())
+// 	require.NoError(t, err)
+// 	require.Len(t, columns, 1)
+//
+// 	// Add contact to board first
+// 	opts := &malak.AddContactToBoardOptions{
+// 		Column:             &columns[0],
+// 		Contact:            contact,
+// 		ReferenceGenerator: malak.NewReferenceGenerator(),
+// 		Rating:             3,
+// 		CanLeadRound:       true,
+// 		CheckSize:          1000000, // $1M
+// 	}
+//
+// 	err = fundingRepo.AddContactToBoard(t.Context(), opts)
+// 	require.NoError(t, err)
+//
+// 	err = fundingRepo.MoveContactColumn(t.Context(), contact, &columns[0])
+// 	require.NoError(t, err)
+// 	require.Equal(t, coumn.Reference, defaultColumn.Reference)
+// }
