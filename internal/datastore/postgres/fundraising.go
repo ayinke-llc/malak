@@ -264,7 +264,7 @@ func (d *fundingRepo) GetContact(ctx context.Context, pipelineID, contactID uuid
 		Model(&contact).
 		Relation("DealDetails").
 		Relation("Contact").
-		Where("fundraise_contact.contact_id = ?", contactID).
+		Where("fundraise_contact.id = ?", contactID).
 		Where("fundraise_contact.fundraising_pipeline_id = ?", pipelineID).
 		Scan(ctx)
 	if err != nil {
@@ -277,14 +277,54 @@ func (d *fundingRepo) GetContact(ctx context.Context, pipelineID, contactID uuid
 	return &contact, nil
 }
 
-func (d *fundingRepo) UpdateBoardContact(ctx context.Context, details *malak.FundraiseContactDealDetails) error {
+func (d *fundingRepo) GetColumn(ctx context.Context,
+	opts malak.GetBoardOptions) (*malak.FundraisingPipelineColumn, error) {
+
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
 
-	_, err := d.inner.NewUpdate().
-		Model(details).
-		WherePK().
-		Exec(ctx)
+	column := new(malak.FundraisingPipelineColumn)
 
-	return err
+	err := d.inner.NewSelect().
+		Model(column).
+		Where("fundraising_pipeline_id = ?", opts.PipelineID).
+		Where("id = ?", opts.ColumnID).
+		Scan(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, malak.ErrPipelineColumnNotFound
+		}
+
+		return nil, err
+	}
+
+	return column, nil
+}
+
+func (d *fundingRepo) MoveContactColumn(ctx context.Context, contact *malak.FundraiseContact,
+	column *malak.FundraisingPipelineColumn) error {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	return d.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		contact.UpdatedAt = time.Now()
+		contact.FundraisingPipelineColumnID = column.ID
+
+		_, err := tx.NewUpdate().
+			Where("id = ?", contact.ID).
+			Model(contact).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.NewUpdate().
+			Model(new(malak.FundraiseContactPosition)).
+			Where("fundraising_pipeline_column_contact_id = ?", contact.ID).
+			Set("order_index = ?", time.Now().Unix()).
+			Exec(ctx)
+		return err
+	})
 }

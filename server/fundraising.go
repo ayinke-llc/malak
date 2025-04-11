@@ -16,6 +16,7 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 type fundraisingHandler struct {
@@ -544,4 +545,129 @@ func (d *fundraisingHandler) updateContactDeal(
 	}
 
 	return newAPIStatus(http.StatusOK, "contact deal details updated successfully"), StatusSuccess
+}
+
+type moveContactAcrossBoardRequest struct {
+	GenericRequest
+	ColumnID  uuid.UUID `json:"column_id,omitempty" validate:"required"`
+	ContactID uuid.UUID `json:"contact_id,omitempty" validate:"required"`
+}
+
+func (c *moveContactAcrossBoardRequest) Validate() error {
+
+	if c.ColumnID == uuid.Nil {
+		return errors.New("please provide a valid column uuid")
+	}
+
+	if c.ContactID == uuid.Nil {
+		return errors.New("Please provide a valid contact uuid")
+	}
+
+	return nil
+}
+
+// @Description move contact across board
+// @Tags fundraising
+// @Accept  json
+// @Produce  json
+// @Param reference path string true "Pipeline reference"
+// @Param message body moveContactAcrossBoardRequest true "move cotnact across board"
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /pipelines/{reference}/contacts/board [post]
+func (d *fundraisingHandler) moveContactAcrossBoard(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("moving contact across board")
+
+	reference := chi.URLParam(r, "reference")
+	if hermes.IsStringEmpty(reference) {
+		return newAPIStatus(http.StatusBadRequest, "please provide the pipeline reference"), StatusFailed
+	}
+
+	req := new(moveContactAcrossBoardRequest)
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	workspace := getWorkspaceFromContext(ctx)
+
+	logger = logger.With(zap.String("reference", reference),
+		zap.String("board_column_id", req.ColumnID.String()),
+		zap.String("contact_id", req.ContactID.String()))
+
+	pipeline, err := d.fundingRepo.Get(ctx, malak.FetchPipelineOptions{
+		Reference:   malak.Reference(reference),
+		WorkspaceID: workspace.ID,
+	})
+	if err != nil {
+		if errors.Is(err, malak.ErrPipelineNotFound) {
+			return newAPIStatus(http.StatusNotFound, "fundraising pipeline not found"), StatusFailed
+		}
+
+		logger.Error("could not fetch fundraising pipeline contact", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch fundraising pipeline"), StatusFailed
+	}
+
+	if pipeline.IsClosed {
+		return newAPIStatus(http.StatusBadRequest, "this pipeline is closed already"), StatusFailed
+	}
+
+	var contact *malak.FundraiseContact
+	var column *malak.FundraisingPipelineColumn
+	var g errgroup.Group
+
+	g.Go(func() error {
+
+		var err error
+
+		contact, err = d.fundingRepo.GetContact(ctx, pipeline.ID, req.ContactID)
+		if err != nil {
+			logger.Error("could not fetch contact", zap.Error(err))
+			return err
+		}
+
+		return nil
+	})
+
+	g.Go(func() error {
+		var err error
+
+		column, err = d.fundingRepo.GetColumn(ctx, malak.GetBoardOptions{
+			PipelineID: pipeline.ID,
+			ColumnID:   req.ColumnID,
+		})
+		if err != nil {
+			logger.Error("could not fetch board column", zap.Error(err))
+			return err
+		}
+
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		if errors.Is(err, malak.ErrPipelineColumnNotFound) || errors.Is(err, malak.ErrContactNotFoundOnBoard) {
+			return newAPIStatus(http.StatusNotFound, err.Error()), StatusFailed
+		}
+
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch your contact or column"), StatusFailed
+	}
+
+	if err = d.fundingRepo.MoveContactColumn(ctx, contact, column); err != nil {
+		logger.Error("could not move contact across column in board", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not update contact column"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "column updated"), StatusSuccess
 }

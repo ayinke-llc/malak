@@ -43,6 +43,7 @@ import type { AxiosError } from "axios";
 import type { ServerAPIStatus } from "@/client/Api";
 import { ActivityList } from "../investor-pipeline/details/tabs/activity/ActivityList";
 import Copy from "../ui/custom/copy";
+import { DocumentsTab } from "../investor-pipeline/details/tabs/documents/DocumentsTab";
 
 interface InvestorDetailsDrawerProps {
   open: boolean;
@@ -149,105 +150,7 @@ function AddActivityDialog({
   );
 }
 
-function NoteDialog({
-  open,
-  onOpenChange,
-  onSubmit,
-  initialNote
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (note: Partial<Note>) => void;
-  initialNote?: Note;
-}) {
-  const [note, setNote] = useState<Partial<Note>>(() => initialNote || {
-    title: '',
-    content: ''
-  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(note);
-    onOpenChange(false);
-    if (!initialNote) {
-      setNote({
-        title: '',
-        content: ''
-      });
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{initialNote ? 'Edit Note' : 'Add New Note'}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Title</label>
-            <Input
-              value={note.title}
-              onChange={(e) => setNote({ ...note, title: e.target.value })}
-              placeholder="Note title"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Content</label>
-            <Textarea
-              value={note.content}
-              onChange={(e) => setNote({ ...note, content: e.target.value })}
-              placeholder="Note content"
-              required
-              className="min-h-[200px]"
-            />
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">{initialNote ? 'Save Changes' : 'Add Note'}</Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function formatFileSize(bytes: number): string {
-  const units = ['B', 'KB', 'MB', 'GB'];
-  let size = bytes;
-  let unitIndex = 0;
-
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex++;
-  }
-
-  return `${size.toFixed(1)} ${units[unitIndex]}`;
-}
-
-function truncateText(text: string, maxLength: number) {
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength - 3) + '...';
-}
-
-function DocumentsTab({ isReadOnly }: { isReadOnly: boolean }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
-      <RiFileTextLine className="w-12 h-12 text-muted-foreground" />
-      <div>
-        <h3 className="text-lg font-semibold">Documents Coming Soon</h3>
-        <p className="text-sm text-muted-foreground">
-          The documents feature is currently under development and will be available soon.
-        </p>
-      </div>
-    </div>
-  );
-}
 
 function EditInvestorDialog({
   open,
@@ -389,7 +292,7 @@ export function InvestorDetailsDrawer({
         throw new Error("No contact reference provided")
       }
 
-      const response = await client.pipelines.contactsPartialUpdate(slug, contact.id as string, {
+      const response = await client.pipelines.contactsPartialUpdate(slug, investor?.dataID as string, {
         check_size: updatedDeal.check_size ?? 0,
         can_lead_round: updatedDeal.can_lead_round ?? false,
         rating: updatedDeal.rating ?? 0

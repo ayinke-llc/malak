@@ -2552,6 +2552,21 @@
 				],
 				"type": "object"
 			},
+			"server.moveContactAcrossBoardRequest": {
+				"properties": {
+					"column_id": {
+						"type": "string"
+					},
+					"contact_id": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"column_id",
+					"contact_id"
+				],
+				"type": "object"
+			},
 			"server.pagingInfo": {
 				"properties": {
 					"page": {
@@ -5812,6 +5827,89 @@
 						}
 					},
 					"description": "contact request body",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"fundraising"
+				]
+			}
+		},
+		"/pipelines/{reference}/contacts/board": {
+			"post": {
+				"description": "move contact across board",
+				"parameters": [
+					{
+						"description": "Pipeline reference",
+						"in": "path",
+						"name": "reference",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.moveContactAcrossBoardRequest"
+							}
+						}
+					},
+					"description": "move cotnact across board",
 					"required": true,
 					"x-originalParamName": "message"
 				},

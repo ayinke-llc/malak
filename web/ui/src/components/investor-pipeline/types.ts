@@ -30,6 +30,7 @@ export interface Card {
   rating: number;
   originalContact?: MalakContact;
   originalDeal?: MalakFundraiseContactDealDetails;
+  dataID: string
 }
 
 export interface Column {

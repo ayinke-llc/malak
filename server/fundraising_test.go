@@ -1279,3 +1279,291 @@ func TestFundraisingHandler_UpdateContactDeal(t *testing.T) {
 		})
 	}
 }
+
+type moveContactAcrossBoardTestCase struct {
+	name               string
+	mockFn             func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository)
+	req                moveContactAcrossBoardRequest
+	pipelineReference  string
+	expectedStatusCode int
+}
+
+func generateMoveContactAcrossBoardTestTable() []moveContactAcrossBoardTestCase {
+	return []moveContactAcrossBoardTestCase{
+		{
+			name: "successful move",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:          uuid.MustParse("550e8400-e29b-41d4-a716-446655440000"),
+					Title:       "Test Pipeline",
+					Stage:       malak.FundraisePipelineStageSeed,
+					IsClosed:    false,
+					WorkspaceID: uuid.MustParse("56670b6d-48d4-4b17-bc8f-d101b7d0b53c"),
+				}
+
+				contactID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440001")
+				columnID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440002")
+
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(pipeline, nil)
+
+				repo.EXPECT().
+					GetContact(gomock.Any(), pipeline.ID, contactID).
+					Times(1).
+					Return(&malak.FundraiseContact{
+						ID: contactID,
+					}, nil)
+
+				repo.EXPECT().
+					GetColumn(gomock.Any(), malak.GetBoardOptions{
+						PipelineID: pipeline.ID,
+						ColumnID:   columnID,
+					}).
+					Times(1).
+					Return(&malak.FundraisingPipelineColumn{
+						ID: columnID,
+					}, nil)
+
+				repo.EXPECT().
+					MoveContactColumn(gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+			},
+			req: moveContactAcrossBoardRequest{
+				ContactID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
+				ColumnID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			},
+			pipelineReference:  "pipeline_123",
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name: "empty pipeline reference",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+			},
+			req: moveContactAcrossBoardRequest{
+				ContactID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
+				ColumnID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			},
+			pipelineReference:  "",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "pipeline not found",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, malak.ErrPipelineNotFound)
+			},
+			req: moveContactAcrossBoardRequest{
+				ContactID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
+				ColumnID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			},
+			pipelineReference:  "non_existent_pipeline",
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "pipeline is closed",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:          uuid.MustParse("550e8400-e29b-41d4-a716-446655440000"),
+					Title:       "Test Pipeline",
+					Stage:       malak.FundraisePipelineStageSeed,
+					IsClosed:    true,
+					WorkspaceID: uuid.MustParse("56670b6d-48d4-4b17-bc8f-d101b7d0b53c"),
+				}
+
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(pipeline, nil)
+			},
+			req: moveContactAcrossBoardRequest{
+				ContactID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
+				ColumnID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			},
+			pipelineReference:  "pipeline_123",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "contact not found on board",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:          uuid.MustParse("550e8400-e29b-41d4-a716-446655440000"),
+					Title:       "Test Pipeline",
+					Stage:       malak.FundraisePipelineStageSeed,
+					IsClosed:    false,
+					WorkspaceID: uuid.MustParse("56670b6d-48d4-4b17-bc8f-d101b7d0b53c"),
+				}
+
+				contactID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440001")
+
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(pipeline, nil)
+
+				repo.EXPECT().
+					GetContact(gomock.Any(), pipeline.ID, contactID).
+					Times(1).
+					Return(nil, malak.ErrContactNotFoundOnBoard)
+
+				columnID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440002")
+				repo.EXPECT().
+					GetColumn(gomock.Any(), malak.GetBoardOptions{
+						PipelineID: pipeline.ID,
+						ColumnID:   columnID,
+					}).
+					Times(1).
+					Return(nil, malak.ErrPipelineColumnNotFound)
+			},
+			req: moveContactAcrossBoardRequest{
+				ContactID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
+				ColumnID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			},
+			pipelineReference:  "pipeline_123",
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "column not found",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:          uuid.MustParse("550e8400-e29b-41d4-a716-446655440000"),
+					Title:       "Test Pipeline",
+					Stage:       malak.FundraisePipelineStageSeed,
+					IsClosed:    false,
+					WorkspaceID: uuid.MustParse("56670b6d-48d4-4b17-bc8f-d101b7d0b53c"),
+				}
+
+				contactID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440001")
+				columnID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440002")
+
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(pipeline, nil)
+
+				repo.EXPECT().
+					GetContact(gomock.Any(), pipeline.ID, contactID).
+					Times(1).
+					Return(&malak.FundraiseContact{
+						ID: contactID,
+					}, nil)
+
+				repo.EXPECT().
+					GetColumn(gomock.Any(), malak.GetBoardOptions{
+						PipelineID: pipeline.ID,
+						ColumnID:   columnID,
+					}).
+					Times(1).
+					Return(nil, malak.ErrPipelineColumnNotFound)
+			},
+			req: moveContactAcrossBoardRequest{
+				ContactID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
+				ColumnID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			},
+			pipelineReference:  "pipeline_123",
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "move contact error",
+			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
+				pipeline := &malak.FundraisingPipeline{
+					ID:          uuid.MustParse("550e8400-e29b-41d4-a716-446655440000"),
+					Title:       "Test Pipeline",
+					Stage:       malak.FundraisePipelineStageSeed,
+					IsClosed:    false,
+					WorkspaceID: uuid.MustParse("56670b6d-48d4-4b17-bc8f-d101b7d0b53c"),
+				}
+
+				contactID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440001")
+				columnID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440002")
+
+				repo.EXPECT().
+					Get(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(pipeline, nil)
+
+				repo.EXPECT().
+					GetContact(gomock.Any(), pipeline.ID, contactID).
+					Times(1).
+					Return(&malak.FundraiseContact{
+						ID: contactID,
+					}, nil)
+
+				repo.EXPECT().
+					GetColumn(gomock.Any(), malak.GetBoardOptions{
+						PipelineID: pipeline.ID,
+						ColumnID:   columnID,
+					}).
+					Times(1).
+					Return(&malak.FundraisingPipelineColumn{
+						ID: columnID,
+					}, nil)
+
+				repo.EXPECT().
+					MoveContactColumn(gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(errors.New("move contact error"))
+			},
+			req: moveContactAcrossBoardRequest{
+				ContactID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
+				ColumnID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			},
+			pipelineReference:  "pipeline_123",
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+	}
+}
+
+func TestFundraisingHandler_MoveContactAcrossBoard(t *testing.T) {
+	for _, v := range generateMoveContactAcrossBoardTestTable() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			fundingRepo := malak_mocks.NewMockFundraisingPipelineRepository(controller)
+			v.mockFn(t, fundingRepo)
+
+			handler := &fundraisingHandler{
+				cfg:                getConfig(),
+				fundingRepo:        fundingRepo,
+				referenceGenerator: &mockReferenceGenerator{},
+			}
+
+			var b = bytes.NewBuffer(nil)
+			require.NoError(t, json.NewEncoder(b).Encode(v.req))
+
+			rr := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodPost, "/pipelines/"+v.pipelineReference+"/contacts/board", b)
+			req.Header.Add("Content-Type", "application/json")
+
+			workspace := &malak.Workspace{
+				ID: uuid.MustParse("56670b6d-48d4-4b17-bc8f-d101b7d0b53c"),
+			}
+			user := &malak.User{
+				ID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440004"),
+			}
+
+			// Set up context in the correct order
+			ctx := req.Context()
+			ctx = writeUserToCtx(ctx, user)
+			ctx = writeWorkspaceToCtx(ctx, workspace)
+			routeCtx := chi.NewRouteContext()
+			routeCtx.URLParams.Add("reference", v.pipelineReference)
+			ctx = context.WithValue(ctx, chi.RouteCtxKey, routeCtx)
+			req = req.WithContext(ctx)
+
+			WrapMalakHTTPHandler(getLogger(t),
+				handler.moveContactAcrossBoard,
+				getConfig(),
+				"fundraising.move_contact_across_board").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}

@@ -27,7 +27,10 @@ import {
 import { ShareSettingsDialog } from "@/components/investor-pipeline/ShareSettingsDialog";
 import { AddInvestorDialog as AddInvestorDialogComponent } from "@/components/investor-pipeline/AddInvestorDialog";
 import type { SearchResult } from "@/components/investor-pipeline/AddInvestorDialog";
-import type { Card as InvestorCard, Board, ShareSettings } from "@/components/investor-pipeline/types";
+import type {
+  Card as InvestorCard, Board,
+  ShareSettings
+} from "@/components/investor-pipeline/types";
 import {
   Tooltip,
   TooltipContent,
@@ -35,7 +38,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FETCH_FUNDRAISING_PIPELINE, CLOSE_FUNDRAISING_PIPELINE, ADD_INVESTOR_TO_PIPELINE } from "@/lib/query-constants";
+import {
+  FETCH_FUNDRAISING_PIPELINE,
+  CLOSE_FUNDRAISING_PIPELINE,
+  ADD_INVESTOR_TO_PIPELINE,
+  UPDATE_CONTACT_COLUMN_PIPELINE
+} from "@/lib/query-constants";
 import client from "@/lib/client";
 import type { ServerFetchBoardResponse } from "@/client/Api";
 import type { AxiosError } from "axios";
@@ -63,25 +71,37 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
 
   const queryClient = useQueryClient();
 
-  const { data: boardData, isLoading, error } = useQuery<ServerFetchBoardResponse>({
+  const { data: boardData, isLoading, error, refetch } = useQuery<ServerFetchBoardResponse>({
     queryKey: [FETCH_FUNDRAISING_PIPELINE, slug],
     queryFn: async () => {
       const response = await client.pipelines.pipelinesDetail(slug);
       return response.data;
     },
+    gcTime: Number.POSITIVE_INFINITY,
   });
 
   const updateBoardMutation = useMutation({
-    mutationFn: async (updatedBoard: Board) => {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return updatedBoard;
+    mutationKey: [UPDATE_CONTACT_COLUMN_PIPELINE, slug],
+    mutationFn: async (params: {
+      contactId: string,
+      columnId: string,
+      position: number
+    }) => {
+      const response = await client.pipelines.contactsBoardCreate(
+        slug,
+        {
+          contact_id: params.contactId,
+          column_id: params.columnId,
+        }
+      );
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [FETCH_FUNDRAISING_PIPELINE, slug] });
-      toast.success("Pipeline updated successfully");
+      toast.success("Card moved successfully");
     },
     onError: (err: AxiosError<ServerAPIStatus>) => {
-      toast.error(err.response?.data.message ?? "Failed to update pipeline");
+      toast.error(err.response?.data?.message ?? "Failed to move card");
     },
   });
 
@@ -146,7 +166,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
         </p>
         <Button
           variant="default"
-          onClick={() => queryClient.invalidateQueries({ queryKey: [FETCH_FUNDRAISING_PIPELINE, slug] })}
+          onClick={() => refetch()}
         >
           Retry
         </Button>
@@ -177,16 +197,16 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
         const aIndex = columnOrder.indexOf(a.title || "");
         const bIndex = columnOrder.indexOf(b.title || "");
 
-        // If both columns are in our order list, sort by their position
+        // if both columns are in our order list, sort by their position
         if (aIndex !== -1 && bIndex !== -1) {
           return aIndex - bIndex;
         }
 
-        // If only one column is in our order list, prioritize it
+        // if only one column is in our order list, prioritize it
         if (aIndex !== -1) return -1;
         if (bIndex !== -1) return 1;
 
-        // For any columns not in our list, maintain their original order
+        // for any columns not in our list, maintain their original order
         return 0;
       })
       .reduce<Board["columns"]>((acc, column) => {
@@ -198,6 +218,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
             cards: (contacts || [])
               .filter(contact => contact && contact.fundraising_pipeline_column_id === column.id)
               .map(contact => {
+                console.log(contact, "here")
                 // find the position for this contact
                 const position = positions.find(p => p.fundraising_pipeline_column_contact_id === contact.id);
                 const deal = contact.deal_details;
@@ -225,7 +246,8 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                   isLeadInvestor: deal?.can_lead_round || false,
                   rating: deal?.rating || 0,
                   originalContact: contactDetails,
-                  originalDeal: deal
+                  originalDeal: deal,
+                  dataID: contact?.deal_details?.fundraising_pipeline_column_contact_id as string
                 };
               })
           };
@@ -235,9 +257,12 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
   };
 
   const handleDragEnd = (result: DropResult) => {
-    if (!result?.destination || board.isArchived) return;
+    if (!result?.destination || board.isArchived) {
+      toast.error("This board is read only");
+      return;
+    }
 
-    const { source, destination } = result;
+    const { source, destination, draggableId } = result;
 
     if (!source || !destination) return;
 
@@ -248,48 +273,44 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
       return;
     }
 
-    const sourceColumn = board.columns[source.droppableId];
-    const destColumn = board.columns[destination.droppableId];
+    const contact = contacts.find(c => c.reference === draggableId);
+    const column = columns.find(c => c.reference === destination.droppableId);
 
-    if (!sourceColumn || !destColumn) {
-      toast.error("Invalid drag operation: column not found");
+    if (!contact?.id || !column?.id) {
+      toast.error("Unable to move card - missing data");
       return;
     }
 
-    const sourceCards = Array.from(sourceColumn.cards || []);
-    const destCards = source.droppableId === destination.droppableId
-      ? sourceCards
-      : Array.from(destColumn.cards || []);
-
-    if (sourceCards.length === 0) {
-      toast.error("Invalid drag operation: no cards to move");
-      return;
-    }
-
-    const [removed] = sourceCards.splice(source.index, 1);
-    if (!removed) {
-      toast.error("Invalid drag operation: card not found");
-      return;
-    }
-
-    destCards.splice(destination.index, 0, removed);
-
-    const updatedBoard = {
-      ...board,
-      columns: {
-        ...board.columns,
-        [source.droppableId]: {
-          ...sourceColumn,
-          cards: sourceCards,
-        },
-        [destination.droppableId]: {
-          ...destColumn,
-          cards: destCards,
-        },
+    // update the UI optimistically
+    const previousData = queryClient.getQueryData([FETCH_FUNDRAISING_PIPELINE, slug]);
+    queryClient.setQueryData(
+      [FETCH_FUNDRAISING_PIPELINE, slug],
+      (old: any) => {
+        const newContacts = old.contacts.map((c: any) => {
+          if (c.id === contact.id) {
+            return {
+              ...c,
+              fundraising_pipeline_column_id: column.id
+            };
+          }
+          return c;
+        });
+        return { ...old, contacts: newContacts };
       }
-    };
+    );
 
-    updateBoardMutation.mutate(updatedBoard);
+    updateBoardMutation.mutate(
+      {
+        contactId: contact.id,
+        columnId: column.id,
+        position: destination.index
+      },
+      {
+        onError: () => {
+          queryClient.setQueryData([FETCH_FUNDRAISING_PIPELINE, slug], previousData);
+        }
+      }
+    );
   };
 
   const handleClose = () => {
@@ -363,22 +384,8 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0">
-        <div
-          className="h-full overflow-x-auto"
-          style={{
-            msOverflowStyle: 'none',
-            scrollbarWidth: 'none',
-            WebkitOverflowScrolling: 'touch',
-          }}
-        >
-          <style jsx global>{`
-            /* Hide scrollbar for Chrome, Safari and Opera */
-            .overflow-x-auto::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
-
+      <div className="flex-1 overflow-x-auto">
+        <div className="h-full min-w-fit">
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="flex gap-4 p-4 h-full">
               {Object.entries(board.columns || {}).map(([columnId, column]) => (
@@ -399,7 +406,8 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                         </Tooltip>
                       </TooltipProvider>
                       <Badge variant="secondary" className="text-xs">
-                        {(column?.cards || []).length}
+                        {(column?.cards || []).length
+                        }
                       </Badge>
                     </div>
                   </div>
@@ -409,15 +417,13 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
                       <div
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        className={`flex-1 p-2 space-y-2 overflow-y-auto
+                        className={`flex-1 p-2 space-y-2
                           ${snapshot?.isDraggingOver ? 'bg-muted/30' : ''}
                           scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent
                           hover:scrollbar-thumb-muted-foreground/30`}
                         style={{
-                          height: 'calc(100vh - 8rem)',
+                          minHeight: '100px',
                           maxHeight: 'calc(100vh - 8rem)',
-                          overflowY: 'auto',
-                          overflowX: 'hidden'
                         }}
                       >
                         {(column?.cards || []).map((card, index) => (
@@ -583,4 +589,4 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
       </AlertDialog>
     </div>
   );
-} 
+}
