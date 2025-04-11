@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import client from "@/lib/client";
-import { CREATE_CONTACT_MUTATION } from "@/lib/query-constants";
+import { CREATE_CONTACT_MUTATION, FETCH_CONTACT } from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { RiAddLine } from "@remixicon/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -89,14 +89,12 @@ export default function CreateContactModal({
   });
 
 
-  // Fetch contact data if in edit mode
   const { data: contactData } = useQuery({
-    queryKey: ['contact', reference],
+    queryKey: [FETCH_CONTACT, reference],
     queryFn: async () => {
       if (!reference) return null;
-      const response = await fetch(`/api/contacts/${reference}`);
-      if (!response.ok) throw new Error('Failed to fetch contact');
-      return response.json() as Promise<ServerFetchContactResponse>;
+      const res = await client.contacts.contactsDetail(reference)
+      return res.data
     },
     enabled: mode === 'edit' && !!reference,
   });

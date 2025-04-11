@@ -56,6 +56,8 @@ export function EditContactDialog({ contact }: { contact: MalakContact }) {
     onSuccess: () => {
       toast.success("updated contact successfully");
 
+      setOpen(false)
+
       queryClient.invalidateQueries({
         queryKey: [FETCH_CONTACT, contact?.reference as string]
       })

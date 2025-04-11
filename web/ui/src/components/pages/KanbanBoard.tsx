@@ -271,10 +271,8 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
       return;
     }
 
-    // Find the contact from the contacts array using the draggableId
     const contact = contacts.find(c => c.reference === draggableId);
-    
-    // Find the destination column from columns array using the destination droppableId 
+
     const column = columns.find(c => c.reference === destination.droppableId);
 
     if (!contact?.id || !column?.id) {
@@ -282,10 +280,9 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
       return;
     }
 
-    // Call mutation with UUIDs instead of references
     updateBoardMutation.mutate({
       contactId: contact.id,
-      columnId: column.id, 
+      columnId: column.id,
       position: destination.index
     });
   };

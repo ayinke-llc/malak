@@ -15,20 +15,11 @@ import {
   RiMapPinLine,
   RiBuilding2Line,
   RiCalendarLine,
-  RiDeleteBinLine,
-  RiTeamLine,
-  RiBarChartLine,
-  RiTimeLine,
+  RiDeleteBinLine, RiTimeLine,
   RiFileTextLine,
   RiDashboardLine,
-  RiFolderOpenLine,
-  RiAddLine,
-  RiSearchLine,
-  RiArrowUpSLine,
-  RiArrowDownSLine
+  RiFolderOpenLine
 } from '@remixicon/react';
-import { Badge } from "@/components/ui/badge";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,18 +30,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { MalakContact, MalakContactShareItem, ServerAPIStatus } from "@/client/Api";
 import { fullName } from "@/lib/custom";
 import { format, formatDistanceToNow } from "date-fns";
@@ -64,7 +43,6 @@ import Link from "next/link";
 import { EditContactDialog } from "./form";
 import { ContactListsView } from "../lists/contact-lists-view";
 
-type TimePeriod = 'days' | 'weeks' | 'months';
 
 interface ContactDetailsProps {
   reference: string;
@@ -72,94 +50,6 @@ interface ContactDetailsProps {
   shared_items: MalakContactShareItem[]
   isLoading: boolean
 }
-
-interface AddToListDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  availableLists: Array<{
-    id: number;
-    title: string;
-    description: string;
-    count: number;
-    color: string;
-  }>;
-  onAddToList: (listId: number) => void;
-}
-
-const AddToListDialog = ({ open, onOpenChange, availableLists, onAddToList }: AddToListDialogProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedListId, setSelectedListId] = useState<number | null>(null);
-
-  const filteredLists = availableLists.filter(list =>
-    list.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    list.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleAddToList = () => {
-    if (selectedListId !== null) {
-      onAddToList(selectedListId);
-      onOpenChange(false);
-      setSelectedListId(null);
-      setSearchQuery("");
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add to List</DialogTitle>
-          <DialogDescription>
-            Select a list to add this contact to
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="relative">
-            <RiSearchLine className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search lists..."
-              className="pl-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <ScrollArea className="h-[300px] pr-4">
-            <div className="space-y-2">
-              {filteredLists.map((list) => (
-                <div
-                  key={list.id}
-                  className={`flex items-center gap-4 p-3 rounded-lg border cursor-pointer transition-colors ${
-                    selectedListId === list.id ? 'bg-primary/5 border-primary' : 'hover:bg-accent/5'
-                  }`}
-                  onClick={() => setSelectedListId(list.id)}
-                >
-                  <div className={`h-8 w-8 rounded-lg ${list.color} flex items-center justify-center text-white`}>
-                    <RiTeamLine className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-sm font-medium">{list.title}</h4>
-                    <p className="text-xs text-muted-foreground">{list.description}</p>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {list.count} contacts
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleAddToList} disabled={selectedListId === null}>
-            Add to List
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
 
 const ContactDetails = ({ isLoading, reference, contact, shared_items }: ContactDetailsProps) => {
   const router = useRouter();
@@ -236,8 +126,8 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
                   <div className="grid gap-8 mt-6">
                     {/* Quick Actions */}
                     <div className="grid grid-cols-2 gap-4 max-w-md">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="h-auto py-4 flex flex-col gap-1 w-full"
                         onClick={() => window.location.href = `mailto:${contact?.email}`}
                         disabled={!contact?.email}
@@ -245,8 +135,8 @@ const ContactDetails = ({ isLoading, reference, contact, shared_items }: Contact
                         <RiMailLine className="h-5 w-5" />
                         <span className="text-xs">Send Email</span>
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="h-auto py-4 flex flex-col gap-1 w-full"
                         onClick={() => window.location.href = `tel:${contact?.phone}`}
                         disabled={!contact?.phone}

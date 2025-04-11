@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RiAddLine, RiTeamLine, RiArrowUpSLine, RiArrowDownSLine } from '@remixicon/react';
-import { toast } from "sonner";
 import { AddToListDialog } from "./add-to-list-dialog";
 import { MalakContact, MalakContactListMapping } from "@/client/Api";
 
@@ -25,9 +24,9 @@ export function ContactListsView({ contact }: ContactListsViewProps) {
               Member of {currentLists.length} {currentLists.length === 1 ? 'list' : 'lists'}
             </p>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="flex items-center gap-2"
             onClick={() => setShowAddToListDialog(true)}
           >
