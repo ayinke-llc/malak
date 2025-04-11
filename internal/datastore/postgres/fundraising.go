@@ -338,6 +338,7 @@ func (d *fundingRepo) Overview(ctx context.Context,
 	total, err := d.inner.NewSelect().
 		Model((*malak.FundraisingPipeline)(nil)).
 		Where("workspace_id = ?", workspaceID).
+		Where("is_closed = ?", false).
 		Where("deleted_at IS NULL").
 		Count(ctx)
 	if err != nil {
