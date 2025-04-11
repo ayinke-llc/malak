@@ -277,6 +277,30 @@ func (d *fundingRepo) GetContact(ctx context.Context, pipelineID, contactID uuid
 	return &contact, nil
 }
 
+func (d *fundingRepo) GetColumn(ctx context.Context,
+	opts malak.GetBoardOptions) (*malak.FundraisingPipelineColumn, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	column := new(malak.FundraisingPipelineColumn)
+
+	err := d.inner.NewSelect().
+		Model(column).
+		Where("pipeline_id = ?", opts.PipelineID).
+		Where("id = ?", opts.ColumnID).
+		Scan(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, malak.ErrPipelineColumnNotFound
+		}
+
+		return nil, err
+	}
+
+	return column, nil
+}
+
 func (d *fundingRepo) UpdateBoardContact(ctx context.Context, details *malak.FundraiseContactDealDetails) error {
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()

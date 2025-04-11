@@ -347,7 +347,6 @@ func TestFundraising_Board(t *testing.T) {
 	err = fundingRepo.Create(t.Context(), pipeline, columns...)
 	require.NoError(t, err)
 
-	// Create test contacts first
 	testContacts := []*malak.Contact{
 		{
 			ID:          uuid.New(),
@@ -880,7 +879,6 @@ func TestFundraising_UpdateContactDeal(t *testing.T) {
 	err = fundingRepo.AddContactToBoard(t.Context(), opts)
 	require.NoError(t, err)
 
-	// Get the fundraise contact ID
 	var fundraiseContact malak.FundraiseContact
 	err = client.NewSelect().
 		Model(&fundraiseContact).
@@ -900,7 +898,6 @@ func TestFundraising_UpdateContactDeal(t *testing.T) {
 		err := fundingRepo.UpdateContactDeal(t.Context(), pipeline, updateOpts)
 		require.NoError(t, err)
 
-		// Verify the update
 		var dealDetails malak.FundraiseContactDealDetails
 		err = client.NewSelect().
 			Model(&dealDetails).
@@ -917,10 +914,71 @@ func TestFundraising_UpdateContactDeal(t *testing.T) {
 			ContactID:    uuid.New(),
 			Rating:       4,
 			CanLeadRound: true,
-			CheckSize:    1000000, // $1M
+			CheckSize:    1000000,
 		}
 
 		err := fundingRepo.UpdateContactDeal(t.Context(), pipeline, updateOpts)
-		require.NoError(t, err) // Should not error as it's a no-op update
+		// should not error as it's a no-op update
+		require.NoError(t, err)
 	})
+}
+
+func TestFundraising_GetColumn(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	fundingRepo := NewFundingRepo(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	pipeline := &malak.FundraisingPipeline{
+		Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
+		WorkspaceID:       workspace.ID,
+		Title:             "Test Pipeline",
+		Stage:             malak.FundraisePipelineStageSeed,
+		Description:       "Test pipeline description",
+		TargetAmount:      1000000,
+		StartDate:         time.Now().UTC(),
+		ExpectedCloseDate: time.Now().UTC().Add(90 * 24 * time.Hour),
+	}
+
+	columns := []malak.FundraisingPipelineColumn{
+		{
+			Title:       "First Column",
+			ColumnType:  malak.FundraisePipelineColumnTypeNormal,
+			Description: "First normal column",
+			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+		},
+		{
+			Title:       "Backlog",
+			ColumnType:  malak.FundraisePipelineColumnTypeNormal,
+			Description: "Default backlog column",
+			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+		},
+		{
+			Title:       "Closed Column",
+			ColumnType:  malak.FundraisePipelineColumnTypeClosed,
+			Description: "Closed column",
+			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipelineColumn),
+		},
+	}
+
+	err = fundingRepo.Create(t.Context(), pipeline, columns...)
+	require.NoError(t, err)
+
+	defaultColumn, err := fundingRepo.DefaultColumn(t.Context(), pipeline)
+	require.NoError(t, err)
+	require.Equal(t, "Backlog", defaultColumn.Title)
+	require.Equal(t, malak.FundraisePipelineColumnTypeNormal, defaultColumn.ColumnType)
+
+	coumn, err := fundingRepo.GetColumn(t.Context(), malak.GetBoardOptions{
+		PipelineID: pipeline.ID,
+		ColumnID:   defaultColumn.ID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, coumn.Reference, defaultColumn.Reference)
 }

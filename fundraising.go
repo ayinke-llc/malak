@@ -12,6 +12,7 @@ import (
 var (
 	ErrPipelineNotFound       = errors.New("pipeline not found")
 	ErrContactNotFoundOnBoard = errors.New("contact not found on board")
+	ErrPipelineColumnNotFound = errors.New("column not found in pipeline")
 )
 
 var DefaultFundraisingColumns = []struct {
@@ -209,6 +210,11 @@ type UpdateContactDealOptions struct {
 	ContactID    uuid.UUID
 }
 
+type GetBoardOptions struct {
+	PipelineID uuid.UUID
+	ColumnID   uuid.UUID
+}
+
 type FundraisingPipelineRepository interface {
 	Create(context.Context, *FundraisingPipeline, ...FundraisingPipelineColumn) error
 	List(context.Context, ListPipelineOptions) ([]FundraisingPipeline, int64, error)
@@ -218,6 +224,8 @@ type FundraisingPipelineRepository interface {
 
 	// This is just the first inserted column for now. keeping it simple
 	DefaultColumn(context.Context, *FundraisingPipeline) (FundraisingPipelineColumn, error)
+
+	GetColumn(context.Context, GetBoardOptions) (*FundraisingPipelineColumn, error)
 
 	AddContactToBoard(context.Context, *AddContactToBoardOptions) error
 	UpdateBoardContact(context.Context, *FundraiseContactDealDetails) error

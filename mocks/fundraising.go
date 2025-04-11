@@ -136,6 +136,21 @@ func (mr *MockFundraisingPipelineRepositoryMockRecorder) Get(arg0, arg1 any) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).Get), arg0, arg1)
 }
 
+// GetColumn mocks base method.
+func (m *MockFundraisingPipelineRepository) GetColumn(arg0 context.Context, arg1 malak.GetBoardOptions) (*malak.FundraisingPipelineColumn, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetColumn", arg0, arg1)
+	ret0, _ := ret[0].(*malak.FundraisingPipelineColumn)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetColumn indicates an expected call of GetColumn.
+func (mr *MockFundraisingPipelineRepositoryMockRecorder) GetColumn(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetColumn", reflect.TypeOf((*MockFundraisingPipelineRepository)(nil).GetColumn), arg0, arg1)
+}
+
 // GetContact mocks base method.
 func (m *MockFundraisingPipelineRepository) GetContact(arg0 context.Context, arg1, arg2 uuid.UUID) (*malak.FundraiseContact, error) {
 	m.ctrl.T.Helper()

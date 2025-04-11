@@ -545,3 +545,105 @@ func (d *fundraisingHandler) updateContactDeal(
 
 	return newAPIStatus(http.StatusOK, "contact deal details updated successfully"), StatusSuccess
 }
+
+type moveContactAcrossBoardRequest struct {
+	// GenericRequest
+	ColumnID uuid.UUID
+}
+
+func (c *moveContactAcrossBoardRequest) Validate() error {
+
+	return nil
+}
+
+// @Description move contact across board
+// @Tags fundraising
+// @Accept  json
+// @Produce  json
+// @Param reference path string true "Pipeline reference"
+// @Param contact_id path string true "Contact ID"
+// @Param message body moveContactAcrossBoardRequest true "move cotnact across board"
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /pipelines/{reference}/contacts/{contact_id} [post]
+func (d *fundraisingHandler) moveContactAcrossBoard(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("updating contact deal details")
+
+	reference := chi.URLParam(r, "reference")
+	if hermes.IsStringEmpty(reference) {
+		return newAPIStatus(http.StatusBadRequest, "please provide the pipeline reference"), StatusFailed
+	}
+
+	contactID := chi.URLParam(r, "contact_id")
+	if hermes.IsStringEmpty(contactID) {
+		return newAPIStatus(http.StatusBadRequest, "please provide the contact id"), StatusFailed
+	}
+
+	contactUUID, err := uuid.Parse(contactID)
+	if err != nil {
+		return newAPIStatus(http.StatusBadRequest, "you must provide a valid contact uuid"), StatusFailed
+	}
+
+	req := new(updateContactDealRequest)
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	workspace := getWorkspaceFromContext(ctx)
+
+	logger = logger.With(zap.String("reference", reference),
+		zap.String("contact_id", contactID))
+
+	pipeline, err := d.fundingRepo.Get(ctx, malak.FetchPipelineOptions{
+		Reference:   malak.Reference(reference),
+		WorkspaceID: workspace.ID,
+	})
+	if err != nil {
+		if errors.Is(err, malak.ErrPipelineNotFound) {
+			return newAPIStatus(http.StatusNotFound, "fundraising pipeline not found"), StatusFailed
+		}
+
+		logger.Error("could not fetch fundraising pipeline contact", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch fundraising pipeline"), StatusFailed
+	}
+
+	if pipeline.IsClosed {
+		return newAPIStatus(http.StatusBadRequest, "this pipeline is closed already"), StatusFailed
+	}
+
+	contact, err := d.fundingRepo.GetContact(ctx, pipeline.ID, contactUUID)
+	if err != nil {
+		if errors.Is(err, malak.ErrContactNotFoundOnBoard) {
+			return newAPIStatus(http.StatusNotFound, "this contact is not on this board"), StatusFailed
+		}
+
+		logger.Error("could not fetch contact", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "an error occurred while fetching a contact"), StatusFailed
+	}
+
+	err = d.fundingRepo.UpdateContactDeal(ctx, pipeline, malak.UpdateContactDealOptions{
+		Rating:       int64(req.Rating),
+		CanLeadRound: req.CanLeadRound,
+		CheckSize:    req.CheckSize,
+		ContactID:    contact.ID,
+	})
+	if err != nil {
+		logger.Error("could not update contact deal details", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not update contact deal details"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "contact deal details updated successfully"), StatusSuccess
+}

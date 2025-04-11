@@ -1906,7 +1906,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
-     * @description Update deal details for a contact on the fundraising board
+     * @description move contact across board
      *
      * @tags fundraising
      * @name ContactsPartialUpdate

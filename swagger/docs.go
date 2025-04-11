@@ -2386,7 +2386,7 @@ const docTemplate = `{
         },
         "/pipelines/{reference}/contacts/{contact_id}": {
             "patch": {
-                "description": "Update deal details for a contact on the fundraising board",
+                "description": "move contact across board",
                 "consumes": [
                     "application/json"
                 ],
