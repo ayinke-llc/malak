@@ -419,6 +419,11 @@ components:
         viewed_at:
           type: string
       type: object
+    malak.FundingPipelineOverview:
+      properties:
+        total:
+          type: integer
+      type: object
     malak.FundraiseContact:
       properties:
         contact:
@@ -1891,6 +1896,8 @@ components:
           $ref: '#/components/schemas/malak.DeckOverview'
         message:
           type: string
+        pipelines:
+          $ref: '#/components/schemas/malak.FundingPipelineOverview'
         shares:
           $ref: '#/components/schemas/malak.ShareOverview'
         updates:
@@ -1899,6 +1906,7 @@ components:
       - contacts
       - decks
       - message
+      - pipelines
       - shares
       - updates
       type: object

@@ -5029,6 +5029,14 @@ const docTemplate = `{
                 }
             }
         },
+        "malak.FundingPipelineOverview": {
+            "type": "object",
+            "properties": {
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
         "malak.FundraiseContact": {
             "type": "object",
             "properties": {
@@ -7193,6 +7201,7 @@ const docTemplate = `{
                 "contacts",
                 "decks",
                 "message",
+                "pipelines",
                 "shares",
                 "updates"
             ],
@@ -7205,6 +7214,9 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                },
+                "pipelines": {
+                    "$ref": "#/definitions/malak.FundingPipelineOverview"
                 },
                 "shares": {
                     "$ref": "#/definitions/malak.ShareOverview"

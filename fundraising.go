@@ -215,6 +215,10 @@ type GetBoardOptions struct {
 	ColumnID   uuid.UUID
 }
 
+type FundingPipelineOverview struct {
+	Total int64 `json:"total,omitempty"`
+}
+
 type FundraisingPipelineRepository interface {
 	Create(context.Context, *FundraisingPipeline, ...FundraisingPipelineColumn) error
 	List(context.Context, ListPipelineOptions) ([]FundraisingPipeline, int64, error)
@@ -230,4 +234,6 @@ type FundraisingPipelineRepository interface {
 	AddContactToBoard(context.Context, *AddContactToBoardOptions) error
 	GetContact(context.Context, uuid.UUID, uuid.UUID) (*FundraiseContact, error)
 	UpdateContactDeal(context.Context, *FundraisingPipeline, UpdateContactDealOptions) error
+
+	Overview(context.Context, uuid.UUID) (*FundingPipelineOverview, error)
 }

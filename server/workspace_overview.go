@@ -37,14 +37,14 @@ func (wo *workspaceHandler) overview(
 		decks    *malak.DeckOverview
 		contacts *malak.ContactOverview
 		shares   *malak.ShareOverview
+		fundings *malak.FundingPipelineOverview
 	)
 
 	// TODO: clean this up. Maybe cache all these data and rebuild everytime it changes
 	// so we have one query.
 	// I expect this dashboard to get complex over time but 4/5 queries not bad at the moment
 	// But the data/otel will tell anyways
-	// But it si fine for now
-	//
+	// But it is fine for now
 
 	g.Go(func() error {
 		var err error
@@ -82,6 +82,15 @@ func (wo *workspaceHandler) overview(
 		return err
 	})
 
+	g.Go(func() error {
+		var err error
+		fundings, err = wo.fundingRepo.Overview(gctx, workspace.ID)
+		if err != nil {
+			logger.Error("could not fetch funding pipelines overview", zap.Error(err))
+		}
+		return err
+	})
+
 	if err := g.Wait(); err != nil {
 		return newAPIStatus(http.StatusInternalServerError, "could not fetch workspace overview"), StatusFailed
 	}
@@ -91,6 +100,7 @@ func (wo *workspaceHandler) overview(
 		Decks:     decks,
 		Contacts:  contacts,
 		Shares:    shares,
+		Pipelines: fundings,
 		APIStatus: newAPIStatus(http.StatusOK, "workspace overview fetched"),
 	}, StatusSuccess
 }

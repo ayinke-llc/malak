@@ -22,8 +22,9 @@ func TestWorkspaceHandler_Overview(t *testing.T) {
 			deckRepo := malak_mocks.NewMockDeckRepository(controller)
 			contactRepo := malak_mocks.NewMockContactRepository(controller)
 			shareRepo := malak_mocks.NewMockContactShareRepository(controller)
+			fundingRepo := malak_mocks.NewMockFundraisingPipelineRepository(controller)
 
-			v.mockFn(updateRepo, deckRepo, contactRepo, shareRepo)
+			v.mockFn(updateRepo, deckRepo, contactRepo, shareRepo, fundingRepo)
 
 			a := &workspaceHandler{
 				cfg:         getConfig(),
@@ -31,6 +32,7 @@ func TestWorkspaceHandler_Overview(t *testing.T) {
 				deckRepo:    deckRepo,
 				contactRepo: contactRepo,
 				shareRepo:   shareRepo,
+				fundingRepo: fundingRepo,
 			}
 
 			rr := httptest.NewRecorder()
@@ -53,17 +55,17 @@ func TestWorkspaceHandler_Overview(t *testing.T) {
 
 func generateWorkspaceOverviewTestTable() []struct {
 	name               string
-	mockFn             func(updateRepo *malak_mocks.MockUpdateRepository, deckRepo *malak_mocks.MockDeckRepository, contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository)
+	mockFn             func(updateRepo *malak_mocks.MockUpdateRepository, deckRepo *malak_mocks.MockDeckRepository, contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository, fundingRepo *malak_mocks.MockFundraisingPipelineRepository)
 	expectedStatusCode int
 } {
 	return []struct {
 		name               string
-		mockFn             func(updateRepo *malak_mocks.MockUpdateRepository, deckRepo *malak_mocks.MockDeckRepository, contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository)
+		mockFn             func(updateRepo *malak_mocks.MockUpdateRepository, deckRepo *malak_mocks.MockDeckRepository, contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository, fundingRepo *malak_mocks.MockFundraisingPipelineRepository)
 		expectedStatusCode int
 	}{
 		{
 			name: "update repo fails",
-			mockFn: func(updateRepo *malak_mocks.MockUpdateRepository, deckRepo *malak_mocks.MockDeckRepository, contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository) {
+			mockFn: func(updateRepo *malak_mocks.MockUpdateRepository, deckRepo *malak_mocks.MockDeckRepository, contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository, fundingRepo *malak_mocks.MockFundraisingPipelineRepository) {
 				updateRepo.EXPECT().
 					Overview(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -83,12 +85,17 @@ func generateWorkspaceOverviewTestTable() []struct {
 					Overview(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(&malak.ShareOverview{}, nil)
+
+				fundingRepo.EXPECT().
+					Overview(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.FundingPipelineOverview{}, nil)
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
 			name: "deck repo fails",
-			mockFn: func(updateRepo *malak_mocks.MockUpdateRepository, deckRepo *malak_mocks.MockDeckRepository, contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository) {
+			mockFn: func(updateRepo *malak_mocks.MockUpdateRepository, deckRepo *malak_mocks.MockDeckRepository, contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository, fundingRepo *malak_mocks.MockFundraisingPipelineRepository) {
 				updateRepo.EXPECT().
 					Overview(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -108,12 +115,17 @@ func generateWorkspaceOverviewTestTable() []struct {
 					Overview(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(&malak.ShareOverview{}, nil)
+
+				fundingRepo.EXPECT().
+					Overview(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.FundingPipelineOverview{}, nil)
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
 			name: "contact repo fails",
-			mockFn: func(updateRepo *malak_mocks.MockUpdateRepository, deckRepo *malak_mocks.MockDeckRepository, contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository) {
+			mockFn: func(updateRepo *malak_mocks.MockUpdateRepository, deckRepo *malak_mocks.MockDeckRepository, contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository, fundingRepo *malak_mocks.MockFundraisingPipelineRepository) {
 				updateRepo.EXPECT().
 					Overview(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -133,12 +145,17 @@ func generateWorkspaceOverviewTestTable() []struct {
 					Overview(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(&malak.ShareOverview{}, nil)
+
+				fundingRepo.EXPECT().
+					Overview(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.FundingPipelineOverview{}, nil)
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
 			name: "share repo fails",
-			mockFn: func(updateRepo *malak_mocks.MockUpdateRepository, deckRepo *malak_mocks.MockDeckRepository, contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository) {
+			mockFn: func(updateRepo *malak_mocks.MockUpdateRepository, deckRepo *malak_mocks.MockDeckRepository, contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository, fundingRepo *malak_mocks.MockFundraisingPipelineRepository) {
 				updateRepo.EXPECT().
 					Overview(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -158,12 +175,17 @@ func generateWorkspaceOverviewTestTable() []struct {
 					Overview(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil, errors.New("could not fetch shares overview"))
+
+				fundingRepo.EXPECT().
+					Overview(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.FundingPipelineOverview{}, nil)
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
-			name: "all repos succeed",
-			mockFn: func(updateRepo *malak_mocks.MockUpdateRepository, deckRepo *malak_mocks.MockDeckRepository, contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository) {
+			name: "funding repo fails",
+			mockFn: func(updateRepo *malak_mocks.MockUpdateRepository, deckRepo *malak_mocks.MockDeckRepository, contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository, fundingRepo *malak_mocks.MockFundraisingPipelineRepository) {
 				updateRepo.EXPECT().
 					Overview(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -183,6 +205,41 @@ func generateWorkspaceOverviewTestTable() []struct {
 					Overview(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(&malak.ShareOverview{}, nil)
+
+				fundingRepo.EXPECT().
+					Overview(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil, errors.New("could not fetch funding overview"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "all repos succeed",
+			mockFn: func(updateRepo *malak_mocks.MockUpdateRepository, deckRepo *malak_mocks.MockDeckRepository, contactRepo *malak_mocks.MockContactRepository, shareRepo *malak_mocks.MockContactShareRepository, fundingRepo *malak_mocks.MockFundraisingPipelineRepository) {
+				updateRepo.EXPECT().
+					Overview(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.UpdateOverview{}, nil)
+
+				deckRepo.EXPECT().
+					Overview(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.DeckOverview{}, nil)
+
+				contactRepo.EXPECT().
+					Overview(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.ContactOverview{}, nil)
+
+				shareRepo.EXPECT().
+					Overview(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.ShareOverview{}, nil)
+
+				fundingRepo.EXPECT().
+					Overview(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(&malak.FundingPipelineOverview{}, nil)
 			},
 			expectedStatusCode: http.StatusOK,
 		},

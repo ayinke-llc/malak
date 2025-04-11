@@ -328,3 +328,24 @@ func (d *fundingRepo) MoveContactColumn(ctx context.Context, contact *malak.Fund
 		return err
 	})
 }
+
+func (d *fundingRepo) Overview(ctx context.Context,
+	workspaceID uuid.UUID) (*malak.FundingPipelineOverview, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	total, err := d.inner.NewSelect().
+		Model((*malak.FundraisingPipeline)(nil)).
+		Where("workspace_id = ?", workspaceID).
+		Where("is_closed = ?", false).
+		Where("deleted_at IS NULL").
+		Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &malak.FundingPipelineOverview{
+		Total: int64(total),
+	}, nil
+}

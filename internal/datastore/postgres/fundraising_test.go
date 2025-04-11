@@ -787,7 +787,19 @@ func TestFundraising_GetContact(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("get existing contact", func(t *testing.T) {
-		result, err := fundingRepo.GetContact(t.Context(), pipeline.ID, contact.ID)
+
+		var contacts []malak.FundraiseContact
+		err = client.NewSelect().
+			Model(&contacts).
+			Where("fundraising_pipeline_id = ?", pipeline.ID).
+			Where("contact_id = ?", contact.ID).
+			Scan(t.Context())
+
+		// verify only 1
+		require.NoError(t, err)
+		require.Len(t, contacts, 1)
+
+		result, err := fundingRepo.GetContact(t.Context(), pipeline.ID, contacts[0].ID)
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		require.Equal(t, contact.ID, result.ContactID)
@@ -1089,5 +1101,61 @@ func TestFundraising_MoveContactColumn(t *testing.T) {
 			Scan(ctx)
 		require.NoError(t, err)
 		require.NotZero(t, position.OrderIndex)
+	})
+}
+
+func TestFundraising_Overview(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	fundingRepo := NewFundingRepo(client)
+	workspaceRepo := NewWorkspaceRepository(client)
+
+	workspace, err := workspaceRepo.Get(t.Context(), &malak.FindWorkspaceOptions{
+		ID: uuid.MustParse("a4ae79a2-9b76-40d7-b5a1-661e60a02cb0"),
+	})
+	require.NoError(t, err)
+
+	pipelines := []*malak.FundraisingPipeline{
+		{
+			Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
+			WorkspaceID:       workspace.ID,
+			Title:             "Pipeline 1",
+			Stage:             malak.FundraisePipelineStageSeed,
+			Description:       "Description 1",
+			TargetAmount:      1000000,
+			StartDate:         time.Now().UTC(),
+			ExpectedCloseDate: time.Now().UTC().Add(90 * 24 * time.Hour),
+		},
+		{
+			Reference:         malak.NewReferenceGenerator().Generate(malak.EntityTypeFundraisingPipeline),
+			WorkspaceID:       workspace.ID,
+			Title:             "Pipeline 2",
+			Stage:             malak.FundraisePipelineStageSeriesA,
+			Description:       "Description 2",
+			TargetAmount:      5000000,
+			StartDate:         time.Now().UTC(),
+			ExpectedCloseDate: time.Now().UTC().Add(90 * 24 * time.Hour),
+		},
+	}
+
+	for _, pipeline := range pipelines {
+		err = fundingRepo.Create(t.Context(), pipeline)
+		require.NoError(t, err)
+	}
+
+	t.Run("get overview for workspace with pipelines", func(t *testing.T) {
+		overview, err := fundingRepo.Overview(t.Context(), workspace.ID)
+		require.NoError(t, err)
+		require.NotNil(t, overview)
+		require.Equal(t, int64(2), overview.Total)
+	})
+
+	t.Run("get overview for workspace without pipelines", func(t *testing.T) {
+		emptyWorkspaceID := uuid.New()
+		overview, err := fundingRepo.Overview(t.Context(), emptyWorkspaceID)
+		require.NoError(t, err)
+		require.NotNil(t, overview)
+		require.Equal(t, int64(0), overview.Total)
 	})
 }

@@ -170,6 +170,7 @@ func buildRoutes(
 		deckRepo:                deckRepo,
 		updateRepo:              updateRepo,
 		contactRepo:             contactRepo,
+		fundingRepo:             fundingRepo,
 	}
 
 	contactHandler := &contactHandler{
