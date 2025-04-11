@@ -77,6 +77,7 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
       const response = await client.pipelines.pipelinesDetail(slug);
       return response.data;
     },
+    gcTime: Number.POSITIVE_INFINITY,
   });
 
   const updateBoardMutation = useMutation({
@@ -100,7 +101,6 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
       toast.success("Card moved successfully");
     },
     onError: (err: AxiosError<ServerAPIStatus>) => {
-      console.log(err)
       toast.error(err.response?.data?.message ?? "Failed to move card");
     },
   });
