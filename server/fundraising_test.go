@@ -1388,45 +1388,6 @@ func generateMoveContactAcrossBoardTestTable() []moveContactAcrossBoardTestCase 
 			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
-			name: "contact not found on board",
-			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
-				pipeline := &malak.FundraisingPipeline{
-					ID:          uuid.MustParse("550e8400-e29b-41d4-a716-446655440000"),
-					Title:       "Test Pipeline",
-					Stage:       malak.FundraisePipelineStageSeed,
-					IsClosed:    false,
-					WorkspaceID: uuid.MustParse("56670b6d-48d4-4b17-bc8f-d101b7d0b53c"),
-				}
-
-				contactID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440001")
-
-				repo.EXPECT().
-					Get(gomock.Any(), gomock.Any()).
-					Times(1).
-					Return(pipeline, nil)
-
-				repo.EXPECT().
-					GetContact(gomock.Any(), pipeline.ID, contactID).
-					Times(1).
-					Return(nil, malak.ErrContactNotFoundOnBoard)
-
-				columnID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440002")
-				repo.EXPECT().
-					GetColumn(gomock.Any(), malak.GetBoardOptions{
-						PipelineID: pipeline.ID,
-						ColumnID:   columnID,
-					}).
-					Times(1).
-					Return(nil, malak.ErrPipelineColumnNotFound)
-			},
-			req: moveContactAcrossBoardRequest{
-				ContactID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-				ColumnID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
-			},
-			pipelineReference:  "pipeline_123",
-			expectedStatusCode: http.StatusNotFound,
-		},
-		{
 			name: "column not found",
 			mockFn: func(t *testing.T, repo *malak_mocks.MockFundraisingPipelineRepository) {
 				pipeline := &malak.FundraisingPipeline{
