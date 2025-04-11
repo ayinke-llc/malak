@@ -274,7 +274,6 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
     }
 
     const contact = contacts.find(c => c.reference === draggableId);
-
     const column = columns.find(c => c.reference === destination.droppableId);
 
     if (!contact?.id || !column?.id) {
@@ -282,11 +281,36 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
       return;
     }
 
-    updateBoardMutation.mutate({
-      contactId: contact.id,
-      columnId: column.id,
-      position: destination.index
-    });
+    // update the UI optimistically
+    const previousData = queryClient.getQueryData([FETCH_FUNDRAISING_PIPELINE, slug]);
+    queryClient.setQueryData(
+      [FETCH_FUNDRAISING_PIPELINE, slug],
+      (old: any) => {
+        const newContacts = old.contacts.map((c: any) => {
+          if (c.id === contact.id) {
+            return {
+              ...c,
+              fundraising_pipeline_column_id: column.id
+            };
+          }
+          return c;
+        });
+        return { ...old, contacts: newContacts };
+      }
+    );
+
+    updateBoardMutation.mutate(
+      {
+        contactId: contact.id,
+        columnId: column.id,
+        position: destination.index
+      },
+      {
+        onError: () => {
+          queryClient.setQueryData([FETCH_FUNDRAISING_PIPELINE, slug], previousData);
+        }
+      }
+    );
   };
 
   const handleClose = () => {
@@ -516,7 +540,6 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
         contact={selectedInvestor?.originalContact}
         deal={selectedInvestor?.originalDeal}
         slug={slug}
-        contactID={selectedInvestor?.id}
       />
 
       <AddInvestorDialogComponent
