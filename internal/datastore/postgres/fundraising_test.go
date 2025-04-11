@@ -787,7 +787,19 @@ func TestFundraising_GetContact(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("get existing contact", func(t *testing.T) {
-		result, err := fundingRepo.GetContact(t.Context(), pipeline.ID, contact.ID)
+
+		var contacts []malak.FundraiseContact
+		err = client.NewSelect().
+			Model(&contacts).
+			Where("fundraising_pipeline_id = ?", pipeline.ID).
+			Where("contact_id = ?", contact.ID).
+			Scan(t.Context())
+
+		// verify only 1
+		require.NoError(t, err)
+		require.Len(t, contacts, 1)
+
+		result, err := fundingRepo.GetContact(t.Context(), pipeline.ID, contacts[0].ID)
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		require.Equal(t, contact.ID, result.ContactID)

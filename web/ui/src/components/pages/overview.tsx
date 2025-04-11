@@ -1,6 +1,9 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card, CardContent,
+  CardHeader, CardTitle
+} from "@/components/ui/card";
 import {
   RiMailLine,
   RiFileTextLine,
@@ -10,6 +13,7 @@ import {
   RiTeamLine,
   RiTimeLine,
   RiDashboardLine,
+  RiExchangeDollarLine,
 } from "@remixicon/react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -214,6 +218,7 @@ export default function Overview() {
     activeDecks: data?.decks.total_decks ?? 0,
     totalUpdates: data?.updates.total ?? 0,
     totalContacts: data?.contacts.total_contacts ?? 0,
+    totalPipeliens: data?.pipelines.total ?? 0,
   };
 
   return (
@@ -227,7 +232,7 @@ export default function Overview() {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {isLoading ? (
           <>
             <MetricsCardSkeleton />
@@ -243,6 +248,13 @@ export default function Overview() {
               description="Currently shared decks"
               icon={RiPresentationLine}
               href="/decks"
+            />
+            <MetricsCard
+              title="Active funding pipelines"
+              value={metrics.totalPipeliens}
+              description="Active funding pipelines"
+              icon={RiExchangeDollarLine}
+              href="/fundraising"
             />
             <MetricsCard
               title="Total Updates"
