@@ -28,15 +28,15 @@ export const links = [
     icon: RiBook3Line,
   },
   {
+    title: "Fundraising Pipelines",
+    url: "/fundraising",
+    icon: RiMoneyDollarCircleLine,
+  },
+  {
     title: "Captable",
     url: "/captable",
     icon: RiPieChartLine,
     comingSoon: true,
-  },
-  {
-    title: "Fundraising Pipelines",
-    url: "/fundraising",
-    icon: RiMoneyDollarCircleLine,
   },
   {
     title: "Contacts",

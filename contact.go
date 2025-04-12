@@ -81,4 +81,11 @@ type ContactRepository interface {
 	Update(context.Context, *Contact) error
 	Overview(context.Context, uuid.UUID) (*ContactOverview, error)
 	Search(context.Context, SearchContactOptions) ([]Contact, error)
+
+	// This should only be used for updates sending
+	// ideally moste people have under 50 contacts so it is fine
+	// If we see people have 200-1k contacts, then we can optimise this even better
+	// EBut we really may never know. OTEL will tell us if it makes
+	// any sense at all or not
+	All(context.Context, uuid.UUID) ([]Contact, error)
 }

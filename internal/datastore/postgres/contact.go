@@ -262,3 +262,29 @@ func (o *contactRepo) Delete(ctx context.Context,
 		return err
 	})
 }
+
+func (o *contactRepo) All(ctx context.Context,
+	workspaceID uuid.UUID) ([]malak.Contact, error) {
+
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	var contacts []malak.Contact
+
+	err := o.inner.NewSelect().
+		Model(&contacts).
+		Where("workspace_id = ?", workspaceID).
+		Order("created_at DESC").
+		Where("deleted_at IS NULL").
+		Scan(ctx)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return []malak.Contact{}, nil
+		}
+
+		return nil, err
+	}
+
+	return contacts, nil
+}
