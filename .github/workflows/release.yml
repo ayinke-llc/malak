@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  attestations: write
 
 jobs:
   release:
@@ -25,3 +26,7 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-checksums: ./dist/checksums.txt

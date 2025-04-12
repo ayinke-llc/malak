@@ -9,6 +9,12 @@ name: Build container Image
 jobs:
   image:
     runs-on: "ubuntu-latest"
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+      attestations: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -17,7 +23,6 @@ jobs:
         id: set_tag
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
-            # Remove the leading 'v' from the tag name
             TAG=${GITHUB_REF#refs/tags/v}
             echo "TAG=${TAG}" >> $GITHUB_ENV
           else
@@ -39,6 +44,17 @@ jobs:
             -t ghcr.io/${GITHUB_REPOSITORY}:${{ env.TAG }} .
 
       - name: Push
+        id: push
         uses: actions-hub/docker@master
         with:
           args: push ghcr.io/${GITHUB_REPOSITORY}:${{ env.TAG }}
+
+      - name: Attest
+        uses: actions/attest@v2
+        id: attest
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          predicate-type: "https://in-toto.io/attestation/release/v0.1"
+          predicate: '{"purl":"pkg:oci/..."}'
+          push-to-registry: true
