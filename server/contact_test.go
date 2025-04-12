@@ -1489,3 +1489,67 @@ func generateSearchContactTestTable() []struct {
 		},
 	}
 }
+
+func generateListContactsTable() []struct {
+	name               string
+	mockFn             func(contactRepo *malak_mocks.MockContactRepository)
+	expectedStatusCode int
+} {
+	return []struct {
+		name               string
+		mockFn             func(contactRepo *malak_mocks.MockContactRepository)
+		expectedStatusCode int
+	}{
+		{
+			name: "could not list contacts",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().All(gomock.Any(), gomock.Any()).
+					Return([]malak.Contact{}, errors.New("oops could not fetch"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "list contacts",
+			mockFn: func(contactRepo *malak_mocks.MockContactRepository) {
+				contactRepo.EXPECT().All(gomock.Any(), gomock.Any()).
+					Return([]malak.Contact{
+						{
+							ID:        uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
+							Email:     "john@example.com",
+							FirstName: "John",
+							LastName:  "Doe",
+						},
+					}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}
+
+func TestContactHandler_All(t *testing.T) {
+	for _, v := range generateListContactsTable() {
+		t.Run(v.name, func(t *testing.T) {
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			contactRepo := malak_mocks.NewMockContactRepository(controller)
+
+			v.mockFn(contactRepo)
+
+			a := &contactHandler{
+				cfg:         getConfig(),
+				contactRepo: contactRepo,
+			}
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodGet, "/contacts/all", nil)
+
+			req = req.WithContext(writeWorkspaceToCtx(req.Context(), &malak.Workspace{}))
+			WrapMalakHTTPHandler(getLogger(t), a.listContacts, getConfig(), "contacts.all").
+				ServeHTTP(rr, req)
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
