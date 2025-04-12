@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
@@ -186,7 +187,7 @@ func requireAuthentication(
 			token, err := tokenFromRequest(r)
 			if err != nil {
 				logger.Error("token not found in request", zap.Error(err))
-				_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "session expired"))
+				_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "session key not exists in request"))
 				return
 			}
 
@@ -194,6 +195,11 @@ func requireAuthentication(
 			if err != nil {
 				logger.Error("could not parse JWT", zap.Error(err))
 				_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "could not validate JWT token"))
+				return
+			}
+
+			if data.ExpiresAt.Before(time.Now()) {
+				_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "session is expired"))
 				return
 			}
 
