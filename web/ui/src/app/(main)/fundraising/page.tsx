@@ -1,27 +1,57 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  Card, CardContent, CardDescription,
+  CardHeader, CardTitle
+} from "@/components/ui/card"
+import {
+  Dialog, DialogContent,
+  DialogHeader, DialogTitle, DialogTrigger
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select, SelectContent,
+  SelectItem, SelectTrigger, SelectValue
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { RiAddLine, RiCheckboxCircleLine, RiTimeLine, RiCloseCircleLine, RiErrorWarningLine, RiRefreshLine } from '@remixicon/react'
+import {
+  RiAddLine, RiTimeLine, RiCloseCircleLine,
+  RiErrorWarningLine, RiRefreshLine,
+  RiBarChartBoxLine, RiFolderOpenLine
+} from '@remixicon/react'
 import Link from "next/link"
 import * as yup from "yup"
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { CREATE_FUNDRAISING_PIPELINE, LIST_FUNDRAISING_PIPELINES } from "@/lib/query-constants"
+import {
+  useMutation, useQuery,
+  useQueryClient
+} from "@tanstack/react-query"
+import {
+  CREATE_FUNDRAISING_PIPELINE,
+  LIST_FUNDRAISING_PIPELINES
+} from "@/lib/query-constants"
 import client from "@/lib/client"
-import { MalakFundraisePipelineStage, ServerAPIStatus, ServerFetchPipelinesResponse, MalakFundraisingPipeline } from "@/client/Api"
+import {
+  MalakFundraisePipelineStage, ServerAPIStatus,
+  ServerFetchPipelinesResponse, MalakFundraisingPipeline
+} from "@/client/Api"
 import type { ServerCreateNewPipelineRequest } from "@/client/Api"
 import { toast } from "sonner"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import {
+  Form, FormControl,
+  FormField, FormItem,
+  FormLabel, FormMessage
+} from "@/components/ui/form"
 import React from "react"
 import { NumericFormat } from "react-number-format"
 import { AxiosError } from "axios"
-import { format, addDays, addMonths, parseISO, isValid } from "date-fns"
+import {
+  format, addDays, addMonths,
+  parseISO, isValid
+} from "date-fns"
+import { PlusCircle } from "lucide-react"
 
 const FUNDING_STAGES: { value: MalakFundraisePipelineStage; label: string; description: string }[] = [
   {
@@ -56,7 +86,7 @@ const FUNDING_STAGES: { value: MalakFundraisePipelineStage; label: string; descr
   },
   {
     value: MalakFundraisePipelineStage.FundraisePipelineStageBridgeRound,
-    label: "Bridge",
+    label: "Bridge round",
     description: "Short-term funding between major rounds"
   }
 ];
@@ -147,7 +177,7 @@ const getThreeMonthsFromNow = () => {
 export default function FundraisingBoards() {
   const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
-  
+
   const { data: pipelinesData, isLoading, error, refetch } = useQuery<ServerFetchPipelinesResponse>({
     queryKey: [LIST_FUNDRAISING_PIPELINES],
     queryFn: async () => {
@@ -251,8 +281,8 @@ export default function FundraisingBoards() {
                           </FormControl>
                           <SelectContent>
                             {FUNDING_STAGES.map((stage) => (
-                              <SelectItem 
-                                key={stage.value} 
+                              <SelectItem
+                                key={stage.value}
                                 value={stage.value}
                                 className="py-2 cursor-pointer focus:bg-accent/30 hover:bg-accent/30"
                               >
@@ -294,10 +324,10 @@ export default function FundraisingBoards() {
                         <FormItem>
                           <FormLabel>Start Date</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="date" 
+                            <Input
+                              type="date"
                               min={getTomorrowDate()}
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
@@ -312,10 +342,10 @@ export default function FundraisingBoards() {
                         <FormItem>
                           <FormLabel>Expected Close Date</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="date" 
+                            <Input
+                              type="date"
                               min={getTomorrowDate()}
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
@@ -372,8 +402,8 @@ export default function FundraisingBoards() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full group hover:border-destructive/30"
                 onClick={() => refetch()}
               >
@@ -404,49 +434,40 @@ export default function FundraisingBoards() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
           {!pipelinesData?.pipelines?.length ? (
             <div className="col-span-full flex items-center justify-center min-h-[400px]">
-              <Card className="w-full max-w-2xl border-muted/30">
-                <CardHeader className="text-center pb-6">
-                  <div className="mx-auto w-16 h-16 mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                    <RiAddLine className="w-8 h-8 text-primary" />
-                  </div>
-                  <CardTitle className="text-2xl mb-2">Start Your Fundraising Journey</CardTitle>
-                  <CardDescription className="text-base max-w-md mx-auto">
-                    Track and manage your fundraising rounds all in one place. Create your first funding round to get started.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {[
-                      {
-                        icon: RiCheckboxCircleLine,
-                        title: "Track Progress",
-                        description: "Monitor fundraising goals and milestones"
-                      },
-                      {
-                        icon: RiTimeLine,
-                        title: "Manage Deadlines",
-                        description: "Set and track important dates and deadlines"
-                      },
-                      {
-                        icon: RiRefreshLine,
-                        title: "Stay Organized",
-                        description: "Keep all fundraising details in one place"
-                      }
-                    ].map((feature, index) => (
-                      <div key={index} className="flex flex-col items-center text-center p-4 rounded-lg bg-muted/30">
-                        <feature.icon className="w-6 h-6 text-primary mb-2" />
-                        <h3 className="font-medium mb-1">{feature.title}</h3>
-                        <p className="text-sm text-muted-foreground">{feature.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex flex-col items-center pt-4">
-                    <Button 
-                      size="lg"
-                      className="w-full max-w-sm"
-                      onClick={() => setOpen(true)}
-                    >
-                      <RiAddLine className="w-5 h-5 mr-2" />
+              <Card className="w-full max-w-6xl border-none">
+                <CardContent className="p-8 border-none">
+                  <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                    <div className="bg-slate-100 p-4 rounded-full mb-6">
+                      <RiAddLine className="h-8 w-8 text-slate-400" />
+                    </div>
+                    <h2 className="text-2xl font-semibold text-slate-700 mb-2">Start Your Fundraising Journey</h2>
+                    <p className="text-slate-500 max-w-lg mb-10">
+                      Track and manage your fundraising rounds all in one place.
+                      <br />
+                      Create your first funding round to get started.
+                    </p>
+
+                    <div className="grid md:grid-cols-3 gap-6 w-full max-w-4xl mb-12">
+                      <FeatureCard
+                        icon={<RiBarChartBoxLine className="h-6 w-6 text-blue-600" />}
+                        title="Track Progress"
+                        description="Monitor fundraising goals and milestones"
+                      />
+
+                      <FeatureCard
+                        icon={<RiTimeLine className="h-6 w-6 text-blue-600" />}
+                        title="Manage Deadlines"
+                        description="Set and track important dates and deadlines"
+                      />
+                      <FeatureCard
+                        icon={<RiFolderOpenLine className="h-6 w-6 text-blue-600" />}
+                        title="Stay Organized"
+                        description="Keep all fundraising details in one place"
+                      />
+                    </div>
+
+                    <Button className="bg-blue-900 hover:bg-blue-800" onClick={() => setOpen(true)}>
+                      <PlusCircle className="mr-2 h-4 w-4" />
                       Create Your First Funding Round
                     </Button>
                   </div>
@@ -457,14 +478,14 @@ export default function FundraisingBoards() {
             pipelinesData?.pipelines
               ?.slice()
               .sort((a, b) => {
-                // First sort by status (open first)
+                // first sort by status (open first)
                 if ((a.is_closed ?? false) === (b.is_closed ?? false)) {
                   // If status is the same, sort by created_at (assuming newer first)
                   const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
                   const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
                   return bTime - aTime;
                 }
-                // Put open pipelines first
+                // put open pipelines first
                 return (a.is_closed ?? false) ? 1 : -1;
               })
               .map((pipeline: MalakFundraisingPipeline) => {
@@ -534,7 +555,26 @@ export default function FundraisingBoards() {
               })
           )}
         </div>
-      )}
+      )
+      }
+    </div >
+  )
+}
+
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode
+  title: string
+  description: string
+}) {
+  return (
+    <div className="bg-white p-6 rounded-lg border border-slate-100 shadow-sm flex flex-col items-center text-center">
+      <div className="mb-4">{icon}</div>
+      <h3 className="font-medium text-slate-700 mb-2">{title}</h3>
+      <p className="text-sm text-slate-500">{description}</p>
     </div>
   )
 }
