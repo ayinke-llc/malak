@@ -48,7 +48,7 @@ jobs:
           context: .
           push: true
           build-args: COMMIT:${GITHUB_SHA::8} VERSION:${{ env.TAG }}
-          tags: ghcr.io/${GITHUB_REPOSITORY}:${{ env.TAG }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
 
       - name: Attest
         uses: actions/attest@v2
