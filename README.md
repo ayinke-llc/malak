@@ -47,3 +47,7 @@ Detailed guide at <https://docs.malak.vc/self-hosting/installation>
 ## Cloud
 
 We have an hosted version available at <https://app.malak.vc>
+
+```sh
+ gh attestation verify oci://ghcr.io/ayinke-llc/malak:{TAG} --owner ayinke-llc --predicate-type https://in-toto.io/attestation/release/v0.1
+```
