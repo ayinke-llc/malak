@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
@@ -279,6 +280,37 @@ func TestRequireAuthentication(t *testing.T) {
 		require.Equal(t, http.StatusUnauthorized, rr.Code)
 	})
 
+	t.Run("expired token", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		userID := uuid.New()
+		jwtManager := mock_jwttoken.NewMockJWTokenManager(ctrl)
+		userRepo := malak_mocks.NewMockUserRepository(ctrl)
+		workspaceRepo := malak_mocks.NewMockWorkspaceRepository(ctrl)
+
+		jwtManager.EXPECT().
+			ParseJWToken("invalid-token").
+			Return(jwttoken.JWTokenData{UserID: userID, ExpiresAt: time.Now().Add(-time.Hour)}, nil)
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Set("Authorization", "Bearer invalid-token")
+
+		handler := requireAuthentication(
+			logger,
+			jwtManager,
+			cfg,
+			userRepo,
+			workspaceRepo,
+		)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		handler.ServeHTTP(rr, req)
+		require.Equal(t, http.StatusUnauthorized, rr.Code)
+	})
+
 	t.Run("user not found", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
@@ -290,7 +322,7 @@ func TestRequireAuthentication(t *testing.T) {
 
 		jwtManager.EXPECT().
 			ParseJWToken("valid-token").
-			Return(jwttoken.JWTokenData{UserID: userID}, nil)
+			Return(jwttoken.JWTokenData{UserID: userID, ExpiresAt: time.Now().Add(time.Hour)}, nil)
 
 		userRepo.EXPECT().
 			Get(gomock.Any(), &malak.FindUserOptions{ID: userID}).
@@ -325,7 +357,7 @@ func TestRequireAuthentication(t *testing.T) {
 
 		jwtManager.EXPECT().
 			ParseJWToken("valid-token").
-			Return(jwttoken.JWTokenData{UserID: userID}, nil)
+			Return(jwttoken.JWTokenData{UserID: userID, ExpiresAt: time.Now().Add(time.Hour)}, nil)
 
 		userRepo.EXPECT().
 			Get(gomock.Any(), &malak.FindUserOptions{ID: userID}).
@@ -377,7 +409,7 @@ func TestRequireAuthentication(t *testing.T) {
 
 		jwtManager.EXPECT().
 			ParseJWToken("valid-token").
-			Return(jwttoken.JWTokenData{UserID: userID}, nil)
+			Return(jwttoken.JWTokenData{UserID: userID, ExpiresAt: time.Now().Add(time.Hour)}, nil)
 
 		userRepo.EXPECT().
 			Get(gomock.Any(), &malak.FindUserOptions{ID: userID}).
