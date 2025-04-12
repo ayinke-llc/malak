@@ -3,6 +3,10 @@
 import type { ServerCreatedUserResponse } from "@/client/Api";
 import { Button } from "@/components/ui/button";
 import client from "@/lib/client";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { Input } from "@/components/ui/input";
 import {
   MALAK_PRIVACY_POLICY_LINK,
   MALAK_TERMS_CONDITION_LINK,
@@ -18,8 +22,28 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { usePostHog } from "posthog-js/react";
 import { toast } from "sonner";
+import { useState } from "react";
+
+const loginSchema = yup.object({
+  email: yup.string().email("Invalid email").required("Email is required"),
+  password: yup.string().required("Password is required"),
+});
+
+const signupSchema = yup.object({
+  email: yup.string().email("Invalid email").required("Email is required"),
+  firstName: yup.string().required("First name is required"),
+  lastName: yup.string().required("Last name is required"),
+  password: yup
+    .string()
+    .required("Password is required")
+    .min(8, "Password must be at least 8 characters"),
+});
+
+type LoginFormData = yup.InferType<typeof loginSchema>;
+type SignupFormData = yup.InferType<typeof signupSchema>;
 
 export default function LoginPage() {
+  const [isLogin, setIsLogin] = useState(true);
   const router = useRouter();
   const posthog = usePostHog();
 
@@ -60,8 +84,50 @@ export default function LoginPage() {
     googleLogin();
   };
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: yupResolver(loginSchema),
+  });
+
+  const {
+    register: registerSignup,
+    handleSubmit: handleSignupSubmit,
+    formState: { errors: signupErrors, isSubmitting: isSignupSubmitting },
+  } = useForm<SignupFormData>({
+    resolver: yupResolver(signupSchema),
+  });
+
+  const emailPasswordLogin = async (data: LoginFormData) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        setUser({ id: "1", email: data.email, name: "Test User" });
+        setToken("fake-token");
+        router.push("/");
+        resolve(true);
+      }, 1000);
+    });
+  };
+
+  const handleSignup = async (data: SignupFormData) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        setUser({
+          id: "1",
+          email: data.email,
+          name: `${data.firstName} ${data.lastName}`,
+        });
+        setToken("fake-token");
+        router.push("/");
+        resolve(true);
+      }, 1000);
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+    <div className="min-h-screen bg-gradient-to-br from-background via-violet-950/5 to-muted">
       <div className="container relative h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
         <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
           <div className="absolute inset-0">
@@ -69,15 +135,15 @@ export default function LoginPage() {
               src="/overview-malak.png"
               alt="Malak Background"
               fill
-              className="object-cover opacity-50 transition-opacity duration-300 hover:opacity-60"
+              className="object-cover opacity-60 transition-opacity duration-500 hover:opacity-70"
               priority
               quality={100}
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-950/30 via-background/40 to-background/60" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent" />
-            <div className="absolute inset-0 bg-grid-white/[0.03]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-950/40 via-background/50 to-background/70" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent" />
+            <div className="absolute inset-0 bg-grid-white/[0.04]" />
           </div>
-          <div className="relative z-20 flex items-center text-lg font-medium">
+          <div className="relative z-20 flex items-center text-xl font-medium">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -86,38 +152,161 @@ export default function LoginPage() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="mr-2 h-6 w-6"
+              className="mr-2 h-7 w-7"
             >
               <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
             </svg>
             Malak
           </div>
           <div className="relative z-20 mt-auto">
-            <blockquote className="space-y-2">
-              <p className="text-lg font-medium text-white drop-shadow-sm">
-                Streamline your communication and stay organized with our powerful platform
+            <blockquote className="space-y-3">
+              <p className="text-2xl font-medium text-white drop-shadow-sm">
+                Streamline your communication and stay organized with our
+                powerful platform
               </p>
-              <footer className="text-sm text-white/80">
+              <footer className="text-base text-white/90">
                 Your all-in-one collaboration solution
               </footer>
             </blockquote>
           </div>
         </div>
         <div className="lg:p-8">
-          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-            <div className="flex flex-col space-y-2 text-center">
-              <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
+          <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[380px]">
+            <div className="flex flex-col space-y-3 text-center">
+              <h1 className="text-3xl font-semibold tracking-tight">
+                {isLogin ? "Welcome back" : "Create an account"}
+              </h1>
               <p className="text-sm text-muted-foreground">
-                Sign into or create your account to continue
+                {isLogin ? (
+                  <>
+                    Don't have an account?{" "}
+                    <button
+                      onClick={() => setIsLogin(false)}
+                      className="text-primary hover:underline"
+                    >
+                      Create one instead
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Already have an account?{" "}
+                    <button
+                      onClick={() => setIsLogin(true)}
+                      className="text-primary hover:underline"
+                    >
+                      Sign in
+                    </button>
+                  </>
+                )}
               </p>
+            </div>
+
+            {isLogin ? (
+              <form onSubmit={handleSubmit(emailPasswordLogin)} className="space-y-5">
+                <div className="space-y-2">
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    className="h-11"
+                    {...register("email")}
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-red-500 ml-1">{errors.email.message}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Input
+                    type="password"
+                    placeholder="Password"
+                    className="h-11"
+                    {...register("password")}
+                  />
+                  {errors.password && (
+                    <p className="text-sm text-red-500 ml-1">{errors.password.message}</p>
+                  )}
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full h-11 text-base"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Signing in..." : "Sign in"}
+                </Button>
+              </form>
+            ) : (
+              <form onSubmit={handleSignupSubmit(handleSignup)} className="space-y-5">
+                <div className="space-y-2">
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    className="h-11"
+                    {...registerSignup("email")}
+                  />
+                  {signupErrors.email && (
+                    <p className="text-sm text-red-500 ml-1">{signupErrors.email.message}</p>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="First Name"
+                      className="h-11"
+                      {...registerSignup("firstName")}
+                    />
+                    {signupErrors.firstName && (
+                      <p className="text-sm text-red-500 ml-1">{signupErrors.firstName.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="Last Name"
+                      className="h-11"
+                      {...registerSignup("lastName")}
+                    />
+                    {signupErrors.lastName && (
+                      <p className="text-sm text-red-500 ml-1">{signupErrors.lastName.message}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Input
+                    type="password"
+                    placeholder="Password"
+                    className="h-11"
+                    {...registerSignup("password")}
+                  />
+                  {signupErrors.password && (
+                    <p className="text-sm text-red-500 ml-1">{signupErrors.password.message}</p>
+                  )}
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full h-11 text-base"
+                  disabled={isSignupSubmitting}
+                >
+                  {isSignupSubmitting ? "Creating account..." : "Create account"}
+                </Button>
+              </form>
+            )}
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-muted-foreground/20" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-3 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
             </div>
             <div className="grid gap-4">
               <Button
                 type="button"
-                className="relative overflow-hidden"
+                variant="outline"
+                className="relative overflow-hidden h-11"
                 onClick={loginWithGoogle}
               >
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center justify-center gap-3">
                   <svg
                     className="h-5 w-5"
                     xmlns="http://www.w3.org/2000/svg"
@@ -143,11 +332,17 @@ export default function LoginPage() {
                   <span>Continue with Google</span>
                 </div>
               </Button>
-              <Button variant="outline" className="relative overflow-hidden" disabled>
-                <div className="flex items-center justify-center gap-2">
+              <Button
+                variant="outline"
+                className="relative overflow-hidden h-11"
+                disabled
+              >
+                <div className="flex items-center justify-center gap-3">
                   <RiMicrosoftLine className="h-5 w-5" />
                   <span>Continue with Microsoft</span>
-                  <span className="absolute right-4 text-xs text-muted-foreground">(Soon)</span>
+                  <span className="absolute right-4 text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground">
+                    Soon
+                  </span>
                 </div>
               </Button>
             </div>
@@ -155,7 +350,7 @@ export default function LoginPage() {
               By clicking continue, you agree to our{" "}
               <Link
                 href={MALAK_TERMS_CONDITION_LINK}
-                className="underline underline-offset-4 hover:text-primary"
+                className="underline underline-offset-4 hover:text-primary transition-colors"
                 target="_blank"
               >
                 Terms of Service
@@ -163,7 +358,7 @@ export default function LoginPage() {
               and{" "}
               <Link
                 href={MALAK_PRIVACY_POLICY_LINK}
-                className="underline underline-offset-4 hover:text-primary"
+                className="underline underline-offset-4 hover:text-primary transition-colors"
                 target="_blank"
               >
                 Privacy Policy
@@ -174,4 +369,4 @@ export default function LoginPage() {
       </div>
     </div>
   );
-} 
+}
