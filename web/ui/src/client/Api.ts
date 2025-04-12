@@ -1298,6 +1298,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
+     * @description List all contacts
+     *
+     * @tags contacts
+     * @name ListAllContacts
+     * @request GET:/contacts/all
+     */
+    listAllContacts: (params: RequestParams = {}) =>
+      this.request<ServerListContactsResponse, ServerAPIStatus>({
+        path: `/contacts/all`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description batch create a new contact
      *
      * @tags contacts

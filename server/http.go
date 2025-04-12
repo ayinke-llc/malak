@@ -425,6 +425,9 @@ func buildRoutes(
 			r.Get("/",
 				WrapMalakHTTPHandler(logger, contactHandler.list, cfg, "contacts.list"))
 
+			r.Get("/all",
+				WrapMalakHTTPHandler(logger, contactHandler.listContacts, cfg, "contacts.all"))
+
 			r.Post("/batch",
 				WrapMalakHTTPHandler(logger, contactHandler.batchCreate, cfg, "contacts.batch"))
 

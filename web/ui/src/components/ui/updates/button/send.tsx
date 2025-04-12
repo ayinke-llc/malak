@@ -14,6 +14,7 @@ import {
 import client from "@/lib/client";
 import {
   FETCH_SINGLE_UPDATE,
+  LIST_ALL_CONTACTS,
   LIST_CONTACT_LISTS,
   SEND_UPDATE
 } from "@/lib/query-constants";
@@ -69,7 +70,15 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
         return { lists: [] };
       }
     },
-    initialData: { lists: [] } // Provide initial data to prevent undefined
+    initialData: { lists: [] }
+  });
+
+  const { data: contactsData } = useQuery({
+    queryKey: [LIST_ALL_CONTACTS],
+    queryFn: async () => {
+      const response = await client.contacts.listAllContacts();
+      return response?.data?.contacts || [];
+    },
   });
 
   const options: ContactList[] = (data?.lists || []).map(({ list, mappings }) => ({
@@ -261,6 +270,27 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
                                   <span className="ml-auto text-xs text-muted-foreground">
                                     {option.emails.length} contacts
                                   </span>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                            <CommandSeparator />
+                          </>
+                        )}
+
+                        {contactsData && contactsData.length > 0 && (
+                          <>
+                            <CommandGroup heading="Emails">
+                              {contactsData.map((contact) => (
+                                <CommandItem
+                                  key={contact.email}
+                                  onSelect={() => {
+                                    addNewContacts(contact.email as string);
+                                    setOpen(false);
+                                  }}
+                                  className="flex items-center gap-2 px-4 py-2 hover:bg-accent cursor-pointer"
+                                >
+                                  <RiUserLine className="h-4 w-4" />
+                                  <span>{contact.email}</span>
                                 </CommandItem>
                               ))}
                             </CommandGroup>
