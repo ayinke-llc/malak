@@ -19,6 +19,7 @@ import (
 	_ "github.com/ayinke-llc/malak/swagger"
 	chi "github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/telemetry"
 	"github.com/riandyrn/otelchi"
 	"github.com/rs/cors"
 	"github.com/sethvargo/go-limiter/httplimit"
@@ -259,9 +260,18 @@ func buildRoutes(
 	router.Use(writeRequestIDHeader)
 	router.Use(
 		middleware.AllowContentType("application/json", "multipart/form-data"))
+
 	router.Use(
 		otelchi.Middleware("malak.server",
 			otelchi.WithChiRoutes(router)))
+
+	if cfg.HTTP.Metrics.Enabled {
+		router.Use(telemetry.Collector(telemetry.Config{
+			Username: cfg.HTTP.Metrics.Username,
+			Password: cfg.HTTP.Metrics.Password,
+		}, []string{"/"}))
+	}
+
 	router.Use(jsonResponse)
 	router.Use(ratelimiterMiddleware.Handle)
 

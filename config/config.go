@@ -27,6 +27,26 @@ type UploadDriver string
 // ENUM(smtp,resend,sendgrid)
 type EmailProvider string
 
+type HTTPConfig struct {
+	Port      int `yaml:"port" mapstructure:"port"`
+	RateLimit struct {
+		// If redis, you have to configure the redis struct in the database field
+		Type              RateLimiterType `yaml:"type" mapstructure:"type"`
+		IsEnabled         bool            `yaml:"is_enabled" mapstructure:"is_enabled"`
+		RequestsPerMinute uint64          `yaml:"requests_per_minute" mapstructure:"requests_per_minute"`
+		BurstInterval     time.Duration   `yaml:"burst_interval" mapstructure:"burst_interval"`
+	} `yaml:"rate_limit" mapstructure:"rate_limit"`
+	Swagger struct {
+		Port      int  `mapstructure:"port" yaml:"port"`
+		UIEnabled bool `mapstructure:"ui_enabled" yaml:"ui_enabled"`
+	} `mapstructure:"swagger" yaml:"swagger"`
+	Metrics struct {
+		Enabled  bool   `mapstructure:"enabled" yaml:"enabled"`
+		Username string `mapstructure:"username" yaml:"username"`
+		Password string `mapstructure:"password" yaml:"password"`
+	} `mapstructure:"metrics" yaml:"metrics"`
+}
+
 type Config struct {
 	Logging struct {
 		Mode LogMode `yaml:"mode" mapstructure:"mode"`
@@ -58,20 +78,7 @@ type Config struct {
 		IsEnabled bool   `yaml:"is_enabled" mapstructure:"is_enabled"`
 	} `yaml:"otel" mapstructure:"otel"`
 
-	HTTP struct {
-		Port      int `yaml:"port" mapstructure:"port"`
-		RateLimit struct {
-			// If redis, you have to configure the redis struct in the database field
-			Type              RateLimiterType `yaml:"type" mapstructure:"type"`
-			IsEnabled         bool            `yaml:"is_enabled" mapstructure:"is_enabled"`
-			RequestsPerMinute uint64          `yaml:"requests_per_minute" mapstructure:"requests_per_minute"`
-			BurstInterval     time.Duration   `yaml:"burst_interval" mapstructure:"burst_interval"`
-		} `yaml:"rate_limit" mapstructure:"rate_limit"`
-		Swagger struct {
-			Port      int  `mapstructure:"port" yaml:"port"`
-			UIEnabled bool `mapstructure:"ui_enabled" yaml:"ui_enabled"`
-		} `mapstructure:"swagger" yaml:"swagger"`
-	} `yaml:"http" mapstructure:"http"`
+	HTTP HTTPConfig `yaml:"http" mapstructure:"http"`
 
 	Billing struct {
 		Stripe struct {
@@ -226,6 +233,16 @@ func (c *Config) Validate() error {
 
 	if c.HTTP.Port == 0 {
 		c.HTTP.Port = 5300
+	}
+
+	if c.HTTP.Metrics.Enabled {
+		if hermes.IsStringEmpty(c.HTTP.Metrics.Password) {
+			return errors.New("metrics password must be provided if metrics is enabled")
+		}
+
+		if hermes.IsStringEmpty(c.HTTP.Metrics.Username) {
+			return errors.New("metrics username must be provided if metrics is enabled")
+		}
 	}
 
 	if hermes.IsStringEmpty(c.APIKey.HashSecret) {

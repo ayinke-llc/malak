@@ -69,19 +69,7 @@ func getConfig() config.Config {
 		}{
 			DatabaseType: config.DatabaseTypePostgres,
 		},
-		HTTP: struct {
-			Port      int "yaml:\"port\" mapstructure:\"port\""
-			RateLimit struct {
-				Type              config.RateLimiterType "yaml:\"type\" mapstructure:\"type\""
-				IsEnabled         bool                   "yaml:\"is_enabled\" mapstructure:\"is_enabled\""
-				RequestsPerMinute uint64                 "yaml:\"requests_per_minute\" mapstructure:\"requests_per_minute\""
-				BurstInterval     time.Duration          "yaml:\"burst_interval\" mapstructure:\"burst_interval\""
-			} "yaml:\"rate_limit\" mapstructure:\"rate_limit\""
-			Swagger struct {
-				Port      int  "mapstructure:\"port\" yaml:\"port\""
-				UIEnabled bool "mapstructure:\"ui_enabled\" yaml:\"ui_enabled\""
-			} "mapstructure:\"swagger\" yaml:\"swagger\""
-		}{
+		HTTP: config.HTTPConfig{
 			Port: 8000,
 		},
 		Uploader: struct {
