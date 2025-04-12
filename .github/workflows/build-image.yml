@@ -9,6 +9,11 @@ name: Build container Image
 jobs:
   image:
     runs-on: "ubuntu-latest"
+
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}
+
     permissions:
       id-token: write
       contents: read
@@ -36,18 +41,14 @@ jobs:
           DOCKER_REGISTRY_URL: ghcr.io
           DOCKER_PASSWORD: ${{ github.token }}
 
-      - name: Build latest image
-        run: |
-          docker build \
-            --build-arg COMMIT=${GITHUB_SHA::8} \
-            --build-arg VERSION=${{ env.TAG }} \
-            -t ghcr.io/${GITHUB_REPOSITORY}:${{ env.TAG }} .
-
-      - name: Push
+      - name: Build and push image
         id: push
-        uses: actions-hub/docker@master
+        uses: docker/build-push-action@v5.0.0
         with:
-          args: push ghcr.io/${GITHUB_REPOSITORY}:${{ env.TAG }}
+          context: .
+          push: true
+          build-args: COMMIT:${GITHUB_SHA::8} VERSION:${{ env.TAG }}
+          tags: ghcr.io/${GITHUB_REPOSITORY}:${{ env.TAG }}
 
       - name: Attest
         uses: actions/attest@v2
