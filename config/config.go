@@ -71,6 +71,11 @@ type Config struct {
 			Port      int  `mapstructure:"port" yaml:"port"`
 			UIEnabled bool `mapstructure:"ui_enabled" yaml:"ui_enabled"`
 		} `mapstructure:"swagger" yaml:"swagger"`
+		Metrics struct {
+			Enabled  bool   `mapstructure:"enabled" yaml:"enabled"`
+			Username string `mapstructure:"username" yaml:"username"`
+			Password string `mapstructure:"password" yaml:"password"`
+		} `mapstructure:"metrics" yaml:"metrics"`
 	} `yaml:"http" mapstructure:"http"`
 
 	Billing struct {
@@ -226,6 +231,16 @@ func (c *Config) Validate() error {
 
 	if c.HTTP.Port == 0 {
 		c.HTTP.Port = 5300
+	}
+
+	if c.HTTP.Metrics.Enabled {
+		if hermes.IsStringEmpty(c.HTTP.Metrics.Password) {
+			return errors.New("metrics password must be provided if metrics is enabled")
+		}
+
+		if hermes.IsStringEmpty(c.HTTP.Metrics.Username) {
+			return errors.New("metrics username must be provided if metrics is enabled")
+		}
 	}
 
 	if hermes.IsStringEmpty(c.APIKey.HashSecret) {
