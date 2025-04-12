@@ -28,12 +28,6 @@ export const links = [
     icon: RiBook3Line,
   },
   {
-    title: "Captable",
-    url: "/captable",
-    icon: RiPieChartLine,
-    comingSoon: true,
-  },
-  {
     title: "Fundraising Pipelines",
     url: "/fundraising",
     icon: RiMoneyDollarCircleLine,
@@ -62,5 +56,11 @@ export const links = [
     title: "Settings",
     url: "/settings",
     icon: RiSettingsLine
+  },
+  {
+    title: "Captable",
+    url: "/captable",
+    icon: RiPieChartLine,
+    comingSoon: true,
   },
 ];

@@ -871,3 +871,40 @@ func (c *contactHandler) search(
 		},
 	}, StatusSuccess
 }
+
+// @Description List all contacts
+// @Tags contacts
+// @id listAllContacts
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} listContactsResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /contacts/all [get]
+func (c *contactHandler) listContacts(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("listing all contact in this workspace")
+
+	// TODO(adelowo): Keep track of otel for this to know if we should cut this out and use
+	// search instead
+	contacts, err := c.contactRepo.All(ctx, getWorkspaceFromContext(ctx).ID)
+	if err != nil {
+		logger.
+			Error("an error occurred while listing contacts", zap.Error(err))
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"an error occurred while fetching contacts"), StatusFailed
+	}
+
+	return listContactsResponse{
+		APIStatus: newAPIStatus(http.StatusOK, "fetched all contacts"),
+		Contacts:  contacts,
+	}, StatusSuccess
+}

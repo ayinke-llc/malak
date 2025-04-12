@@ -414,3 +414,52 @@ func TestContact_Search(t *testing.T) {
 		})
 	}
 }
+
+func TestContact_All(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	contactRepo := NewContactRepository(client)
+
+	// we have some contacts as part of the textfixtures
+	result, err := contactRepo.All(t.Context(), workspaceID)
+	require.NoError(t, err)
+	require.NotZero(t, result)
+
+	contacts := []*malak.Contact{
+		{
+			Email:       malak.Email("test1@example.com"),
+			WorkspaceID: workspaceID,
+			CreatedBy:   uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
+			OwnerID:     uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
+			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeContact),
+		},
+		{
+			Email:       malak.Email("test2@example.com"),
+			WorkspaceID: workspaceID,
+			CreatedBy:   uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
+			OwnerID:     uuid.MustParse("1aa6b38e-33d3-499f-bc9d-3090738f29e6"),
+			Reference:   malak.NewReferenceGenerator().Generate(malak.EntityTypeContact),
+		},
+	}
+
+	for _, c := range contacts {
+		err := contactRepo.Create(t.Context(), c)
+		require.NoError(t, err)
+	}
+
+	newResults, err := contactRepo.All(t.Context(), workspaceID)
+	require.NoError(t, err)
+
+	require.Greater(t, len(newResults), len(result))
+
+	for _, c := range contacts {
+		err := contactRepo.Delete(t.Context(), c)
+		require.NoError(t, err)
+	}
+
+	newResults, err = contactRepo.All(t.Context(), workspaceID)
+	require.NoError(t, err)
+
+	require.Len(t, result, len(newResults))
+}

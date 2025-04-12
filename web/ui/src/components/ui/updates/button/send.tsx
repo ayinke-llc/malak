@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,123 +14,151 @@ import {
 import client from "@/lib/client";
 import {
   FETCH_SINGLE_UPDATE,
+  LIST_ALL_CONTACTS,
   LIST_CONTACT_LISTS,
   SEND_UPDATE
 } from "@/lib/query-constants";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {
-  RiCloseLargeLine,
-  RiMailSendLine,
-} from "@remixicon/react";
+import { RiMailSendLine, RiCloseLine, RiUserLine, RiTeamLine, RiAddLine } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as EmailValidator from "email-validator";
-import { Option } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as yup from "yup";
 import type { ButtonProps } from "./props";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import CreatableSelect, { OptionType } from "@/components/ui/multi-select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ServerAPIStatus, ServerSendUpdateRequest } from "@/client/Api";
 import { AxiosError } from "axios";
 import { usePostHog } from "posthog-js/react";
 import { AnalyticsEvent } from "@/lib/events";
 
-interface Option {
-  readonly label: string;
-  readonly value: string;
+interface ContactList {
+  emails: Array<string>;
+  label: string;
+  value: string;
 }
 
-const schema = yup
-  .object({})
-  .required();
+interface FormValues {
+  recipients: string[];
+}
+
+const schema = yup.object().shape({
+  recipients: yup.array().of(yup.string().required()).min(1).required(),
+});
 
 const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean }) => {
-
-  const posthog = usePostHog()
-
+  const posthog = usePostHog();
   const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState<boolean>(false);
   const [showAllRecipients, setShowAllRecipients] = useState<boolean>(false);
+  const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+
+  const closeDialogRef = useRef<HTMLButtonElement>(null);
 
   const { data } = useQuery({
     queryKey: [LIST_CONTACT_LISTS],
-    queryFn: () => {
-      return client.contacts.fetchContactLists({
-        include_emails: true,
-      })
+    queryFn: async () => {
+      try {
+        const response = await client.contacts.fetchContactLists({
+          include_emails: true,
+        });
+        return response?.data ?? { lists: [] };
+      } catch (error) {
+        return { lists: [] };
+      }
+    },
+    initialData: { lists: [] }
+  });
+
+  const { data: contactsData } = useQuery({
+    queryKey: [LIST_ALL_CONTACTS],
+    queryFn: async () => {
+      const response = await client.contacts.listAllContacts();
+      return response?.data?.contacts || [];
     },
   });
 
-  const options: OptionType[] = data?.data?.lists?.map(({ list, mappings }) => {
-    return {
-      emails: mappings?.map((mapping) => {
-        return {
-          email: mapping?.email as string,
-          reference: mapping?.reference as string
-        }
-      }) ?? [],
-      label: list?.title as string,
-      value: list?.reference as string
-    }
-  }) ?? []
+  const options: ContactList[] = (data?.lists || []).map(({ list, mappings }) => ({
+    emails: (mappings || []).map((m) => m?.email ?? "").filter(Boolean),
+    label: list?.title ?? "Untitled List",
+    value: list?.reference ?? "",
+  }));
 
-  const [values, setValues] = useState<Option[]>([]);
+  const {
+    handleSubmit,
+    setValue,
+    formState: { isSubmitting }
+  } = useForm<FormValues>({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      recipients: []
+    }
+  });
+
+  const [values, setValues] = useState<string[]>([]);
+
+  useEffect(() => {
+    setValue('recipients', values);
+  }, [values, setValue]);
+
+  const handleOnChange = (opts: ContactList[]) => {
+    if (!Array.isArray(opts)) {
+      return
+    }
+
+    const newEmails = opts.flatMap(opt =>
+      Array.isArray(opt?.emails) ? opt.emails.filter(e => EmailValidator.validate(e)) : []
+    );
+
+    setValues(prevValues => {
+      const combinedEmails = [...(prevValues || []), ...newEmails];
+      const uniqueEmails = [...new Set(combinedEmails)];
+      setValue('recipients', uniqueEmails);
+      return uniqueEmails;
+    });
+  };
 
   const addNewContacts = (...inputValues: string[]) => {
-    // Normalize all inputs to lowercase
-    const normalizedInputs = inputValues.map((input) => input.toLowerCase());
+    const normalizedInputs = inputValues
+      .map((input) => input?.toLowerCase()?.trim() ?? '')
+      .filter(Boolean);
 
-    setLoading(true);
-
-    // Track invalid emails for error reporting
     const invalidEmails: string[] = [];
-
-    const newOptions: Option[] = [];
+    const newOptions: string[] = [];
 
     normalizedInputs.forEach((inputValue) => {
       if (!EmailValidator.validate(inputValue)) {
         invalidEmails.push(inputValue);
-        return; // Skip invalid emails
+        return;
       }
-
-      if (!values.some((item) => item.value === inputValue)) {
-        // Only add if it's not already present
-        newOptions.push({
-          value: inputValue,
-          label: inputValue,
-        });
+      if (!values.includes(inputValue)) {
+        newOptions.push(inputValue);
       }
     });
 
     if (invalidEmails.length > 0) {
-      toast.error(
-        `The following are not valid email addresses: ${invalidEmails.join(", ")}`
-      );
+      toast.error(`Invalid email${invalidEmails.length > 1 ? 's' : ''}: ${invalidEmails.join(", ")}`);
+      return;
     }
 
     if (newOptions.length > 0) {
       setValues((prev) => [...prev, ...newOptions]);
-      toast.success("added email")
+      setValue('recipients', [...values, ...newOptions]);
+      toast.success(newOptions.length === 1 ? "Email added" : `${newOptions.length} emails added`);
     }
-
-    setLoading(false);
   };
 
   const removeContact = (index: number) => {
-    setValues(values.filter((_, i) => i !== index));
+    const newValues = [...values];
+    newValues.splice(index, 1);
+    setValues(newValues);
+    setValue('recipients', newValues);
   };
-
-  const toggleShowAllRecipientState = () => setShowAllRecipients(!showAllRecipients);
-
-  const handleOnChange = (opts: OptionType[]) => {
-    opts.map((opt) => {
-      addNewContacts(...opt.emails.map((value) => value.email))
-    })
-  }
 
   const mutation = useMutation({
     mutationKey: [SEND_UPDATE],
@@ -136,15 +166,18 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
       return client.workspaces.sendUpdate(reference, data)
     },
     onSuccess: ({ data }) => {
-      toast.success(data.message);
-      queryClient.invalidateQueries({ queryKey: [FETCH_SINGLE_UPDATE, reference] })
+      toast.success(data?.message || "Update sent successfully");
+      queryClient.invalidateQueries({ queryKey: [FETCH_SINGLE_UPDATE, reference] });
       posthog?.capture(AnalyticsEvent.SendUpdate, {
         liveRecipient: true
-      })
+      });
+      setValues([]);
+      setOpen(false);
+      closeDialogRef.current?.click();
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message;
-      if (err.response !== undefined) {
+      if (err.response?.data?.message) {
         msg = err.response.data.message;
       }
       toast.error(msg);
@@ -155,119 +188,212 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
     onMutate: () => setLoading(true),
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-  const onSubmit: SubmitHandler<{}> = () => {
-    mutation.mutate({
-      emails: values.map((value) => value.value)
-    })
+  const onSubmit: SubmitHandler<FormValues> = async (data) => {
+    try {
+      await schema.validate(data);
+      mutation.mutate({
+        emails: data.recipients.filter(Boolean)
+      });
+    } catch (error) {
+      if (error instanceof yup.ValidationError) {
+        toast.error(error.message);
+      }
+    }
   };
 
-  const {
-    handleSubmit,
-  } = useForm({
-    resolver: yupResolver(schema),
-  });
-
   return (
-    <>
-      <div className="flex justify-center">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button type="submit" size="lg"
-              variant="default"
-              className="gap-1">
-              <RiMailSendLine size={18} />
-              {isSent ? "Add recipient" : "Send"}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <DialogHeader>
-                <DialogTitle>Send this update</DialogTitle>
-                <DialogDescription className="mt-1 text-sm leading-6">
-                  An email will be sent to all selected contacts immediately.
-                  Please re-verify your content is ready and good to go
-                </DialogDescription>
+    <div className="flex justify-center">
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button type="submit" size="lg" variant="default" className="gap-1">
+            <RiMailSendLine size={18} />
+            {isSent ? "Add recipient" : "Send"}
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-2xl">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <DialogHeader>
+              <DialogTitle className="text-xl">Send this update</DialogTitle>
+              <DialogDescription className="mt-3 text-base leading-6">
+                An email will be sent to all selected contacts immediately.
+                Please re-verify your content is ready and good to go.
+              </DialogDescription>
 
-                <div className="mt-4">
-                  <CreatableSelect placeholder="Select a list or add an email"
-                    isMulti
-                    options={options}
-                    allowCustomInput={true}
-                    onCustomInputEnter={addNewContacts}
-                    onChange={handleOnChange}
-                  />
-                </div>
+              <div className="mt-4 flex flex-col gap-4">
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={open}
+                      className="w-full justify-between"
+                    >
+                      Select contacts or enter email...
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[520px] p-0" side="bottom" align="start">
+                    <Command className="w-full rounded-lg border shadow-md">
+                      <CommandInput
+                        value={inputValue}
+                        onValueChange={setInputValue}
+                        placeholder="Search contacts or enter email..."
+                        className="h-11 px-4"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const selectedItem = document.querySelector('[data-selected="true"]') as HTMLElement;
+                            if (selectedItem) {
+                              selectedItem.click();
+                            } else if (inputValue.trim()) {
+                              addNewContacts(inputValue.trim());
+                              setInputValue("");
+                              setOpen(false);
+                            }
+                          }
+                        }}
+                      />
+                      <CommandList className="max-h-[300px] overflow-y-auto">
+                        <CommandEmpty className="py-6 text-center text-sm">
+                          {!inputValue ? (
+                            "Type an email address to add directly."
+                          ) : (
+                            <>Press Enter to add "{inputValue}" as an email address</>
+                          )}
+                        </CommandEmpty>
+
+                        {options.length > 0 && (
+                          <>
+                            <CommandGroup heading="Contact Lists">
+                              {options.map((option) => (
+                                <CommandItem
+                                  key={option.value || Math.random().toString(36).substring(2, 9)}
+                                  onSelect={() => {
+                                    handleOnChange([option]);
+                                    setOpen(false);
+                                  }}
+                                  className="flex items-center gap-2 px-4 py-2 hover:bg-accent cursor-pointer"
+                                >
+                                  <RiTeamLine className="h-4 w-4" />
+                                  <span>{option.label}</span>
+                                  <span className="ml-auto text-xs text-muted-foreground">
+                                    {option.emails.length} contacts
+                                  </span>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                            <CommandSeparator />
+                          </>
+                        )}
+
+                        {contactsData && contactsData.length > 0 && (
+                          <>
+                            <CommandGroup heading="Emails">
+                              {contactsData.map((contact) => (
+                                <CommandItem
+                                  key={contact.email}
+                                  onSelect={() => {
+                                    addNewContacts(contact.email as string);
+                                    setOpen(false);
+                                  }}
+                                  className="flex items-center gap-2 px-4 py-2 hover:bg-accent cursor-pointer"
+                                >
+                                  <RiUserLine className="h-4 w-4" />
+                                  <span>{contact.email}</span>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                            <CommandSeparator />
+                          </>
+                        )}
+
+                        <CommandGroup heading="Actions">
+                          <CommandItem
+                            onSelect={() => {
+                              if (inputValue.trim()) {
+                                addNewContacts(inputValue.trim());
+                                setInputValue("");
+                                setOpen(false);
+                              }
+                            }}
+                            className="flex items-center gap-2 px-4 py-2"
+                          >
+                            <RiAddLine className="h-4 w-4" />
+                            <span>Add new contact</span>
+                          </CommandItem>
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
 
                 {values.length > 0 && (
-                  <div className="flex-1 pt-5">
-                    <div
-                      className={cn(
-                        "w-full rounded-md border bg-background p-2",
-                        showAllRecipients ? "h-[100px]" : "h-full",
-                        "overflow-y-auto"
-                      )}
-                    >
+                  <div className="flex-1">
+                    <div className="w-full rounded-md border bg-background p-3">
                       <div className="flex flex-wrap gap-2">
-                        {values
-                          .slice(0, showAllRecipients ? values.length : 5)
-                          .map((recipient, index) => (
-                            <Badge
-                              key={index}
-                              variant="secondary"
-                              className="flex items-center gap-1 pr-1"
-                            >
-                              <span className="text-sm">{recipient.label}</span>
-                              <button
-                                onClick={() => removeContact(index)}
-                                className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                              >
-                                <RiCloseLargeLine className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                                <span className="sr-only">Remove recipient</span>
-                              </button>
-                            </Badge>
-                          ))}
-                        {values.length > 5 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={toggleShowAllRecipientState}
-                            className="h-8"
+                        {(showAllRecipients ? values : values.slice(0, 5)).map((recipient, index) => (
+                          <Badge
+                            key={`${recipient}-${index}`}
+                            variant="secondary"
+                            className="flex items-center gap-1.5 px-2 py-1"
                           >
-                            {showAllRecipients
-                              ? "Show less"
-                              : `+${values.length - 5} more`}
-                          </Button>
+                            <RiUserLine className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-sm">{recipient}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeContact(index)}
+                              className="ml-1 rounded-full outline-none hover:bg-secondary-foreground/10 p-0.5 transition-colors"
+                            >
+                              <RiCloseLine className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                              <span className="sr-only">Remove {recipient}</span>
+                            </button>
+                          </Badge>
+                        ))}
+                        {values.length > 5 && (
+                          <button
+                            type="button"
+                            onClick={() => setShowAllRecipients(!showAllRecipients)}
+                            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {showAllRecipients ? (
+                              "Show less"
+                            ) : (
+                              <span className="flex items-center gap-1">
+                                +{values.length - 5} more recipients
+                              </span>
+                            )}
+                          </button>
                         )}
                       </div>
                     </div>
                   </div>
                 )}
-              </DialogHeader>
-              <DialogFooter className="mt-6">
-                <DialogClose asChild>
-                  <Button
-                    type={"button"}
-                    className="mt-2 w-full sm:mt-0 sm:w-fit"
-                    variant="secondary"
-                    loading={loading}
-                  >
-                    Cancel
-                  </Button>
-                </DialogClose>
+              </div>
+            </DialogHeader>
+            <DialogFooter className="mt-6">
+              <DialogClose ref={closeDialogRef} className="hidden" />
+              <DialogClose asChild>
                 <Button
-                  type="submit"
-                  className="w-full sm:w-fit"
+                  type="button"
+                  className="mt-2 w-full sm:mt-0 sm:w-fit"
+                  variant="outline"
                   loading={loading}
                 >
-                  Send
+                  Cancel
                 </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </>
+              </DialogClose>
+              <Button
+                type="submit"
+                className="w-full sm:w-fit"
+                loading={loading || isSubmitting}
+                disabled={values.length === 0}
+              >
+                Send
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 
