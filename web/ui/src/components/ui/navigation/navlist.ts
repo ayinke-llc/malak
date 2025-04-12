@@ -33,12 +33,6 @@ export const links = [
     icon: RiMoneyDollarCircleLine,
   },
   {
-    title: "Captable",
-    url: "/captable",
-    icon: RiPieChartLine,
-    comingSoon: true,
-  },
-  {
     title: "Contacts",
     url: "/contacts",
     icon: RiContactsLine,
@@ -62,5 +56,11 @@ export const links = [
     title: "Settings",
     url: "/settings",
     icon: RiSettingsLine
+  },
+  {
+    title: "Captable",
+    url: "/captable",
+    icon: RiPieChartLine,
+    comingSoon: true,
   },
 ];

@@ -27,7 +27,6 @@ import { toast } from "sonner";
 import * as yup from "yup";
 import type { ButtonProps } from "./props";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ServerAPIStatus, ServerSendUpdateRequest } from "@/client/Api";
@@ -78,8 +77,6 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
     label: list?.title ?? "Untitled List",
     value: list?.reference ?? "",
   }));
-
-  console.log(options)
 
   const {
     handleSubmit,
@@ -151,8 +148,6 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
     setValues(newValues);
     setValue('recipients', newValues);
   };
-
-  const toggleShowAllRecipientState = () => setShowAllRecipients(!showAllRecipients);
 
   const mutation = useMutation({
     mutationKey: [SEND_UPDATE],
@@ -243,12 +238,12 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
                       <CommandList>
                         <CommandEmpty className="py-6 text-center text-sm">
                           {!inputValue ? (
-                            "No contact lists available. Type an email address to add directly."
+                            "Type an email address to add directly."
                           ) : (
                             <>Press Enter to add "{inputValue}" as an email address</>
                           )}
                         </CommandEmpty>
-                        
+
                         {options.length > 0 && (
                           <>
                             <CommandGroup heading="Contact Lists">
@@ -259,7 +254,7 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
                                     handleOnChange([option]);
                                     setOpen(false);
                                   }}
-                                  className="flex items-center gap-2 px-4 py-2 hover:bg-accent"
+                                  className="flex items-center gap-2 px-4 py-2 hover:bg-accent cursor-pointer"
                                 >
                                   <RiTeamLine className="h-4 w-4" />
                                   <span>{option.label}</span>
@@ -272,7 +267,7 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
                             <CommandSeparator />
                           </>
                         )}
-                        
+
                         <CommandGroup heading="Actions">
                           <CommandItem
                             onSelect={() => {
@@ -295,44 +290,40 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
 
                 {values.length > 0 && (
                   <div className="flex-1">
-                    <div
-                      className={cn(
-                        "w-full rounded-md border bg-background p-2",
-                        showAllRecipients ? "h-[100px]" : "h-full",
-                        "overflow-y-auto"
-                      )}
-                    >
+                    <div className="w-full rounded-md border bg-background p-3">
                       <div className="flex flex-wrap gap-2">
-                        {values
-                          .slice(0, showAllRecipients ? values.length : 5)
-                          .map((recipient, index) => (
-                            <Badge
-                              key={`${recipient}-${index}`}
-                              variant="secondary"
-                              className="flex items-center gap-1 pr-1"
-                            >
-                              <span className="text-sm">{recipient}</span>
-                              <button
-                                type="button"
-                                onClick={() => removeContact(index)}
-                                className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                              >
-                                <RiCloseLine className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                                <span className="sr-only">Remove recipient</span>
-                              </button>
-                            </Badge>
-                          ))}
-                        {values.length > 5 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={toggleShowAllRecipientState}
-                            className="h-8"
+                        {(showAllRecipients ? values : values.slice(0, 5)).map((recipient, index) => (
+                          <Badge
+                            key={`${recipient}-${index}`}
+                            variant="secondary"
+                            className="flex items-center gap-1.5 px-2 py-1"
                           >
-                            {showAllRecipients
-                              ? "Show less"
-                              : `+${values.length - 5} more`}
-                          </Button>
+                            <RiUserLine className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-sm">{recipient}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeContact(index)}
+                              className="ml-1 rounded-full outline-none hover:bg-secondary-foreground/10 p-0.5 transition-colors"
+                            >
+                              <RiCloseLine className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                              <span className="sr-only">Remove {recipient}</span>
+                            </button>
+                          </Badge>
+                        ))}
+                        {values.length > 5 && (
+                          <button
+                            type="button"
+                            onClick={() => setShowAllRecipients(!showAllRecipients)}
+                            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {showAllRecipients ? (
+                              "Show less"
+                            ) : (
+                              <span className="flex items-center gap-1">
+                                +{values.length - 5} more recipients
+                              </span>
+                            )}
+                          </button>
                         )}
                       </div>
                     </div>
