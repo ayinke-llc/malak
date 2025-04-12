@@ -100,37 +100,37 @@ func (c *contactListRepo) List(ctx context.Context,
 	defer cancelFn()
 
 	query := `
-        WITH list_data AS (
-            SELECT 
-                id, workspace_id, title, reference, 
-                created_by, created_at, updated_at, deleted_at
-            FROM contact_lists 
-            WHERE workspace_id = ? AND deleted_at IS NULL ORDER BY created_at DESC
-        )
-        SELECT 
-	          COALESCE(json_agg(list_data)::text, '[]') as lists,
-            COALESCE(
-                json_agg(
-                    DISTINCT jsonb_build_object(
-                        'id', clm.id,
-                        'list_id', clm.list_id,
-                        'contact_id', clm.contact_id,
-                        'reference', clm.reference,
-                        'email', c.email
-                    )
-                ) FILTER (WHERE clm.id IS NOT NULL),
-                '[]'
-            )::text as mappings
-        FROM list_data
-        LEFT JOIN contact_list_mappings clm ON clm.list_id = list_data.id 
-            AND clm.deleted_at IS NULL
-        LEFT JOIN contacts c ON c.id = clm.contact_id 
-            AND c.deleted_at IS NULL;
-    `
+		SELECT 
+			(
+				SELECT COALESCE(json_agg(cl)::text, '[]')
+				FROM (
+					SELECT id, workspace_id, title, reference, created_by, created_at, updated_at, deleted_at
+					FROM contact_lists 
+					WHERE workspace_id = ? AND deleted_at IS NULL 
+					ORDER BY created_at DESC
+				) cl
+			) as lists,
+			(
+				SELECT COALESCE(
+					json_agg(
+						DISTINCT jsonb_build_object(
+							'id', clm.id,
+							'list_id', clm.list_id,
+							'contact_id', clm.contact_id,
+							'reference', clm.reference,
+							'email', c.email
+						)
+					) FILTER (WHERE clm.id IS NOT NULL),
+					'[]'
+				)::text
+				FROM contact_lists cl
+				LEFT JOIN contact_list_mappings clm ON clm.list_id = cl.id AND clm.deleted_at IS NULL
+				LEFT JOIN contacts c ON c.id = clm.contact_id AND c.deleted_at IS NULL
+				WHERE cl.workspace_id = ? AND cl.deleted_at IS NULL
+			) as mappings`
 
 	var listsStr, mappingsStr string
-	err := c.inner.QueryRowContext(ctx, query, opts.WorkspaceID).Scan(&listsStr, &mappingsStr)
-	if err != nil {
+	if err := c.inner.QueryRowContext(ctx, query, opts.WorkspaceID, opts.WorkspaceID).Scan(&listsStr, &mappingsStr); err != nil {
 		return nil, nil, err
 	}
 

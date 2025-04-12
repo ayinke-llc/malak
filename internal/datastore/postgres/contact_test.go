@@ -451,7 +451,7 @@ func TestContact_All(t *testing.T) {
 	newResults, err := contactRepo.All(t.Context(), workspaceID)
 	require.NoError(t, err)
 
-	require.Len(t, newResults, len(result)+len(newResults))
+	require.Greater(t, len(newResults), len(result))
 
 	for _, c := range contacts {
 		err := contactRepo.Delete(t.Context(), c)
@@ -461,5 +461,5 @@ func TestContact_All(t *testing.T) {
 	newResults, err = contactRepo.All(t.Context(), workspaceID)
 	require.NoError(t, err)
 
-	require.Len(t, result, len(result))
+	require.Len(t, result, len(newResults))
 }
