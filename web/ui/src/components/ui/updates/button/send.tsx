@@ -22,7 +22,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { RiMailSendLine, RiCloseLine, RiUserLine, RiTeamLine, RiAddLine } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as EmailValidator from "email-validator";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as yup from "yup";
@@ -57,6 +57,8 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
   const [showAllRecipients, setShowAllRecipients] = useState<boolean>(false);
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
+
+  const closeDialogRef = useRef<HTMLButtonElement>(null);
 
   const { data } = useQuery({
     queryKey: [LIST_CONTACT_LISTS],
@@ -171,6 +173,7 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
       });
       setValues([]);
       setOpen(false);
+      closeDialogRef.current?.click();
     },
     onError(err: AxiosError<ServerAPIStatus>) {
       let msg = err.message;
@@ -367,11 +370,12 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
               </div>
             </DialogHeader>
             <DialogFooter className="mt-6">
+              <DialogClose ref={closeDialogRef} className="hidden" />
               <DialogClose asChild>
                 <Button
                   type="button"
                   className="mt-2 w-full sm:mt-0 sm:w-fit"
-                  variant="secondary"
+                  variant="outline"
                   loading={loading}
                 >
                   Cancel
