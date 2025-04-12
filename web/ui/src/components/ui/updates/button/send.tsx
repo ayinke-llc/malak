@@ -238,9 +238,9 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
-                            const selectedItem = document.querySelector('[data-selected="true"]');
+                            const selectedItem = document.querySelector('[data-selected="true"]') as HTMLElement;
                             if (selectedItem) {
-                              selectedItem?.click();
+                              selectedItem.click();
                             } else if (inputValue.trim()) {
                               addNewContacts(inputValue.trim());
                               setInputValue("");
