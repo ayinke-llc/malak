@@ -236,15 +236,20 @@ const SendUpdateButton = ({ reference, isSent }: ButtonProps & { isSent: boolean
                         placeholder="Search contacts or enter email..."
                         className="h-11 px-4"
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter' && inputValue.trim()) {
+                          if (e.key === 'Enter') {
                             e.preventDefault();
-                            addNewContacts(inputValue.trim());
-                            setInputValue("");
-                            setOpen(false);
+                            const selectedItem = document.querySelector('[data-selected="true"]');
+                            if (selectedItem) {
+                              selectedItem?.click();
+                            } else if (inputValue.trim()) {
+                              addNewContacts(inputValue.trim());
+                              setInputValue("");
+                              setOpen(false);
+                            }
                           }
                         }}
                       />
-                      <CommandList>
+                      <CommandList className="max-h-[300px] overflow-y-auto">
                         <CommandEmpty className="py-6 text-center text-sm">
                           {!inputValue ? (
                             "Type an email address to add directly."
