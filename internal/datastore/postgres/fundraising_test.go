@@ -1077,6 +1077,7 @@ func TestFundraising_MoveContactColumn(t *testing.T) {
 		Model(&fundraiseContact).
 		Where("contact_id = ?", contact.ID).
 		Where("fundraising_pipeline_id = ?", pipeline.ID).
+		Relation("DealDetails").
 		Scan(ctx)
 	require.NoError(t, err)
 
