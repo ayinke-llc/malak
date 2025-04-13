@@ -34,7 +34,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { NumericFormat } from "react-number-format";
 import { format, fromUnixTime, isValid, parseISO } from "date-fns";
-import type { Card, Activity, Note } from "@/components/investor-pipeline/types";
+import type { Card, Activity } from "@/components/investor-pipeline/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FETCH_FUNDRAISING_PIPELINE, UPDATE_INVESTOR_IN_PIPELINE } from "@/lib/query-constants";
 import client from "@/lib/client";

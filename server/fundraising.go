@@ -533,6 +533,21 @@ func (d *fundraisingHandler) updateContactDeal(
 		return newAPIStatus(http.StatusInternalServerError, "an error occurred while fetching a contact"), StatusFailed
 	}
 
+	colum, err := d.fundingRepo.GetColumn(ctx, malak.GetBoardOptions{
+		PipelineID: pipeline.ID,
+		ColumnID:   contact.FundraisingPipelineColumnID,
+	})
+	if err != nil {
+		logger.Error("could not fetch column for contact", zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "error occurred while fetching column"),
+			StatusFailed
+	}
+
+	if colum.ColumnType == malak.FundraisePipelineColumnTypeClosed {
+		return newAPIStatus(http.StatusBadRequest, "You cannot update deal details when a contact is closed. Move it away from this column"),
+			StatusFailed
+	}
+
 	err = d.fundingRepo.UpdateContactDeal(ctx, pipeline, malak.UpdateContactDealOptions{
 		Rating:       int64(req.Rating),
 		CanLeadRound: req.CanLeadRound,

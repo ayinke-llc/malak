@@ -52,6 +52,7 @@ import {
   parseISO, isValid
 } from "date-fns"
 import { PlusCircle } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
 
 const FUNDING_STAGES: { value: MalakFundraisePipelineStage; label: string; description: string }[] = [
   {
@@ -525,10 +526,7 @@ export default function FundraisingBoards() {
                             </span>
                           </div>
                           <div className="w-full bg-muted rounded-full h-2">
-                            <div
-                              className={`h-2 rounded-full ${statusConfig.color}`}
-                              style={{ width: `${((pipeline.closed_amount ?? 0) / (pipeline.target_amount ?? 1)) * 100}%` }}
-                            />
+                            <Progress value={((pipeline.closed_amount ?? 0) / (pipeline.target_amount ?? 1)) * 100} />
                           </div>
                         </div>
 

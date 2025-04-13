@@ -218,7 +218,6 @@ export default function KanbanBoard({ slug }: KanbanBoardProps) {
             cards: (contacts || [])
               .filter(contact => contact && contact.fundraising_pipeline_column_id === column.id)
               .map(contact => {
-                console.log(contact, "here")
                 // find the position for this contact
                 const position = positions.find(p => p.fundraising_pipeline_column_contact_id === contact.id);
                 const deal = contact.deal_details;
