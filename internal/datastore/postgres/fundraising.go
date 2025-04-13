@@ -320,6 +320,25 @@ func (d *fundingRepo) MoveContactColumn(ctx context.Context, contact *malak.Fund
 			return err
 		}
 
+		op := tx.NewUpdate().
+			Model(new(malak.FundraisingPipeline)).
+			Where("id = ?", column.FundraisingPipelineID)
+
+		switch column.ColumnType {
+		case malak.FundraisePipelineColumnTypeClosed:
+
+			op = op.Set("closed_amount = closed_amount + ?", contact.DealDetails.CheckSize)
+
+		default:
+
+			op = op.Set("closed_amount = GREATEST(closed_amount - ?, 0)", contact.DealDetails.CheckSize)
+		}
+
+		_, err = op.Exec(ctx)
+		if err != nil {
+			return err
+		}
+
 		_, err = tx.NewUpdate().
 			Model(new(malak.FundraiseContactPosition)).
 			Where("fundraising_pipeline_column_contact_id = ?", contact.ID).
