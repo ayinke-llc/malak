@@ -118,6 +118,11 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 					zap.Error(err))
 			}
 
+			if err := runMigrations(logger, cfg); err != nil {
+				logger.Fatal("could not run migrations",
+					zap.Error(err))
+			}
+
 			userRepo := postgres.NewUserRepository(db)
 			workspaceRepo := postgres.NewWorkspaceRepository(db)
 			planRepo := postgres.NewPlanRepository(db)

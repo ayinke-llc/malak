@@ -12,11 +12,6 @@ tasks:
       - go generate ./...
       - cd web/ui && bun run swagger && cd -
 
-  migrate:
-    desc: Run database migrations
-    cmds:
-      - go run cmd/*.go migrate
-
   migrate:create:
     desc: Create a new migration file
     vars:
