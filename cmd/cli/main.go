@@ -78,7 +78,6 @@ func Execute() error {
 	addCronCommand(rootCmd, cfg)
 	addPlanCommand(rootCmd, cfg)
 	addIntegrationCommand(rootCmd, cfg)
-	addMigrateCommand(rootCmd, cfg)
 
 	return rootCmd.Execute()
 }
