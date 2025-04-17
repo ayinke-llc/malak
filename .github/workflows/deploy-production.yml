@@ -16,11 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Golang-Migrate
-        run: |
-          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.18.1/migrate.linux-amd64.tar.gz | tar xvz
-          sudo mv migrate /usr/local/bin/migrate
-
       - uses: actions/setup-go@v5
       - name: Build app
         run: go build -o malak cmd/*.go
@@ -34,10 +29,6 @@ jobs:
           port: 22
           source: "malak"
           target: "/root"
-
-      - name: Run Migrations
-        run: |
-          migrate -database ${{ secrets.POSTGRES_ROOT_DSN }}/malak -path ./internal/datastore/postgres/migrations up
 
       - name: Restart Malak systemd service
         uses: appleboy/ssh-action@master
