@@ -7,10 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/config"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ayinke-llc/malak"
+	"github.com/ayinke-llc/malak/config"
 )
 
 func TestNew(t *testing.T) {
@@ -34,9 +35,7 @@ func TestBrexClient_Name(t *testing.T) {
 }
 
 func TestBrexClient_Ping(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration test")
-	}
+	t.Skip("skipping integration test")
 
 	token := os.Getenv("BREX_API_TOKEN")
 	if token == "" {
@@ -137,9 +136,7 @@ func TestBrexClient_buildRequest(t *testing.T) {
 }
 
 func TestBrexClient_Data(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration test")
-	}
+	t.Skip("skipping integration test")
 
 	token := os.Getenv("BREX_API_TOKEN")
 	if token == "" {

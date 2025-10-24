@@ -15,9 +15,9 @@ jobs:
         run: echo ::set-output name=tag::$(echo ${GITHUB_SHA:8})
 
       - name: Set up Go
-        uses: actions/setup-go@v5.0.2
+        uses: actions/setup-go@v6.0.0
         with:
-          go-version: ^1.24
+          go-version: ^1.25
         id: go
 
       - name: Check out code
