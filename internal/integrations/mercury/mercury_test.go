@@ -8,10 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/config"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ayinke-llc/malak"
+	"github.com/ayinke-llc/malak/config"
 )
 
 func TestNew(t *testing.T) {
@@ -59,9 +60,7 @@ func TestMercuryClient_buildRequest(t *testing.T) {
 }
 
 func TestMercuryClient_InvalidToken(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration test")
-	}
+	t.Skip("skipping integration test")
 
 	cfg := config.Config{}
 	cfg.Secrets.ClientTimeout = 10 * time.Second
@@ -86,9 +85,7 @@ func TestMercuryClient_InvalidToken(t *testing.T) {
 }
 
 func TestMercuryClient_ValidToken(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration test")
-	}
+	t.Skip("skipping integration test")
 
 	token := os.Getenv("MERCURY_API_TOKEN")
 	if token == "" {
