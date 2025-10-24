@@ -5,17 +5,20 @@ import (
 	"errors"
 
 	"net/http"
+	"net/mail"
+
+	"github.com/ayinke-llc/hermes"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/render"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/render"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
 )
 
 // ENUM(user)
@@ -29,6 +32,37 @@ type authHandler struct {
 	tokenManager  jwttoken.JWTokenManager
 }
 
+type signupRequest struct {
+	GenericRequest
+
+	FullName      string
+	Email         malak.Email
+	Password      string
+	WorkspaceName string
+}
+
+func (s signupRequest) Validate() error {
+
+	if hermes.IsStringEmpty(s.FullName) {
+		return errors.New("please provide your full name")
+	}
+
+	if hermes.IsStringEmpty(s.Email.String()) {
+		return errors.New("please provide your email address")
+	}
+
+	_, err := mail.ParseAddress(s.Email.String())
+	if err != nil {
+		return errors.New("please provide a valid email address")
+	}
+
+	if hermes.IsStringEmpty(s.Password) {
+		return errors.New("please provide your password")
+	}
+
+	return nil
+}
+
 type authenticateUserRequest struct {
 	GenericRequest
 
@@ -36,7 +70,7 @@ type authenticateUserRequest struct {
 }
 
 func (a *authenticateUserRequest) Validate() error {
-	if util.IsStringEmpty(a.Code) {
+	if hermes.IsStringEmpty(a.Code) {
 		return errors.New("please provide a valid oauth2 code")
 	}
 
@@ -118,20 +152,7 @@ func (a *authHandler) Login(
 			return newAPIStatus(http.StatusInternalServerError, "an error occurred while logging user into app"), StatusFailed
 		}
 
-		token, err := a.tokenManager.GenerateJWToken(jwttoken.JWTokenData{
-			UserID: user.ID,
-		})
-		if err != nil {
-			logger.Error("an error occurred while generating jwt token", zap.Error(err))
-			return newAPIStatus(http.StatusInternalServerError, "an error occurred while generating jwt token"), StatusFailed
-		}
-
-		resp := createdUserResponse{
-			User:      util.DeRef(user),
-			APIStatus: newAPIStatus(http.StatusOK, "Logged in Successfully"),
-			Token:     token.Token,
-		}
-		return resp, StatusSuccess
+		return a.generateUserToken(user, logger)
 	}
 
 	if err != nil {
@@ -139,20 +160,7 @@ func (a *authHandler) Login(
 		return newAPIStatus(http.StatusInternalServerError, "an error occurred while creating user"), StatusFailed
 	}
 
-	authToken, err := a.tokenManager.GenerateJWToken(jwttoken.JWTokenData{
-		UserID: user.ID,
-	})
-	if err != nil {
-		logger.Error("an error occurred while generating jwt token", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError, "an error occurred while generating jwt token"), StatusFailed
-	}
-
-	resp := createdUserResponse{
-		User:      util.DeRef(user),
-		APIStatus: newAPIStatus(http.StatusOK, "user Successfully created"),
-		Token:     authToken.Token,
-	}
-	return resp, StatusSuccess
+	return a.generateUserToken(user, logger)
 }
 
 // @Description Fetch current user. This api should also double as a token validation api
@@ -194,4 +202,73 @@ func (a *authHandler) fetchCurrentUser(
 		Workspaces:       workspaces,
 		APIStatus:        newAPIStatus(http.StatusOK, "user data successfully retrieved"),
 	}, StatusSuccess
+}
+
+// @Description Sign up with your email address and password
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param message body signupRequest true "auth exchange data"
+// @Success 200 {object} createdUserResponse
+// @Failure 400 {object} APIStatus
+// @Failure 401 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /auth/register [post]
+func (a *authHandler) emailSignup(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("creating user ( email + password )")
+
+	req := new(signupRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	user := &malak.User{
+		Email:    req.Email,
+		FullName: req.FullName,
+		Metadata: &malak.UserMetadata{},
+		Roles:    malak.UserRoles{},
+		Password: hermes.Ref(req.Password),
+	}
+
+	err := a.userRepo.Create(ctx, user)
+	if errors.Is(err, malak.ErrUserExists) {
+		return newAPIStatus(http.StatusConflict, "Account already exists. Please use a new email"), StatusFailed
+	}
+
+	if err != nil {
+		logger.Error("an error occurred while creating user account", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not create an account at this time. an error occurred"), StatusFailed
+	}
+
+	return a.generateUserToken(user, logger)
+}
+
+func (a *authHandler) generateUserToken(user *malak.User, logger *zap.Logger) (render.Renderer, Status) {
+
+	token, err := a.tokenManager.GenerateJWToken(jwttoken.JWTokenData{
+		UserID: user.ID,
+	})
+	if err != nil {
+		logger.Error("an error occurred while generating jwt token", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "an error occurred while generating jwt token"), StatusFailed
+	}
+
+	resp := createdUserResponse{
+		User:      util.DeRef(user),
+		APIStatus: newAPIStatus(http.StatusOK, "Logged in Successfully"),
+		Token:     token.Token,
+	}
+	return resp, StatusSuccess
 }

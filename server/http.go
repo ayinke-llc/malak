@@ -6,6 +6,16 @@ import (
 	"net/http"
 
 	"github.com/adelowo/gulter"
+	chi "github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/telemetry"
+	"github.com/riandyrn/otelchi"
+	"github.com/rs/cors"
+	"github.com/sethvargo/go-limiter/httplimit"
+	svix "github.com/svix/svix-webhooks/go"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
+	"go.uber.org/zap"
+
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/integrations"
@@ -17,15 +27,6 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	"github.com/ayinke-llc/malak/internal/secret"
 	_ "github.com/ayinke-llc/malak/swagger"
-	chi "github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/telemetry"
-	"github.com/riandyrn/otelchi"
-	"github.com/rs/cors"
-	"github.com/sethvargo/go-limiter/httplimit"
-	svix "github.com/svix/svix-webhooks/go"
-	httpSwagger "github.com/swaggo/http-swagger/v2"
-	"go.uber.org/zap"
 )
 
 func New(logger *zap.Logger,
@@ -297,6 +298,9 @@ func buildRoutes(
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/connect/{provider}",
 				WrapMalakHTTPHandler(logger, auth.Login, cfg, "Auth.Login"))
+
+			r.Post("/register",
+				WrapMalakHTTPHandler(logger, auth.emailSignup, cfg, "Auth.register"))
 		})
 
 		r.Route("/user", func(r chi.Router) {
