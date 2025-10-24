@@ -52,8 +52,17 @@ type UserMetadata struct {
 }
 
 type User struct {
-	ID    uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id"`
-	Email Email     `json:"email"`
+	ID uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id"`
+
+	Email           Email      `json:"email"`
+	EmailVerifiedAt *time.Time `json:"email_verified_at" bun:"email_verified_at,nullzero"`
+
+	// keeping this simple for now.
+	// Initially we had just oauth2 authentication. Ideally, we would have
+	// splitted into another table so we can tie users' oauth and password together
+	// but we are taking a simpler approach. If ouath2 gives us your email and it exists, we
+	// log you in. Else if you have password
+	Password *string `json:"password" bun:"password,nullzero"`
 
 	FullName string        `json:"full_name"`
 	Metadata *UserMetadata `json:"metadata" `
@@ -68,6 +77,8 @@ type User struct {
 }
 
 func (u *User) HasWorkspace() bool { return u.Metadata.CurrentWorkspace != uuid.Nil }
+
+func (u *User) HasPassword() bool { return u.Password != nil }
 
 func (u *User) CanAccessWorkspace(id uuid.UUID) bool {
 	for _, role := range u.Roles {
