@@ -3,24 +3,23 @@ package postgres
 import (
 	"testing"
 
-	"github.com/ayinke-llc/malak"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ayinke-llc/malak"
 )
 
-func TestEmailVerification_Create(t *testing.T) {
+func TestEmailVerification(t *testing.T) {
 	client, teardownFunc := setupDatabase(t)
 	defer teardownFunc()
 
 	repo := NewEmailVerificationRepository(client)
 
-	// Get a user from fixtures
 	userRepo := NewUserRepository(client)
 	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
 		Email: "lanre@test.com",
 	})
 	require.NoError(t, err)
 
-	// Create first verification
 	ev1, err := malak.NewEmailVerification(user)
 	require.NoError(t, err)
 
@@ -29,7 +28,6 @@ func TestEmailVerification_Create(t *testing.T) {
 	require.NotEmpty(t, ev1.ID)
 	require.NotEmpty(t, ev1.CreatedAt)
 
-	// Create second verification for the same user
 	ev2, err := malak.NewEmailVerification(user)
 	require.NoError(t, err)
 
@@ -38,7 +36,6 @@ func TestEmailVerification_Create(t *testing.T) {
 	require.NotEmpty(t, ev2.ID)
 	require.NotEmpty(t, ev2.CreatedAt)
 
-	// Verify that the first token is deleted and only the second exists
 	var verifications []malak.EmailVerification
 	count, err := client.NewSelect().
 		Table("email_verifications").
@@ -48,7 +45,6 @@ func TestEmailVerification_Create(t *testing.T) {
 	require.Equal(t, 1, count)
 	require.Len(t, verifications, 1)
 
-	// Verify the token is the second one
 	var existing malak.EmailVerification
 	err = client.NewSelect().
 		Table("email_verifications").

@@ -11,6 +11,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+	"github.com/sebdah/goldie/v2"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
+	"golang.org/x/oauth2"
+
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
@@ -18,12 +25,6 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	socialauth_mocks "github.com/ayinke-llc/malak/internal/pkg/socialauth/mocks"
 	malak_mocks "github.com/ayinke-llc/malak/mocks"
-	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
-	"github.com/sebdah/goldie/v2"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/mock/gomock"
-	"golang.org/x/oauth2"
 )
 
 var webhookSecret = "wh_sec"
@@ -253,6 +254,49 @@ func getFetchCurrentUserData() []struct {
 	}
 }
 
+func TestAuthHandler_EmailSignup(t *testing.T) {
+	for _, v := range generateEmailSignupTestTable() {
+
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			userRepo := malak_mocks.NewMockUserRepository(controller)
+			tokenManager := mock_jwttoken.NewMockJWTokenManager(controller)
+			emailVerification := malak_mocks.NewMockEmailVerificationRepository(controller)
+			queueMock := malak_mocks.NewMockQueueHandler(controller)
+
+			v.mockFn(userRepo, tokenManager, emailVerification, queueMock)
+
+			a := &authHandler{
+				cfg:               getConfig(),
+				userRepo:          userRepo,
+				tokenManager:      tokenManager,
+				emailVerification: emailVerification,
+				queue:             queueMock,
+			}
+
+			var b = bytes.NewBuffer(nil)
+
+			require.NoError(t, json.NewEncoder(b).Encode(&v.req))
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/", b)
+			ctx := chi.NewRouteContext()
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
+			req.Header.Add("Content-Type", "application/json")
+
+			WrapMalakHTTPHandler(getLogger(t), a.emailSignup, getConfig(), "Auth.emailSignup").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
 func TestAuthHandler_FetchCurrentUser(t *testing.T) {
 	for _, v := range getFetchCurrentUserData() {
 
@@ -291,6 +335,141 @@ func TestAuthHandler_FetchCurrentUser(t *testing.T) {
 			require.Equal(t, v.expectedStatusCode, rr.Code)
 			verifyMatch(t, rr)
 		})
+	}
+}
+
+func generateEmailSignupTestTable() []struct {
+	name               string
+	mockFn             func(userRepo *malak_mocks.MockUserRepository, tokenManager *mock_jwttoken.MockJWTokenManager, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler)
+	expectedStatusCode int
+	req                signupRequest
+} {
+
+	var userID = uuid.MustParse("37f41afb-afff-45cc-bcc0-71249d95df90")
+
+	return []struct {
+		name               string
+		mockFn             func(userRepo *malak_mocks.MockUserRepository, tokenManager *mock_jwttoken.MockJWTokenManager, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler)
+		expectedStatusCode int
+		req                signupRequest
+	}{
+		{
+			name: "empty full name",
+			mockFn: func(userRepo *malak_mocks.MockUserRepository, tokenManager *mock_jwttoken.MockJWTokenManager, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(0)
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: signupRequest{
+				FullName: "",
+				Email:    malak.Email("test@example.com"),
+				Password: "StrongPassword123!",
+			},
+		},
+		{
+			name: "empty email",
+			mockFn: func(userRepo *malak_mocks.MockUserRepository, tokenManager *mock_jwttoken.MockJWTokenManager, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(0)
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: signupRequest{
+				FullName: "Test User",
+				Email:    malak.Email(""),
+				Password: "StrongPassword123!",
+			},
+		},
+		{
+			name: "invalid email",
+			mockFn: func(userRepo *malak_mocks.MockUserRepository, tokenManager *mock_jwttoken.MockJWTokenManager, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(0)
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: signupRequest{
+				FullName: "Test User",
+				Email:    malak.Email("invalid-email"),
+				Password: "StrongPassword123!",
+			},
+		},
+		{
+			name: "empty password",
+			mockFn: func(userRepo *malak_mocks.MockUserRepository, tokenManager *mock_jwttoken.MockJWTokenManager, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(0)
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: signupRequest{
+				FullName: "Test User",
+				Email:    malak.Email("test@example.com"),
+				Password: "",
+			},
+		},
+		{
+			name: "weak password",
+			mockFn: func(userRepo *malak_mocks.MockUserRepository, tokenManager *mock_jwttoken.MockJWTokenManager, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(0)
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			req: signupRequest{
+				FullName: "Test User",
+				Email:    malak.Email("test@example.com"),
+				Password: "weak",
+			},
+		},
+		{
+			name: "user already exists",
+			mockFn: func(userRepo *malak_mocks.MockUserRepository, tokenManager *mock_jwttoken.MockJWTokenManager, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(malak.ErrUserExists)
+			},
+			expectedStatusCode: http.StatusConflict,
+			req: signupRequest{
+				FullName: "Test User",
+				Email:    malak.Email("test@example.com"),
+				Password: "StrongPassword123!",
+			},
+		},
+		{
+			name: "could not create user",
+			mockFn: func(userRepo *malak_mocks.MockUserRepository, tokenManager *mock_jwttoken.MockJWTokenManager, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(errors.New("db error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: signupRequest{
+				FullName: "Test User",
+				Email:    malak.Email("test@example.com"),
+				Password: "StrongPassword123!",
+			},
+		},
+		{
+			name: "could not generate token",
+			mockFn: func(userRepo *malak_mocks.MockUserRepository, tokenManager *mock_jwttoken.MockJWTokenManager, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				emailVerification.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				queueMock.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				tokenManager.EXPECT().GenerateJWToken(gomock.Any()).Times(1).Return(jwttoken.JWTokenData{}, errors.New("token error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: signupRequest{
+				FullName: "Test User",
+				Email:    malak.Email("test@example.com"),
+				Password: "StrongPassword123!",
+			},
+		},
+		{
+			name: "user created successfully",
+			mockFn: func(userRepo *malak_mocks.MockUserRepository, tokenManager *mock_jwttoken.MockJWTokenManager, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				emailVerification.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				queueMock.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				tokenManager.EXPECT().GenerateJWToken(gomock.Any()).Times(1).Return(jwttoken.JWTokenData{
+					Token:  "test-token",
+					UserID: userID,
+				}, nil)
+			},
+			expectedStatusCode: http.StatusOK,
+			req: signupRequest{
+				FullName: "Test User",
+				Email:    malak.Email("test@example.com"),
+				Password: "StrongPassword123!",
+			},
+		},
 	}
 }
 
