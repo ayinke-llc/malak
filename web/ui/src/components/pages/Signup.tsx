@@ -1,51 +1,48 @@
-"use client"
+"use client";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import Link from "next/link"
-import Image from "next/image"
-import { ServerCreatedUserResponse } from "@/client/Api"
-import client from "@/lib/client"
-import useAuthStore from "@/store/auth"
-import { useMutation } from "@tanstack/react-query"
-import { AxiosResponse } from "axios"
-import { useRouter } from "next/navigation"
-import { usePostHog } from "posthog-js/react"
-import { toast } from "sonner"
-import { AnalyticsEvent } from "@/lib/events"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import Link from "next/link";
+import Image from "next/image";
+import { ServerCreatedUserResponse } from "@/client/Api";
+import client from "@/lib/client";
+import useAuthStore from "@/store/auth";
+import { useMutation } from "@tanstack/react-query";
+import { AxiosResponse } from "axios";
+import { useRouter } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
+import { toast } from "sonner";
+import { AnalyticsEvent } from "@/lib/events";
 import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup"
-import { useForm, Controller } from "react-hook-form"
-import {
-  Form,
-  FormControl,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useForm, Controller } from "react-hook-form";
 
 const signupSchema = yup.object().shape({
-  full_name: yup.string()
+  full_name: yup
+    .string()
     .required("Name is required")
     .min(3, "Name must be at least 3 characters")
     .max(30, "Name must not exceed 30 characters"),
 
   email: yup.string().email().required("Email address is required"),
-  password: yup.string().required().min(8),
+  password: yup
+    .string()
+    .required("Password is required")
+    .min(8, "Password must be at least 8 characters"),
 });
 
 type SignupFormData = yup.InferType<typeof signupSchema>;
@@ -54,7 +51,6 @@ export const SignupForm = ({
   className,
   ...props
 }: React.ComponentProps<"div">) => {
-
   const router = useRouter();
   const posthog = usePostHog();
 
@@ -63,11 +59,12 @@ export const SignupForm = ({
   const {
     control,
     handleSubmit,
-    watch,
     reset,
-    formState: { errors } } = useForm<SignupFormData>({
-      resolver: yupResolver(signupSchema) as any,
-    });
+    formState: { errors },
+  } = useForm<SignupFormData>({
+    resolver: yupResolver(signupSchema) as any,
+    mode: "onChange"
+  });
 
   const mutation = useMutation({
     mutationFn: (data: SignupFormData) => {
@@ -78,7 +75,7 @@ export const SignupForm = ({
       toast.error(err.data.message);
     },
     onSuccess: (resp: AxiosResponse<ServerCreatedUserResponse>) => {
-      reset()
+      reset();
       posthog?.identify(resp.data.user.id);
       setToken(resp.data.token);
       setUser(resp.data.user);
@@ -88,7 +85,7 @@ export const SignupForm = ({
 
   const signupHandler = (data: SignupFormData) => {
     posthog?.capture(AnalyticsEvent.SignupButtonClicked, {});
-    mutation.mutate(data)
+    mutation.mutate(data);
   };
 
   return (
@@ -126,7 +123,8 @@ export const SignupForm = ({
           <div className="relative z-20 mt-auto">
             <blockquote className="space-y-2">
               <p className="text-lg font-medium text-white drop-shadow-sm">
-                Streamline your communication and stay organized with our powerful platform
+                Streamline your communication and stay organized with our
+                powerful platform
               </p>
               <footer className="text-sm text-white/80">
                 Your all-in-one collaboration solution
@@ -137,7 +135,9 @@ export const SignupForm = ({
         <div className="lg:p-8">
           <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
             <div className="flex flex-col space-y-2 text-center">
-              <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">
+                Welcome back
+              </h1>
               <p className="text-sm text-muted-foreground">
                 Sign into or create your account to continue
               </p>
@@ -147,7 +147,9 @@ export const SignupForm = ({
               <div className={cn("flex flex-col gap-6", className)} {...props}>
                 <Card>
                   <CardHeader className="text-center">
-                    <CardTitle className="text-xl">Create your account</CardTitle>
+                    <CardTitle className="text-xl">
+                      Create your account
+                    </CardTitle>
                     <CardDescription>
                       Enter your email below to create your account
                     </CardDescription>
@@ -161,36 +163,74 @@ export const SignupForm = ({
                             render={({ field }) => {
                               return (
                                 <>
-                                  <FieldLabel htmlFor="full_name">Full Name</FieldLabel>
-                                  <Input {...field} id="full_name" type="text" placeholder="Lanre Adelowo" required />
+                                  <FieldLabel htmlFor="full_name">
+                                    Full Name
+                                  </FieldLabel>
+                                  <Input
+                                    {...field}
+                                    id="full_name"
+                                    type="text"
+                                    placeholder="Lanre Adelowo"
+                                    required
+                                  />
 
                                   {errors.full_name && (
-                                    <p className="text-sm text-red-500">{errors.full_name.message}</p>
+                                    <p className="text-sm text-red-500">
+                                      {errors.full_name.message}
+                                    </p>
                                   )}
                                 </>
-                              )
+                              );
                             }}
                             name="full_name"
                           />
                         </Field>
                         <Field>
-                          <FieldLabel htmlFor="email">Email</FieldLabel>
-                          <FormControl>
-                            <Input
-                              id="email"
-                              type="email"
-                              placeholder="lanre@malak.vc"
-                              required
-                            />
-                          </FormControl>
+                          <Controller
+                            control={control}
+                            render={({ field }) => (
+                              <>
+                                <FieldLabel htmlFor="email">Email</FieldLabel>
+                                <Input
+                                  {...field}
+                                  id="email"
+                                  type="email"
+                                  placeholder="lanre@malak.vc"
+                                  required
+                                />
+                                {errors.email && (
+                                  <p className="text-sm text-red-500">
+                                    {errors.email.message}
+                                  </p>
+                                )}
+                              </>
+                            )}
+                            name="email"
+                          />
                         </Field>
                         <Field>
-                          <Field>
-                            <FieldLabel htmlFor="password">Password</FieldLabel>
-                            <FormControl>
-                              <Input id="password" type="password" required />
-                            </FormControl>
-                          </Field>
+                          <Controller
+                            control={control}
+                            render={({ field }) => (
+                              <>
+                                <FieldLabel htmlFor="password">
+                                  Password
+                                </FieldLabel>
+                                <Input
+                                  {...field}
+                                  id="password"
+                                  type="password"
+                                  required
+                                />
+                                {errors.password && (
+                                  <p className="text-sm text-red-500">
+                                    {errors.password.message}
+                                  </p>
+                                )}
+                              </>
+                            )}
+                            name="password"
+                          />
                           <FieldDescription>
                             Must be at least 8 characters long.
                           </FieldDescription>
@@ -198,7 +238,8 @@ export const SignupForm = ({
                         <Field>
                           <Button type="submit">Create Account</Button>
                           <FieldDescription className="text-center">
-                            Already have an account? <Link href="/login">Sign in</Link>
+                            Already have an account?{" "}
+                            <Link href="/login">Sign in</Link>
                           </FieldDescription>
                         </Field>
                       </FieldGroup>
@@ -206,8 +247,9 @@ export const SignupForm = ({
                   </CardContent>
                 </Card>
                 <FieldDescription className="px-6 text-center">
-                  By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-                  and <a href="#">Privacy Policy</a>.
+                  By clicking continue, you agree to our{" "}
+                  <a href="#">Terms of Service</a> and{" "}
+                  <a href="#">Privacy Policy</a>.
                 </FieldDescription>
               </div>
             </div>
@@ -215,5 +257,5 @@ export const SignupForm = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
