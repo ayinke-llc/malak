@@ -35,10 +35,9 @@ type authHandler struct {
 type signupRequest struct {
 	GenericRequest
 
-	FullName      string
-	Email         malak.Email
-	Password      string
-	WorkspaceName string
+	FullName string
+	Email    malak.Email
+	Password string
 }
 
 func (s signupRequest) Validate() error {

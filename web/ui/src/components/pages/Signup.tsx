@@ -1,3 +1,5 @@
+"use client"
+
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,11 +18,79 @@ import {
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import Image from "next/image"
+import { ServerCreatedUserResponse } from "@/client/Api"
+import client from "@/lib/client"
+import useAuthStore from "@/store/auth"
+import { useMutation } from "@tanstack/react-query"
+import { AxiosResponse } from "axios"
+import { useRouter } from "next/navigation"
+import { usePostHog } from "posthog-js/react"
+import { toast } from "sonner"
+import { AnalyticsEvent } from "@/lib/events"
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup"
+import { useForm, Controller } from "react-hook-form"
+import {
+  Form,
+  FormControl,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+
+const signupSchema = yup.object().shape({
+  full_name: yup.string()
+    .required("Name is required")
+    .min(3, "Name must be at least 3 characters")
+    .max(30, "Name must not exceed 30 characters"),
+
+  email: yup.string().email().required("Email address is required"),
+  password: yup.string().required().min(8),
+});
+
+type SignupFormData = yup.InferType<typeof signupSchema>;
 
 export const SignupForm = ({
   className,
   ...props
 }: React.ComponentProps<"div">) => {
+
+  const router = useRouter();
+  const posthog = usePostHog();
+
+  const { setUser, setToken } = useAuthStore();
+
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors } } = useForm<SignupFormData>({
+      resolver: yupResolver(signupSchema) as any,
+    });
+
+  const mutation = useMutation({
+    mutationFn: (data: SignupFormData) => {
+      return client.auth.registerCreate(data);
+    },
+    gcTime: 0,
+    onError: (err: AxiosResponse<ServerCreatedUserResponse>): void => {
+      toast.error(err.data.message);
+    },
+    onSuccess: (resp: AxiosResponse<ServerCreatedUserResponse>) => {
+      reset()
+      posthog?.identify(resp.data.user.id);
+      setToken(resp.data.token);
+      setUser(resp.data.user);
+      router.push("/");
+    },
+  });
+
+  const signupHandler = (data: SignupFormData) => {
+    posthog?.capture(AnalyticsEvent.SignupButtonClicked, {});
+    mutation.mutate(data)
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       <div className="container relative h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
@@ -83,25 +153,43 @@ export const SignupForm = ({
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <form>
+                    <form onSubmit={handleSubmit(signupHandler)}>
                       <FieldGroup>
                         <Field>
-                          <FieldLabel htmlFor="name">Full Name</FieldLabel>
-                          <Input id="name" type="text" placeholder="Lanre Adelowo" required />
+                          <Controller
+                            control={control}
+                            render={({ field }) => {
+                              return (
+                                <>
+                                  <FieldLabel htmlFor="full_name">Full Name</FieldLabel>
+                                  <Input {...field} id="full_name" type="text" placeholder="Lanre Adelowo" required />
+
+                                  {errors.full_name && (
+                                    <p className="text-sm text-red-500">{errors.full_name.message}</p>
+                                  )}
+                                </>
+                              )
+                            }}
+                            name="full_name"
+                          />
                         </Field>
                         <Field>
                           <FieldLabel htmlFor="email">Email</FieldLabel>
-                          <Input
-                            id="email"
-                            type="email"
-                            placeholder="lanre@malak.vc"
-                            required
-                          />
+                          <FormControl>
+                            <Input
+                              id="email"
+                              type="email"
+                              placeholder="lanre@malak.vc"
+                              required
+                            />
+                          </FormControl>
                         </Field>
                         <Field>
                           <Field>
                             <FieldLabel htmlFor="password">Password</FieldLabel>
-                            <Input id="password" type="password" required />
+                            <FormControl>
+                              <Input id="password" type="password" required />
+                            </FormControl>
                           </Field>
                           <FieldDescription>
                             Must be at least 8 characters long.

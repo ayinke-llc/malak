@@ -3,8 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-  RiFileCopyLine, RiArrowLeftLine, RiEyeLine,
-  RiTimeLine, RiDownloadLine, RiUserLine, RiSettings4Line,
+  RiFileCopyLine, RiArrowLeftLine,
+  RiSettings4Line,
   RiPushpin2Line, RiPushpin2Fill, RiExternalLinkLine
 } from "@remixicon/react";
 import { format } from "date-fns";
@@ -291,7 +291,6 @@ export default function DeckDetails(
                 <DialogTitle>Deck settings</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
-                {/* Sharing Settings */}
                 <div className="space-y-4">
                   <h3 className="text-sm font-medium">Sharing settings</h3>
                   <div className="space-y-4">
