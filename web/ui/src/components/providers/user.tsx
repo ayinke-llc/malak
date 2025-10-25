@@ -33,7 +33,7 @@ client.instance.interceptors.response.use(
   (error) => {
     if (error.response) {
       const pathname = window.location.pathname;
-      // Skip auth checks for shared routes
+      // skip auth checks for shared routes
       if (!pathname?.startsWith('/shared')) {
         if (error.response.status === 401) {
           useAuthStore.getState().logout();
@@ -44,7 +44,7 @@ client.instance.interceptors.response.use(
           window.location.href = "/settings?tab=billing";
         }
 
-        // For 428, we just reject the error and let TeamSwitcher handle showing the modal
+        // for 428, we just reject the error and let TeamSwitcher handle showing the modal
         if (error.response.status === 428) {
           return Promise.reject(error);
         }
@@ -79,8 +79,8 @@ export default function UserProvider({
   };
 
   useEffect(() => {
-    // Skip authentication for shared routes
-    if (pathname?.startsWith('/shared')) {
+    // skip authentication for shared routes
+    if (pathname?.startsWith('/shared') || pathname?.startsWith("/signup")) {
       setLoading(false);
       return;
     }

@@ -82,6 +82,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/register": {
+            "post": {
+                "description": "Sign up with your email address and password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "parameters": [
+                    {
+                        "description": "auth exchange data",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.signupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.createdUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/contacts": {
             "get": {
                 "description": "list your contacts",
@@ -5926,6 +5983,9 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "email_verified_at": {
+                    "type": "string"
+                },
                 "full_name": {
                     "type": "string"
                 },
@@ -5934,6 +5994,10 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "$ref": "#/definitions/malak.UserMetadata"
+                },
+                "password": {
+                    "description": "keeping this simple for now.\nInitially we had just oauth2 authentication. Ideally, we would have\nsplitted into another table so we can tie users' oauth and password together\nbut we are taking a simpler approach. If ouath2 gives us your email and it exists, we\nlog you in. Else if you have password",
+                    "type": "string"
                 },
                 "roles": {
                     "type": "array",
@@ -7104,6 +7168,23 @@ const docTemplate = `{
                 },
                 "send_at": {
                     "type": "integer"
+                }
+            }
+        },
+        "server.signupRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fullName": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "workspaceName": {
+                    "type": "string"
                 }
             }
         },
