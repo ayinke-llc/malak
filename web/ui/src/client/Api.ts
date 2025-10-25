@@ -1003,9 +1003,8 @@ export interface ServerSendUpdateRequest {
 
 export interface ServerSignupRequest {
   email?: string;
-  fullName?: string;
+  full_name?: string;
   password?: string;
-  workspaceName?: string;
 }
 
 export interface ServerTestAPIIntegrationRequest {

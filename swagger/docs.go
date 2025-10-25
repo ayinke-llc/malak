@@ -7177,13 +7177,10 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "fullName": {
+                "full_name": {
                     "type": "string"
                 },
                 "password": {
-                    "type": "string"
-                },
-                "workspaceName": {
                     "type": "string"
                 }
             }

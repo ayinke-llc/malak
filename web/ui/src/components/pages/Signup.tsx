@@ -18,11 +18,11 @@ import {
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import Image from "next/image";
-import { ServerCreatedUserResponse } from "@/client/Api";
+import { ServerAPIStatus, ServerCreatedUserResponse } from "@/client/Api";
 import client from "@/lib/client";
 import useAuthStore from "@/store/auth";
 import { useMutation } from "@tanstack/react-query";
-import { AxiosResponse } from "axios";
+import { AxiosError, AxiosResponse } from "axios";
 import { useRouter } from "next/navigation";
 import { usePostHog } from "posthog-js/react";
 import { toast } from "sonner";
@@ -63,7 +63,7 @@ export const SignupForm = ({
     formState: { errors },
   } = useForm<SignupFormData>({
     resolver: yupResolver(signupSchema) as any,
-    mode: "onChange"
+    mode: "onChange",
   });
 
   const mutation = useMutation({
@@ -71,8 +71,8 @@ export const SignupForm = ({
       return client.auth.registerCreate(data);
     },
     gcTime: 0,
-    onError: (err: AxiosResponse<ServerCreatedUserResponse>): void => {
-      toast.error(err.data.message);
+    onError(err: AxiosError<ServerAPIStatus>) {
+      toast.error(err.response?.data?.message || "An error occurred while creating your account");
     },
     onSuccess: (resp: AxiosResponse<ServerCreatedUserResponse>) => {
       reset();
@@ -236,7 +236,13 @@ export const SignupForm = ({
                           </FieldDescription>
                         </Field>
                         <Field>
-                          <Button type="submit">Create Account</Button>
+                          <Button
+                            type="submit"
+                            disabled={Object.keys(errors).length > 0}
+                            loading={mutation.isPending}
+                          >
+                            Create Account
+                          </Button>
                           <FieldDescription className="text-center">
                             Already have an account?{" "}
                             <Link href="/login">Sign in</Link>

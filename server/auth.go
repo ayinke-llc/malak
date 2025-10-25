@@ -10,6 +10,7 @@ import (
 	"github.com/ayinke-llc/hermes"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/theopenlane/utils/passwd"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -35,12 +36,12 @@ type authHandler struct {
 type signupRequest struct {
 	GenericRequest
 
-	FullName string
-	Email    malak.Email
-	Password string
+	FullName string      `json:"full_name"`
+	Email    malak.Email `json:"email"`
+	Password string      `json:"password"`
 }
 
-func (s signupRequest) Validate() error {
+func (s *signupRequest) Validate() error {
 
 	if hermes.IsStringEmpty(s.FullName) {
 		return errors.New("please provide your full name")
@@ -57,6 +58,15 @@ func (s signupRequest) Validate() error {
 
 	if hermes.IsStringEmpty(s.Password) {
 		return errors.New("please provide your password")
+	}
+
+	if passwd.Strength(s.Password) < passwd.Moderate {
+		return errors.New("your password is too week")
+	}
+
+	s.Password, err = malak.HashPassword(s.Password)
+	if err != nil {
+		return err
 	}
 
 	return nil
