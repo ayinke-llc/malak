@@ -47,6 +47,7 @@ func New(logger *zap.Logger,
 	templatesRepo malak.TemplateRepository,
 	dashboardLinkRepo malak.DashboardLinkRepository,
 	apiRepo malak.APIKeyRepository,
+	emailVerificationRepo malak.EmailVerificationRepository,
 	mid *httplimit.Middleware,
 	queueHandler queue.QueueHandler,
 	redisCache cache.Cache,
@@ -69,7 +70,7 @@ func New(logger *zap.Logger,
 			userRepo, workspaceRepo, planRepo,
 			contactRepo, updateRepo, contactListRepo,
 			deckRepo, shareRepo, preferenceRepo, integrationRepo, templatesRepo,
-			dashboardLinkRepo, apiRepo,
+			dashboardLinkRepo, apiRepo, emailVerificationRepo,
 			googleAuthProvider, mid, queueHandler, redisCache, billingClient,
 			integrationManager, secretsClient, geolocationService, imageUploadGulterHandler,
 			deckUploadGulterHandler, fundingRepo),
@@ -118,6 +119,7 @@ func buildRoutes(
 	templatesRepo malak.TemplateRepository,
 	dashboardLinkRepo malak.DashboardLinkRepository,
 	apiRepo malak.APIKeyRepository,
+	emailVerificationRepo malak.EmailVerificationRepository,
 	googleAuthProvider socialauth.SocialAuthProvider,
 	ratelimiterMiddleware *httplimit.Middleware,
 	queueHandler queue.QueueHandler,
@@ -149,10 +151,12 @@ func buildRoutes(
 	referenceGenerator := malak.NewReferenceGenerator()
 
 	auth := &authHandler{
-		userRepo:      userRepo,
-		workspaceRepo: workspaceRepo,
-		googleCfg:     googleAuthProvider,
-		tokenManager:  jwtTokenManager,
+		userRepo:          userRepo,
+		workspaceRepo:     workspaceRepo,
+		googleCfg:         googleAuthProvider,
+		tokenManager:      jwtTokenManager,
+		queue:             queueHandler,
+		emailVerification: emailVerificationRepo,
 	}
 
 	workspaceHandler := &workspaceHandler{

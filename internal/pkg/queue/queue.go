@@ -6,11 +6,13 @@ import (
 	"encoding/json"
 	"io"
 
+	"github.com/google/uuid"
+
 	"github.com/ayinke-llc/malak"
 )
 
 // ENUM(billing_trial_ending,billing_create_customer,
-// invite_team_member, share_dashboard,subscription_expired)
+// invite_team_member, share_dashboard,subscription_expired, verify_email)
 type QueueTopic string
 
 type Message struct {
@@ -53,4 +55,9 @@ type SendBillingTrialEmailOptions struct {
 type SubscriptionExpiredOptions struct {
 	Workspace *malak.Workspace
 	Recipient malak.Email
+}
+
+type EmailVerificationOptions struct {
+	UserID uuid.UUID
+	Token  string
 }

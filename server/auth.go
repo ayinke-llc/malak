@@ -18,6 +18,7 @@ import (
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
+	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 )
@@ -26,11 +27,13 @@ import (
 type CookieName string
 
 type authHandler struct {
-	googleCfg     socialauth.SocialAuthProvider
-	cfg           config.Config
-	userRepo      malak.UserRepository
-	workspaceRepo malak.WorkspaceRepository
-	tokenManager  jwttoken.JWTokenManager
+	googleCfg         socialauth.SocialAuthProvider
+	cfg               config.Config
+	userRepo          malak.UserRepository
+	workspaceRepo     malak.WorkspaceRepository
+	tokenManager      jwttoken.JWTokenManager
+	queue             queue.QueueHandler
+	emailVerification malak.EmailVerificationRepository
 }
 
 type signupRequest struct {
@@ -261,7 +264,35 @@ func (a *authHandler) emailSignup(
 		return newAPIStatus(http.StatusInternalServerError, "could not create an account at this time. an error occurred"), StatusFailed
 	}
 
+	// ignored on purpose
+	_ = a.sendVerificationEmail(user, logger)
+
 	return a.generateUserToken(user, logger)
+}
+
+func (a *authHandler) sendVerificationEmail(user *malak.User, logger *zap.Logger) error {
+
+	if user.EmailVerifiedAt != nil {
+		return nil
+	}
+
+	token, err := malak.NewEmailVerification(user)
+	if err != nil {
+		// do not return an error here.
+		// Let the user request for the email again via the ui
+		logger.Error("could not generate email verification token", zap.Error(err))
+		return nil
+	}
+
+	if err := a.emailVerification.Create(context.Background(), token); err != nil {
+		logger.Error("could not store email verification token", zap.Error(err))
+		return errors.New("could not store verification token")
+	}
+
+	return a.queue.Add(context.Background(), queue.QueueTopicVerifyEmail, queue.EmailVerificationOptions{
+		UserID: user.ID,
+		Token:  token.Token,
+	})
 }
 
 func (a *authHandler) generateUserToken(user *malak.User, logger *zap.Logger) (render.Renderer, Status) {
