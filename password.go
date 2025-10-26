@@ -23,11 +23,15 @@ func (p *Password) MarshalJSON() ([]byte, error) {
 	return json.Marshal(p.String())
 }
 
-func (p Password) Value() (driver.Value, error) {
-	return HashPassword(string(p))
-}
+func (p Password) Value() (driver.Value, error) { return HashPassword(string(p)) }
 
-func HashPassword(p string) (string, error) { return passwd.CreateDerivedKey(p) }
+func HashPassword(p string) (string, error) {
+	if hermes.IsStringEmpty(p) {
+		return "", nil
+	}
+
+	return passwd.CreateDerivedKey(p)
+}
 
 func VerifyPassword(hashed, plain string) bool {
 	ok, _ := passwd.VerifyDerivedKey(hashed, plain)
