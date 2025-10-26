@@ -62,7 +62,7 @@ type User struct {
 	// splitted into another table so we can tie users' oauth and password together
 	// but we are taking a simpler approach. If ouath2 gives us your email and it exists, we
 	// log you in. Else if you have password
-	Password *string `json:"password" bun:"password,nullzero"`
+	Password *string `json:"-" bun:"password,nullzero"`
 
 	FullName string        `json:"full_name"`
 	Metadata *UserMetadata `json:"metadata" `
