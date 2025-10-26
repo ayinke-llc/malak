@@ -11,11 +11,6 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/ThreeDotsLabs/watermill/message/router/plugin"
-	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/config"
-	"github.com/ayinke-llc/malak/internal/pkg/billing"
-	"github.com/ayinke-llc/malak/internal/pkg/email"
-	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	wotelfloss "github.com/dentech-floss/watermill-opentelemetry-go-extra/pkg/opentelemetry"
 	"github.com/garsue/watermillzap"
 	"github.com/google/uuid"
@@ -24,6 +19,12 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 	"go.uber.org/zap"
+
+	"github.com/ayinke-llc/malak"
+	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/billing"
+	"github.com/ayinke-llc/malak/internal/pkg/email"
+	"github.com/ayinke-llc/malak/internal/pkg/queue"
 )
 
 var tracer = otel.Tracer("watermill")
@@ -152,6 +153,13 @@ func (t *WatermillClient) setUpRoutes(router *message.Router,
 		queue.QueueTopicShareDashboard.String(),
 		subscriber,
 		t.sendDashboardSharingEmail)
+
+	router.AddNoPublisherHandler(
+		queue.QueueTopicVerifyEmail.String(),
+		queue.QueueTopicVerifyEmail.String(),
+		subscriber,
+		t.sendEmailVerification,
+	)
 }
 
 func (t *WatermillClient) Add(ctx context.Context,

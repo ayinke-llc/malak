@@ -1478,6 +1478,9 @@
 					"email": {
 						"type": "string"
 					},
+					"email_verified_at": {
+						"type": "string"
+					},
 					"full_name": {
 						"type": "string"
 					},
@@ -1486,6 +1489,10 @@
 					},
 					"metadata": {
 						"$ref": "#/components/schemas/malak.UserMetadata"
+					},
+					"password": {
+						"description": "keeping this simple for now.\nInitially we had just oauth2 authentication. Ideally, we would have\nsplitted into another table so we can tie users' oauth and password together\nbut we are taking a simpler approach. If ouath2 gives us your email and it exists, we\nlog you in. Else if you have password",
+						"type": "string"
 					},
 					"roles": {
 						"items": {
@@ -2660,6 +2667,20 @@
 				},
 				"type": "object"
 			},
+			"server.signupRequest": {
+				"properties": {
+					"email": {
+						"type": "string"
+					},
+					"full_name": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
 			"server.testAPIIntegrationRequest": {
 				"properties": {
 					"api_key": {
@@ -2864,6 +2885,78 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/server.authenticateUserRequest"
+							}
+						}
+					},
+					"description": "auth exchange data",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.createdUserResponse"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
+					},
+					"401": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"auth"
+				]
+			}
+		},
+		"/auth/register": {
+			"post": {
+				"description": "Sign up with your email address and password",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.signupRequest"
 							}
 						}
 					},

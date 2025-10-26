@@ -21,6 +21,17 @@ import (
 	awsCreds "github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/ayinke-llc/hermes"
+	"github.com/google/uuid"
+	redisotel "github.com/redis/go-redis/extra/redisotel/v9"
+	redis "github.com/redis/go-redis/v9"
+	"github.com/sethvargo/go-limiter"
+	"github.com/sethvargo/go-limiter/httplimit"
+	"github.com/sethvargo/go-limiter/memorystore"
+	"github.com/sethvargo/go-limiter/noopstore"
+	"github.com/spf13/cobra"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.uber.org/zap"
+
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
 	"github.com/ayinke-llc/malak/internal/datastore/postgres"
@@ -43,16 +54,6 @@ import (
 	"github.com/ayinke-llc/malak/internal/secret/secretsmanager"
 	"github.com/ayinke-llc/malak/internal/secret/vault"
 	"github.com/ayinke-llc/malak/server"
-	"github.com/google/uuid"
-	redisotel "github.com/redis/go-redis/extra/redisotel/v9"
-	redis "github.com/redis/go-redis/v9"
-	"github.com/sethvargo/go-limiter"
-	"github.com/sethvargo/go-limiter/httplimit"
-	"github.com/sethvargo/go-limiter/memorystore"
-	"github.com/sethvargo/go-limiter/noopstore"
-	"github.com/spf13/cobra"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.uber.org/zap"
 )
 
 const (
@@ -138,6 +139,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 			dashboardLinkRepo := postgres.NewDashboardLinkRepo(db)
 			apiRepo := postgres.NewAPIKeyRepository(db)
 			fundingRepo := postgres.NewFundingRepo(db)
+			emailVerificationRepo := postgres.NewEmailVerificationRepository(db)
 
 			googleAuthProvider := socialauth.NewGoogle(*cfg)
 
@@ -359,7 +361,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				dashRepo, userRepo, workspaceRepo, planRepo, contactRepo,
 				updateRepo, contactlistRepo, deckRepo, shareRepo,
 				preferenceRepo, integrationRepo,
-				templatesRepo, dashboardLinkRepo, apiRepo,
+				templatesRepo, dashboardLinkRepo, apiRepo, emailVerificationRepo,
 				mid, queueHandler, redisCache, billingClient,
 				integrationManager, secretsProvider,
 				geoService, imageUploadGulterHandler, deckUploadGulterHandler,

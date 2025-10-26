@@ -4,12 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"strings"
+
+	"github.com/google/uuid"
+	"github.com/uptrace/bun"
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/internal/pkg/util"
-	"github.com/google/uuid"
-	"github.com/uptrace/bun"
 )
 
 type userRepo struct {
@@ -70,7 +70,7 @@ func (u *userRepo) Create(ctx context.Context, user *malak.User) error {
 			_, err := tx.NewInsert().Model(user).
 				Exec(ctx)
 			if err != nil {
-				if strings.Contains(err.Error(), "duplicate key") {
+				if malak.IsDuplicateUniqueError(err) {
 					return malak.ErrUserExists
 				}
 

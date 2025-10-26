@@ -8,13 +8,14 @@ import (
 	"strconv"
 
 	"github.com/ayinke-llc/hermes"
-	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/config"
-	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 	"github.com/charmbracelet/huh"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
+
+	"github.com/ayinke-llc/malak"
+	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/datastore/postgres"
 )
 
 func addPlanCommand(c *cobra.Command, cfg *config.Config) {
@@ -218,7 +219,7 @@ func listPlans(_ *cobra.Command, cfg *config.Config) *cobra.Command {
 			}
 
 			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"ID", "Name", "Amount", "Is Default", "Reference"})
+			table.Header([]string{"ID", "Name", "Amount", "Is Default", "Reference"})
 
 			for _, plan := range plans {
 				table.Append([]string{

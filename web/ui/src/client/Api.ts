@@ -600,9 +600,18 @@ export enum MalakUpdateStatus {
 export interface MalakUser {
   created_at?: string;
   email?: string;
+  email_verified_at?: string;
   full_name?: string;
   id?: string;
   metadata?: MalakUserMetadata;
+  /**
+   * keeping this simple for now.
+   * Initially we had just oauth2 authentication. Ideally, we would have
+   * splitted into another table so we can tie users' oauth and password together
+   * but we are taking a simpler approach. If ouath2 gives us your email and it exists, we
+   * log you in. Else if you have password
+   */
+  password?: string;
   roles?: MalakUserRole[];
   updated_at?: string;
 }
@@ -992,6 +1001,12 @@ export interface ServerSendUpdateRequest {
   send_at?: number;
 }
 
+export interface ServerSignupRequest {
+  email?: string;
+  full_name?: string;
+  password?: string;
+}
+
 export interface ServerTestAPIIntegrationRequest {
   api_key: string;
 }
@@ -1201,6 +1216,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     connectCreate: (provider: string, data: ServerAuthenticateUserRequest, params: RequestParams = {}) =>
       this.request<ServerCreatedUserResponse, ServerAPIStatus>({
         path: `/auth/connect/${provider}`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Sign up with your email address and password
+     *
+     * @tags auth
+     * @name RegisterCreate
+     * @request POST:/auth/register
+     */
+    registerCreate: (data: ServerSignupRequest, params: RequestParams = {}) =>
+      this.request<ServerCreatedUserResponse, ServerAPIStatus>({
+        path: `/auth/register`,
         method: "POST",
         body: data,
         type: ContentType.Json,

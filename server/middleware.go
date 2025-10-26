@@ -7,14 +7,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ayinke-llc/malak"
-	"github.com/ayinke-llc/malak/config"
-	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
-	"github.com/ayinke-llc/malak/internal/pkg/util"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+
+	"github.com/ayinke-llc/malak"
+	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
+	"github.com/ayinke-llc/malak/internal/pkg/util"
 )
 
 func tokenFromRequest(r *http.Request) (string, error) {
@@ -186,7 +187,6 @@ func requireAuthentication(
 
 			token, err := tokenFromRequest(r)
 			if err != nil {
-				logger.Error("token not found in request", zap.Error(err))
 				_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "session key not exists in request"))
 				return
 			}

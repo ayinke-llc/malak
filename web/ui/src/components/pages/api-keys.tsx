@@ -62,7 +62,6 @@ import { toast } from "sonner";
 import * as yup from "yup";
 import { MalakRevocationType } from "@/client/Api";
 
-
 const apiKeySchema = yup.object().shape({
   key_name: yup.string()
     .required("Name is required")
@@ -114,9 +113,9 @@ const RevokeDialog = ({ apiKey, onRevoke }: RevokeDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           disabled={isRevocationScheduled}
           title={isRevocationScheduled ? "This key is already scheduled for revocation" : "Revoke API key"}
         >

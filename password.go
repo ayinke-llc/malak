@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 
 	"github.com/ayinke-llc/hermes"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/theopenlane/utils/passwd"
 )
 
+// deprecated
 type Password string
 
 func (p Password) IsZero() bool { return hermes.IsStringEmpty(string(p)) }
@@ -22,15 +23,17 @@ func (p *Password) MarshalJSON() ([]byte, error) {
 	return json.Marshal(p.String())
 }
 
-func (p Password) Value() (driver.Value, error) {
-	return HashPassword(string(p))
-}
+func (p Password) Value() (driver.Value, error) { return HashPassword(string(p)) }
 
 func HashPassword(p string) (string, error) {
-	s, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.DefaultCost)
-	return string(s), err
+	if hermes.IsStringEmpty(p) {
+		return "", nil
+	}
+
+	return passwd.CreateDerivedKey(p)
 }
 
 func VerifyPassword(hashed, plain string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(plain)) == nil
+	ok, _ := passwd.VerifyDerivedKey(hashed, plain)
+	return ok
 }

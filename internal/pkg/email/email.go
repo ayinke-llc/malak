@@ -10,6 +10,7 @@ import (
 	"github.com/ayinke-llc/malak/internal/pkg/util"
 )
 
+// TODO: migrate these to embed.Fs instead
 var (
 	//go:embed templates/updates/view.html
 	UpdateHTMLEmailTemplate string
@@ -22,6 +23,9 @@ var (
 
 	//go:embed templates/billing/expired.html
 	BillingEndedTemplate string
+
+	// go:embed templates/auth/email_verify.html
+	EmailVerificationTemplate string
 )
 
 type SendOptionsBatch []SendOptions
