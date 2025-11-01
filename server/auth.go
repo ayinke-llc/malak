@@ -3,6 +3,8 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	"net/http"
 	"net/mail"
@@ -17,6 +19,7 @@ import (
 
 	"github.com/ayinke-llc/malak"
 	"github.com/ayinke-llc/malak/config"
+	"github.com/ayinke-llc/malak/internal/pkg/cache"
 	"github.com/ayinke-llc/malak/internal/pkg/jwttoken"
 	"github.com/ayinke-llc/malak/internal/pkg/queue"
 	"github.com/ayinke-llc/malak/internal/pkg/socialauth"
@@ -34,6 +37,7 @@ type authHandler struct {
 	tokenManager      jwttoken.JWTokenManager
 	queue             queue.QueueHandler
 	emailVerification malak.EmailVerificationRepository
+	cache             cache.Cache
 }
 
 type signupRequest struct {
@@ -311,4 +315,70 @@ func (a *authHandler) generateUserToken(user *malak.User, logger *zap.Logger) (r
 		Token:     token.Token,
 	}
 	return resp, StatusSuccess
+}
+
+// @Description Resend email verification email
+// @Tags user
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 429 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /user/resend-verification [post]
+func (a *authHandler) resendVerificationEmail(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("resending verification email")
+
+	user := getUserFromContext(ctx)
+	email := user.Email.String()
+
+	logger = logger.With(zap.String("email", email))
+
+	if user.EmailVerifiedAt != nil {
+		return newAPIStatus(http.StatusBadRequest, "email is already verified"), StatusFailed
+	}
+
+	cacheKey := fmt.Sprintf("email_verification_attempt:%s", user.ID.String())
+
+	exists, err := a.cache.Exists(ctx, cacheKey)
+	if err != nil {
+		logger.Error("could not check cache for verification attempt", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "an error occurred while processing your request"), StatusFailed
+	}
+
+	if exists {
+		return newAPIStatus(http.StatusTooManyRequests, "please wait before requesting another verification email"), StatusFailed
+	}
+
+	if err := a.cache.Add(ctx, cacheKey, []byte("1"), 5*time.Minute); err != nil {
+		logger.Error("could not add verification attempt to cache", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "an error occurred while processing your request"), StatusFailed
+	}
+
+	token, err := malak.NewEmailVerification(user)
+	if err != nil {
+		logger.Error("could not generate email verification token", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not generate verification token"), StatusFailed
+	}
+
+	if err := a.emailVerification.Create(ctx, token); err != nil {
+		logger.Error("could not store email verification token", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not store verification token"), StatusFailed
+	}
+
+	if err := a.queue.Add(ctx, queue.QueueTopicVerifyEmail, queue.EmailVerificationOptions{
+		UserID: user.ID,
+		Token:  token.Token,
+	}); err != nil {
+		logger.Error("could not add verification email to queue", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not send verification email"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "verification email sent successfully"), StatusSuccess
 }

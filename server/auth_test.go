@@ -749,3 +749,156 @@ func generateLoginTestTable() []struct {
 		},
 	}
 }
+
+func TestAuthHandler_ResendVerificationEmail(t *testing.T) {
+	for _, v := range generateResendVerificationEmailTestTable() {
+
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			cacheMock := malak_mocks.NewMockCache(controller)
+			emailVerification := malak_mocks.NewMockEmailVerificationRepository(controller)
+			queueMock := malak_mocks.NewMockQueueHandler(controller)
+
+			v.mockFn(cacheMock, emailVerification, queueMock)
+
+			a := &authHandler{
+				cfg:               getConfig(),
+				cache:             cacheMock,
+				emailVerification: emailVerification,
+				queue:             queueMock,
+			}
+
+			var b = bytes.NewBuffer(nil)
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/user/resend-verification", b)
+			ctx := chi.NewRouteContext()
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
+			req.Header.Add("Content-Type", "application/json")
+
+			req = req.WithContext(writeUserToCtx(req.Context(), v.user))
+
+			WrapMalakHTTPHandler(getLogger(t), a.resendVerificationEmail, getConfig(), "Auth.resendVerificationEmail").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateResendVerificationEmailTestTable() []struct {
+	name               string
+	mockFn             func(cacheMock *malak_mocks.MockCache, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler)
+	expectedStatusCode int
+	user               *malak.User
+} {
+
+	var userID = uuid.MustParse("37f41afb-afff-45cc-bcc0-71249d95df90")
+	now := time.Now()
+
+	return []struct {
+		name               string
+		mockFn             func(cacheMock *malak_mocks.MockCache, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler)
+		expectedStatusCode int
+		user               *malak.User
+	}{
+		{
+			name: "email already verified",
+			mockFn: func(cacheMock *malak_mocks.MockCache, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				cacheMock.EXPECT().Exists(gomock.Any(), gomock.Any()).Times(0)
+			},
+			expectedStatusCode: http.StatusBadRequest,
+			user: &malak.User{
+				ID:              userID,
+				Email:           malak.Email("test@example.com"),
+				EmailVerifiedAt: &now,
+			},
+		},
+		{
+			name: "cache check fails",
+			mockFn: func(cacheMock *malak_mocks.MockCache, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				cacheMock.EXPECT().Exists(gomock.Any(), gomock.Any()).Times(1).Return(false, errors.New("redis error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			user: &malak.User{
+				ID:              userID,
+				Email:           malak.Email("test@example.com"),
+				EmailVerifiedAt: nil,
+			},
+		},
+		{
+			name: "rate limit hit - user requested too recently",
+			mockFn: func(cacheMock *malak_mocks.MockCache, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				cacheMock.EXPECT().Exists(gomock.Any(), gomock.Any()).Times(1).Return(true, nil)
+			},
+			expectedStatusCode: http.StatusTooManyRequests,
+			user: &malak.User{
+				ID:              userID,
+				Email:           malak.Email("test@example.com"),
+				EmailVerifiedAt: nil,
+			},
+		},
+		{
+			name: "cache add fails",
+			mockFn: func(cacheMock *malak_mocks.MockCache, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				cacheMock.EXPECT().Exists(gomock.Any(), gomock.Any()).Times(1).Return(false, nil)
+				cacheMock.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any(), 5*time.Minute).Times(1).Return(errors.New("cache add error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			user: &malak.User{
+				ID:              userID,
+				Email:           malak.Email("test@example.com"),
+				EmailVerifiedAt: nil,
+			},
+		},
+		{
+			name: "email verification create fails",
+			mockFn: func(cacheMock *malak_mocks.MockCache, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				cacheMock.EXPECT().Exists(gomock.Any(), gomock.Any()).Times(1).Return(false, nil)
+				cacheMock.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any(), 5*time.Minute).Times(1).Return(nil)
+				emailVerification.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(errors.New("db error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			user: &malak.User{
+				ID:              userID,
+				Email:           malak.Email("test@example.com"),
+				EmailVerifiedAt: nil,
+			},
+		},
+		{
+			name: "queue add fails",
+			mockFn: func(cacheMock *malak_mocks.MockCache, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				cacheMock.EXPECT().Exists(gomock.Any(), gomock.Any()).Times(1).Return(false, nil)
+				cacheMock.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any(), 5*time.Minute).Times(1).Return(nil)
+				emailVerification.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				queueMock.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(errors.New("queue error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			user: &malak.User{
+				ID:              userID,
+				Email:           malak.Email("test@example.com"),
+				EmailVerifiedAt: nil,
+			},
+		},
+		{
+			name: "verification email sent successfully",
+			mockFn: func(cacheMock *malak_mocks.MockCache, emailVerification *malak_mocks.MockEmailVerificationRepository, queueMock *malak_mocks.MockQueueHandler) {
+				cacheMock.EXPECT().Exists(gomock.Any(), gomock.Any()).Times(1).Return(false, nil)
+				cacheMock.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any(), 5*time.Minute).Times(1).Return(nil)
+				emailVerification.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				queueMock.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+			user: &malak.User{
+				ID:              userID,
+				Email:           malak.Email("test@example.com"),
+				EmailVerifiedAt: nil,
+			},
+		},
+	}
+}

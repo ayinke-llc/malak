@@ -157,6 +157,8 @@ func buildRoutes(
 		tokenManager:      jwtTokenManager,
 		queue:             queueHandler,
 		emailVerification: emailVerificationRepo,
+		cache:             redisCache,
+		cfg:               cfg,
 	}
 
 	workspaceHandler := &workspaceHandler{
@@ -312,6 +314,8 @@ func buildRoutes(
 			r.Use(requireWorkspaceValidSubscription(cfg))
 			r.Get("/",
 				WrapMalakHTTPHandler(logger, auth.fetchCurrentUser, cfg, "Auth.fetchCurrentUser"))
+			r.Post("/resend-verification",
+				WrapMalakHTTPHandler(logger, auth.resendVerificationEmail, cfg, "Auth.resendVerificationEmail"))
 		})
 
 		r.Route("/workspaces", func(r chi.Router) {
