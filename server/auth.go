@@ -448,8 +448,7 @@ func (a *authHandler) verifyEmail(
 		return newAPIStatus(http.StatusBadRequest, "email is already verified"), StatusFailed
 	}
 
-	now := time.Now()
-	user.EmailVerifiedAt = &now
+	user.EmailVerifiedAt = hermes.Ref(time.Now())
 
 	if err := a.userRepo.Update(ctx, user); err != nil {
 		logger.Error("could not update user", zap.Error(err))

@@ -55,7 +55,7 @@ func TestEmailVerification(t *testing.T) {
 	require.Equal(t, ev2.ID, existing.ID)
 }
 
-func TestEmailVerificationGet(t *testing.T) {
+func TestEmailVerification_Get(t *testing.T) {
 	client, teardownFunc := setupDatabase(t)
 	defer teardownFunc()
 

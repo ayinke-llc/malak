@@ -26,11 +26,23 @@ func (u *userRepo) Update(ctx context.Context, user *malak.User) error {
 	ctx, cancelFn := withContext(ctx)
 	defer cancelFn()
 
-	_, err := u.inner.NewUpdate().
-		Where("id = ?", user.ID).
-		Model(user).
-		Exec(ctx)
-	return err
+	return u.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+
+		if user.EmailVerifiedAt != nil {
+			_, err := tx.NewDelete().
+				Where("user_id = ?", user.ID).
+				Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+
+		_, err := tx.NewUpdate().
+			Where("id = ?", user.ID).
+			Model(user).
+			Exec(ctx)
+		return err
+	})
 }
 
 func (u *userRepo) Get(ctx context.Context, opts *malak.FindUserOptions) (*malak.User, error) {
