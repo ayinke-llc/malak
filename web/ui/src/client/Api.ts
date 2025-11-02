@@ -1048,6 +1048,10 @@ export interface ServerUploadImageResponse {
   url: string;
 }
 
+export interface ServerVerifyEmailRequest {
+  token?: string;
+}
+
 export interface ServerWorkspaceOverviewResponse {
   contacts: MalakContactOverview;
   decks: MalakDeckOverview;
@@ -1225,6 +1229,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     registerCreate: (data: ServerSignupRequest, params: RequestParams = {}) =>
       this.request<ServerCreatedUserResponse, ServerAPIStatus>({
         path: `/auth/register`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Verify email address using verification token
+     *
+     * @tags auth
+     * @name VerifyEmailCreate
+     * @request POST:/auth/verify-email
+     */
+    verifyEmailCreate: (data: ServerVerifyEmailRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/auth/verify-email`,
         method: "POST",
         body: data,
         type: ContentType.Json,

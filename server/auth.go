@@ -382,3 +382,79 @@ func (a *authHandler) resendVerificationEmail(
 
 	return newAPIStatus(http.StatusOK, "verification email sent successfully"), StatusSuccess
 }
+
+type verifyEmailRequest struct {
+	GenericRequest
+
+	Token string `json:"token"`
+}
+
+func (v *verifyEmailRequest) Validate() error {
+	if hermes.IsStringEmpty(v.Token) {
+		return errors.New("please provide a verification token")
+	}
+
+	return nil
+}
+
+// @Description Verify email address using verification token
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param message body verifyEmailRequest true "verification token"
+// @Success 200 {object} APIStatus
+// @Failure 400 {object} APIStatus
+// @Failure 404 {object} APIStatus
+// @Failure 500 {object} APIStatus
+// @Router /auth/verify-email [post]
+func (a *authHandler) verifyEmail(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request) (render.Renderer, Status) {
+
+	logger.Debug("verifying email address")
+
+	req := new(verifyEmailRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	verification, err := a.emailVerification.Get(ctx, req.Token)
+	if errors.Is(err, malak.ErrEmailVerificationNotFound) {
+		return newAPIStatus(http.StatusNotFound, "invalid or expired verification token"), StatusFailed
+	}
+
+	if err != nil {
+		logger.Error("could not fetch email verification", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "an error occurred while verifying your email"), StatusFailed
+	}
+
+	user, err := a.userRepo.Get(ctx, &malak.FindUserOptions{
+		ID: verification.UserID,
+	})
+	if err != nil {
+		logger.Error("could not fetch user", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "an error occurred while verifying your email"), StatusFailed
+	}
+
+	if user.EmailVerifiedAt != nil {
+		return newAPIStatus(http.StatusBadRequest, "email is already verified"), StatusFailed
+	}
+
+	now := time.Now()
+	user.EmailVerifiedAt = &now
+
+	if err := a.userRepo.Update(ctx, user); err != nil {
+		logger.Error("could not update user", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "an error occurred while verifying your email"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "email verified successfully"), StatusSuccess
+}

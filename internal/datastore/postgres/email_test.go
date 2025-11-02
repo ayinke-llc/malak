@@ -54,3 +54,45 @@ func TestEmailVerification(t *testing.T) {
 	require.Equal(t, ev2.Token, existing.Token)
 	require.Equal(t, ev2.ID, existing.ID)
 }
+
+func TestEmailVerificationGet(t *testing.T) {
+	client, teardownFunc := setupDatabase(t)
+	defer teardownFunc()
+
+	repo := NewEmailVerificationRepository(client)
+	userRepo := NewUserRepository(client)
+
+	user, err := userRepo.Get(t.Context(), &malak.FindUserOptions{
+		Email: "lanre@test.com",
+	})
+	require.NoError(t, err)
+
+	t.Run("Get existing token", func(t *testing.T) {
+		ev, err := malak.NewEmailVerification(user)
+		require.NoError(t, err)
+
+		err = repo.Create(t.Context(), ev)
+		require.NoError(t, err)
+
+		fetched, err := repo.Get(t.Context(), ev.Token)
+		require.NoError(t, err)
+		require.NotNil(t, fetched)
+		require.Equal(t, ev.Token, fetched.Token)
+		require.Equal(t, ev.UserID, fetched.UserID)
+		require.Equal(t, ev.ID, fetched.ID)
+	})
+
+	t.Run("Get non-existent token", func(t *testing.T) {
+		fetched, err := repo.Get(t.Context(), "non-existent-token")
+		require.Error(t, err)
+		require.ErrorIs(t, err, malak.ErrEmailVerificationNotFound)
+		require.Nil(t, fetched)
+	})
+
+	t.Run("Get empty token", func(t *testing.T) {
+		fetched, err := repo.Get(t.Context(), "")
+		require.Error(t, err)
+		require.ErrorIs(t, err, malak.ErrEmailVerificationNotFound)
+		require.Nil(t, fetched)
+	})
+}

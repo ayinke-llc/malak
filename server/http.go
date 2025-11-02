@@ -307,6 +307,9 @@ func buildRoutes(
 
 			r.Post("/register",
 				WrapMalakHTTPHandler(logger, auth.emailSignup, cfg, "Auth.register"))
+
+			r.Post("/verify-email",
+				WrapMalakHTTPHandler(logger, auth.verifyEmail, cfg, "Auth.verifyEmail"))
 		})
 
 		r.Route("/user", func(r chi.Router) {

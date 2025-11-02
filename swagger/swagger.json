@@ -2812,6 +2812,14 @@
 				],
 				"type": "object"
 			},
+			"server.verifyEmailRequest": {
+				"properties": {
+					"token": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
 			"server.workspaceOverviewResponse": {
 				"properties": {
 					"contacts": {
@@ -2990,6 +2998,68 @@
 							}
 						},
 						"description": "Unauthorized"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"500": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"auth"
+				]
+			}
+		},
+		"/auth/verify-email": {
+			"post": {
+				"description": "Verify email address using verification token",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/server.verifyEmailRequest"
+							}
+						}
+					},
+					"description": "verification token",
+					"required": true,
+					"x-originalParamName": "message"
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "OK"
+					},
+					"400": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/server.APIStatus"
+								}
+							}
+						},
+						"description": "Bad Request"
 					},
 					"404": {
 						"content": {

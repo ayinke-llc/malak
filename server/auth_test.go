@@ -902,3 +902,179 @@ func generateResendVerificationEmailTestTable() []struct {
 		},
 	}
 }
+
+func TestAuthHandler_VerifyEmail(t *testing.T) {
+	for _, v := range generateVerifyEmailTestTable() {
+
+		t.Run(v.name, func(t *testing.T) {
+
+			controller := gomock.NewController(t)
+			defer controller.Finish()
+
+			emailVerification := malak_mocks.NewMockEmailVerificationRepository(controller)
+			userRepo := malak_mocks.NewMockUserRepository(controller)
+
+			v.mockFn(emailVerification, userRepo)
+
+			a := &authHandler{
+				cfg:               getConfig(),
+				emailVerification: emailVerification,
+				userRepo:          userRepo,
+			}
+
+			var b = bytes.NewBuffer(nil)
+			if v.body != nil {
+				err := json.NewEncoder(b).Encode(v.body)
+				require.NoError(t, err)
+			}
+
+			rr := httptest.NewRecorder()
+
+			req := httptest.NewRequest(http.MethodPost, "/auth/verify-email", b)
+			ctx := chi.NewRouteContext()
+			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
+			req.Header.Add("Content-Type", "application/json")
+
+			WrapMalakHTTPHandler(getLogger(t), a.verifyEmail, getConfig(), "Auth.verifyEmail").
+				ServeHTTP(rr, req)
+
+			require.Equal(t, v.expectedStatusCode, rr.Code)
+			verifyMatch(t, rr)
+		})
+	}
+}
+
+func generateVerifyEmailTestTable() []struct {
+	name               string
+	body               map[string]interface{}
+	mockFn             func(emailVerification *malak_mocks.MockEmailVerificationRepository, userRepo *malak_mocks.MockUserRepository)
+	expectedStatusCode int
+} {
+
+	var userID = uuid.MustParse("37f41afb-afff-45cc-bcc0-71249d95df90")
+	now := time.Now()
+
+	return []struct {
+		name               string
+		body               map[string]interface{}
+		mockFn             func(emailVerification *malak_mocks.MockEmailVerificationRepository, userRepo *malak_mocks.MockUserRepository)
+		expectedStatusCode int
+	}{
+		{
+			name: "invalid request body",
+			body: nil,
+			mockFn: func(emailVerification *malak_mocks.MockEmailVerificationRepository, userRepo *malak_mocks.MockUserRepository) {
+				emailVerification.EXPECT().Get(gomock.Any(), gomock.Any()).Times(0)
+			},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "empty token",
+			body: map[string]interface{}{
+				"token": "",
+			},
+			mockFn: func(emailVerification *malak_mocks.MockEmailVerificationRepository, userRepo *malak_mocks.MockUserRepository) {
+				emailVerification.EXPECT().Get(gomock.Any(), gomock.Any()).Times(0)
+			},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "token not found",
+			body: map[string]interface{}{
+				"token": "invalid-token",
+			},
+			mockFn: func(emailVerification *malak_mocks.MockEmailVerificationRepository, userRepo *malak_mocks.MockUserRepository) {
+				emailVerification.EXPECT().Get(gomock.Any(), "invalid-token").Times(1).Return(nil, malak.ErrEmailVerificationNotFound)
+			},
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "database error fetching verification",
+			body: map[string]interface{}{
+				"token": "valid-token",
+			},
+			mockFn: func(emailVerification *malak_mocks.MockEmailVerificationRepository, userRepo *malak_mocks.MockUserRepository) {
+				emailVerification.EXPECT().Get(gomock.Any(), "valid-token").Times(1).Return(nil, errors.New("db error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "user not found",
+			body: map[string]interface{}{
+				"token": "valid-token",
+			},
+			mockFn: func(emailVerification *malak_mocks.MockEmailVerificationRepository, userRepo *malak_mocks.MockUserRepository) {
+				emailVerification.EXPECT().Get(gomock.Any(), "valid-token").Times(1).Return(&malak.EmailVerification{
+					Token:  "valid-token",
+					UserID: userID,
+				}, nil)
+				userRepo.EXPECT().Get(gomock.Any(), &malak.FindUserOptions{
+					ID: userID,
+				}).Times(1).Return(nil, malak.ErrUserNotFound)
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "email already verified",
+			body: map[string]interface{}{
+				"token": "valid-token",
+			},
+			mockFn: func(emailVerification *malak_mocks.MockEmailVerificationRepository, userRepo *malak_mocks.MockUserRepository) {
+				emailVerification.EXPECT().Get(gomock.Any(), "valid-token").Times(1).Return(&malak.EmailVerification{
+					Token:  "valid-token",
+					UserID: userID,
+				}, nil)
+				userRepo.EXPECT().Get(gomock.Any(), &malak.FindUserOptions{
+					ID: userID,
+				}).Times(1).Return(&malak.User{
+					ID:              userID,
+					Email:           malak.Email("test@example.com"),
+					EmailVerifiedAt: &now,
+				}, nil)
+			},
+			expectedStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "user update fails",
+			body: map[string]interface{}{
+				"token": "valid-token",
+			},
+			mockFn: func(emailVerification *malak_mocks.MockEmailVerificationRepository, userRepo *malak_mocks.MockUserRepository) {
+				emailVerification.EXPECT().Get(gomock.Any(), "valid-token").Times(1).Return(&malak.EmailVerification{
+					Token:  "valid-token",
+					UserID: userID,
+				}, nil)
+				userRepo.EXPECT().Get(gomock.Any(), &malak.FindUserOptions{
+					ID: userID,
+				}).Times(1).Return(&malak.User{
+					ID:              userID,
+					Email:           malak.Email("test@example.com"),
+					EmailVerifiedAt: nil,
+				}, nil)
+				userRepo.EXPECT().Update(gomock.Any(), gomock.Any()).Times(1).Return(errors.New("update error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "email verified successfully",
+			body: map[string]interface{}{
+				"token": "valid-token",
+			},
+			mockFn: func(emailVerification *malak_mocks.MockEmailVerificationRepository, userRepo *malak_mocks.MockUserRepository) {
+				emailVerification.EXPECT().Get(gomock.Any(), "valid-token").Times(1).Return(&malak.EmailVerification{
+					Token:  "valid-token",
+					UserID: userID,
+				}, nil)
+				userRepo.EXPECT().Get(gomock.Any(), &malak.FindUserOptions{
+					ID: userID,
+				}).Times(1).Return(&malak.User{
+					ID:              userID,
+					Email:           malak.Email("test@example.com"),
+					EmailVerifiedAt: nil,
+				}, nil)
+				userRepo.EXPECT().Update(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+			},
+			expectedStatusCode: http.StatusOK,
+		},
+	}
+}

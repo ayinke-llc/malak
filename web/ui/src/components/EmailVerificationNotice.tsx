@@ -2,7 +2,7 @@
 
 import useAuthStore from "@/store/auth"
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
-import { MdMarkEmailUnread } from "react-icons/md"
+import { MailWarning } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "./ui/button"
@@ -41,7 +41,7 @@ const EmailVerificationBadge = () => {
   return (
     <div className="grid w-full max-w-xl items-start gap-4">
       <Alert variant={"destructive"}>
-        <MdMarkEmailUnread className="h-4 w-4" />
+        <MailWarning className="h-4 w-4" />
         <AlertTitle>Email verification required</AlertTitle>
         <AlertDescription className="flex items-center justify-between gap-4">
           <span>Please verify your email address to access all features.</span>
