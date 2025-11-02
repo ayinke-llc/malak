@@ -3087,6 +3087,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/resend-verification": {
+            "post": {
+                "description": "Resend email verification email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.APIStatus"
+                        }
+                    }
+                }
+            }
+        },
         "/workspaces": {
             "post": {
                 "description": "Create a new workspace",
@@ -5994,10 +6034,6 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "$ref": "#/definitions/malak.UserMetadata"
-                },
-                "password": {
-                    "description": "keeping this simple for now.\nInitially we had just oauth2 authentication. Ideally, we would have\nsplitted into another table so we can tie users' oauth and password together\nbut we are taking a simpler approach. If ouath2 gives us your email and it exists, we\nlog you in. Else if you have password",
-                    "type": "string"
                 },
                 "roles": {
                     "type": "array",
