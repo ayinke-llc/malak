@@ -80,6 +80,37 @@ func getIP(r *http.Request) string {
 	return r.RemoteAddr
 }
 
+func requireEmailVerification(
+	cfg config.Config,
+) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			ctx, span, _ := getTracer(r.Context(), r, "middleware.requireEmailVerification", cfg.Otel.IsEnabled)
+			defer span.End()
+
+			user := getUserFromContext(ctx)
+
+			// if get request, let iot pass through.
+			// we also want the user to be able to switch workspaces or see their billing data in stripe portal
+			// even if they have no email verified
+			if r.Method == http.MethodGet || r.URL.Path == "/v1/workspaces/billing" ||
+				strings.HasPrefix(r.URL.Path, "/v1/workspaces/switch/") {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			if user.EmailVerifiedAt == nil {
+				_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest,
+					"You need to verify your email address to perform this action"))
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func requireWorkspaceValidSubscription(
 	cfg config.Config,
 ) func(next http.Handler) http.Handler {

@@ -320,6 +320,7 @@ func buildRoutes(
 
 		r.Route("/workspaces", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireEmailVerification(cfg))
 			r.Use(requireWorkspaceValidSubscription(cfg))
 
 			r.Post("/",
@@ -413,6 +414,7 @@ func buildRoutes(
 
 		r.Route("/pipelines", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireEmailVerification(cfg))
 			r.Use(requireWorkspaceValidSubscription(cfg))
 
 			r.Post("/",
@@ -439,6 +441,7 @@ func buildRoutes(
 
 		r.Route("/contacts", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireEmailVerification(cfg))
 			r.Use(requireWorkspaceValidSubscription(cfg))
 
 			r.Post("/",
@@ -485,6 +488,7 @@ func buildRoutes(
 
 		r.Route("/decks", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireEmailVerification(cfg))
 			r.Use(requireWorkspaceValidSubscription(cfg))
 
 			r.Post("/",
@@ -518,6 +522,7 @@ func buildRoutes(
 
 		r.Route("/dashboards", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireEmailVerification(cfg))
 			r.Use(requireWorkspaceValidSubscription(cfg))
 
 			r.Post("/",
@@ -556,6 +561,7 @@ func buildRoutes(
 
 		r.Route("/developers", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireEmailVerification(cfg))
 			r.Use(requireWorkspaceValidSubscription(cfg))
 
 			r.Post("/keys",
@@ -572,6 +578,7 @@ func buildRoutes(
 
 		r.Route("/uploads", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, workspaceRepo))
+			r.Use(requireEmailVerification(cfg))
 			r.Use(requireWorkspaceValidSubscription(cfg))
 
 			r.Route("/decks", func(r chi.Router) {

@@ -347,13 +347,13 @@ func (a *authHandler) resendVerificationEmail(
 	cacheKey := fmt.Sprintf("email_verification_attempt:%s", user.ID.String())
 
 	exists, err := a.cache.Exists(ctx, cacheKey)
-	if err != nil {
+	if err != nil && !errors.Is(err, cache.ErrCacheMiss) {
 		logger.Error("could not check cache for verification attempt", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "an error occurred while processing your request"), StatusFailed
 	}
 
 	if exists {
-		return newAPIStatus(http.StatusTooManyRequests, "please wait before requesting another verification email"), StatusFailed
+		return newAPIStatus(http.StatusTooManyRequests, "please wait another 5 minutes after your first attempt before requesting another verification link"), StatusFailed
 	}
 
 	if err := a.cache.Add(ctx, cacheKey, []byte("1"), 5*time.Minute); err != nil {
