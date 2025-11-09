@@ -122,7 +122,7 @@ func requireAPIKeyOnly(
 			ctx, span, rid := getTracer(r.Context(), r, "middleware.requireAPIKeyOnly", cfg.Otel.IsEnabled)
 			defer span.End()
 
-			logger = logger.With(
+			logger := logger.With(
 				zap.String("request_id", rid),
 				zap.String("path", r.URL.Path),
 				zap.Bool("is_api", true),
@@ -180,7 +180,7 @@ func requireAuthentication(
 			ctx, span, rid := getTracer(r.Context(), r, "middleware.requireAuthentication", cfg.Otel.IsEnabled)
 			defer span.End()
 
-			logger = logger.With(
+			logger := logger.With(
 				zap.String("request_id", rid),
 				zap.String("path", r.URL.Path),
 			)

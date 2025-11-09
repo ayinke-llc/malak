@@ -36,7 +36,7 @@ func WrapMalakHTTPHandler(
 		ctx, span, rid := getTracer(r.Context(), r, spanName, cfg.Otel.IsEnabled)
 		defer span.End()
 
-		logger = logger.With(zap.String("request_id", rid))
+		logger := logger.With(zap.String("request_id", rid))
 
 		if doesWorkspaceExistInContext(r.Context()) {
 			workspace := getWorkspaceFromContext(r.Context()).ID.String()
