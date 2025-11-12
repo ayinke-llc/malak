@@ -24,7 +24,7 @@ var (
 	//go:embed templates/billing/expired.html
 	BillingEndedTemplate string
 
-	// go:embed templates/auth/email_verify.html
+	//go:embed templates/auth/email_verify.html
 	EmailVerificationTemplate string
 )
 

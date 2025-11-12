@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/uptrace/bun"
 
@@ -37,4 +38,23 @@ func (e *emailVerificationRepo) Create(ctx context.Context, ev *malak.EmailVerif
 			_, err = tx.NewInsert().Model(ev).Exec(ctx)
 			return err
 		})
+}
+
+func (e *emailVerificationRepo) Get(ctx context.Context, token string) (*malak.EmailVerification, error) {
+	ctx, cancelFn := withContext(ctx)
+	defer cancelFn()
+
+	var ev malak.EmailVerification
+	err := e.inner.NewSelect().
+		Model(&ev).
+		Where("token = ?", token).
+		Scan(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, malak.ErrEmailVerificationNotFound
+		}
+		return nil, err
+	}
+
+	return &ev, nil
 }
