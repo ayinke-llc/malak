@@ -35,22 +35,25 @@ jobs:
       - name: Install mockgen
         run: go install go.uber.org/mock/mockgen@latest
 
-      # - name: Run go generate
-      #   run: go generate ./...
-      #
-      # - name: Check for uncommitted changes
-      #   run: |
-      #     ## binary from the go build step
-      #     rm malak
-      #     if [[ -n $(git status --porcelain) ]]; then
-      #       echo "There are uncommitted changes after running 'go generate':"
-      #       echo "Run go generate ./... locally then commit again"
-      #       git status
-      #       git diff
-      #       exit 1
-      #     else
-      #       echo "No changes detected after running 'go generate'"
-      #     fi
+      - name: Run export
+        run: go run cmd/*.go export
+
+      - name: Run go generate
+        run: go generate ./...
+
+      - name: Check for uncommitted changes
+        run: |
+          ## binary from the go build step
+          rm malak
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "There are uncommitted changes after running 'go generate':"
+            echo "Run go generate ./... locally then commit again"
+            git status
+            git diff
+            exit 1
+          else
+            echo "No changes detected after running 'go generate'"
+          fi
 
       - name: Run tests with coverage
         ## skip generated files, tools/ folder which is really just a bunch of scripts. Also skips package main

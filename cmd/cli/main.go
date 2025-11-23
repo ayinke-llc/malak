@@ -45,7 +45,7 @@ func Execute() error {
 		Short: `Investors' relationship hub for founders and Indiehackers`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 
-			if cmd.Use == "version" {
+			if cmd.Use == "version" || cmd.Use == "export-config" {
 				return nil
 			}
 
@@ -78,6 +78,7 @@ func Execute() error {
 	addCronCommand(rootCmd, cfg)
 	addPlanCommand(rootCmd, cfg)
 	addIntegrationCommand(rootCmd, cfg)
+	addConfigGenerateCommand(rootCmd)
 
 	return rootCmd.Execute()
 }

@@ -1,0 +1,131 @@
+{
+  "logging": {
+    "mode": "dev"
+  },
+  "frontend": {
+    "app_url": "https://app.malak.vc"
+  },
+  "database": {
+    "database_type": "postgres",
+    "postgres": {
+      "dsn": "postgres://malak:malak@localhost:9432/malak?sslmode=disable",
+      "log_queries": true,
+      "query_timeout": 5000000000
+    },
+    "redis": {
+      "dsn": "redis://localhost:9379"
+    }
+  },
+  "otel": {
+    "endpoint": "localhost:9317",
+    "use_tls": false,
+    "headers": "",
+    "is_enabled": true
+  },
+  "http": {
+    "port": 5300,
+    "rate_limit": {
+      "type": "memory",
+      "is_enabled": true,
+      "requests_per_minute": 300,
+      "burst_interval": 60000000000
+    },
+    "swagger": {
+      "port": 0,
+      "ui_enabled": false
+    },
+    "metrics": {
+      "enabled": false,
+      "username": "",
+      "password": ""
+    }
+  },
+  "billing": {
+    "stripe": {
+      "api_key": "",
+      "webhook_secret": ""
+    },
+    "is_enabled": false,
+    "trial_days": 30,
+    "default_plan_reference": ""
+  },
+  "secrets": {
+    "client_timeout": 0,
+    "provider": "",
+    "vault": {
+      "address": "",
+      "token": "",
+      "path": ""
+    },
+    "infisical": {
+      "client_id": "",
+      "client_secret": "",
+      "site_url": "https://app.infisical.com",
+      "project_id": "",
+      "environment": "prod"
+    },
+    "aes": {
+      "key": ""
+    },
+    "secrets_manager": {
+      "region": "",
+      "access_secret": "",
+      "access_key": "",
+      "endpoint": ""
+    }
+  },
+  "api_key": {
+    "hash_secret": ""
+  },
+  "uploader": {
+    "driver": "s3",
+    "max_upload_size": 10485760,
+    "s_3": {
+      "access_key": "",
+      "access_secret": "",
+      "region": "",
+      "endpoint": "",
+      "log_operations": false,
+      "bucket": "",
+      "deck_bucket": "",
+      "use_tls": true,
+      "cloudflare_bucket_domain": "",
+      "cloudflare_deck_bucket_domain": ""
+    }
+  },
+  "email": {
+    "provider": "",
+    "sender": "",
+    "sender_name": "",
+    "smtp": {
+      "host": "",
+      "port": 0,
+      "username": "",
+      "password": "",
+      "use_tls": false
+    },
+    "resend": {
+      "api_key": "",
+      "webhook_secret": ""
+    }
+  },
+  "auth": {
+    "google": {
+      "client_id": "",
+      "client_secret": "",
+      "redirect_uri": "",
+      "scopes": [
+        "profile",
+        "email"
+      ],
+      "is_enabled": false
+    },
+    "jwt": {
+      "key": ""
+    }
+  },
+  "analytics": {
+    "max_mind_country_db": "internal/pkg/geolocation/maxmind/testdata/country.mmdb",
+    "max_mind_city_db": "internal/pkg/geolocation/maxmind/testdata/city.mmdb"
+  }
+}
