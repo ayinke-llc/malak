@@ -90,30 +90,30 @@ func TestNew_Errors(t *testing.T) {
 func getConfig(port int) config.Config {
 	return config.Config{
 		Email: struct {
-			Provider   config.EmailProvider "mapstructure:\"provider\" yaml:\"provider\""
-			Sender     malak.Email          "mapstructure:\"sender\" yaml:\"sender\""
-			SenderName string               "mapstructure:\"sender_name\" yaml:\"sender_name\""
+			Provider   config.EmailProvider "mapstructure:\"provider\" yaml:\"provider\" json:\"provider\""
+			Sender     malak.Email          "mapstructure:\"sender\" yaml:\"sender\" json:\"sender\""
+			SenderName string               "mapstructure:\"sender_name\" yaml:\"sender_name\" json:\"sender_name\""
 			SMTP       struct {
-				Host     string "mapstructure:\"host\" yaml:\"host\""
-				Port     int    "mapstructure:\"port\" yaml:\"port\""
-				Username string "mapstructure:\"username\" yaml:\"username\""
-				Password string "mapstructure:\"password\" yaml:\"password\""
-				UseTLS   bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
-			} "mapstructure:\"smtp\" yaml:\"smtp\""
+				Host     string "mapstructure:\"host\" yaml:\"host\" json:\"host\""
+				Port     int    "mapstructure:\"port\" yaml:\"port\" json:\"port\""
+				Username string "mapstructure:\"username\" yaml:\"username\" json:\"username\""
+				Password string "mapstructure:\"password\" yaml:\"password\" json:\"password\""
+				UseTLS   bool   "yaml:\"use_tls\" mapstructure:\"use_tls\" json:\"use_tls\""
+			} "mapstructure:\"smtp\" yaml:\"smtp\" json:\"smtp\""
 			Resend struct {
-				APIKey        string "mapstructure:\"api_key\" yaml:\"api_key\""
-				WebhookSecret string "mapstructure:\"webhook_secret\" yaml:\"webhook_secret\""
-			} "mapstructure:\"resend\" yaml:\"resend\""
+				APIKey        string "mapstructure:\"api_key\" yaml:\"api_key\" json:\"api_key\""
+				WebhookSecret string "mapstructure:\"webhook_secret\" yaml:\"webhook_secret\" json:\"webhook_secret\""
+			} "mapstructure:\"resend\" yaml:\"resend\" json:\"resend\""
 		}{
 			Provider:   config.EmailProviderSmtp,
 			Sender:     malak.Email("yo@oops.com"),
 			SenderName: "Malak Updates",
 			SMTP: struct {
-				Host     string "mapstructure:\"host\" yaml:\"host\""
-				Port     int    "mapstructure:\"port\" yaml:\"port\""
-				Username string "mapstructure:\"username\" yaml:\"username\""
-				Password string "mapstructure:\"password\" yaml:\"password\""
-				UseTLS   bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
+				Host     string "mapstructure:\"host\" yaml:\"host\" json:\"host\""
+				Port     int    "mapstructure:\"port\" yaml:\"port\" json:\"port\""
+				Username string "mapstructure:\"username\" yaml:\"username\" json:\"username\""
+				Password string "mapstructure:\"password\" yaml:\"password\" json:\"password\""
+				UseTLS   bool   "yaml:\"use_tls\" mapstructure:\"use_tls\" json:\"use_tls\""
 			}{
 				Username: "random",
 				Password: "random",

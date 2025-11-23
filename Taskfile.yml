@@ -43,3 +43,7 @@ tasks:
     desc: Run all tests including integration tests
     cmds:
       - go test -v -tags integration ./...
+
+  config:generate:
+    desc: generate the config in .env, json and yml formats
+    cmd: go run cmd/main.go export-config

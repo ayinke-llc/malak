@@ -12,18 +12,18 @@ func getConfig() config.Config {
 	return config.Config{
 		Auth: struct {
 			Google struct {
-				ClientID     string   "yaml:\"client_id\" mapstructure:\"client_id\""
-				ClientSecret string   "yaml:\"client_secret\" mapstructure:\"client_secret\""
-				RedirectURI  string   "yaml:\"redirect_uri\" mapstructure:\"redirect_uri\""
-				Scopes       []string "yaml:\"scopes\" mapstructure:\"scopes\""
-				IsEnabled    bool     "yaml:\"is_enabled\" mapstructure:\"is_enabled\""
-			} "yaml:\"google\" mapstructure:\"google\""
+				ClientID     string   "yaml:\"client_id\" mapstructure:\"client_id\" json:\"client_id\""
+				ClientSecret string   "yaml:\"client_secret\" mapstructure:\"client_secret\" json:\"client_secret\""
+				RedirectURI  string   "yaml:\"redirect_uri\" mapstructure:\"redirect_uri\" json:\"redirect_uri\""
+				Scopes       []string "yaml:\"scopes\" mapstructure:\"scopes\" json:\"scopes\""
+				IsEnabled    bool     "yaml:\"is_enabled\" mapstructure:\"is_enabled\" json:\"is_enabled\""
+			} "yaml:\"google\" mapstructure:\"google\" json:\"google\""
 			JWT struct {
-				Key string "yaml:\"key\" mapstructure:\"key\""
-			} "yaml:\"jwt\" mapstructure:\"jwt\""
+				Key string "yaml:\"key\" mapstructure:\"key\" json:\"key\""
+			} "yaml:\"jwt\" mapstructure:\"jwt\" json:\"jwt\""
 		}{
 			JWT: struct {
-				Key string "yaml:\"key\" mapstructure:\"key\""
+				Key string "yaml:\"key\" mapstructure:\"key\" json:\"key\""
 			}{
 				Key: "a907e75f80910f5dc5b8c677de1de611ffa80be9d7d9f9dd614c8c7846db1062",
 			},
