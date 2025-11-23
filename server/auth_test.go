@@ -48,25 +48,25 @@ func verifyMatch(t *testing.T, v interface{}) {
 func getConfig() config.Config {
 	return config.Config{
 		Logging: struct {
-			Mode config.LogMode "yaml:\"mode\" mapstructure:\"mode\""
+			Mode config.LogMode "yaml:\"mode\" mapstructure:\"mode\" json:\"mode\""
 		}{
 			Mode: config.LogModeDev,
 		},
 		APIKey: struct {
-			HashSecret string "mapstructure:\"hash_secret\" yaml:\"hash_secret\""
+			HashSecret string "mapstructure:\"hash_secret\" yaml:\"hash_secret\" json:\"hash_secret\""
 		}{
 			HashSecret: "1234597u8tysdhfjhfk",
 		},
 		Database: struct {
-			DatabaseType config.DatabaseType "yaml:\"database_type\" mapstructure:\"database_type\""
+			DatabaseType config.DatabaseType "yaml:\"database_type\" mapstructure:\"database_type\" json:\"database_type\""
 			Postgres     struct {
-				DSN          string        "yaml:\"dsn\" mapstructure:\"dsn\""
-				LogQueries   bool          "yaml:\"log_queries\" mapstructure:\"log_queries\""
-				QueryTimeout time.Duration "yaml:\"query_timeout\" mapstructure:\"query_timeout\""
-			} "yaml:\"postgres\" mapstructure:\"postgres\""
+				DSN          string        "yaml:\"dsn\" mapstructure:\"dsn\" json:\"dsn\""
+				LogQueries   bool          "yaml:\"log_queries\" mapstructure:\"log_queries\" json:\"log_queries\""
+				QueryTimeout time.Duration "yaml:\"query_timeout\" mapstructure:\"query_timeout\" json:\"query_timeout\""
+			} "yaml:\"postgres\" mapstructure:\"postgres\" json:\"postgres\""
 			Redis struct {
-				DSN string "yaml:\"dsn\" mapstructure:\"dsn\""
-			} "yaml:\"redis\" mapstructure:\"redis\""
+				DSN string "yaml:\"dsn\" mapstructure:\"dsn\" json:\"dsn\""
+			} "yaml:\"redis\" mapstructure:\"redis\" json:\"redis\""
 		}{
 			DatabaseType: config.DatabaseTypePostgres,
 		},
@@ -74,33 +74,33 @@ func getConfig() config.Config {
 			Port: 8000,
 		},
 		Uploader: struct {
-			Driver        config.UploadDriver "yaml:\"driver\" mapstructure:\"driver\""
-			MaxUploadSize int64               "yaml:\"max_upload_size\" mapstructure:\"max_upload_size\""
+			Driver        config.UploadDriver "yaml:\"driver\" mapstructure:\"driver\" json:\"driver\""
+			MaxUploadSize int64               "yaml:\"max_upload_size\" mapstructure:\"max_upload_size\" json:\"max_upload_size\""
 			S3            struct {
-				AccessKey                  string "yaml:\"access_key\" mapstructure:\"access_key\""
-				AccessSecret               string "yaml:\"access_secret\" mapstructure:\"access_secret\""
-				Region                     string "yaml:\"region\" mapstructure:\"region\""
-				Endpoint                   string "yaml:\"endpoint\" mapstructure:\"endpoint\""
-				LogOperations              bool   "yaml:\"log_operations\" mapstructure:\"log_operations\""
-				Bucket                     string "yaml:\"bucket\" mapstructure:\"bucket\""
-				DeckBucket                 string "yaml:\"deck_bucket\" mapstructure:\"deck_bucket\""
-				UseTLS                     bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
-				CloudflareBucketDomain     string "yaml:\"cloudflare_bucket_domain\" mapstructure:\"cloudflare_bucket_domain\""
-				CloudflareDeckBucketDomain string "yaml:\"cloudflare_deck_bucket_domain\" mapstructure:\"cloudflare_deck_bucket_domain\""
-			} "yaml:\"s3\" mapstructure:\"s3\""
+				AccessKey                  string "yaml:\"access_key\" mapstructure:\"access_key\" json:\"access_key\""
+				AccessSecret               string "yaml:\"access_secret\" mapstructure:\"access_secret\" json:\"access_secret\""
+				Region                     string "yaml:\"region\" mapstructure:\"region\" json:\"region\""
+				Endpoint                   string "yaml:\"endpoint\" mapstructure:\"endpoint\" json:\"endpoint\""
+				LogOperations              bool   "yaml:\"log_operations\" mapstructure:\"log_operations\" json:\"log_operations\""
+				Bucket                     string "yaml:\"bucket\" mapstructure:\"bucket\" json:\"bucket\""
+				DeckBucket                 string "yaml:\"deck_bucket\" mapstructure:\"deck_bucket\" json:\"deck_bucket\""
+				UseTLS                     bool   "yaml:\"use_tls\" mapstructure:\"use_tls\" json:\"use_tls\""
+				CloudflareBucketDomain     string "yaml:\"cloudflare_bucket_domain\" mapstructure:\"cloudflare_bucket_domain\" json:\"cloudflare_bucket_domain\""
+				CloudflareDeckBucketDomain string "yaml:\"cloudflare_deck_bucket_domain\" mapstructure:\"cloudflare_deck_bucket_domain\" json:\"cloudflare_deck_bucket_domain\""
+			} "yaml:\"s3\" mapstructure:\"s3\" json:\"s_3\""
 		}{
 			Driver: config.UploadDriverS3,
 			S3: struct {
-				AccessKey                  string "yaml:\"access_key\" mapstructure:\"access_key\""
-				AccessSecret               string "yaml:\"access_secret\" mapstructure:\"access_secret\""
-				Region                     string "yaml:\"region\" mapstructure:\"region\""
-				Endpoint                   string "yaml:\"endpoint\" mapstructure:\"endpoint\""
-				LogOperations              bool   "yaml:\"log_operations\" mapstructure:\"log_operations\""
-				Bucket                     string "yaml:\"bucket\" mapstructure:\"bucket\""
-				DeckBucket                 string "yaml:\"deck_bucket\" mapstructure:\"deck_bucket\""
-				UseTLS                     bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
-				CloudflareBucketDomain     string "yaml:\"cloudflare_bucket_domain\" mapstructure:\"cloudflare_bucket_domain\""
-				CloudflareDeckBucketDomain string "yaml:\"cloudflare_deck_bucket_domain\" mapstructure:\"cloudflare_deck_bucket_domain\""
+				AccessKey                  string "yaml:\"access_key\" mapstructure:\"access_key\" json:\"access_key\""
+				AccessSecret               string "yaml:\"access_secret\" mapstructure:\"access_secret\" json:\"access_secret\""
+				Region                     string "yaml:\"region\" mapstructure:\"region\" json:\"region\""
+				Endpoint                   string "yaml:\"endpoint\" mapstructure:\"endpoint\" json:\"endpoint\""
+				LogOperations              bool   "yaml:\"log_operations\" mapstructure:\"log_operations\" json:\"log_operations\""
+				Bucket                     string "yaml:\"bucket\" mapstructure:\"bucket\" json:\"bucket\""
+				DeckBucket                 string "yaml:\"deck_bucket\" mapstructure:\"deck_bucket\" json:\"deck_bucket\""
+				UseTLS                     bool   "yaml:\"use_tls\" mapstructure:\"use_tls\" json:\"use_tls\""
+				CloudflareBucketDomain     string "yaml:\"cloudflare_bucket_domain\" mapstructure:\"cloudflare_bucket_domain\" json:\"cloudflare_bucket_domain\""
+				CloudflareDeckBucketDomain string "yaml:\"cloudflare_deck_bucket_domain\" mapstructure:\"cloudflare_deck_bucket_domain\" json:\"cloudflare_deck_bucket_domain\""
 			}{
 				AccessKey:    "test-key",
 				AccessSecret: "test-secret",
@@ -110,30 +110,30 @@ func getConfig() config.Config {
 			},
 		},
 		Email: struct {
-			Provider   config.EmailProvider "mapstructure:\"provider\" yaml:\"provider\""
-			Sender     malak.Email          "mapstructure:\"sender\" yaml:\"sender\""
-			SenderName string               "mapstructure:\"sender_name\" yaml:\"sender_name\""
+			Provider   config.EmailProvider "mapstructure:\"provider\" yaml:\"provider\" json:\"provider\""
+			Sender     malak.Email          "mapstructure:\"sender\" yaml:\"sender\" json:\"sender\""
+			SenderName string               "mapstructure:\"sender_name\" yaml:\"sender_name\" json:\"sender_name\""
 			SMTP       struct {
-				Host     string "mapstructure:\"host\" yaml:\"host\""
-				Port     int    "mapstructure:\"port\" yaml:\"port\""
-				Username string "mapstructure:\"username\" yaml:\"username\""
-				Password string "mapstructure:\"password\" yaml:\"password\""
-				UseTLS   bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
-			} "mapstructure:\"smtp\" yaml:\"smtp\""
+				Host     string "mapstructure:\"host\" yaml:\"host\" json:\"host\""
+				Port     int    "mapstructure:\"port\" yaml:\"port\" json:\"port\""
+				Username string "mapstructure:\"username\" yaml:\"username\" json:\"username\""
+				Password string "mapstructure:\"password\" yaml:\"password\" json:\"password\""
+				UseTLS   bool   "yaml:\"use_tls\" mapstructure:\"use_tls\" json:\"use_tls\""
+			} "mapstructure:\"smtp\" yaml:\"smtp\" json:\"smtp\""
 			Resend struct {
-				APIKey        string "mapstructure:\"api_key\" yaml:\"api_key\""
-				WebhookSecret string "mapstructure:\"webhook_secret\" yaml:\"webhook_secret\""
-			} "mapstructure:\"resend\" yaml:\"resend\""
+				APIKey        string "mapstructure:\"api_key\" yaml:\"api_key\" json:\"api_key\""
+				WebhookSecret string "mapstructure:\"webhook_secret\" yaml:\"webhook_secret\" json:\"webhook_secret\""
+			} "mapstructure:\"resend\" yaml:\"resend\" json:\"resend\""
 		}{
 			Provider:   config.EmailProviderSmtp,
 			Sender:     malak.Email("test@example.com"),
 			SenderName: "Test Sender",
 			SMTP: struct {
-				Host     string "mapstructure:\"host\" yaml:\"host\""
-				Port     int    "mapstructure:\"port\" yaml:\"port\""
-				Username string "mapstructure:\"username\" yaml:\"username\""
-				Password string "mapstructure:\"password\" yaml:\"password\""
-				UseTLS   bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
+				Host     string "mapstructure:\"host\" yaml:\"host\" json:\"host\""
+				Port     int    "mapstructure:\"port\" yaml:\"port\" json:\"port\""
+				Username string "mapstructure:\"username\" yaml:\"username\" json:\"username\""
+				Password string "mapstructure:\"password\" yaml:\"password\" json:\"password\""
+				UseTLS   bool   "yaml:\"use_tls\" mapstructure:\"use_tls\" json:\"use_tls\""
 			}{
 				Host:     "localhost",
 				Port:     1025,
@@ -142,54 +142,54 @@ func getConfig() config.Config {
 			},
 		},
 		Otel: struct {
-			Endpoint  string "yaml:\"endpoint\" mapstructure:\"endpoint\""
-			UseTLS    bool   "yaml:\"use_tls\" mapstructure:\"use_tls\""
-			Headers   string "yaml:\"headers\" mapstructure:\"headers\""
-			IsEnabled bool   "yaml:\"is_enabled\" mapstructure:\"is_enabled\""
+			Endpoint  string "yaml:\"endpoint\" mapstructure:\"endpoint\" json:\"endpoint\""
+			UseTLS    bool   "yaml:\"use_tls\" mapstructure:\"use_tls\" json:\"use_tls\""
+			Headers   string "yaml:\"headers\" mapstructure:\"headers\" json:\"headers\""
+			IsEnabled bool   "yaml:\"is_enabled\" mapstructure:\"is_enabled\" json:\"is_enabled\""
 		}{
 			IsEnabled: false,
 		},
-		Billing: struct {
-			Stripe struct {
-				APIKey        string "yaml:\"api_key\" mapstructure:\"api_key\""
-				WebhookSecret string "yaml:\"webhook_secret\" mapstructure:\"webhook_secret\""
-			} "yaml:\"stripe\" mapstructure:\"stripe\""
-			IsEnabled            bool   "yaml:\"is_enabled\" mapstructure:\"is_enabled\""
-			TrialDays            int64  "yaml:\"trial_days\" mapstructure:\"trial_days\""
-			DefaultPlanReference string "yaml:\"default_plan_reference\" mapstructure:\"default_plan_reference\""
+	Billing: struct {
+		Stripe struct {
+			APIKey        string "yaml:\"api_key\" mapstructure:\"api_key\" json:\"api_key\""
+			WebhookSecret string "yaml:\"webhook_secret\" mapstructure:\"webhook_secret\" json:\"webhook_secret\""
+		} "yaml:\"stripe\" mapstructure:\"stripe\" json:\"stripe\""
+		IsEnabled            bool   "yaml:\"is_enabled\" mapstructure:\"is_enabled\" json:\"is_enabled\""
+		TrialDays            int64  "yaml:\"trial_days\" mapstructure:\"trial_days\" json:\"trial_days\""
+		DefaultPlanReference string "yaml:\"default_plan_reference\" mapstructure:\"default_plan_reference\" json:\"default_plan_reference\""
+	}{
+		Stripe: struct {
+			APIKey        string "yaml:\"api_key\" mapstructure:\"api_key\" json:\"api_key\""
+			WebhookSecret string "yaml:\"webhook_secret\" mapstructure:\"webhook_secret\" json:\"webhook_secret\""
 		}{
-			Stripe: struct {
-				APIKey        string "yaml:\"api_key\" mapstructure:\"api_key\""
-				WebhookSecret string "yaml:\"webhook_secret\" mapstructure:\"webhook_secret\""
-			}{
-				WebhookSecret: webhookSecret,
-			},
+			WebhookSecret: webhookSecret,
 		},
+	},
 		Auth: struct {
 			Google struct {
-				ClientID     string   "yaml:\"client_id\" mapstructure:\"client_id\""
-				ClientSecret string   "yaml:\"client_secret\" mapstructure:\"client_secret\""
-				RedirectURI  string   "yaml:\"redirect_uri\" mapstructure:\"redirect_uri\""
-				Scopes       []string "yaml:\"scopes\" mapstructure:\"scopes\""
-				IsEnabled    bool     "yaml:\"is_enabled\" mapstructure:\"is_enabled\""
-			} "yaml:\"google\" mapstructure:\"google\""
+				ClientID     string   "yaml:\"client_id\" mapstructure:\"client_id\" json:\"client_id\""
+				ClientSecret string   "yaml:\"client_secret\" mapstructure:\"client_secret\" json:\"client_secret\""
+				RedirectURI  string   "yaml:\"redirect_uri\" mapstructure:\"redirect_uri\" json:\"redirect_uri\""
+				Scopes       []string "yaml:\"scopes\" mapstructure:\"scopes\" json:\"scopes\""
+				IsEnabled    bool     "yaml:\"is_enabled\" mapstructure:\"is_enabled\" json:\"is_enabled\""
+			} "yaml:\"google\" mapstructure:\"google\" json:\"google\""
 			JWT struct {
-				Key string "yaml:\"key\" mapstructure:\"key\""
-			} "yaml:\"jwt\" mapstructure:\"jwt\""
+				Key string "yaml:\"key\" mapstructure:\"key\" json:\"key\""
+			} "yaml:\"jwt\" mapstructure:\"jwt\" json:\"jwt\""
 		}{
 			Google: struct {
-				ClientID     string   "yaml:\"client_id\" mapstructure:\"client_id\""
-				ClientSecret string   "yaml:\"client_secret\" mapstructure:\"client_secret\""
-				RedirectURI  string   "yaml:\"redirect_uri\" mapstructure:\"redirect_uri\""
-				Scopes       []string "yaml:\"scopes\" mapstructure:\"scopes\""
-				IsEnabled    bool     "yaml:\"is_enabled\" mapstructure:\"is_enabled\""
+				ClientID     string   "yaml:\"client_id\" mapstructure:\"client_id\" json:\"client_id\""
+				ClientSecret string   "yaml:\"client_secret\" mapstructure:\"client_secret\" json:\"client_secret\""
+				RedirectURI  string   "yaml:\"redirect_uri\" mapstructure:\"redirect_uri\" json:\"redirect_uri\""
+				Scopes       []string "yaml:\"scopes\" mapstructure:\"scopes\" json:\"scopes\""
+				IsEnabled    bool     "yaml:\"is_enabled\" mapstructure:\"is_enabled\" json:\"is_enabled\""
 			}{
 				ClientID:     "test-client-id",
 				ClientSecret: "test-client-secret",
 				IsEnabled:    true,
 			},
 			JWT: struct {
-				Key string "yaml:\"key\" mapstructure:\"key\""
+				Key string "yaml:\"key\" mapstructure:\"key\" json:\"key\""
 			}{
 				Key: "a907e75f80910f5dc5b8c677de1de611ffa80be9d7d9f9dd614c8c7846db1062",
 			},

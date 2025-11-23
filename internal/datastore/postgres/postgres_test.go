@@ -22,26 +22,26 @@ import (
 func getConfig(dsn string) *config.Config {
 	return &config.Config{
 		Logging: struct {
-			Mode config.LogMode "yaml:\"mode\" mapstructure:\"mode\""
+			Mode config.LogMode "yaml:\"mode\" mapstructure:\"mode\" json:\"mode\""
 		}{
 			Mode: config.LogModeDev,
 		},
 		Database: struct {
-			DatabaseType config.DatabaseType "yaml:\"database_type\" mapstructure:\"database_type\""
+			DatabaseType config.DatabaseType "yaml:\"database_type\" mapstructure:\"database_type\" json:\"database_type\""
 			Postgres     struct {
-				DSN          string        "yaml:\"dsn\" mapstructure:\"dsn\""
-				LogQueries   bool          "yaml:\"log_queries\" mapstructure:\"log_queries\""
-				QueryTimeout time.Duration "yaml:\"query_timeout\" mapstructure:\"query_timeout\""
-			} "yaml:\"postgres\" mapstructure:\"postgres\""
+				DSN          string        "yaml:\"dsn\" mapstructure:\"dsn\" json:\"dsn\""
+				LogQueries   bool          "yaml:\"log_queries\" mapstructure:\"log_queries\" json:\"log_queries\""
+				QueryTimeout time.Duration "yaml:\"query_timeout\" mapstructure:\"query_timeout\" json:\"query_timeout\""
+			} "yaml:\"postgres\" mapstructure:\"postgres\" json:\"postgres\""
 			Redis struct {
-				DSN string "yaml:\"dsn\" mapstructure:\"dsn\""
-			} "yaml:\"redis\" mapstructure:\"redis\""
+				DSN string "yaml:\"dsn\" mapstructure:\"dsn\" json:\"dsn\""
+			} "yaml:\"redis\" mapstructure:\"redis\" json:\"redis\""
 		}{
 			DatabaseType: config.DatabaseTypePostgres,
 			Postgres: struct {
-				DSN          string        "yaml:\"dsn\" mapstructure:\"dsn\""
-				LogQueries   bool          "yaml:\"log_queries\" mapstructure:\"log_queries\""
-				QueryTimeout time.Duration "yaml:\"query_timeout\" mapstructure:\"query_timeout\""
+				DSN          string        "yaml:\"dsn\" mapstructure:\"dsn\" json:\"dsn\""
+				LogQueries   bool          "yaml:\"log_queries\" mapstructure:\"log_queries\" json:\"log_queries\""
+				QueryTimeout time.Duration "yaml:\"query_timeout\" mapstructure:\"query_timeout\" json:\"query_timeout\""
 			}{
 				DSN:          dsn,
 				LogQueries:   true,
