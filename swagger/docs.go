@@ -5995,10 +5995,6 @@ const docTemplate = `{
                 "metadata": {
                     "$ref": "#/definitions/malak.UserMetadata"
                 },
-                "password": {
-                    "description": "keeping this simple for now.\nInitially we had just oauth2 authentication. Ideally, we would have\nsplitted into another table so we can tie users' oauth and password together\nbut we are taking a simpler approach. If ouath2 gives us your email and it exists, we\nlog you in. Else if you have password",
-                    "type": "string"
-                },
                 "roles": {
                     "type": "array",
                     "items": {
