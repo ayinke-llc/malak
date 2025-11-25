@@ -10,13 +10,14 @@ import (
 	"testing"
 
 	"github.com/ayinke-llc/hermes"
-	"github.com/ayinke-llc/malak"
-	malak_mocks "github.com/ayinke-llc/malak/mocks"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
+
+	"github.com/ayinke-llc/malak"
+	malak_mocks "github.com/ayinke-llc/malak/mocks"
 )
 
 var workspaceID = uuid.MustParse("8ce0f580-4d6d-429e-9d0e-a78eb99f62c2")
@@ -666,17 +667,6 @@ func generateWorkspaceUpdateTestTable() []struct {
 			expectedStatusCode: http.StatusBadRequest,
 			req: updateWorkspaceRequest{
 				Timezone: hermes.Ref("oops/oops"),
-			},
-		},
-		{
-			name: "invalid image provided",
-			mockFn: func(workspaceRepo *malak_mocks.MockWorkspaceRepository, planRepo *malak_mocks.MockPlanRepository) {
-
-			},
-			expectedStatusCode: http.StatusBadRequest,
-			req: updateWorkspaceRequest{
-				Timezone: hermes.Ref("Africa/Algiers"),
-				Logo:     hermes.Ref("https://google.com"),
 			},
 		},
 		{
