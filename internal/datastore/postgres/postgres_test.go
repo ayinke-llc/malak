@@ -7,16 +7,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ayinke-llc/malak/config"
 	testfixtures "github.com/go-testfixtures/testfixtures/v3"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
 	"github.com/uptrace/bun"
 	"go.uber.org/zap"
+
+	testpostgres "github.com/testcontainers/testcontainers-go/modules/postgres"
+
+	"github.com/ayinke-llc/malak/config"
 )
 
 func getConfig(dsn string) *config.Config {
@@ -91,32 +93,20 @@ func setupDatabase(t *testing.T) (*bun.DB, func()) {
 
 	os.Setenv("TZ", "")
 
-	var dsn string
+	dbName := "malaktest"
 
-	containerReq := testcontainers.ContainerRequest{
-		Image:        "postgres:latest",
-		ExposedPorts: []string{"5432/tcp"},
-		WaitingFor:   wait.ForListeningPort("5432/tcp"),
-		Env: map[string]string{
-			"POSTGRES_DB":       "malaktest",
-			"POSTGRES_PASSWORD": "malaktest",
-			"POSTGRES_USER":     "malaktest",
-		},
-	}
-
-	dbContainer, err := testcontainers.GenericContainer(
+	postgresContainer, err := testpostgres.Run(
 		t.Context(),
-		testcontainers.GenericContainerRequest{
-			ContainerRequest: containerReq,
-			Started:          true,
-		})
+		"postgres:18",
+		testpostgres.WithDatabase(dbName),
+		testpostgres.WithUsername(dbName),
+		testpostgres.WithPassword(dbName),
+		testpostgres.BasicWaitStrategies(),
+	)
 	require.NoError(t, err)
 
-	port, err := dbContainer.MappedPort(t.Context(), "5432")
+	dsn, err := postgresContainer.ConnectionString(t.Context(), "sslmode=disable")
 	require.NoError(t, err)
-
-	dsn = fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", "malaktest", "malaktest",
-		fmt.Sprintf("localhost:%s", port.Port()), "malaktest")
 
 	prepareTestDatabase(t, dsn)
 
@@ -127,7 +117,6 @@ func setupDatabase(t *testing.T) (*bun.DB, func()) {
 	require.NoError(t, err)
 
 	return db, func() {
-		err := dbContainer.Terminate(t.Context())
-		require.NoError(t, err)
+		require.NoError(t, testcontainers.TerminateContainer(postgresContainer))
 	}
 }
