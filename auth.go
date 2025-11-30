@@ -9,6 +9,10 @@ import (
 	"github.com/uptrace/bun"
 )
 
+const (
+	ErrEmailVerificationNotFound = MalakError("email verification token not found")
+)
+
 type EmailVerification struct {
 	Token     string    `json:"token"`
 	ID        uuid.UUID `bun:"type:uuid,default:uuid_generate_v4(),pk" json:"id"`
@@ -33,4 +37,5 @@ func NewEmailVerification(u *User) (*EmailVerification, error) {
 
 type EmailVerificationRepository interface {
 	Create(context.Context, *EmailVerification) error
+	Get(context.Context, string) (*EmailVerification, error)
 }

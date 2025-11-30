@@ -604,14 +604,6 @@ export interface MalakUser {
   full_name?: string;
   id?: string;
   metadata?: MalakUserMetadata;
-  /**
-   * keeping this simple for now.
-   * Initially we had just oauth2 authentication. Ideally, we would have
-   * splitted into another table so we can tie users' oauth and password together
-   * but we are taking a simpler approach. If ouath2 gives us your email and it exists, we
-   * log you in. Else if you have password
-   */
-  password?: string;
   roles?: MalakUserRole[];
   updated_at?: string;
 }
@@ -1056,6 +1048,10 @@ export interface ServerUploadImageResponse {
   url: string;
 }
 
+export interface ServerVerifyEmailRequest {
+  token?: string;
+}
+
 export interface ServerWorkspaceOverviewResponse {
   contacts: MalakContactOverview;
   decks: MalakDeckOverview;
@@ -1233,6 +1229,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     registerCreate: (data: ServerSignupRequest, params: RequestParams = {}) =>
       this.request<ServerCreatedUserResponse, ServerAPIStatus>({
         path: `/auth/register`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Verify email address using verification token
+     *
+     * @tags auth
+     * @name VerifyEmailCreate
+     * @request POST:/auth/verify-email
+     */
+    verifyEmailCreate: (data: ServerVerifyEmailRequest, params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/auth/verify-email`,
         method: "POST",
         body: data,
         type: ContentType.Json,
@@ -2156,6 +2169,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<ServerCreatedUserResponse, ServerAPIStatus>({
         path: `/user`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Resend email verification email
+     *
+     * @tags user
+     * @name ResendVerificationCreate
+     * @request POST:/user/resend-verification
+     */
+    resendVerificationCreate: (params: RequestParams = {}) =>
+      this.request<ServerAPIStatus, ServerAPIStatus>({
+        path: `/user/resend-verification`,
+        method: "POST",
         format: "json",
         ...params,
       }),
